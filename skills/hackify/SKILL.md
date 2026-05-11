@@ -55,7 +55,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 1. **Classify the task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. The classification drives which questionnaire to use (see `references/clarify-questions.md`).
 2. **Read just enough context.** Use `Grep` / `Read` / your codebase exploration tool of choice. For broad architecture, scan key entry points and follow imports; for blast radius, grep usages of the symbol; for onboarding to a single module, read it top-to-bottom. For trivial single-file edits, skip exploration.
-3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions.md`. Strip questions whose answer is already evident from the ask or from context you just read. Add task-specific questions if the bank misses something obvious. The recommended option is always the **first** option in each question, suffixed with `(Recommended)`.
+3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions.md`. Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) documented at the top of that file. Strip questions whose answer is already evident from the ask or from context you just read. Add task-specific questions if the bank misses something obvious. The recommended option is always the **first** option in each question, suffixed with `(Recommended)`.
 4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Use the `AskUserQuestion` tool — every clarify question goes through it. Plain numbered lists in chat are forbidden for clarify questions. Lead the message that contains the first wizard call with a one-paragraph "What I heard you ask for" recap so misreadings surface before the user wastes time clicking. `AskUserQuestion` takes 1–4 questions per call and 2–4 options per question, so split a longer questionnaire across **multiple back-to-back `AskUserQuestion` calls** in the same turn (one call after the other; user answers the first batch, then you immediately fire the next). Use `multiSelect: true` only when options are non-exclusive; never use it for "pick one approach" questions. The "Other" free-text option is auto-provided — never add one yourself.
 5. **Wait.** Do not start Phase 2 until the user has answered every wizard question. If a single answer is ambiguous, ask **one** targeted follow-up via another `AskUserQuestion` call — do not spiral into iterative interrogation.
 
@@ -287,6 +287,8 @@ See `references/finish.md`.
 ## Parallel agents — the default, not the exception
 
 The user wants speed. Whenever there are 2+ independent pieces of work — **dispatch foreground subagents in parallel in a single message**. Do not run them sequentially when they're independent.
+
+**Every sub-agent prompt you write conforms to the canonical Template Contract** in `references/parallel-agents.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders for runtime values. The contract is binding because Haiku-class models read these prompts; the structure prevents the soft-language / missing-verification / unanchored-severity failure modes documented in the v0.1.0 post-mortem. Every existing template in `references/parallel-agents.md` already conforms; new templates MUST conform.
 
 Use parallel agents for:
 
