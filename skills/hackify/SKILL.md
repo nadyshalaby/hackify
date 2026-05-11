@@ -14,6 +14,7 @@ This skill is fully self-contained. **Never call other skills** — third-party 
 - **Default for every prompt** that asks for any of: building / adding / fixing / refactoring / redesigning / restyling / debugging / polishing / migrating / testing / discussing-then-building.
 - **Slash command** (when the user types it explicitly): `/hackify:hackify <ask>` to start, `/hackify:hackify resume <slug>` to continue.
 - **Carve-outs (skill optional):** trivial factual Q&A, one-line typo fixes, pure read-only inspection that won't lead to writing/editing/committing.
+- **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick` instead. That skill skips Plan+Gate, Spec review, Multi-reviewer, and the 4-options finish; runs Clarify-if-needed → Implement → Verify → Summary; falls back to full hackify on signal (≥2 failed attempts, >3 files touched, security-sensitive path, user requests Phase 5).
 
 When in doubt, invoke. A redundant skill load is cheap; a missed one ships broken work.
 
@@ -263,6 +264,10 @@ Push back only with **technical evidence** — never performative agreement. If 
 **Step D — archive the work-doc** (options 1 and 2 only): move from `<project>/docs/work/<slug>.md` to `<project>/docs/work/done/<slug>.md`. Update frontmatter `status: done`. The Post-mortem section is mandatory at this point — 3–8 bullets capturing what surprised, what to remember next time.
 
 **Step E — worktree cleanup** (1, 2, or 4): `git worktree remove <path>` and delete the local branch if merged. NOT for option 3.
+
+**Step F — Summary table** (1 or 2 only): Generate a concise 2-column Area/Change markdown table covering every change shipped. Print it to the chat. Append the same table to the archived work-doc inside the Post-mortem section under a new `## Summary of changes shipped` subheading. Area labels are 1–4 word concept/theme tokens; Change cells are ≤25 words with `backticks` for technical terms. See `references/finish.md` "Summary table — authoring guidance" for rules and a worked example.
+
+**Invoking the summary on demand.** The same Area/Change table is available any time during a task via the `/hackify:summary` slash command, or by phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat only; the Phase 6 Step F invocation also appends to the work-doc.
 
 See `references/finish.md`.
 

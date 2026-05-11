@@ -230,3 +230,45 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 | Worktree removal with uncommitted changes (`--force`) | User's work could vanish. Stop, ask. |
 | Picking the option for the user | They pick. Always present 4. |
 | Open-ended "what next?" question | Drift. Stick to the 4-options structure. |
+
+---
+
+## Summary table — authoring guidance
+
+Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task — the user reads it to verify alignment before the work-doc archive moves to `done/`.
+
+### Area-label rules (left column)
+
+- 1–4 words. Concept/theme labels (e.g. `Plugin manifest`, `Validator coverage`, `Slash command`).
+- NOT a file path. NOT a DoD bullet ID. NOT a Task ID.
+- Same noun-phrase shape across all rows for visual rhythm.
+- Group by conceptual theme, not by file: if three files all change to add the same feature, one row, not three.
+
+### Change-cell rules (right column)
+
+- ≤25 words. Present-tense action verbs ("bumps", "adds", "tightens", "splits").
+- Use `backticks` for every technical token: filenames, identifiers, version strings, glob patterns, regex.
+- Do not editorialize ("nicely tightens", "elegantly removes") — just state the change.
+- If a single area has multiple changes, pick the most user-visible and append a brief secondary clause; do not list >3 changes per cell.
+
+### Grouping heuristics
+
+- File-family clustering: changes to `plugin.json` + `marketplace.json` collapse into one `Plugin manifest` row.
+- DoD-bullet clustering: changes that all serve one DoD bullet collapse into one row.
+- Severity-based ordering: most user-impactful row first; pure-internal/validator rows last.
+
+### Worked example (5-row table)
+
+| Area | Change |
+|---|---|
+| Plugin manifest | `version` bumped to `0.1.4` across `plugin.json` and `marketplace.json` |
+| Quick mode | new `skills/quick/SKILL.md` registers `/hackify:quick`; skips Plan+Gate, Spec review, Multi-reviewer, 4-options finish |
+| Summary command | new `commands/summary.md` registers `/hackify:summary`; on-demand Area/Change recap |
+| SKILL.md | adds Phase 6 Step F + phrase triggers + `When to invoke` pointer to `/hackify:quick` |
+| Validator | checks `[18]`–`[23]` enforce both features cannot regress silently |
+
+End the printed output with exactly one follow-up line:
+
+> Happy to walk through any of these in more detail — happy to elaborate.
+
+Never omit the follow-up; never extend it.
