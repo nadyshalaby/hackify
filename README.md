@@ -238,6 +238,33 @@ Yes. Each sub-project (for instance, your backend and frontend repos) is its own
 **What if a task turns out to need a file outside its allowlist?**
 The agent stops and reports back rather than editing the file. The parent decides: either re-dispatch with a widened allowlist, or split the work into a follow-up task in the next wave. The allowlist is the contract that makes parallel implementation safe.
 
+## Troubleshooting installs
+
+**`This plugin uses a source type your Claude Code version does not support.`**
+You're on a Claude Code build older than the one that ships the typed-`source` schema. Run `claude --upgrade` (or update via your package manager) and retry. Versions 0.1.1 and newer of this plugin use the documented typed-object form, which all recent Claude Code releases accept.
+
+**`No ED25519 host key is known for github.com and you have requested strict checking.`**
+Your machine has never seen github.com's host fingerprints. Run once:
+
+```bash
+ssh-keyscan -t ed25519,rsa,ecdsa github.com >> ~/.ssh/known_hosts
+```
+
+Idempotent; safe to re-run. After that, retry the install.
+
+**`Permission denied (publickey).`**
+The clone is trying SSH and the SSH key on your machine isn't registered with GitHub. Easiest fix: re-authenticate with HTTPS so future clones don't need an SSH key:
+
+```bash
+gh auth logout -h github.com
+gh auth login -h github.com   # choose HTTPS when prompted
+```
+
+Versions 0.1.2 and newer of this plugin already clone over HTTPS, so the install should now succeed without further changes after refreshing the marketplace (`/plugin marketplace update hackify-marketplace`).
+
+**Plugin doesn't appear after install.**
+Reload skills with `/reload-plugins` (or restart Claude Code). The hackify skill registers as `/hackify:hackify` and also auto-triggers when you describe any non-trivial dev task.
+
 ## Contributing
 
 Issues and pull requests are welcome on [GitHub](https://github.com/nadyshalaby/hackify). The most useful bug reports include the work-doc that demonstrates the failure — the file already captures the original ask, the plan, the implementation log, and the verification output, so it is usually most of the repro by itself.
