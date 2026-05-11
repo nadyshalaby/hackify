@@ -1,11 +1,12 @@
 ---
 slug: summary-step-and-quick-mode
 title: v0.1.4 — Phase 6 summary table, /hackify:summary command, and /hackify:quick compressed-flow skill
-status: planning
+status: done
 type: feature
 created: 2026-05-11
+completed: 2026-05-11
 project: hackify
-current_task: (none — awaiting gate)
+current_task: archived
 worktree: /Users/corecave/Code/hackify
 branch: main
 related:
@@ -165,12 +166,122 @@ Wave 5 (finish):
 
 ## Implementation Log
 
-_(filled in per completed task during Phase 3.)_
+### 2026-05-11 — Phase 2.5 spec review (complete)
+
+3 parallel reviewers (prompts conforming to v0.1.3 7-section contract). Findings folded into work-doc before Wave 1:
+- **Reviewer A:** Phase 3b reference inconsistency (listed under Skipped in Reference design but not in DoD/Tasks/Validator); sample table check-ID drift `[20]`→`[21]`; D14 missing `review-and-verify.md`; T10 weak-model task with no covering DoD bullet; CHANGELOG section count under-specified.
+- **Reviewer B:** D5 frontmatter cap is wrong unit (words → chars, 1,536-char Claude Code limit verified via live docs); name regex `^[a-z0-9-]{1,64}$` unenforced by validator; 4 fallback triggers not all testable predicates; namespace collision rule with future `skills/summary/` flagged latent.
+- **Reviewer C:** T12 commit-gating missing (must re-run validator before commit); missing `mkdir -p` for new `commands/` + `skills/quick/` dirs; T2 granularity outlier (~30-40 min); slug↔filename mismatch.
+
+Applied surgical patches in-place: Phase 3b clarified as NOT-skipped, sample table check-ID fixed, fallback triggers specified as concrete predicates, D5 unit changed to chars, D14 extended to 3 files, `mkdir -p` added to T1/T2, file renamed from `summary-step-and-command.md` → `summary-step-and-quick-mode.md` to match slug.
+
+### 2026-05-11 — Wave 1 (T1–T6) — complete
+
+Two parallel agents dispatched in one message + 4 inline tasks:
+- **T1 agent** authored `commands/summary.md` (107 lines, 7-section contract conformant, SEVERITY omitted as generation task, Shape B self-checklist VERIFICATION, ≤500 word OUTPUT cap, follow-up line locked).
+- **T2 agent** authored `skills/quick/SKILL.md` (description 1474 chars, name regex valid, Workflow shape + Kept phases + Skipped phases + Fallback to full hackify + Fallback procedure + When NOT to use + Summary table — mandatory + Anti-rationalizations with 6 rows; Phase 3b explicitly in own "Note" section, NOT in Skipped block).
+- **T3 inline:** SKILL.md Phase 6 Step F + phrase-triggers paragraph + Carve-outs bullet pointing to `/hackify:quick`.
+- **T4 inline:** `references/finish.md` "Summary table — authoring guidance" subsection appended with Area-label rules, Change-cell rules, grouping heuristics, 5-row worked example, exact follow-up line.
+- **T5 inline:** `plugin.json` + `marketplace.json` plugin entry bumped to `0.1.4`.
+- **T6 inline:** CHANGELOG `## [0.1.4]` entry added at top with patch-label-minor-scope caveat, `### Added` (two subsections: Summary + Quick mode), `### Changed`, `### Validator`.
+
+### 2026-05-11 — Wave 2 + Wave 3 (T7 + T8) — complete
+
+Extended `scripts/validate-dod.sh` with 6 new check sections `[18]`–`[23]`. Existing `[1]`–`[17]` unchanged. `bash scripts/validate-dod.sh` ran clean: ALL CHECKS PASSED.
+
+### 2026-05-11 — Wave 4 (T9–T11) — complete
+
+3 parallel foreground reviewers:
+- **Reviewer A:** Zero Critical. 3 Important — CHANGELOG completeness verbatim not validator-covered; D7 fallback trigger (c) glob testability under-specified; description ≤1500 chars cap not validator-enforced.
+- **Reviewer B:** Zero Critical for `commands/summary.md`. 7 Critical for `skills/quick/SKILL.md` fallback triggers: missing counting heuristic on word caps; categorical-label rules give valid examples only; placeholders lack refusal guard; attempt counter storage undefined; `git diff HEAD` misses untracked files; glob match scope undefined; phrase-list scope ambiguous.
+- **Reviewer C:** Zero Critical. All three v0.1.3 reference files byte-identical to v0.1.3 tag. Validator diff shows only additive `[18]`–`[23]`; `[1]`–`[17]` unchanged.
+
+Applied 5 of Reviewer B's 7 Criticals inline: placeholder refusal guard added to summary command; attempt counter relocated to disk; file-count trigger includes untracked; security glob specified as case-insensitive substring match; phrase-list scope narrowed to most recent message. Deferred 2 to v0.1.5 (counting heuristic + invalid-example anchors).
+
+### 2026-05-11 — Wave 5 (T12) — complete
+
+Final `validate-dod.sh` clean across `[1]`–`[23]`. Commit `a8875f0` pushed; tag `v0.1.4` pushed. Work-doc archived to `docs/work/done/`. (Subsequent fix-up commit completed this section after the initial commit shipped with placeholder Implementation Log content — caught by a tail-grep verification; harness file-rename tracking missed the final 2 Edits.)
 
 ## Verification
 
-_(filled in during Phase 4 — paste fresh `validate-dod.sh` output covering `[1]`–`[23]`.)_
+`bash scripts/validate-dod.sh` final output summary:
+
+```
+[1]  required files exist                                                          — 8/8 ok
+[2]  reference files (expect 9)                                                    — ok
+[3]  JSON files parse                                                              — valid
+[4]  plugin.json required fields                                                   — 8/8 ok
+[5]  marketplace.json required fields                                              — 4/4 ok
+[6]  token scrub                                                                   — 0 hits
+[7]  README line bounds                                                            — 275 lines (range 250..450)
+[8]  SKILL.md frontmatter                                                          — name + description present
+[9]  template structural conformance                                               — 11/11 templates conform
+[10] SEVERITY conditional                                                          — 7 review templates have SEVERITY; 4 build/research omit
+[11] canonical SEVERITY phrase                                                     — all review templates contain verbatim line
+[12] ROLE substance check                                                          — all templates have identity, allowlist framework, anti-patterns, Bias to/against
+[13] no leaked absolute paths                                                      — 0 hits across all reference files
+[14] wizard structural conformance                                                 — 7/7 banks conform
+[15] OUTPUT word cap presence                                                      — all templates + escalation reviewer have explicit cap
+[16] version consistency                                                           — plugin.json = marketplace.json = 0.1.4
+[17] SKILL.md cross-refs                                                           — both contracts referenced
+[18] commands/summary.md + frontmatter + Area/Change tokens                        — 4/4 ok
+[19] SKILL.md Phase 6 mentions Summary table + /hackify:summary                    — 2/2 ok
+[20] finish.md Summary-table authoring subsection                                  — 2/2 ok
+[21] skills/quick/SKILL.md + name regex + description                              — 3/3 ok
+[22] quick SKILL.md lists 4 skipped phases                                         — 5/5 ok
+[23] quick SKILL.md documents mandatory Summary table                              — ok
+
+ALL CHECKS PASSED
+```
+
+Repository state at finish:
+- 2 new files: `commands/summary.md`, `skills/quick/SKILL.md`.
+- 6 modified files: `skills/hackify/SKILL.md`, `skills/hackify/references/finish.md`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `scripts/validate-dod.sh`.
+- v0.1.3 reference files (parallel-agents.md, clarify-questions.md, review-and-verify.md) byte-identical to v0.1.3 tag — confirmed by Reviewer C.
+- Validator `[1]`–`[23]` all green.
 
 ## Post-mortem
 
-_(filled in during Phase 6 — MUST include the Area/Change Summary table under `## Summary of changes shipped`.)_
+1. **Phase 2.5 surfaced 8 substantial Criticals before Wave 1 began** — Phase 3b reference inconsistency, frontmatter cap wrong unit (words vs chars, 1,536-char limit), missing `mkdir -p` for new directories, slug↔filename mismatch, fallback triggers not testable predicates, name-regex unenforced, sample-table check-ID drift, D14 incomplete file list. Folding these into the work-doc before code was written saved a full implementation pass. The spec-review is genuinely the most leveraged phase in the workflow.
+
+2. **Live-docs research is non-negotiable for any schema-bound feature.** Reviewer B at Phase 2.5 fetched `code.claude.com/docs/en/plugins-reference` + `/en/skills` and discovered the description-field cap is 1,536 chars, not words. v0.1.0 lost 2 iterations to similar schema-deferral findings; v0.1.4 caught the equivalent at plan time. Rule: any feature touching plugin schema MUST fetch live docs during Phase 2.5, not "verify later".
+
+3. **Contract-conformance ≠ Haiku-reliability** — both reviewers are necessary. Phase 2.5 approved the structural plan; Phase 5 Reviewer B then surfaced 7 Criticals on weak-model execution. Lesson: every dispatch prompt body has TWO review surfaces — structural (does it have all 7 sections?) and execution (would Haiku get it right?). v0.1.3 introduced the structural check; v0.1.4 confirms the execution check is equally load-bearing.
+
+4. **Untracked files don't appear in `git diff --name-only HEAD`** — quick mode's file-count trigger would have silently missed new files. Caught by Phase 5; fixed with `git ls-files --others --exclude-standard`. Generic lesson: when sampling git state, always reconcile tracked + untracked + staged.
+
+5. **State-on-disk beats state-in-session for circuit breakers.** Quick-mode attempt counter was originally "in-session state" — caught by Phase 5 as non-testable across subagent boundaries. Relocated to `<project>/docs/work/.quick-<slug>.md` with `attempt: N` as first line of every Implementation Log entry. Disk persistence survives subagent restarts; parent agent reads the file to test the predicate.
+
+6. **Placeholder refusal guard belongs in every dispatch prompt body.** Phase 5 found that `commands/summary.md` could receive literal `{{...}}` text if the dispatcher misses a substitution. Adding "refuse and report `unfilled placeholder: <name>`" is a one-line hardening with high upside. Worth retrofitting into v0.1.3 templates as v0.1.5 polish.
+
+7. **Bundling related features in one release pays off when interaction is non-trivial.** Summary table is mandatory in BOTH full hackify Phase 6 Step F AND quick-mode end-of-flow. If shipped in separate releases, the cross-feature contract would have been a retrofit. Bundling made it a primary design decision.
+
+8. **The Edit-after-rename harness gotcha bit late in Wave 5.** Renaming the work-doc via `mv` during Phase 2.5 (to fix the slug mismatch) broke the harness's Read-then-Edit tracking for subsequent Edit calls — two Edits silently failed, and the work-doc shipped with placeholder Implementation Log + Post-mortem content. Caught after the initial commit + tag had pushed; recovered via a follow-up commit on main since `marketplace.json` ref is `main` (installs get HEAD, not the tagged commit). Rule: after any file rename, re-Read the file before subsequent Edits — the harness tracks files by original path.
+
+## Summary of changes shipped
+
+| Area | Change |
+|---|---|
+| Plugin manifest | `version` bumped to `0.1.4` across `plugin.json` and `marketplace.json` |
+| Summary command | new `commands/summary.md` registers `/hackify:summary`; 7-section contract body produces on-demand Area/Change table |
+| Phase 6 Step F | `skills/hackify/SKILL.md` Phase 6 gains explicit Summary-table step that prints to chat + appends to work-doc |
+| Phrase triggers | `show summary`, `summarize`, `summary table`, `show me what changed` documented in main SKILL.md |
+| Summary authoring | `references/finish.md` gains Area-label / Change-cell rules + 5-row worked example |
+| Quick mode skill | new `skills/quick/SKILL.md` registers `/hackify:quick`; runs Clarify-if-ambiguous → Implement → Verify → Summary |
+| Skipped phases | exactly 4 phases skipped (Phase 2, 2.5, 5, four-options); Phase 3b NOT skipped — fallback escalates instead |
+| Fallback triggers | 4 testable predicates (counter on disk, file-count incl untracked, security glob, phrase-scan latest message) |
+| `When to invoke` | main SKILL.md adds bullet pointing small tasks at `/hackify:quick` |
+| Validator | checks `[18]`–`[23]` added; `[1]`–`[17]` byte-identical to v0.1.3 per Reviewer C |
+| CHANGELOG | v0.1.4 entry with patch-label-minor-scope caveat + Added (Summary + Quick) / Changed / Validator |
+
+Happy to walk through any of these in more detail — happy to elaborate.
+
+## Follow-ups for v0.1.5
+
+- Counting-heuristic for word-cap enforcement in `commands/summary.md` (Reviewer B Critical #1, deferred).
+- Invalid-example anchors alongside valid examples in Area-label rules and When-NOT-to-use bullets (Reviewer B Critical #2, deferred).
+- Validator check `[24]` to grep CHANGELOG.md for verbatim "patch-label-minor-scope" string (Reviewer A Important).
+- Validator check `[25]` to assert `! test -d skills/summary` and `! test -f commands/quick.md` so the latent namespace collision Reviewer B at Phase 2.5 flagged stays prevented.
+- Validator check `[26]` to assert `skills/quick/SKILL.md` description ≤1500 chars (Reviewer A Important).
+- Retrofit placeholder refusal guard into every v0.1.3 sub-agent template in `parallel-agents.md` (Reviewer B Phase 5 found this critical for `commands/summary.md`; same hardening worth applying upstream).
+- Harness gotcha rule: every skill/command authoring task explicitly states "Read after rename before subsequent Edit" — bit this release in Wave 5.
