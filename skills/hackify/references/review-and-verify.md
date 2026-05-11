@@ -1,6 +1,6 @@
 # Verify & Review — Phases 4 + 5
 
-Phase 4 proves the **original ask** is met. Phase 5 ensures the **code is good**. Both run after the last Tasks checkbox is ticked.
+Phase 4 proves the **original ask** is met. Phase 5 ensures the **code is good**. Both run after the last Sprint Backlog checkbox is ticked.
 
 ---
 
@@ -14,7 +14,7 @@ Phase 4 proves the **original ask** is met. Phase 5 ensures the **code is good**
 - [ ] All tests pass — fresh test-command output, exit 0, 0 failures, 0 errors
 - [ ] Linter clean — fresh lint output, 0 errors (warnings only if pre-existing)
 - [ ] Typecheck clean — fresh typecheck output, 0 errors
-- [ ] All Tasks checkboxes ticked
+- [ ] All Sprint Backlog checkboxes ticked
 - [ ] Every Definition-of-Done bullet from Phase 2 verified — paste evidence per bullet
 - [ ] No placeholders, no orphan TODOs, no debug logging left behind
 - [ ] No new lint suppressions (zero tolerance)
@@ -81,7 +81,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `references/parallel-agents.md` under "Multi-reviewer (Phase 5)". Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
 
-The self-review still happens — the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Verification → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
+The self-review still happens — the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
 ```
 - [ ] DRY — no duplicated logic; existing helpers reused; new helpers extracted if 3+ uses
@@ -235,7 +235,7 @@ before producing OUTPUT.
 **SEVERITY**
 
 - **Critical** — A defect that will ship broken work, lose data, leak
-  credentials, or violate the work-doc's Definition of Done if not
+  credentials, or violate the work-doc's Acceptance Criteria if not
   fixed before merge. Anchored examples:
   - A schema field referenced in the diff cannot be verified against
     live docs or live source — Critical (uncertainty about contract
@@ -341,8 +341,8 @@ When pushing back, lead with the technical reason, not the disagreement:
 | Severity | Action |
 |---|---|
 | Critical | Fix now. Do NOT advance to Phase 6 until resolved. Re-run verification. |
-| Important | Fix before claiming done. May extend the work-doc Tasks list (mark added tasks "review-driven"). |
-| Minor | Either fix now if cheap (≤5 min) OR add a Post-mortem entry as a follow-up. Do not silently drop. |
+| Important | Fix before claiming done. May extend the work-doc Sprint Backlog list (mark added tasks "review-driven"). |
+| Minor | Either fix now if cheap (≤5 min) OR add a Retrospective entry as a follow-up. Do not silently drop. |
 
 ---
 
@@ -357,5 +357,5 @@ If review found Critical or Important issues and you fixed them, **re-run Phase 
 The self-review is only useful if you're honest about it. The temptation to tick all boxes and move on is real. Counter it:
 
 - For any item you're tempted to tick without checking, **actually check** — open the file, grep, run the linter scoped to the file.
-- For any item that's a soft pass ("mostly DRY"), **state the soft pass** in the notes column. The Post-mortem will pick it up.
+- For any item that's a soft pass ("mostly DRY"), **state the soft pass** in the notes column. The Retrospective will pick it up.
 - If the diff has a section you genuinely don't understand well enough to review (e.g., a domain you haven't worked in), **escalate** even if the diff is small. Self-review only works when you can self-review.

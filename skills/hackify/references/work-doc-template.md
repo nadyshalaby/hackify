@@ -2,6 +2,8 @@
 
 Drop this skeleton into `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` at the start of Phase 2. Fill it as you go through phases. Keep frontmatter accurate — it is the resume contract.
 
+> **Back-compat for older work-docs.** Archived work-docs using the prior section names (`Definition of Done`, `Tasks`, `Implementation Log`, `Verification`, `Post-mortem`) remain readable — `skills/hackify/SKILL.md`'s resume-mode rule (authored by T1.4a) accepts either label set. New work-docs use the sprint vocabulary above.
+
 ---
 
 ```markdown
@@ -16,6 +18,8 @@ related: []
 current_task: null
 worktree: null
 branch: null
+sprint_goal: |
+  One- to two-sentence sprint goal — the headline outcome the work-doc commits to.
 ---
 
 # Add invitation expiry to closed sign-up
@@ -33,7 +37,7 @@ branch: null
 ### Q2 — [topic]
 ...
 
-## 3. Definition of Done
+## 3. Acceptance Criteria
 
 A short, verifiable checklist. Each item must be testable or observable.
 
@@ -56,7 +60,7 @@ A short, verifiable checklist. Each item must be testable or observable.
 
 **Architectural touchpoints.** [files/modules this will modify]
 
-## 5. Tasks
+## 5. Sprint Backlog
 
 Flat checklist. One commit per task. Each task is 5–30 minutes of focused work.
 
@@ -64,7 +68,7 @@ Flat checklist. One commit per task. Each task is 5–30 minutes of focused work
 - [ ] **T2** — [task name]: ...
 - [ ] **T3** — ...
 
-## 6. Implementation Log
+## 6. Daily Updates
 
 Append one entry per task as you complete (or get stuck on) it.
 
@@ -84,7 +88,7 @@ Append one entry per task as you complete (or get stuck on) it.
 ### T2 — [task name] — in progress
 - ...
 
-## 7. Verification (Phase 4 / 5)
+## 7. Sprint Review (Phase 4 / 5)
 
 ### DoD checklist with evidence
 
@@ -129,9 +133,9 @@ Append one entry per task as you complete (or get stuck on) it.
 
 - **Critical:** none / [list]
 - **Important:** none / [list]
-- **Minor:** none / [list — fix now if cheap, else add to Post-mortem]
+- **Minor:** none / [list — fix now if cheap, else add to Retrospective]
 
-## 8. Post-mortem
+## 8. Retrospective
 
 3–8 bullets. What surprised. What to remember next time. Pointers to follow-up work.
 
@@ -156,11 +160,12 @@ Append one entry per task as you complete (or get stuck on) it.
 | `current_task` | `T<n>` or `null` | Where to resume |
 | `worktree` | absolute path or `null` | If using git worktree |
 | `branch` | branch name or `null` | Git branch the work lives on |
+| `sprint_goal` | YAML block scalar (`|`) or `null` | One- to two-sentence sprint goal — the headline outcome the work-doc commits to |
 
 ## Naming conventions
 
 - **Slug.** Date prefix only when the doc is *created* (yyyy-mm-dd). Slug body is concise: `2026-05-03-add-invitation-expiry`, not `2026-05-03-feature-to-add-invitation-expiry-to-the-closed-signup`.
-- **Cross-project tasks.** Create one doc per project; mirror the Tasks section across them; link via `related` frontmatter. Don't try to make one doc span repos — each project has its own commit/PR cadence.
+- **Cross-project tasks.** Create one doc per project; mirror the Sprint Backlog across them; link via `related` frontmatter. Don't try to make one doc span repos — each project has its own commit/PR cadence.
 - **Branch name.** `<type>/<slug>` — e.g. `feature/add-invitation-expiry`, `fix/oauth-state-leak`.
 
 ## What NOT to put in the work-doc
@@ -168,4 +173,4 @@ Append one entry per task as you complete (or get stuck on) it.
 - Conversation transcripts.
 - Long architectural essays — keep the Approach section ≤200 words. If you need depth, link to a `<project>/docs/architecture/<topic>.md` file.
 - Output dumps unrelated to the DoD evidence.
-- Speculation about future features (those go in the Post-mortem as follow-ups, with explicit ownership).
+- Speculation about future features (those go in the Retrospective as follow-ups, with explicit ownership).

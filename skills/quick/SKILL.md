@@ -3,103 +3,122 @@ name: quick
 description: Compressed-flow companion to the hackify workflow. Use for small bug fixes, direct quick-effort requests, single-file edits, polish/typo work, and tiny tweaks where full hackify ceremony (Plan+Gate, Spec review, Multi-reviewer, 4-options finish) would burn more wall-clock and tokens than the change is worth. Auto-discovery triggers — invoke this skill when the user says any of "quick fix", "small change", "just fix the", "one-line fix", "tiny edit", "small fix", "small bug", "quick patch", "minor tweak", or the explicit slash form /hackify:quick. Workflow shape Phase 1 (clarify only if ambiguous; zero questions otherwise) -> Phase 3 (implement, single agent or inline; file allowlist still applies) -> Phase 4 (verify; test + lint + typecheck still mandatory) -> Phase 6 Step F (mandatory 2-column Area/Change summary table, printed to chat). Do NOT use for cross-file refactors, redesigns, debug investigations of unknown root causes, or anything with security/auth/crypto/migration surface — those go to full hackify from the start. Falls back to full hackify automatically on any of 4 testable signals — implementation-attempt counter reaches 2, git diff --name-only HEAD | wc -l > 3, any touched path matches *auth*/*crypto*/*migration*/*secret*/*token*/*password*, or the user explicitly requests Phase 5 / multi-reviewer / full review during the task. On fallback, quick mode writes a work-doc from accumulated context and re-enters full hackify Phase 2.
 ---
 
-# Hackify Quick — Compressed Flow For Small Tasks
+## Pre-flight: smart router — pick the right flow
 
-Quick mode is a sibling to the main hackify skill, not a sub-skill. It runs the same end-to-end discipline (clarify → implement → verify → summary) with the heavy ceremony stripped out, for tasks that fit the small-and-direct carve-out. When the task grows past the carve-out, the fallback rules below escalate to full hackify cleanly — no half-done state, no lost context.
+Before doing anything else when invoked, the router decides whether the user prompt actually belongs in quick mode. Three signal groups are evaluated against the user's most recent prompt (the one that triggered this skill load); exactly one must fire to stay in quick. If zero or two-or-more groups fire, default to full hackify — the most-ensured decision.
 
-This skill is fully self-contained. **Never call other skills** — third-party plugins may not be installed. The fallback procedure re-enters full hackify by name; it does not depend on any other plugin.
+### Signal group (i) — Brainstorm triggers
+
+If the user prompt contains any of the following (case-insensitive substring match), route to the `brainstorm` skill (NOT quick or full). Brainstorm itself decides when the conversation graduates to a build task and hands off to Phase 1 of full hackify.
+
+- `/brainstorm`
+- `let's discuss`
+- `let's think`
+- `what if`
+- `brainstorm`
+- `explore the idea`
+
+### Signal group (ii) — Full-mode triggers
+
+The inverse of quick mode's four testable fallback triggers, PLUS the explicit slash-command override. If any of these fire, route to full hackify (`/hackify:hackify`) from the start.
+
+- **Auth/security keywords** (case-insensitive substring): `auth`, `crypto`, `migration`, `secret`, `token`, `password`.
+- **Multi-file scope keywords** (case-insensitive substring): `across all`, `refactor everything`, `redesign`, `everywhere`.
+- **Architecture keywords** (case-insensitive substring): `schema`, `data model`, `API surface`.
+- **Prompt length > 80 characters** AND not already brainstorm-tagged (Group (i) did not fire).
+- **Explicit `/hackify:hackify` slash** in the prompt.
+
+### Signal group (iii) — Quick-eligible
+
+None of Group (i) or Group (ii) fired AND the user prompt is concrete — either a file path is mentioned, or a single behavioral change is named. Stay in quick.
+
+### Decision table
+
+| Signal group fired | Route to | Rationale |
+|---|---|---|
+| Group (i) only — brainstorm triggers | `brainstorm` skill | The user is in idea-exploration mode; brainstorm graduates to full hackify Phase 1 when the conversation converges on a build task. |
+| Group (ii) only — full-mode triggers | Full hackify (`/hackify:hackify`) | The task carries security/scope/architecture surface, or the user explicitly asked for the heavier flow — quick mode's carve-out does not cover it. |
+| Group (iii) only — quick-eligible | Stay in quick | The prompt is small, concrete, and free of security/scope/architecture signals — quick mode is the right speed-to-discipline tradeoff. |
+| Zero groups fired | Full hackify (default) | The prompt is ambiguous or off-pattern; default-to-full is the most-ensured decision — full hackify's Phase 1 clarify wizard will disambiguate before any code lands. |
+| Two-or-more groups fired | Full hackify (default) | Conflicting signals mean the task spans multiple shapes; default-to-full lets Phase 2 Plan+Gate resolve the scope before implementation starts. |
+
+**Fallback rule.** If the signal-group count is not exactly 1 (i.e., zero groups fire OR two-or-more groups fire), default to full hackify. Default-to-full is the documented most-ensured decision — quick mode is a carve-out, not a default.
+
+The same router logic lives in `skills/hackify/SKILL.md` (added by T1.4a). Both skills route consistently; this block is the source of truth for the quick-skill side.
 
 ---
 
-## Workflow shape
+# Hackify Quick — Compressed Flow For Small Tasks
 
-Quick mode runs exactly four phases of the full hackify flow, in order:
+Sibling to the main hackify skill. Same end-to-end discipline (clarify → implement → verify → summary), ceremony stripped. Fully self-contained — **never call other skills**; fallback re-enters full hackify by name. Target: ~one-third the tokens/wall-clock of full hackify.
+
+## Workflow shape
 
 ```
 Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify) → Phase 6F (summary table)
 ```
 
-No Plan+Gate. No Spec self-review. No Multi-reviewer. No four-options finish menu. The summary table at the end is the only mandatory artifact, and it goes to chat (not a work-doc — quick mode does not create one by default).
-
-Target: roughly one-third the tokens and wall-clock of the full hackify flow for tasks that fit the carve-out.
-
----
+No Plan+Gate. No Spec self-review. No Multi-reviewer. No four-options finish menu. The summary table is the only mandatory artifact; print to chat.
 
 ## Kept phases
 
-- **Phase 1 — Clarify (only if ambiguous).** Run the full clarify wizard from `skills/hackify/references/clarify-questions.md` if any part of the ask is unclear. If the ask is concrete and zero-ambiguity ("fix the typo on line 42 of README.md"), ask zero questions and go straight to Phase 3. Rationale: a misread ask wastes more time than a one-question wizard.
-- **Phase 3 — Implement (single agent or inline).** Dispatch at most ONE foreground implementation subagent with a file allowlist, or write the change inline if it is genuinely a one- to three-line edit in a single file. The file-allowlist constraint from full hackify still applies — the agent may only touch declared files. Rationale: scope discipline is what keeps quick mode quick; the moment the work spreads, the fallback fires.
-- **Phase 4 — Verify (test + lint + typecheck).** Run the project's full verification triad fresh. Paste the output. Zero failures, zero errors. Rationale: skipping verify is how typo fixes ship broken — Phase 4 stays.
-- **Phase 6 Step F — Summary table (mandatory).** Generate the 2-column Area/Change markdown table per the authoring rules in `skills/hackify/references/finish.md` and print it to chat. Rationale: the user opted into quick mode for speed, not for opacity — the summary keeps them aligned on what shipped.
+| Phase | Action | Rationale |
+|---|---|---|
+| **1 — Clarify** | Run the wizard at `skills/hackify/references/clarify-questions.md` if the ask has any ambiguity. Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. | A misread ask costs more than a one-question wizard. |
+| **3 — Implement** | Dispatch at most ONE foreground subagent with a file allowlist, or write inline for 1–3-line single-file edits. File-allowlist constraint applies — agent touches declared files only. | Scope discipline keeps quick mode quick. Spread = fallback fires. |
+| **4 — Verify** | Run the project's full triad (test + lint + typecheck) fresh. Paste output. Zero failures, zero errors. | Skipping verify is how typo fixes ship broken. |
+| **6F — Summary table** | Generate the 2-column Area/Change table per `skills/hackify/references/finish.md` and print to chat. | The user opted into speed, not opacity. |
 
----
+## Skipped phases — exactly these four, no others
 
-## Skipped phases
-
-Quick mode skips EXACTLY these four phases. No others.
-
-- **Phase 2 — Plan+Gate.** Skipped. Rationale: a small task does not need a 60-second-readable work-doc and an explicit sign-off — the ask itself is the plan. If the task is large enough to need a written plan, it is too large for quick mode.
-- **Phase 2.5 — Spec self-review.** Skipped. Rationale: no spec was written in Phase 2, so there is nothing for three parallel reviewers to scrutinize.
-- **Phase 5 — Multi-reviewer code review.** Skipped. Rationale: small single-file diffs do not benefit enough from three parallel review lenses to justify the round-trip cost. If the user wants Phase 5 anyway, the fallback rule below fires automatically on that phrase.
-- **Phase 6 — four-options finish menu.** Skipped. Rationale: quick mode is for in-place edits — the merge/PR/keep/discard ceremony is overkill. The user decides how to land the change with their normal git workflow. Step F (the summary table) is the only Phase 6 piece kept.
-
----
+| Phase | Rationale |
+|---|---|
+| **Phase 2 — Plan+Gate** | The ask itself is the plan. Tasks needing a written plan are too large for quick mode. |
+| **Phase 2.5 — Spec self-review** | No spec was written in Phase 2 — nothing to scrutinize. |
+| **Phase 5 — Multi-reviewer code review** | Single-file diffs do not justify three parallel review lenses. User can force it via the fallback trigger. |
+| **Phase 6 — four-options finish menu** | Quick mode does in-place edits. The user lands via their normal git workflow. Step F is the only Phase 6 piece kept. |
 
 ## Note — Debug-when-stuck is not skipped
 
-**Phase 3b Debug-when-stuck is NOT skipped — the fallback rule below escalates to full hackify, which handles Phase 3b normally.** Quick mode does not enter the debug branch directly; instead, the attempt-counter trigger (≥2 failed implementation passes) flips the task into full hackify, and full hackify then runs Phase 3b under its own discipline. This preserves the 4-phase root-cause hunt without bloating the quick-mode flow with a debug branch.
-
----
+**Phase 3b is NOT skipped — the fallback escalates to full hackify, which runs Phase 3b under its own discipline.** The attempt-counter trigger (≥2 failed passes) flips the task into full hackify, preserving the 4-phase root-cause hunt without bloating quick mode.
 
 ## Fallback to full hackify
 
-Quick mode escalates to full hackify on any of the following 4 concrete, testable triggers. Each is a predicate an agent can evaluate without judgment calls — every step below produces a binary signal a Haiku-class model can act on. Vague signals like "feels big" are forbidden — if the predicate does not fire, quick mode keeps going.
+Quick mode escalates on any of the 4 concrete, testable triggers below. Each predicate produces a binary signal a Haiku-class model can act on. Vague signals like "feels big" are forbidden.
 
-- **(a) Attempt counter reaches 2.** Maintain the counter by writing `attempt: N` as the first line of every Implementation Log entry inside an in-flight scratch file at `<project>/docs/work/.quick-<slug>.md` (created lazily on attempt 1 if absent; can be gitignored). Increment N by 1 in the implementation agent's report after each pass (whether the pass passed or failed verification). When the counter reaches **2**, fall back. Storing the counter on disk (not "in-session state") survives subagent restarts and makes the value testable by the parent.
-- **(b) File count exceeds 3 (including untracked).** After each implementation pass, run `(git diff --name-only HEAD; git ls-files --others --exclude-standard) | sort -u | wc -l`. If the result is `> 3`, fall back. Untracked files MUST count — new files are exactly the cross-file scope creep this trigger catches; `git diff HEAD` alone would silently miss them.
-- **(c) Security-sensitive path touched.** After each implementation pass, run `(git diff --name-only HEAD; git ls-files --others --exclude-standard) | sort -u | grep -iE 'auth|crypto|migration|secret|token|password'`. Match the FULL path case-insensitively (so `src/auth/foo.ts`, `AuthHelper.ts`, and `db/migrations/0042.sql` all fire). If grep exits 0 (any match), fall back. Security-sensitive surfaces need Phase 5 multi-reviewer, period.
-- **(d) User invokes full review.** Scan ONLY the most recent user message during the quick-mode task (NOT the full transcript — earlier prompts must NOT retro-trigger) for the case-insensitive substrings `Phase 5`, `multi-reviewer`, or `do full review`. If any match, fall back. The user is explicitly asking for the heavier flow.
-
----
+- **(a) Attempt counter reaches 2.** Write `attempt: N` as the first line of every Daily Updates entry in a scratch file at `<project>/docs/work/.quick-<slug>.md` (lazy-created on attempt 1; gitignorable). Increment N after each pass (pass or fail). At N=2, fall back. On-disk storage survives subagent restarts.
+- **(b) File count exceeds 3 (including untracked).** After each pass, run `(git diff --name-only HEAD; git ls-files --others --exclude-standard) | sort -u | wc -l`. If `> 3`, fall back. Untracked files MUST count — `git diff HEAD` alone misses new-file scope creep.
+- **(c) Security-sensitive path touched.** After each pass, run `(git diff --name-only HEAD; git ls-files --others --exclude-standard) | sort -u | grep -iE 'auth|crypto|migration|secret|token|password'`. Full path match, case-insensitive (so `src/auth/foo.ts`, `AuthHelper.ts`, `db/migrations/0042.sql` all fire). If grep exits 0, fall back.
+- **(d) User invokes full review.** Scan ONLY the most recent user message (NOT the full transcript) for case-insensitive `Phase 5`, `multi-reviewer`, or `do full review`. If any match, fall back.
 
 ## Fallback procedure
 
-On fallback trigger: (1) STOP the in-progress implementation; (2) write a work-doc from accumulated context at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`; (3) re-enter full hackify Phase 2 (Plan+Gate); (4) preserve quick-mode's intent + clarify-answers + any partial diff in the work-doc Implementation Log so full hackify resumes with full context.
-
-The work-doc skeleton is the same one full hackify uses (`skills/hackify/references/work-doc-template.md`). Frontmatter `current_task` should read `(fallback from quick mode — awaiting gate)` so the user sees the handoff explicitly when the Phase 2 plan is presented. Do not silently re-dispatch implementation agents — the gate exists exactly because the task grew past the quick-mode carve-out, and the user deserves a chance to sign off on the revised scope.
-
----
+On trigger: (1) STOP implementation; (2) write a work-doc from accumulated context at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` (template at `skills/hackify/references/work-doc-template.md`); (3) re-enter full hackify Phase 2 (Plan+Gate); (4) preserve intent + clarify-answers + any partial diff in the Daily Updates section. Set frontmatter `current_task: (fallback from quick mode — awaiting gate)`. Do not silently re-dispatch implementation agents.
 
 ## When NOT to use quick mode
 
-Route these task shapes to full hackify (`/hackify:hackify`) from the start. Do not start them in quick mode.
+Route these to full hackify (`/hackify:hackify`) from the start.
 
-- **Cross-file refactors.** Even a "small" refactor that touches more than one file is past the carve-out — the >3-file trigger would fire shortly, and starting in quick mode just wastes the first pass.
-- **Redesigns.** Visual or architectural redesigns need the Plan+Gate so the user can sign off on the new shape before code lands.
-- **Debug investigations of unknown root causes.** If the task starts with "something is broken and I don't know why", you need Phase 3b's 4-phase root-cause hunt from the jump.
-- **Anything touching auth, crypto, migrations, secrets, tokens, or passwords.** The security-sensitive trigger would fire immediately; start with full hackify and Phase 5.
-- **Anything with cross-team review needs.** PR-track work that needs reviewer sign-off from another team needs the Phase 5 multi-reviewer output to anchor the review conversation.
-- **Tasks where you cannot list the touched files up-front.** If you cannot name the file allowlist for the implementation agent before dispatch, the task is too underspecified for quick mode.
-
----
+| Shape | Why |
+|---|---|
+| Cross-file refactors | >3-file trigger fires; first pass is wasted. |
+| Redesigns | Plan+Gate is required for sign-off on the new shape. |
+| Debug investigations of unknown root causes | Phase 3b's 4-phase root-cause hunt is needed from the jump. |
+| Touches auth/crypto/migrations/secrets/tokens/passwords | Security-sensitive trigger fires immediately. |
+| Cross-team review needs | Phase 5 multi-reviewer anchors the review conversation. |
+| Cannot list touched files up-front | Task is too underspecified for a file allowlist. |
 
 ## Summary table — mandatory
 
-At the end of every quick-mode task, generate a 2-column markdown table with columns `Area` and `Change`. Authoring rules are identical to full hackify's Phase 6 Step F — see `skills/hackify/references/finish.md` for the canonical guidance:
+End every task with a 2-column markdown table (`Area` | `Change`). Authoring rules per full hackify's Phase 6 Step F (see `skills/hackify/references/finish.md`):
 
-- **Area** — 1–4 word concept/theme label. NOT a file path. NOT a DoD ID. The user-facing concept.
+- **Area** — 1–4 word concept/theme label. NOT a file path. NOT a DoD ID.
 - **Change** — ≤25 words, present-tense action verb, backticks for code spans.
-- 5–12 rows total per task (quick mode usually lands in the 1–5 range).
+- 5–12 rows per task (quick mode typically 1–5).
 
-Print the table to chat. Quick mode has no work-doc to append to by default, so chat is the sole destination — unless the fallback fired, in which case the table is appended to the new work-doc's Post-mortem under `## Summary of changes shipped` per full hackify's Phase 6 Step F rules.
+Print to chat. If fallback fired, append the table to the new work-doc's Retrospective under `## Summary of changes shipped`. For on-demand invocation, see `commands/summary.md` (`/hackify:summary`).
 
-For on-demand invocation outside any in-flight task, cross-reference `commands/summary.md` (the `/hackify:summary` slash command), which uses the same authoring rules.
-
----
-
-## Anti-rationalizations
-
-These thoughts mean STOP and apply the listed reality.
+## Anti-rationalizations — STOP and apply the listed reality
 
 | Thought | Reality |
 |---|---|
@@ -108,9 +127,7 @@ These thoughts mean STOP and apply the listed reality.
 | "User said 'quick' so we skip Phase 1 clarify" | Only skip clarify if there is zero ambiguity in the ask. If even one detail is unclear, run the wizard — one batched question is cheaper than a wrong implementation. |
 | "The diff touches an `auth_helper.ts` file but it is just a comment edit" | The path glob trigger fires on `*auth*` regardless of edit size. Fall back to full hackify and let Phase 5 confirm the comment edit is safe. |
 | "Attempt 2 failed but I have a great idea for attempt 3" | The attempt counter hitting 2 is the circuit breaker. No attempt 3 in quick mode — fall back, write the work-doc, let full hackify run Phase 3b properly. |
-| "Summary table is overkill for a one-line fix" | The summary table is mandatory. One row is fine. The point is that the user always knows what landed. |
-
----
+| "Summary table is overkill for a one-line fix" | The summary table is mandatory. One row is fine. The user always knows what landed. |
 
 ## One-line summary
 

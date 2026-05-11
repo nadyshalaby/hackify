@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.4-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -47,6 +47,8 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 | **Quick hackify** | `/hackify:quick` | Small bug fixes, one- to three-line edits, single-file polish, typo work, direct quick-effort requests. Compressed four-phase flow. |
 
 Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
+
+**Smart router (v0.2.0).** Routing is decided up front from three signal groups: **brainstorm** (open-ended exploration → `/brainstorm`), **quick** (small/single-file/typo → `/hackify:quick`), and **full** (everything else → `/hackify:hackify`). Ambiguous prompts default to **full** — escalation is free, demotion is not. Full classifier spec lives in [`skills/hackify/references/clarify-questions.md`](skills/hackify/references/clarify-questions.md).
 
 ## The workflow
 
@@ -97,6 +99,14 @@ Quick mode escalates to full hackify on any of these four testable triggers:
 
 On fallback, quick mode writes a work-doc from accumulated context and hands control to full hackify Phase 2 — no half-done state, no lost context.
 
+## Companion skills (v0.2.0)
+
+Three skills ship alongside `hackify` and `quick` to cover the bookends and the meta-loop:
+
+- **`/brainstorm <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
+- **`/writing-skills`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
+- **`/receiving-code-review`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
+
 ## Example
 
 You type:
@@ -118,8 +128,8 @@ You can pause at any phase by closing the terminal. Next time you say *"continue
 
 A single markdown file holds everything about a task: spec, plan, progress, review log, post-mortem. While in flight it lives at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`; after Phase 6 it moves to `<project>/docs/work/done/`.
 
-**Frontmatter:** `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`.
-**Body:** Original Ask → Clarifying Q&A → Definition of Done → Approach → Tasks → Implementation Log → Verification → Post-mortem.
+**Frontmatter:** `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, and (v0.2.0) `sprint_goal` — a one-sentence framing of the win condition.
+**Body (v0.2.0 sprint vocabulary):** Original Ask → Clarifying Q&A → **Acceptance Criteria** (was Definition of Done) → Approach → **Sprint Backlog** (was Tasks) → **Daily Updates** (was Implementation Log) → **Sprint Review** (was Verification) → **Retrospective** (was Post-mortem). The sections do the same jobs; the labels just align with how teams already talk about work. Pre-v0.2.0 work-docs archived under `docs/work/done/` keep their original headings and resume unchanged — the resume logic reads either vocabulary.
 
 ```markdown
 ---
@@ -157,6 +167,9 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:hackify resume <slug>` | Resume a paused work-doc. |
 | `/hackify:quick <ask>` | Start the compressed-flow sibling. |
 | `/hackify:summary` | Print the current Area/Change summary table on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
+| `/brainstorm <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
+| `/writing-skills` | Author new hackify-conformant skills via a 9-check self-validation loop. |
+| `/receiving-code-review` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
 
 ## Parallel agents
 
@@ -174,6 +187,7 @@ commands/
   summary.md                           /hackify:summary slash command
 scripts/
   validate-dod.sh                      CI helper — validates the plugin's own DoD
+  sync-runtimes.sh                     fan canonical skills/ into dist/<runtime>/
 skills/
   hackify/
     SKILL.md                           the full workflow
@@ -187,10 +201,18 @@ skills/
       frontend-design.md               visual law (loaded on FE / UI tasks)
       code-rules.md                    DRY, named types, layering deep dive
       parallel-agents.md               parallel subagent dispatch templates
+      runtime-adapters.md              primitive → per-runtime mapping table
     evals/
       evals.json                       optional eval harness
   quick/
     SKILL.md                           /hackify:quick compressed flow
+  brainstorm/
+    SKILL.md                           /brainstorm Socratic pre-task refinement
+  writing-skills/
+    SKILL.md                           /writing-skills skill authoring + validator
+  receiving-code-review/
+    SKILL.md                           /receiving-code-review reviewer-response table
+dist/                                  generated per-runtime packages (gitignored)
 docs/
   work/                                in-flight work-docs (per task)
     done/                              archived work-docs (post Phase 6)
@@ -200,6 +222,34 @@ README.md
 ```
 
 Reference files load only when the relevant phase needs them. `SKILL.md` is what the assistant reads on every invocation; the rest is on demand.
+
+## Multi-runtime support
+
+Hackify v0.2.0 ships for seven runtimes: **Claude Code**, **OpenAI Codex CLI**, **OpenAI Codex App**, **Google Gemini CLI**, **OpenCode**, **Cursor**, and **GitHub Copilot CLI**. The canonical source of every skill lives in `skills/`; `scripts/sync-runtimes.sh` fans that source out into per-runtime packages under `dist/<runtime>/`, which is gitignored.
+
+| Tier | Runtimes | What works |
+|---|---|---|
+| **Native** | Claude Code, OpenCode | Full plugin/skill semantics: auto-trigger, parallel subagents, file allowlists, wizard tool. |
+| **Best-effort** | Codex CLI, Codex App, Gemini CLI, Cursor | Skills shipped as prompts/rules; the workflow runs but some primitives (subagent dispatch, wizard) degrade to inline equivalents. |
+| **Not supported** | Copilot CLI | No plugin or skill concept on the runtime side — listed for transparency only. |
+
+The workflow is written in **runtime-neutral primitives** (`wizard tool`, `subagent dispatcher`, `file allowlist`, `slash command`, `reference file`) rather than Claude-specific names. Each runtime's adapter maps those primitives to whatever native or near-native feature exists — see [`skills/hackify/references/runtime-adapters.md`](skills/hackify/references/runtime-adapters.md) for the full mapping table and the degradation notes for the best-effort tier.
+
+**Install — Claude Code (marketplace):**
+
+```text
+/plugin marketplace add nadyshalaby/hackify
+/plugin install hackify@hackify-marketplace
+```
+
+**Install — Codex CLI (prompts directory):**
+
+```bash
+bash scripts/sync-runtimes.sh
+cp -R dist/codex-cli/* ~/.codex/prompts/
+```
+
+`sync-runtimes.sh` writes all 7 runtime packages under `dist/<runtime>/`; copy the one you need. Use `--dry-run` first to preview the file list, or `--help` for usage.
 
 ## Design principles
 

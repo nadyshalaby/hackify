@@ -5,6 +5,50 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-05-11
+
+> **Minor-level scope, minor-level label.** First release where the plugin source is tool-agnostic: the canonical hackify source no longer hard-codes Claude Code tool names, and a runtime-sync script emits per-runtime distributions. Ships three new skills (`brainstorm`, `writing-skills`, `receiving-code-review`), a sprint-style work-doc vocabulary, a smart pre-Phase-1 router shared by full and quick modes, wave-end persistence + pause-checkpoint behavior, and a tightened token + soft-language pass on both SKILL files. No breaking change to the workflow phases, the 7-section sub-agent contract, or the Wizard contract; archived pre-0.2.0 work-docs work without migration.
+
+### Added — Multi-runtime support
+
+- **Tool-agnostic prose pass on `skills/hackify/SKILL.md`.** Concrete Claude Code tool names replaced with runtime primitive names (`wizard tool` / `subagent dispatcher` / `file-read op` / `file-write op` / `file-edit op` / `search` / `shell`). Wizard contract, Template contract, and 7-section sub-agent contract tokens preserved verbatim.
+- **`references/runtime-adapters.md`** — new reference. 7×8 primitive-to-native-tool mapping table plus a 3-tier (`native` / `best-effort` / `not supported`) plugin-support matrix covering Claude Code, OpenAI Codex CLI, OpenAI Codex App, Google Gemini CLI, OpenCode, Cursor, and GitHub Copilot CLI.
+- **`scripts/sync-runtimes.sh`** — new script (479 lines, POSIX/macOS-portable, `--dry-run` aware, idempotent). Converts the canonical hackify source into runtime-specific plugin packages under `dist/<runtime>/`. New `dist/.gitignore` (`*` plus `!.gitignore`) keeps generated output untracked while pinning the directory shape.
+- **`## Runtime primitives — where the tool names go`** — new trailing section in `skills/hackify/SKILL.md` cross-referencing `references/runtime-adapters.md` so authors land on the mapping table the first time they hit a primitive.
+
+### Added — New skills
+
+- **`skills/brainstorm/SKILL.md`** (97 lines) — Socratic pre-task refinement mode. Auto-discovery triggers: `/brainstorm`, "let's discuss", "let's think", "what if", "brainstorm", "explore the idea". Graduation rule: when the user signals "build this", lazily creates the work-doc with a `## Brainstorm Provenance` block and hands off to Phase 1 of full hackify. One-doc-per-task philosophy preserved.
+- **`skills/writing-skills/SKILL.md`** (128 lines) — hackify-specific meta-skill for authoring new hackify-conformant skills. Bundles a 9-check self-validation checklist covering frontmatter, triggers, required sections, the 7-section sub-agent contract, the Wizard contract, OUTPUT word-caps, soft-language scan, file size, and path conventions.
+- **`skills/receiving-code-review/SKILL.md`** (109 lines) — structured per-finding response. Required table columns: Finding / Severity / Decision / Evidence; Decision ∈ {`accept`, `push-back`, `defer`}. Two trigger paths: Phase 5 internal multi-reviewer findings AND external feedback paste (PR comments, Slack quotes). Critical-findings guardrail: no bare push-back without Phase 5 escalation.
+
+### Added — Sprint-style work-doc
+
+- **`references/work-doc-template.md`** body sections relabeled to sprint vocabulary: `Definition of Done` → `Acceptance Criteria`, `Tasks` → `Sprint Backlog`, `Implementation Log` → `Daily Updates`, `Verification` → `Sprint Review`, `Post-mortem` → `Retrospective`. New `sprint_goal` frontmatter field. Back-compat: `skills/hackify/SKILL.md` resume-mode accepts either label set, so archived pre-v0.2.0 docs in `docs/work/done/` work without migration.
+
+### Added — Smart router
+
+- **Pre-Phase-1 router block** added to both `skills/hackify/SKILL.md` and `skills/quick/SKILL.md`. Three signal groups: (i) brainstorm triggers, (ii) full-mode triggers (auth/crypto/migration keywords, multi-file scope keywords, architecture keywords, prompt length > 80 chars, explicit `/hackify:hackify`), (iii) quick-eligible. Default-to-full rule fires when the matched signal-group count ≠ 1.
+
+### Added — Wave-end persistence + pause checkpoint
+
+- **Phase 3 wave-end persistence rule.** Parent MUST update the work-doc (tick checkboxes, append a Daily Updates entry, run verification, advance `current_task`) BEFORE dispatching wave N+1. Stops the "all waves done, no work-doc updates" failure mode.
+- **Pause-keyword detection** during an active wave. Trigger words: `pause`, `stop`, `exit`, `later`, `tomorrow`, `come back`, `pick this up later`. Match runs the 5-step Pause Checkpoint procedure ending with the surface text "Resume with 'continue work on <slug>'".
+
+### Changed — Token + Haiku pass
+
+- **`skills/hackify/SKILL.md`** Token-efficiency pass: 422 → 378 lines (T4.1, net 10.4%). Mandatory pause-checkpoint + wave-end-persistence insertion (T4.3) then added 8 lines, landing the final file at **386 lines**. Net AC10 target (≤380) missed by 6 lines because T4.3 is contract-required. Gross 20% target on pre-existing prose was deemed incompatible with AC fidelity; both gaps documented in the v0.2.0 work-doc Retrospective.
+- **`skills/quick/SKILL.md`** 162 → 134 lines (net 17.3%, gross ~28 lines). Three prose-to-table conversions land most of the saving.
+- **Soft-language audit** across both SKILL files: 0 matches for `if reasonable`, `consider`, `maybe`, `try to`, `usually`, `as appropriate`, `where possible` outside the Anti-rationalizations block and explicit examples.
+
+### Changed — Validator
+
+- **`scripts/validate-dod.sh`** extended with five new check groups: `[24]` `sync-runtimes` dry-run output; `[25]` new-skill SKILL.md presence + frontmatter + `name` regex (`^[a-z0-9-]{1,64}$`) for `brainstorm`, `writing-skills`, `receiving-code-review`; `[26]` sprint vocabulary tokens present in `references/work-doc-template.md`; `[27]` router classifier block present in both SKILL files; `[28]` pause-keyword list present in `skills/hackify/SKILL.md`.
+
+### Fixed — Internal
+
+- **`references/` count check** in `scripts/validate-dod.sh` updated from 9 to 10 to reflect the new `runtime-adapters.md` added by T3.2.
+
 ## [0.1.4] — 2026-05-11
 
 > **Patch label, minor-level scope.** Two new ergonomics features ship under a patch label per release-cadence preference. No breaking change to the workflow shape or template contracts; v0.1.3 templates and wizard banks ship unchanged.

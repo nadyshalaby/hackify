@@ -308,7 +308,7 @@ covering task, tasks with no covering DoD bullet, Q&A answers contradicted
 later in the same doc, prose that hand-waves at "consistency."
 
 Bias to: flagging contradictions between Original Ask, Q&A, DoD, Approach,
-and Tasks.
+and Sprint Backlog.
 Bias against: harmonizing contradictions in your own head before reporting.
 
 **INPUTS**.
@@ -323,14 +323,14 @@ at `{{work_doc_path}}`.
 **METHOD**.
 1. Read the work-doc end-to-end at `{{work_doc_path}}`. Build a mental
    index of every Original Ask sentence, every Clarifying Q&A answer,
-   every Definition of Done bullet (D1, D2, …), every Approach claim,
+   every Acceptance Criteria bullet (D1, D2, …), every Approach claim,
    and every Task (T1, T2, …).
-2. For each DoD bullet, grep the Tasks list for a task whose description
+2. For each DoD bullet, grep the Sprint Backlog list for a task whose description
    delivers that bullet. Record any DoD bullet with zero covering tasks
    as a finding.
 3. For each Task, grep the DoD list for a bullet the task delivers.
    Record any Task with zero covering DoD bullets as a finding.
-4. For each Q&A answer, scan the Approach and Tasks sections for any
+4. For each Q&A answer, scan the Approach and Sprint Backlog sections for any
    sentence that contradicts the answer (different number, different
    scope, different file, opposite verb). Quote both sides verbatim
    in the finding.
@@ -353,7 +353,7 @@ before producing OUTPUT.
    finding? (yes / no)
 4. Did you map every Task to at least one DoD bullet OR report it as a
    finding? (yes / no)
-5. Did you scan every Q&A answer against the Approach and Tasks for
+5. Did you scan every Q&A answer against the Approach and Sprint Backlog for
    contradictions? (yes / no)
 6. Are all Critical findings ones you can quote evidence for from the
    work-doc itself, with no assumption about external code? (yes / no)
@@ -453,7 +453,7 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 
 **METHOD**.
 1. Read the work-doc at `{{work_doc_path}}` end-to-end. Note every
-   file path mentioned in DoD / Approach / Tasks. Build a list of
+   file path mentioned in DoD / Approach / Sprint Backlog. Build a list of
    {task → file → planned change}.
 2. Read `{{project_root}}/CLAUDE.md`. For each of the rule families
    listed in steps 4–9 (lint suppression, non-null `!`, inline-type
@@ -496,7 +496,7 @@ If ANY answer is "no", loop back to METHOD.
    every finding? (yes / no)
 2. Did you cite the specific task ID and the file path for every
    finding? (yes / no)
-3. Did you check every task in the Tasks list, not just the ones that
+3. Did you check every task in the Sprint Backlog list, not just the ones that
    sounded risky? (yes / no)
 4. Did you propose a plan-level remediation for every Critical and
    Important finding? (yes / no)
@@ -594,10 +594,10 @@ at dispatch time.
 
 **OBJECTIVE**.
 A proposed execution-wave plan plus a severity-tagged list of dependency,
-ordering, and parallelism risks in the Tasks list of `{{work_doc_path}}`.
+ordering, and parallelism risks in the Sprint Backlog list of `{{work_doc_path}}`.
 
 **METHOD**.
-1. Read the Tasks list in the work-doc at `{{work_doc_path}}`. For each
+1. Read the Sprint Backlog list in the work-doc at `{{work_doc_path}}`. For each
    task, extract from the description: (a) the files the task CREATES
    or MODIFIES; (b) the files or artifacts the task READS; (c) any
    explicit "depends on T<n>" markers.
@@ -618,7 +618,7 @@ ordering, and parallelism risks in the Tasks list of `{{work_doc_path}}`.
    plan you built in step 3. Record any disagreement as a finding,
    quoting both the existing wave assignment and your proposed one.
 6. For every "depends on" edge you drew, confirm the prerequisite
-   task actually exists in the Tasks list. If it does not (e.g. a
+   task actually exists in the Sprint Backlog list. If it does not (e.g. a
    task consumes a config factory that no task creates), record a
    missing-prerequisite finding.
 
@@ -634,7 +634,7 @@ If ANY answer is "no", loop back to METHOD.
 4. Did you flag every task whose estimate exceeds 30 minutes or
    falls below 5 minutes? (yes / no)
 5. Did you confirm that every "depends on" edge points to a task
-   that actually exists in the Tasks list? (yes / no)
+   that actually exists in the Sprint Backlog list? (yes / no)
 6. Is your proposed wave plan a strict topological order, with no
    task scheduled before a task it depends on? (yes / no)
 
@@ -727,10 +727,10 @@ Bias against: refactoring outside the file allowlist or the task scope.
 
 **INPUTS**.
 1. `{{work_doc_path}}` — absolute filesystem path to the work-doc.
-2. `{{task_id}}` — single task identifier from the Tasks list
+2. `{{task_id}}` — single task identifier from the Sprint Backlog list
    (e.g. `T7`).
 3. `{{task_description}}` — verbatim task text copied from the
-   work-doc's Tasks list.
+   work-doc's Sprint Backlog list.
 4. `{{file_allowlist}}` — newline-separated list of absolute paths the
    sub-agent may CREATE or MODIFY (and ONLY these). Every other path in
    the repository is read-only for this dispatch.
@@ -869,7 +869,7 @@ After all wave agents return:
 1. Read every report. Spot-check that no agent touched files outside its list (`git diff --name-only` — should match the union).
 2. Run repo-wide `bun test && bun run lint && bun run typecheck` ONCE (substitute your project's actual commands).
 3. If any are red — classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b).
-4. Tick all wave checkboxes. Append one Implementation Log entry per task.
+4. Tick all wave checkboxes. Append one Daily Updates entry per task.
 5. Single commit for the wave (subject covers the wave; body lists task IDs).
 
 ### Phase 3b — Debug evidence gathering
@@ -1444,7 +1444,7 @@ Subagent type: general-purpose
 
 **ROLE**.
 You are a senior product engineer with 15+ years of experience auditing
-shipped diffs against signed-off Definition of Done checklists, release
+shipped diffs against signed-off Acceptance Criteria checklists, release
 notes, and acceptance-criteria documents for paying customers.
 
 Your domain expertise covers: DoD-to-diff mapping in multi-package
@@ -1455,12 +1455,12 @@ diff content, and changelog drafting from the same source.
 You apply Semantic Versioning 2.0.0, Keep a Changelog 1.1.0, and RFC 2119
 keywords when judging whether a diff matches the plan that authorized it.
 
-You reject: diff additions absent from the Tasks list, Tasks list
+You reject: diff additions absent from the Sprint Backlog list, Sprint Backlog list
 checkboxes ticked without corresponding diff content, Q&A answers
 contradicted by shipped code, version labels that disagree with the
 diff's actual scope, missing CHANGELOG entries for user-visible changes.
 
-Bias to: literal mapping of every diff hunk to a Tasks list entry.
+Bias to: literal mapping of every diff hunk to a Sprint Backlog list entry.
 Bias against: charitable interpretation of "this probably counts as
 task T<n>".
 
@@ -1495,7 +1495,7 @@ the diff `{{base_sha}}..{{head_sha}}` and the plan in
 3. For each DoD bullet, identify the diff hunks that deliver it.
    Quote the bullet text and cite the hunk file paths. Flag any DoD
    bullet with zero covering hunks as a Critical incomplete finding.
-4. For each Tasks list entry, identify the diff hunks that
+4. For each Sprint Backlog list entry, identify the diff hunks that
    implement it. Flag any Task with zero covering hunks AND a
    ticked checkbox in the work-doc as a Critical mismatch.
 5. For each file in the diff, find the Task entry that authorizes
@@ -1548,7 +1548,7 @@ If ANY answer is "no", loop back to METHOD.
     scope" in CHANGELOG; the CHANGELOG entry uses paraphrased
     wording = Important.
 - **Minor** — Cosmetic or auditing nits. Anchored examples:
-  - A Tasks list checkbox is ticked but the Implementation Log entry
+  - A Sprint Backlog list checkbox is ticked but the Daily Updates entry
     is missing a sentence = Minor.
   - Two DoD bullets reference the same artifact with slightly
     different naming = Minor.

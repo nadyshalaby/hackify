@@ -15,7 +15,7 @@ Even if it passed in Phase 4. State drifts (other commits, env changes, hook upd
 
 (Substitute your project's actual test / lint / typecheck commands.)
 
-All green, fresh output. Paste it into the work-doc Verification section if not already there.
+All green, fresh output. Paste it into the work-doc Sprint Review section if not already there.
 
 If anything is red, **stop**. Loop back to Phase 3. Do not enter the 4-options choice with a broken build.
 
@@ -125,7 +125,7 @@ shipped_via: pr                # 'merge' | 'pr'
 pr_url: https://github.com/...  # if PR
 ```
 
-The Post-mortem section is **mandatory** at this point. 3–8 bullets covering:
+The Retrospective section is **mandatory** at this point. 3–8 bullets covering:
 
 - What surprised during implementation
 - What you learned about the codebase
@@ -133,7 +133,7 @@ The Post-mortem section is **mandatory** at this point. 3–8 bullets covering:
 - Follow-up work that emerged (link issues, link `/schedule` jobs)
 - Any review feedback marked Minor that wasn't addressed (with rationale)
 
-Don't skip this. The Post-mortem is what compounds learning across tasks. It's also where future-you will look 2 weeks from now when something related breaks.
+Don't skip this. The Retrospective is what compounds learning across tasks. It's also where future-you will look 2 weeks from now when something related breaks.
 
 ---
 
@@ -226,7 +226,7 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 | Merging without re-running verification | Stale evidence. Re-run. |
 | `git push --force` to main | Destructive. Never without explicit user instruction. |
 | `git reset --hard` to "clean up" | Risk of lost work. Don't. |
-| Skipping the Post-mortem | Compounding learning lost. Always write it. |
+| Skipping the Retrospective | Compounding learning lost. Always write it. |
 | Worktree removal with uncommitted changes (`--force`) | User's work could vanish. Stop, ask. |
 | Picking the option for the user | They pick. Always present 4. |
 | Open-ended "what next?" question | Drift. Stick to the 4-options structure. |
