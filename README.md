@@ -89,7 +89,7 @@ Draft the work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`. Required sec
 
 Task granularity is enforced. "Add invitation expiry" becomes "Add `expires_at` column and migration," "Reject expired tokens in service," "Show expired state in UI," "Backend test," "Frontend test." No "TBD," no "implement error handling later," no "similar to T2." One commit per task is the default.
 
-Show the user the doc and ask: *Sign off on this plan or call out anything to change?* Wait for an explicit "go" / "approved" / "yes" before any code is written. This is the only mandatory human gate.
+Show the user the doc and ask: *Sign off on this plan or call out anything to change?* Wait for an explicit "go" / "approved" / "yes" before Phase 2.5 begins. This is the only mandatory human gate — Phase 2.5 spec review and Phases 3 through 6 run automatically afterward, with progress reports at each transition.
 
 ### Phase 2.5 — Spec self-review
 

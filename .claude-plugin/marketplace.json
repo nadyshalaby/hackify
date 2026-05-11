@@ -10,7 +10,7 @@
     {
       "name": "hackify",
       "source": ".",
-      "description": "One unified end-to-end dev workflow for any task — feature, bug fix, refactor, redesign, debug, or research. Single per-task markdown work-doc captures spec, plan, progress, review, and post-mortem in one file.",
+      "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file.",
       "version": "0.1.0",
       "category": "workflow",
       "keywords": [

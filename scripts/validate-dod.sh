@@ -2,6 +2,9 @@
 # Validate the hackify plugin against its shipping Definition of Done.
 # Run from repo root. Exits 0 if all checks pass, non-zero on any failure.
 
+# Note: -e is intentionally omitted — this script accumulates failures into
+# FAILED and exits non-zero at the end. -e would abort on the first failed
+# check and hide the rest.
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -109,11 +112,19 @@ else
 fi
 
 yellow "[6] token scrub — no personal/workspace leaks in plugin content"
-for token in Syanat SyanatBackend SyanatFrontend graphify corecave; do
+# nadyshalaby is the author's GitHub handle — legitimate in plugin.json /
+# marketplace.json / CHANGELOG / README (install snippets, repo URLs) but
+# must NOT appear inside the shipped skill content.
+for token in Syanat SyanatBackend SyanatFrontend graphify corecave nadyshalaby; do
   check_no_token "$token" "skills/"
 done
 for token in Syanat SyanatBackend SyanatFrontend graphify corecave; do
   check_no_token "$token" "README.md"
+done
+# evals.json is a per-file check since it lives under skills/ but is a single
+# JSON document worth verifying explicitly.
+for token in Syanat SyanatBackend SyanatFrontend graphify corecave nadyshalaby; do
+  check_no_token "$token" "skills/hackify/evals/evals.json"
 done
 # Absolute /Users/corecave/ paths in shipped content (not docs/work/)
 abs=$(grep -rc '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin/ 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')

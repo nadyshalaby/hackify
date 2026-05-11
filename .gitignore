@@ -8,3 +8,14 @@ node_modules/
 *.swp
 *.swo
 *~
+
+# Credential / secret patterns — never commit these
+*.pem
+*.key
+*.p8
+*.p12
+id_rsa*
+id_ed25519*
+credentials.json
+secrets.*
+.netrc

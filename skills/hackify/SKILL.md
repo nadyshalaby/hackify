@@ -33,7 +33,7 @@ Phase 6: Finish          ─── present 4 options, execute, archive work-doc,
 
 The only mandatory user gate is between **Plan** and **Spec review**. After Phase 2.5 surfaces issues (or doesn't), implementation begins automatically. Phases 3–6 run continuously with progress reports at each transition. The user can interrupt anytime — the work-doc holds state, so resuming is always possible.
 
-**Parallelism is the default**, not the exception. Whenever 2+ pieces of work are independent — clarify research, spec review, implementation tasks in the same wave, code review concerns, cross-package verification — dispatch them to foreground subagents in one message. The "no parallel implementation" rule is **revoked** as of 2026-05-03 — wave-based dependency ordering is what makes parallel implementation safe.
+**Parallelism is the default**, not the exception. Whenever 2+ pieces of work are independent — clarify research, spec review, implementation tasks in the same wave, code review concerns, cross-package verification — dispatch them to foreground subagents in one message. Wave-based dependency ordering is what makes parallel implementation safe — same-file tasks are split across waves so two agents never write to the same file in the same wave.
 
 ## The work-doc — single source of truth
 
