@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-05-11
 project: hackify
-current_task: W1
+current_task: W5 (paused — awaiting gh auth refresh)
 worktree: /Users/corecave/Code/hackify
 branch: main
 related: []
@@ -116,6 +116,49 @@ Dispatched 3 parallel reviewers. Findings folded into plan:
 - **Critical (Reviewer C):** T5 grossly under-scoped (51 Syanat + 7 absolute paths + 15 CLAUDE.md refs across 9 files); `parallel-agents.md` is largest target. Re-scoped in revised Tasks.
 - **Important:** install command syntax wrong (`hackify@hackify-marketplace` not `hackify`); marketplace.json needs `owner` field; gh auth pre-flight check missing; DoD-validation has no task → added T14; T10 README must run after T6 SKILL.md is final; T8 evals.json needs same scrub.
 - **Minor:** README line bounds tightened; CHANGELOG must call out version-bump discipline.
+
+### 2026-05-11 — Wave 1 (T1–T4, T8) — complete
+
+Scaffolded directory tree, wrote `.gitignore`, `LICENSE` (MIT), `CHANGELOG.md`, `.claude-plugin/plugin.json` inline. Copied `evals/evals.json` from source — discovered 5 Syanat/SyanatBackend/SyanatFrontend refs (not assumed during planning); rewrote inline with generic-but-plausible eval prompts preserving the workflow-shape assertions. `jq` parse: all valid. Token scrub: 0 hits per token after rewrite.
+
+### 2026-05-11 — Wave 2 (T5, T6) — complete
+
+Dispatched 2 parallel foreground agents in one message:
+- **T5 agent** scrubbed 9 reference files. Per-file substitution counts (Syanat / graphify / corecave / CLAUDE.md refs): `parallel-agents.md` (13/1/6/5), `frontend-design.md` (9 Syanat), `implement-and-test.md` (6 Syanat), `review-and-verify.md` (3+1), `finish.md` (2+2), `clarify-questions.md` (2+3), `code-rules.md` (2), `debug-when-stuck.md` (1), `work-doc-template.md` (2). All 9 files: 0 hits across all tokens after scrub. Line counts: source 1976 lines → dest 1993 lines (slight expansion from reframing prose).
+- **T6 agent** rewrote `SKILL.md`. Source 366 → dest 366 lines. Stripped §0 (not present in source — workspace CLAUDE.md), Syanat workspace lines, graphify commands, workspace CLAUDE.md §-references. Reframed FE section to drop Syanat brand spec. 0 hits across all tokens.
+
+Verification: `grep -rci` for `Syanat|graphify|corecave|nadyshalaby` over `skills/` returned 0 in every case.
+
+### 2026-05-11 — Wave 3 (T9, T10) — complete
+
+Wrote `.claude-plugin/marketplace.json` inline (name=`hackify-marketplace`, owner.name=`Nady Shalaby`, 1 plugin entry). Dispatched README agent in parallel — read finalized SKILL.md before authoring to keep phase explainers consistent. Output: 253 lines, 13 sections including hero, install, when-to-use, 6-phase ASCII diagram + per-phase explainers, work-doc explainer, parallel-agents section, file map, design principles, stack assumptions, 11-question FAQ, contributing, license. Sole `nadyshalaby` refs are the legitimate install snippet and GitHub Contributing URL.
+
+### 2026-05-11 — Wave 4 (T11, T14) — complete
+
+Wrote `scripts/validate-dod.sh` (executable; sole-purpose accumulator for the shipping DoD). One bug discovered on first run (em dash in error message — bash variable parsing) and patched. After patch: ALL CHECKS PASSED. Created initial commit `7f5f84d` (19 files, 3057 insertions) and annotated tag `v0.1.0`.
+
+### 2026-05-11 — Phase 5 multi-reviewer — complete
+
+Dispatched 3 parallel foreground reviewers in one message:
+- **Reviewer A (security & correctness):** no critical. 3 important — `source` field shape in marketplace.json, `repository` field shape in plugin.json (both flagged as "works today, may break under future schema tightening" — deferred to follow-up release), and confirmation that `nadyshalaby/hackify` shortcut resolves on `/plugin marketplace add`. 7 minor including .gitignore missing credential patterns.
+- **Reviewer B (quality & polish):** 1 critical (gate-location wording drift README↔SKILL.md), 4 important (`as of 2026-05-03` orphan reference, CHANGELOG broken grammar, tagline drift across 4 manifests, compact phrasing inconsistency). 12 minor.
+- **Reviewer C (DoD coverage):** 0 critical. 3 important (validator coverage of evals.json per-file; validator missing `nadyshalaby` token; README slim end of band at 253/450). T1–T11 + T14 DONE; T12 + T13 pending (expected, network + manual verification).
+
+Applied patches in one batch (commit `6762896`):
+- README gate wording aligned with SKILL.md (Plan → Spec review is the gate)
+- Stripped `as of 2026-05-03` orphan reference from SKILL.md
+- Fixed CHANGELOG grammar in Maintenance notes section
+- Normalized plugin description in marketplace.json to match plugin.json verbatim
+- Added credential patterns to .gitignore (`.pem`, `.key`, `.p8`, `.p12`, `id_rsa*`, `id_ed25519*`, `credentials.json`, `secrets.*`, `.netrc`)
+- Tightened validate-dod.sh: nadyshalaby token check, explicit evals.json per-file check, comment explaining `-e` omission
+
+After patches: `bash scripts/validate-dod.sh` → ALL CHECKS PASSED. Tag `v0.1.0` force-updated locally to commit `6762896` (safe pre-push). Two commits on `main`: `7f5f84d` (initial) → `6762896` (review patches).
+
+### 2026-05-11 — Wave 5 (T12, T13) — paused
+
+Re-checked `gh auth status` after the commits — token still expired (was expired before plan started; documented as a T12 prerequisite). Surfaced to user with the explicit `gh auth login -h github.com` command. Will resume `gh repo create` + push + tag-push as soon as user confirms re-auth.
+
+T13 (remove local skill + local plugin install + user verification of `/hackify:hackify`) is the final step.
 
 _(further entries appended one per completed task during Phase 3.)_
 

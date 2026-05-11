@@ -9,9 +9,12 @@
   "plugins": [
     {
       "name": "hackify",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "nadyshalaby/hackify"
+      },
       "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "workflow",
       "keywords": [
         "workflow",
