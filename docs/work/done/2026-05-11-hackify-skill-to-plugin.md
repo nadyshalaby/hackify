@@ -1,11 +1,12 @@
 ---
 slug: hackify-skill-to-plugin
 title: Convert hackify skill to installable Claude Code plugin
-status: implementing
+status: done
 type: refactor
 created: 2026-05-11
+completed: 2026-05-11
 project: hackify
-current_task: W5 (paused — awaiting gh auth refresh)
+current_task: archived
 worktree: /Users/corecave/Code/hackify
 branch: main
 related: []
@@ -164,8 +165,60 @@ _(further entries appended one per completed task during Phase 3.)_
 
 ## Verification
 
-_(filled in during Phase 4 — paste fresh evidence per DoD bullet, including T14 script output.)_
+Final `scripts/validate-dod.sh` run before archive:
+
+```
+[1] required files exist                           — 8/8 ok
+[2] reference files (expect 9)                     — ok
+[3] JSON files parse                               — plugin.json / marketplace.json / evals.json all valid
+[4] plugin.json required fields                    — name, version, description, author, repository,
+                                                     homepage, license, keywords all present
+[5] marketplace.json required fields               — name, owner, plugins, owner.name all present
+[6] token scrub                                    — Syanat / SyanatBackend / SyanatFrontend / graphify /
+                                                     corecave / nadyshalaby all 0 across skills/, README.md,
+                                                     evals.json. 0 absolute /Users/corecave/ paths in
+                                                     shipped content.
+[7] README line bounds                             — 275 lines (range 250..450)
+[8] SKILL.md frontmatter                           — name + description present
+
+ALL CHECKS PASSED
+```
+
+Repository state:
+
+- Public repo: https://github.com/nadyshalaby/hackify
+- Branch: `main`
+- Tags: `v0.1.0`, `v0.1.1`, `v0.1.2` (all pushed)
+- Commits on main (newest first):
+  - `6b2a5ea` docs: trim version history out of README Troubleshooting section
+  - `29fdc1b` fix(marketplace): use HTTPS clone URL so install works without SSH (v0.1.2)
+  - `93a28e9` fix(marketplace): use typed github source so /plugin install works (v0.1.1)
+  - `6762896` fix: address Phase 5 multi-reviewer findings
+  - `7f5f84d` chore: initial release of hackify v0.1.0
+- Local skill `~/.claude/skills/hackify/` removed (backed up to `~/.claude/hackify.bak.2026-05-11/`)
+- Install command: `/plugin marketplace add nadyshalaby/hackify` → `/plugin install hackify@hackify-marketplace`
 
 ## Post-mortem
 
-_(filled in during Phase 6.)_
+1. **Phase 2.5 spec review earned its keep on turn one.** Reviewer B caught the impossible `commands/hackify.md` shim that the user had explicitly chosen in the wizard — plugin commands are namespaced like skills, so bare `/hackify` is unreachable from inside a plugin. Without spec review we would have written code against an unimplementable plan. Re-gating cost one wizard call; not re-gating would have cost a full implementation pass.
+
+2. **Reviewer A's "verify against live docs" finding should never be deferred.** They flagged the bare `"source": "."` in marketplace.json with explicit doubt about schema acceptance, and I deferred it to "follow-up" — then v0.1.0 shipped broken with that exact failure mode. Cost: two extra release iterations (v0.1.1 typed object, v0.1.2 HTTPS URL). Rule for next time: any review finding that says "may break under future schema tightening" is a Critical, not a Minor.
+
+3. **T5 reference-file scrub was grossly under-scoped at planning time.** I budgeted "copy + scrub" — Reviewer C ran the actual grep and found ~51 Syanat tokens across 9 files (`parallel-agents.md` alone had 13 Syanat + 6 corecave path refs). Real rewrite, not a copy. Rule: do the grep counts *during* planning, never trust eyeball estimates for textual scrub work.
+
+4. **`evals.json` had unscrubbed Syanat-specific eval prompts** that "copy verbatim" did not catch. The post-copy grep is what saved this; if T8 had been a one-shot inline `cp` without verification, three eval prompts referencing SyanatBackend / SyanatFrontend / Better Auth would have shipped publicly. Rule: every "copy verbatim" task gets a follow-up grep against the contamination tokens, no exceptions.
+
+5. **Plugin clone protocol depends on user's local git config**, not the marketplace.json `source` type. `{"source": "github", "repo": "..."}` delegates to the user's gh / git config — SSH on many machines by default, which fails for users without GitHub SSH set up. `{"source": "url", "url": "https://..."}` forces literal HTTPS, the right default for public plugins. Rule: public plugins should ship with explicit HTTPS URL sources unless they specifically need GitHub-source smarts.
+
+6. **GitHub auth refresh blocked an entire wave.** `gh auth status` had been failing since before this task started; I detected it in Phase 1 but treated it as "T12 will pause and ask" rather than fixing it during planning. Burned a user turn mid-flight. Rule: any external-system credential surfaced as expired during context gathering is a Phase 1 fix-now item, not a Phase 5 prompt-the-user item.
+
+7. **Unicode in shell-interpolated strings is a silent bash footgun.** An em dash `–` inside a `"... $min–$max ..."` string broke variable parsing on macOS bash. Caught on the very first `validate-dod.sh` run. Rule: stick to ASCII inside any string that bash will interpolate; reserve Unicode for user-facing markdown.
+
+8. **The work-doc itself is the strongest demo of the workflow.** Shipping `docs/work/done/2026-05-11-hackify-skill-to-plugin.md` inside the public plugin repo doubles as the dogfooding example — anyone curious about what hackify produces can read a real instance with the full clarify Q&A, plan, implementation log, verification evidence, and this post-mortem. No separate "example" needed.
+
+## Follow-ups for v0.2.0 (deferred, not in scope for v0.1.x)
+
+- Reviewer A: `plugin.json` `repository` could be typed object form (`{"type": "git", "url": "..."}`); works as a bare URL today.
+- Reviewer C: `validate-dod.sh` minor robustness — `awk -F:` breaks on filenames with colons (low risk in this repo).
+- README "Acknowledgements" section if the plugin draws inspiration from public sources worth crediting.
+- Official Anthropic plugin-marketplace submission (currently deferred per Q&A #3 — self-hosted is the v0.1.x distribution path).
