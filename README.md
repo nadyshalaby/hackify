@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.1-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -48,7 +48,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Smart router (v0.2.0).** Routing is decided up front from three signal groups: **brainstorm** (open-ended exploration → `/brainstorm`), **quick** (small/single-file/typo → `/hackify:quick`), and **full** (everything else → `/hackify:hackify`). Ambiguous prompts default to **full** — escalation is free, demotion is not. Full classifier spec lives in [`skills/hackify/references/clarify-questions.md`](skills/hackify/references/clarify-questions.md).
+**Smart router (v0.2.1).** Routing is decided up front from three signal groups: **brainstorm** (open-ended exploration → `/brainstorm`), **quick** (small/single-file/typo → `/hackify:quick`), and **full** (everything else → `/hackify:hackify`). Ambiguous prompts default to **full** — escalation is free, demotion is not. Canonical classifier spec lives in [`skills/hackify/references/smart-router.md`](skills/hackify/references/smart-router.md); per-question banks for Phase 1 in [`skills/hackify/references/clarify-questions.md`](skills/hackify/references/clarify-questions.md).
 
 ## The workflow
 

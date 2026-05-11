@@ -71,12 +71,12 @@ check_file "LICENSE"
 check_file "CHANGELOG.md"
 check_file ".gitignore"
 
-yellow "[2] reference files (expect 10)"
+yellow "[2] reference files (expect ≥11)"
 ref_count=$(find skills/hackify/references -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
-if [ "$ref_count" -eq 10 ]; then
-  green "  ok   skills/hackify/references/ has 10 markdown files"
+if [ "$ref_count" -ge 11 ]; then
+  green "  ok   skills/hackify/references/ has $ref_count markdown files (≥11)"
 else
-  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected 10)"
+  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected ≥11)"
   FAILED=$((FAILED + 1))
 fi
 
@@ -549,22 +549,35 @@ while [ "$idx" -le 5 ]; do
   idx=$((idx + 1))
 done
 
-yellow "[27] router-classifier block in hackify/SKILL.md and quick/SKILL.md"
+yellow "[27] smart-router cross-reference (link in each SKILL + headers in reference)"
 for f in "skills/hackify/SKILL.md" "skills/quick/SKILL.md"; do
   if [ ! -f "$f" ]; then
     red "  FAIL $f missing"
     FAILED=$((FAILED + 1))
     continue
   fi
-  block_ok=1
-  for phrase in 'Pre-flight: smart router' 'Signal group (i)' 'Signal group (ii)' 'Signal group (iii)'; do
-    if ! grep -qF -- "$phrase" "$f"; then
-      red "  FAIL $f missing router phrase '$phrase'"
-      FAILED=$((FAILED + 1)); block_ok=0
+  if grep -qF '(/skills/hackify/references/smart-router.md)' "$f"; then
+    green "  ok   $f links to (/skills/hackify/references/smart-router.md)"
+  else
+    red "  FAIL $f missing markdown link '(/skills/hackify/references/smart-router.md)'"
+    FAILED=$((FAILED + 1))
+  fi
+done
+SMART_ROUTER_REF="skills/hackify/references/smart-router.md"
+if [ ! -f "$SMART_ROUTER_REF" ]; then
+  red "  FAIL $SMART_ROUTER_REF missing"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   $SMART_ROUTER_REF exists"
+  for heading in '### Signal group (i) — Brainstorm triggers' '### Signal group (ii) — Full-mode triggers' '### Signal group (iii) — Quick-eligible'; do
+    if grep -qF -- "$heading" "$SMART_ROUTER_REF"; then
+      green "  ok   $SMART_ROUTER_REF contains heading '$heading'"
+    else
+      red "  FAIL $SMART_ROUTER_REF missing heading '$heading'"
+      FAILED=$((FAILED + 1))
     fi
   done
-  [ "$block_ok" = "1" ] && green "  ok   $f router-classifier block complete (preflight + 3 signal groups)"
-done
+fi
 
 yellow "[28] pause-keyword list in hackify/SKILL.md (scoped to Pause-checkpoint section)"
 HACKIFY_SKILL="skills/hackify/SKILL.md"
