@@ -1,0 +1,65 @@
+{
+  "skill_name": "hackify",
+  "evals": [
+    {
+      "id": 1,
+      "name": "backend-feature-invitation-expiry",
+      "prompt": "I need to add expiry to closed sign-up invitations in our backend. Right now invitations live forever in the `invitations` table — once an admin creates one, it stays valid until consumed. We want admins to be able to set a TTL when creating an invitation (default 7 days, max 30, configurable per-row), and the auth pre-create hook should reject expired invitations with a clear error. Also: a daily background job that purges invitations expired more than 30 days ago. Backend only — frontend changes are a separate task. Use the workflow.",
+      "assertions": [
+        {"text": "Output contains a work-doc.md file with YAML frontmatter including slug, title, status, type=feature, project"},
+        {"text": "Work-doc has a 'Clarifying Q&A' section with at least 3 numbered questions"},
+        {"text": "Work-doc has a 'Definition of Done' section with at least 5 verifiable bullets"},
+        {"text": "Work-doc has a 'Tasks' section with at least 4 bite-sized checkbox tasks"},
+        {"text": "Tasks include both implementation AND test tasks (each business-logic task paired with a test)"},
+        {"text": "Proposed implementation describes a migration adding an `expires_at` column to the invitations table"},
+        {"text": "Proposed implementation describes changes to the invitations service (TTL accept, default 7d, max 30d)"},
+        {"text": "Proposed implementation describes changes to the auth pre-create hook (rejects expired invitations with a clear error)"},
+        {"text": "Proposed implementation describes a cron/scheduled job for purging invitations expired more than 30 days ago"},
+        {"text": "Transcript shows clarify -> plan -> gate -> implement -> verify -> finish flow (or explicitly notes deviations)"},
+        {"text": "Transcript references the simulated user-approval at the Phase 2 gate"},
+        {"text": "Self-review checklist is filled in within the work-doc Verification section"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "frontend-redesign-team-toolbar",
+      "prompt": "The team page toolbar in our frontend is cluttered — the Invite, Filter, and Search controls don't have a clear hierarchy and the spacing feels arbitrary. I want it tightened to fit a clear visual direction. Keep the same controls; nothing functional changes. Use the workflow.",
+      "assertions": [
+        {"text": "Transcript explicitly mentions loading references/frontend-design.md (recognizing the FE-design trigger)"},
+        {"text": "Work-doc clarifying questions cover: visual direction / what stays / what changes / brand or design system applies"},
+        {"text": "Work-doc Approach section explicitly names the committed visual direction"},
+        {"text": "Work-doc DoD includes a 'no new generic-AI signals' or equivalent bullet (forbids stock AI-UI palettes / fonts)"},
+        {"text": "Test mode for the implementation tasks is 'manual smoke' (cosmetic-only)"},
+        {"text": "Smoke steps include RTL toggle / mobile breakpoint / dark mode if relevant"},
+        {"text": "Proposed implementation does NOT introduce new font families without explicit reason"},
+        {"text": "Proposed implementation uses design tokens / CSS variables / utility classes — not inline hex colors or px paddings outside the system"},
+        {"text": "Proposed implementation uses logical properties (margin-inline-start / padding-inline-end) for any spacing changes if RTL is in scope"},
+        {"text": "Transcript shows the visual quality gate (5 questions: clear point of view, intentional typography/spacing, supportive color/motion, avoids AI-UI feel, production-grade)"},
+        {"text": "Work-doc has YAML frontmatter with type=redesign or type=revamp"},
+        {"text": "Self-review checklist filled in within the work-doc Verification section"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "bug-fix-401-on-tenant-route",
+      "prompt": "We have a bug in the backend. An integration test for the GET /api/invitations endpoint is failing with `expected 200, got 401` when called against a tenant subdomain. It started failing after we merged a multi-tenant auth refactor last week. I already tried adding `await` to one of the auth handlers — didn't help. Find the root cause and fix it. Use the workflow.",
+      "assertions": [
+        {"text": "Transcript recognizes this as a debug task (Phase 3b / 4-phase systematic debug)"},
+        {"text": "Work-doc clarifying questions focus on reproduction + recent changes + scope (matches the `fix` or `debug` question bank)"},
+        {"text": "Phase D1 (root cause) — work-doc/transcript shows evidence-gathering at component boundaries (tenant resolver, auth middleware, route handler, DB query, etc.)"},
+        {"text": "Phase D2 (pattern analysis) — work-doc/transcript references comparing against a working analogue (another tenant route)"},
+        {"text": "Phase D3 — at least one hypothesis is stated explicitly in the form 'I think X is the root cause because Y'"},
+        {"text": "Phase D4 — proposed fix includes a failing regression test that fails before the fix and passes after (red-green cycle)"},
+        {"text": "Transcript honors the 3-hypothesis circuit breaker (mentions stopping if 3 fail and surfacing architectural concern)"},
+        {"text": "The user's earlier `await` fix attempt is recognized as a symptom-level patch and either reverted or technically justified"},
+        {"text": "Proposed fix targets the SOURCE of the bug, not the symptom"},
+        {"text": "DoD includes 'no other tests broken' / 'all tests still pass'"},
+        {"text": "Work-doc YAML frontmatter has type=fix or type=debug"},
+        {"text": "Self-review checklist filled in within the work-doc Verification section"}
+      ],
+      "files": []
+    }
+  ]
+}

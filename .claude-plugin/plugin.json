@@ -1,0 +1,24 @@
+{
+  "name": "hackify",
+  "version": "0.1.0",
+  "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file.",
+  "author": {
+    "name": "Nady Shalaby",
+    "email": "nadyshalaby@gmail.com",
+    "url": "https://github.com/nadyshalaby"
+  },
+  "homepage": "https://github.com/nadyshalaby/hackify",
+  "repository": "https://github.com/nadyshalaby/hackify",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "skill",
+    "plugin",
+    "workflow",
+    "tdd",
+    "code-review",
+    "dev-workflow",
+    "spec-driven",
+    "parallel-agents"
+  ]
+}

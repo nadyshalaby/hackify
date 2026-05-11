@@ -1,0 +1,27 @@
+{
+  "name": "hackify-marketplace",
+  "description": "Self-hosted marketplace for the hackify plugin — one end-to-end dev workflow for every task.",
+  "owner": {
+    "name": "Nady Shalaby",
+    "email": "nadyshalaby@gmail.com",
+    "url": "https://github.com/nadyshalaby"
+  },
+  "plugins": [
+    {
+      "name": "hackify",
+      "source": ".",
+      "description": "One unified end-to-end dev workflow for any task — feature, bug fix, refactor, redesign, debug, or research. Single per-task markdown work-doc captures spec, plan, progress, review, and post-mortem in one file.",
+      "version": "0.1.0",
+      "category": "workflow",
+      "keywords": [
+        "workflow",
+        "tdd",
+        "code-review",
+        "spec-driven",
+        "parallel-agents"
+      ],
+      "homepage": "https://github.com/nadyshalaby/hackify",
+      "license": "MIT"
+    }
+  ]
+}
