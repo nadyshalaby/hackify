@@ -238,32 +238,27 @@ Yes. Each sub-project (for instance, your backend and frontend repos) is its own
 **What if a task turns out to need a file outside its allowlist?**
 The agent stops and reports back rather than editing the file. The parent decides: either re-dispatch with a widened allowlist, or split the work into a follow-up task in the next wave. The allowlist is the contract that makes parallel implementation safe.
 
-## Troubleshooting installs
+## Troubleshooting
 
 **`This plugin uses a source type your Claude Code version does not support.`**
-You're on a Claude Code build older than the one that ships the typed-`source` schema. Run `claude --upgrade` (or update via your package manager) and retry. Versions 0.1.1 and newer of this plugin use the documented typed-object form, which all recent Claude Code releases accept.
+Update Claude Code (`claude --upgrade` or via your package manager) and retry.
 
 **`No ED25519 host key is known for github.com and you have requested strict checking.`**
-Your machine has never seen github.com's host fingerprints. Run once:
+Add GitHub's host fingerprints to your trusted hosts file:
 
 ```bash
 ssh-keyscan -t ed25519,rsa,ecdsa github.com >> ~/.ssh/known_hosts
 ```
 
-Idempotent; safe to re-run. After that, retry the install.
+Idempotent; safe to re-run.
 
 **`Permission denied (publickey).`**
-The clone is trying SSH and the SSH key on your machine isn't registered with GitHub. Easiest fix: re-authenticate with HTTPS so future clones don't need an SSH key:
-
-```bash
-gh auth logout -h github.com
-gh auth login -h github.com   # choose HTTPS when prompted
-```
-
-Versions 0.1.2 and newer of this plugin already clone over HTTPS, so the install should now succeed without further changes after refreshing the marketplace (`/plugin marketplace update hackify-marketplace`).
+The clone is going over SSH and your machine's SSH key isn't registered with GitHub. The plugin clones over HTTPS by default, so this only triggers when local git config rewrites HTTPS to SSH. Either remove the rewrite, or register an SSH key with GitHub.
 
 **Plugin doesn't appear after install.**
-Reload skills with `/reload-plugins` (or restart Claude Code). The hackify skill registers as `/hackify:hackify` and also auto-triggers when you describe any non-trivial dev task.
+Run `/reload-plugins` (or restart Claude Code). The skill registers as `/hackify:hackify` and also auto-triggers when you describe any non-trivial dev task.
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Contributing
 
