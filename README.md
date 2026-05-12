@@ -11,6 +11,10 @@
 
 Clarify → Plan → Implement → Verify → Review → Finish — anchored to a single markdown work-doc per task.
 
+<br/>
+
+<img src="docs/assets/hackify-demo.gif" alt="Hackify 6-phase workflow — Clarify, Plan, Implement, Verify, Review, Finish" width="820" />
+
 </div>
 
 ---
