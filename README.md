@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.2-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -146,14 +146,14 @@ current_task: W2:T3
 branch: feat/invitation-token-expiry
 ---
 
-## Definition of Done
+## Acceptance Criteria
 - [x] `expires_at` column added; migration is idempotent
 - [ ] Expired tokens return 410 Gone with structured error body
 - [ ] Frontend shows expiry timestamp on the invite-accept screen
 - [ ] Backend + frontend tests pass; coverage held or improved
 - [ ] No new lint suppressions, no `!`, no `console.log`
 
-## Tasks
+## Sprint Backlog
 - [x] T1 — Add `expires_at` column + migration
 - [x] T2 — Reject expired tokens in invitations service
 - [ ] T3 — Show "expired" state in the accept-invite UI
@@ -187,6 +187,20 @@ The safety property that makes this work is a **strict file allowlist** baked in
 .claude-plugin/
   plugin.json                          plugin manifest
   marketplace.json                     self-hosted marketplace entry
+rules/                                 always-on engineering law (v0.2.2)
+  hard-caps.md                         short doctrine injected every prompt via hook
+  code-quality.md                      DRY, named types, layering deep dive (canonical)
+agents/                                formal sub-agent definitions (v0.2.2 — claude-code only)
+  spec-reviewer-consistency.md         Phase 2.5 Reviewer A
+  spec-reviewer-rules.md               Phase 2.5 Reviewer B
+  spec-reviewer-dependencies.md        Phase 2.5 Reviewer C
+  code-reviewer-security.md            Phase 5 Reviewer A
+  code-reviewer-quality.md             Phase 5 Reviewer B
+  code-reviewer-plan-consistency.md    Phase 5 Reviewer C
+  wave-task-implementer.md             Phase 3 wave-task implementer
+hooks/                                 prompt-time injection (v0.2.2 — claude-code only)
+  hooks.json                           UserPromptSubmit hook declaration
+  inject-hard-caps.sh                  injects rules/hard-caps.md into context every prompt
 commands/
   summary.md                           /hackify:summary slash command
 scripts/
@@ -203,8 +217,8 @@ skills/
       review-and-verify.md             DoD + 14-item self-review + escalation
       finish.md                        Phase 6 — options, archive, summary table
       frontend-design.md               visual law (loaded on FE / UI tasks)
-      code-rules.md                    DRY, named types, layering deep dive
-      parallel-agents.md               parallel subagent dispatch templates
+      code-rules.md                    forwarding stub → rules/code-quality.md
+      parallel-agents.md               parallel subagent dispatch templates (cross-runtime fallback)
       runtime-adapters.md              primitive → per-runtime mapping table
     evals/
       evals.json                       optional eval harness
@@ -269,11 +283,11 @@ cp -R dist/codex-cli/* ~/.codex/prompts/
 
 ### Project-level rules
 
-Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`code-rules.md`](skills/hackify/references/code-rules.md) is the fallback when no project rules exist.
+Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the v0.2.2 `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded.
 
 ### Stack assumptions
 
-The reference rules ship with the author's stack baked in: Bun, Biome, two-space indent, single quotes, no semicolons. That stack is documented in [`code-rules.md`](skills/hackify/references/code-rules.md) and is explicitly **substitute your own** — swap in npm or pnpm, ESLint or Prettier, four-space indent — the workflow does not care.
+The reference rules ship with the author's stack baked in: Bun, Biome, two-space indent, single quotes, no semicolons. That stack is documented in [`rules/code-quality.md`](rules/code-quality.md) and is explicitly **substitute your own** — swap in npm or pnpm, ESLint or Prettier, four-space indent — the workflow does not care.
 
 What does carry across stacks are the principles: DRY enforced by searching before writing, named types for any object shape with 2+ properties, strict layer separation, zero lint suppressions, zero non-null assertions in production code, functions ≤40 LOC, files ≤500 LOC, edge cases handled rather than hoped away.
 
