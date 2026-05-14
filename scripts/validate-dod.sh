@@ -71,12 +71,12 @@ check_file "LICENSE"
 check_file "CHANGELOG.md"
 check_file ".gitignore"
 
-yellow "[2] reference files (expect ≥11)"
+yellow "[2] reference files (expect ≥10)"
 ref_count=$(find skills/hackify/references -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
-if [ "$ref_count" -ge 11 ]; then
-  green "  ok   skills/hackify/references/ has $ref_count markdown files (≥11)"
+if [ "$ref_count" -ge 10 ]; then
+  green "  ok   skills/hackify/references/ has $ref_count markdown files (≥10)"
 else
-  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected ≥11)"
+  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected ≥10)"
   FAILED=$((FAILED + 1))
 fi
 
@@ -549,36 +549,6 @@ while [ "$idx" -le 5 ]; do
   idx=$((idx + 1))
 done
 
-yellow "[27] smart-router cross-reference (link in each SKILL + headers in reference)"
-for f in "skills/hackify/SKILL.md" "skills/quick/SKILL.md"; do
-  if [ ! -f "$f" ]; then
-    red "  FAIL $f missing"
-    FAILED=$((FAILED + 1))
-    continue
-  fi
-  if grep -qF '(/skills/hackify/references/smart-router.md)' "$f"; then
-    green "  ok   $f links to (/skills/hackify/references/smart-router.md)"
-  else
-    red "  FAIL $f missing markdown link '(/skills/hackify/references/smart-router.md)'"
-    FAILED=$((FAILED + 1))
-  fi
-done
-SMART_ROUTER_REF="skills/hackify/references/smart-router.md"
-if [ ! -f "$SMART_ROUTER_REF" ]; then
-  red "  FAIL $SMART_ROUTER_REF missing"
-  FAILED=$((FAILED + 1))
-else
-  green "  ok   $SMART_ROUTER_REF exists"
-  for heading in '### Signal group (i) — Brainstorm triggers' '### Signal group (ii) — Full-mode triggers' '### Signal group (iii) — Quick-eligible'; do
-    if grep -qF -- "$heading" "$SMART_ROUTER_REF"; then
-      green "  ok   $SMART_ROUTER_REF contains heading '$heading'"
-    else
-      red "  FAIL $SMART_ROUTER_REF missing heading '$heading'"
-      FAILED=$((FAILED + 1))
-    fi
-  done
-fi
-
 yellow "[28] pause-keyword list in hackify/SKILL.md (scoped to Pause-checkpoint section)"
 HACKIFY_SKILL="skills/hackify/SKILL.md"
 # Extract just the body of the `### Pause checkpoint (mid-wave exit)` section
@@ -598,6 +568,101 @@ for kw in 'pause' 'stop' 'exit' 'later' 'tomorrow' 'come back' 'pick this up lat
   else
     red "  FAIL Pause-checkpoint section missing pause-keyword '$kw'"
     FAILED=$((FAILED + 1))
+  fi
+done
+
+# === v0.2.2 — plugin primitives (rules/, agents/, hooks/) ===
+
+yellow "[29] rules/ directory exists with hard-caps.md + code-quality.md (non-empty)"
+for f in "rules/hard-caps.md" "rules/code-quality.md"; do
+  if [ ! -f "$f" ]; then
+    red "  FAIL $f missing"
+    FAILED=$((FAILED + 1))
+  elif [ ! -s "$f" ]; then
+    red "  FAIL $f empty"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $f exists and non-empty"
+  fi
+done
+
+yellow "[30] agents/ directory contains the 7 hackify v0.2.2 agent definitions"
+AGENTS_EXPECTED=(
+  "spec-reviewer-consistency"
+  "spec-reviewer-rules"
+  "spec-reviewer-dependencies"
+  "code-reviewer-security"
+  "code-reviewer-quality"
+  "code-reviewer-plan-consistency"
+  "wave-task-implementer"
+)
+for name in "${AGENTS_EXPECTED[@]}"; do
+  f="agents/${name}.md"
+  if [ ! -f "$f" ]; then
+    red "  FAIL $f missing"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  if ! head -5 "$f" | grep -qF "name: $name"; then
+    red "  FAIL $f frontmatter 'name:' does not match '$name'"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $f present with matching frontmatter name"
+  fi
+done
+agent_count=$(find agents -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$agent_count" -ne 7 ]; then
+  red "  FAIL agents/ contains $agent_count *.md files; expected 7"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   agents/ contains exactly 7 *.md files"
+fi
+
+yellow "[31] hooks/hooks.json is valid JSON and declares UserPromptSubmit"
+HOOKS_JSON="hooks/hooks.json"
+if [ ! -f "$HOOKS_JSON" ]; then
+  red "  FAIL $HOOKS_JSON missing"
+  FAILED=$((FAILED + 1))
+else
+  if python3 -m json.tool "$HOOKS_JSON" >/dev/null 2>&1; then
+    green "  ok   $HOOKS_JSON parses as JSON"
+  else
+    red "  FAIL $HOOKS_JSON is not valid JSON"
+    FAILED=$((FAILED + 1))
+  fi
+  if grep -qF '"UserPromptSubmit"' "$HOOKS_JSON"; then
+    green "  ok   $HOOKS_JSON declares UserPromptSubmit"
+  else
+    red "  FAIL $HOOKS_JSON missing UserPromptSubmit event"
+    FAILED=$((FAILED + 1))
+  fi
+fi
+
+yellow "[32] hooks/inject-hard-caps.sh exists and is executable"
+HOOK_SH="hooks/inject-hard-caps.sh"
+if [ ! -f "$HOOK_SH" ]; then
+  red "  FAIL $HOOK_SH missing"
+  FAILED=$((FAILED + 1))
+elif [ ! -x "$HOOK_SH" ]; then
+  red "  FAIL $HOOK_SH not executable (chmod +x)"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   $HOOK_SH exists and is executable"
+fi
+
+yellow "[33] smart-router reference fully removed (router-excision invariant)"
+if [ -f "skills/hackify/references/smart-router.md" ]; then
+  red "  FAIL skills/hackify/references/smart-router.md still exists (should be deleted in v0.2.2)"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   skills/hackify/references/smart-router.md deleted"
+fi
+for f in "skills/hackify/SKILL.md" "skills/quick/SKILL.md"; do
+  if grep -qF '(/skills/hackify/references/smart-router.md)' "$f"; then
+    red "  FAIL $f still links to deleted smart-router.md"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $f has no link to smart-router.md"
   fi
 done
 

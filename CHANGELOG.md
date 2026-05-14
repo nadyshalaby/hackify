@@ -5,6 +5,45 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-05-14
+
+> **Patch label, refactor + additive scope.** Removes the prompt-based smart router that picked between full hackify, quick, and brainstorm — routing is now handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery. In its place, hackify graduates to a four-primitive plugin layout: `skills/` (workflows), `rules/` (always-on engineering law), `agents/` (formal sub-agent definitions), `hooks/` (UserPromptSubmit reminders). Each primitive owns the concern it is best at — and ONLY that concern. The hook is explicitly NON-routing: it injects `rules/hard-caps.md` into context every prompt, never classifies full vs quick from prompt content. Moving the classifier into the hook would just relocate the problem; this release deletes the classifier instead.
+
+### Why
+
+The v0.2.1 smart-router classifier was a custom prompt-content matcher embedded in two SKILL files plus a shared reference. Claude Code already does this work natively via skill `description` auto-discovery. The router added a second classifier on top of the native one, doubling the surface area, requiring its own validator check, and creating an ongoing maintenance contract between three files. v0.2.2 deletes the router, sharpens the three SKILL descriptions to do the same job through harness-native means, and uses the recovered conceptual space to ship the three plugin primitives that were always implicit in hackify's design.
+
+### Changed — Smart router removed
+
+- **`skills/hackify/references/smart-router.md`** — **deleted.** The canonical classifier file from v0.2.1 is gone. Routing is now description-based.
+- **`skills/hackify/SKILL.md`** — `## Pre-flight: smart router — pick the right flow` stub block removed.
+- **`skills/quick/SKILL.md`** — same stub block removed.
+- **`skills/brainstorm/SKILL.md`** — `## When to invoke` section cross-reference paragraph to the smart router removed; `## File map` reference rewritten to point at description-based routing.
+- **`README.md`** — "Smart router (v0.2.1)" paragraph removed; replaced with a "Plugin primitives (v0.2.2)" paragraph that lists `skills/ rules/ agents/ hooks/ commands/` and their respective concerns.
+- **`scripts/validate-dod.sh`** — check `[27]` (smart-router cross-reference) deleted in W1; a new check `[33]` (router-excision invariant) added at the tail of the script to assert the file stays deleted and neither SKILL re-introduces a link to it.
+
+### Added — Plugin primitives at the repo root
+
+- **`rules/hard-caps.md`** — new short always-on engineering law (~40 lines). Function/file/param/nesting caps, lint-suppression ban, no-`!` rule, no-empty-catch rule, named-types rule, single-responsibility, refuse-on-sight anti-patterns. Injected into every prompt by the new UserPromptSubmit hook so the hard caps are always loaded.
+- **`rules/code-quality.md`** — relocated canonical content of the deeper SOLID / DRY / types / layering doctrine (formerly `skills/hackify/references/code-rules.md`). 231 lines, skill-loaded on demand by Phase 2.5 Reviewer B and Phase 5 Reviewer B. The legacy `references/code-rules.md` path is preserved as a 6-line forwarding stub so existing intra-skill links keep working; both paths mirror to all 7 runtimes via `sync-runtimes.sh`.
+- **`agents/`** — 7 formal Claude Code sub-agent definitions extracted from the templates in `skills/hackify/references/parallel-agents.md`. Three Phase 2.5 spec reviewers (`spec-reviewer-consistency`, `spec-reviewer-rules`, `spec-reviewer-dependencies`), three Phase 5 code reviewers (`code-reviewer-security`, `code-reviewer-quality`, `code-reviewer-plan-consistency`), and one Phase 3 wave task implementer (`wave-task-implementer`). Each file has YAML frontmatter (`name`, `description`) plus the canonical 7-section sub-agent contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT — SEVERITY omitted on the implementer). claude-code-only — non-claude-code runtimes fall back to the inline templates in `parallel-agents.md`, which stays untouched.
+- **`hooks/hooks.json`** + **`hooks/inject-hard-caps.sh`** — single UserPromptSubmit hook. The shell script emits a JSON envelope (`{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"<rules>"}}`) so the harness treats the rules as injected context rather than a transcript message. NON-routing — the script never inspects the user prompt; it just reads `${CLAUDE_PLUGIN_ROOT}/rules/hard-caps.md`. claude-code-only.
+
+### Changed — Skill descriptions are the new routing mechanism
+
+- **`skills/hackify/SKILL.md`** description — sharpened (1177 chars) to enumerate broad-spectrum verbs (`add`, `build`, `implement`, `refactor`, `redesign`, `restyle`, `migrate`, `debug`, `polish`, `audit`) AND architecture/scope/security surface (`auth`, `crypto`, `migration`, `secret`, `token`, `password`, `schema`, `data model`, `API surface`, `refactor everywhere`, `across all`). Explicit "When in doubt, invoke this skill" contract preserved.
+- **`skills/quick/SKILL.md`** description — sharpened (1458 chars) to lead with explicit small-fix triggers (`quick fix`, `small change`, `just fix the`, `one-line fix`, `tiny edit`, `small fix`, `small bug`, `quick patch`, `minor tweak`, `just rename`, `fix typo`); explicit non-trigger list (cross-file refactor, redesign, debug, auth/crypto/migration); four fallback signals (attempt counter, file count, security path, user-invokes-full) kept intact as post-implementation circuit breakers.
+- **`skills/brainstorm/SKILL.md`** description — sharpened (1273 chars) to enumerate idea-exploration triggers (`/brainstorm`, `let's discuss`, `let's think`, `what if`, `brainstorm`, `explore the idea`, `what do you think`, `considering`, `thinking about`); explicit non-trigger rule for build verbs that route to hackify/quick directly.
+
+### Changed — sync-runtimes + validator
+
+- **`scripts/sync-runtimes.sh`** `MIRROR_SOURCES` appended with `rules/hard-caps.md` and `rules/code-quality.md` (mirrors to all 7 runtimes). `CLAUDE_CODE_EXTRA` appended with the 7 `agents/*.md` files + `hooks/hooks.json` + `hooks/inject-hard-caps.sh` (mirrors to `dist/claude-code/` only). Both arrays remain explicit flat enumerations, not globs.
+- **`scripts/validate-dod.sh`** — gained five new checks: `[29]` rules/ existence + non-empty, `[30]` agents/ has exactly the 7 expected files with matching frontmatter `name:`, `[31]` hooks/hooks.json parses as JSON and declares `UserPromptSubmit`, `[32]` `hooks/inject-hard-caps.sh` is executable, `[33]` smart-router file stays deleted and no SKILL re-introduces a link to it.
+
+### Migration
+
+No migration for skill users — slash commands, descriptions, and the work-doc contract are unchanged on the user-facing surface. Plugin authors who fork hackify pick up the new four-primitive contract: `rules/` for always-on law, `agents/` for parallel-dispatch defs, `hooks/` for prompt-time reminders, `skills/` for workflows.
+
 ## [0.2.1] — 2026-05-11
 
 > **Patch label, refactor-only scope.** Pure refactor — no new features, no bug fixes against shipped behavior. Extracts the smart-router block to a single canonical reference shared by both SKILLs, hardens two validator checks flagged in the v0.2.0 Retrospective, and honestly retires the v0.2.0 AC10 gross target as a documented incompatibility (the router block was post-v0.2.0 additive prose, not pre-existing prose, so its extraction is gross-neutral against AC10's anchor). Wins are measured in net SKILL-file line reduction (−37 / −39) and single-source-of-truth architecture for the router rules.

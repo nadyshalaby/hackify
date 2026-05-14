@@ -52,7 +52,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Smart router (v0.2.1).** Routing is decided up front from three signal groups: **brainstorm** (open-ended exploration → `/brainstorm`), **quick** (small/single-file/typo → `/hackify:quick`), and **full** (everything else → `/hackify:hackify`). Ambiguous prompts default to **full** — escalation is free, demotion is not. Canonical classifier spec lives in [`skills/hackify/references/smart-router.md`](skills/hackify/references/smart-router.md); per-question banks for Phase 1 in [`skills/hackify/references/clarify-questions.md`](skills/hackify/references/clarify-questions.md).
+**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, brainstorm, writing-skills, receiving-code-review). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents.md`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 

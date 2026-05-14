@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Socratic pre-task refinement skill for the hackify workflow. Runs an interactive idea-shaping conversation that asks 1 or 2 forking questions per turn (NOT a batched wizard), reflects what the user said before each next question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers — invoke this skill when the user prompt contains any of `/brainstorm`, `let's discuss`, `let's think`, `what if`, `brainstorm`, or `explore the idea`, or when the hackify smart router routes the prompt to the brainstorm signal group. Locked contract — brainstorm runs WITHOUT a work-doc until graduation; no scratch files, no eager creation. At graduation, write a one-paragraph distillation, create the canonical work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` with a `## Brainstorm Provenance` block, then hand off to Phase 1 of `skills/hackify/SKILL.md`. Use this skill when the user is exploring an idea, not yet asking for a build.
+description: Socratic pre-task refinement skill — the idea-shaping front door to the hackify workflow. Runs an interactive 1-or-2-forking-questions-per-turn conversation (NOT a batched wizard), reflects what the user said before each next question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers — invoke this skill when the user prompt contains any of `/brainstorm`, `let's discuss`, `let's think`, `what if`, `brainstorm`, `explore the idea`, `what do you think`, `considering`, `thinking about`, or any open-ended idea-exploration phrasing that has no concrete build verb. Do NOT invoke when the prompt already contains build verbs like `add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen` — those route directly to full hackify or quick via each skill's own description-based auto-discovery. Locked contract — brainstorm runs WITHOUT a work-doc until graduation; no scratch files, no eager creation. At graduation, write a one-paragraph distillation, create the canonical work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` with a `## Brainstorm Provenance` block, then hand off to Phase 1 of `skills/hackify/SKILL.md`. Use this skill when the user is exploring an idea, not yet asking for a build.
 ---
 
 # Brainstorm — Socratic pre-task refinement
@@ -22,9 +22,7 @@ Auto-discovery fires this skill when the user's most recent prompt contains any 
 - `brainstorm`
 - `explore the idea`
 
-The hackify smart router (documented in `skills/hackify/SKILL.md` "Pre-flight: smart router — pick the right flow" → "Signal group (i) — Brainstorm triggers" and mirrored in `skills/quick/SKILL.md`) is the same set of phrases. The router and this skill's auto-discovery are coupled — if either path fires, brainstorm runs.
-
-Do NOT invoke brainstorm when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`) — those route directly to full hackify or quick. Brainstorm is strictly pre-task; it is not a discussion stage that runs after Phase 1.
+Do NOT invoke brainstorm when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`) — those route directly to full hackify or quick via each skill's own auto-discovery. Brainstorm is strictly pre-task; it is not a discussion stage that runs after Phase 1.
 
 ---
 
@@ -88,7 +86,7 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the Socratic loop + graduation rule)
 ```
 
-No reference files in v0.2.0. The skill is small by design — discovery, not build. Cross-references resolve at runtime against `skills/hackify/SKILL.md` (Phase 1, work-doc template path) and `skills/quick/SKILL.md` (smart router brainstorm signal group).
+No reference files. The skill is small by design — discovery, not build. Cross-references resolve at runtime against `skills/hackify/SKILL.md` (Phase 1, work-doc template path). Routing between brainstorm / full hackify / quick is handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery — there is no shared router.
 
 ---
 

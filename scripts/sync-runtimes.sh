@@ -82,13 +82,29 @@ MIRROR_SOURCES=(
   "skills/receiving-code-review/SKILL.md"
   "skills/quick/SKILL.md"
   "commands/summary.md"
+  "rules/hard-caps.md"
+  "rules/code-quality.md"
 )
 
-# claude-code additionally mirrors the plugin manifests so the entire repo
-# layout is reproducible inside dist/claude-code/.
+# claude-code additionally mirrors the plugin manifests + the claude-code-native
+# primitive directories (agents/, hooks/) so the entire repo layout is
+# reproducible inside dist/claude-code/. Other runtimes never see agents/ or
+# hooks/ — they fall back to the inline templates in
+# `skills/hackify/references/parallel-agents.md` (already in MIRROR_SOURCES).
+# CLAUDE_CODE_EXTRA is a flat array of explicit paths; NOT a glob — enumerate
+# every file by name.
 CLAUDE_CODE_EXTRA=(
   ".claude-plugin/plugin.json"
   ".claude-plugin/marketplace.json"
+  "agents/spec-reviewer-consistency.md"
+  "agents/spec-reviewer-rules.md"
+  "agents/spec-reviewer-dependencies.md"
+  "agents/code-reviewer-security.md"
+  "agents/code-reviewer-quality.md"
+  "agents/code-reviewer-plan-consistency.md"
+  "agents/wave-task-implementer.md"
+  "hooks/hooks.json"
+  "hooks/inject-hard-caps.sh"
 )
 
 # Runtime list — these substrings MUST each appear at least once in --dry-run

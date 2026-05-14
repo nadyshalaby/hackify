@@ -1,6 +1,6 @@
 {
   "name": "hackify",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file.",
   "author": {
     "name": "Nady Shalaby",

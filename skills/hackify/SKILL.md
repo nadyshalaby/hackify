@@ -1,6 +1,6 @@
 ---
 name: hackify
-description: One unified end-to-end dev workflow for ANY task — feature, bug fix, refactor, redesign, design, debug, or research-then-build — driven by a single per-task markdown work-doc at <project>/docs/work/. Replaces multi-skill ceremony (no separate spec/plan files). Asks every clarifying question up-front in one batched questionnaire, holds a hard gate before any code is written, file-driven pause/resume across sessions, mandatory evidence-before-claims, baked-in self-review checklist, mandatory multi-reviewer code review on non-trivial diffs, explicit definition-of-done verified end-to-end. Use this skill for ANY non-trivial prompt — building, fixing, refactoring, redesigning, debugging, polishing, or even just discussing an idea before building. Use it even when the user does not explicitly say "use the workflow" — the only carve-outs are trivial Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill.
+description: One unified end-to-end dev workflow for ANY substantive task — feature, bug fix, refactor, redesign, design, debug, migration, or research-then-build — driven by a single per-task markdown work-doc at <project>/docs/work/. Replaces multi-skill ceremony (no separate spec/plan files). Asks every clarifying question up-front in one batched questionnaire, holds a hard gate before code is written, file-driven pause/resume across sessions, mandatory evidence-before-claims, baked-in self-review checklist, parallel multi-reviewer code review on non-trivial diffs, explicit definition-of-done verified end-to-end. The default route for any substantive prompt — auto-fires on broad-spectrum verbs (add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit) AND on architecture/scope/security surface (auth, crypto, migration, secret, token, password, schema, data model, API surface, refactor everywhere, across all). Invoke even when the user does not say "use the workflow" — carve-outs are trivial factual Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill — escalation to full ceremony is free, demotion is not.
 ---
 
 # Hackify — One Workflow For Every Dev Task
@@ -17,12 +17,6 @@ Self-contained. **Never call other skills** — third-party plugins may not be i
 - **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick`. Skips Plan+Gate, Spec review, Multi-reviewer, and 4-options finish; runs Clarify-if-needed → Implement → Verify → Summary; falls back to full hackify on signal (≥2 failed attempts, >3 files touched, security-sensitive path, user requests Phase 5).
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.
-
-## Pre-flight: smart router — pick the right flow
-
-Before doing anything else when invoked, this skill runs the smart-router pre-flight check. Three signal groups are evaluated against the user's most recent prompt; exactly one must fire to stay in this skill. If zero or two-or-more groups fire, default to full hackify — the most-ensured decision.
-
-→ See [`skills/hackify/references/smart-router.md`](/skills/hackify/references/smart-router.md) for the full classifier (signal groups, decision table, fallback rule). The reference is the canonical source; this stub is byte-stable across both `hackify` and `quick` SKILLs.
 
 ## The phases (lean, expert-led)
 
@@ -85,7 +79,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 1. **Dispatch 3 foreground reviewers in parallel in ONE message.** Each gets a self-contained prompt + absolute work-doc path:
    - **Reviewer A — Internal consistency.** Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach.
-   - **Reviewer B — Architectural / cross-cutting risks.** Match plan against project code-quality rules — if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `references/code-rules.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation.
+   - **Reviewer B — Architectural / cross-cutting risks.** Match plan against project code-quality rules — if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation.
    - **Reviewer C — Dependency / ordering / parallelism risks.** Build a quick dependency graph from Sprint Backlog. Flag tasks sharing a file (parallel conflict), missing prerequisites, ordering bugs (consuming a helper before its task), tasks too coarse to be 5–30 min.
 2. **Aggregate findings.** Critical (plan bug forcing rework) / Important (fixable gap) / Minor (nit).
 3. **Patch the work-doc.** Apply Critical + Important in place; record Minor in Retrospective.
@@ -300,9 +294,9 @@ For tasks touching **UI / styling / theming / layout / components / typography /
 
 ## Code quality (always-on)
 
-Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `references/code-rules.md`. Hard caps non-negotiable: ≤40 LOC per function, ≤3 params, ≤3 nesting levels, ≤500 LOC per file, 0 lint suppressions, 0 non-null `!`, 0 empty catches, 0 inline `interface`/`type` blocks ≥2 props in route/service/middleware modules, 0 bare `Error` throws in domain code.
+Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable: ≤40 LOC per function, ≤3 params, ≤3 nesting levels, ≤500 LOC per file, 0 lint suppressions, 0 non-null `!`, 0 empty catches, 0 inline `interface`/`type` blocks ≥2 props in route/service/middleware modules, 0 bare `Error` throws in domain code. The plugin-root `rules/hard-caps.md` is injected into every prompt by the `UserPromptSubmit` hook so the hard caps are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from Phase 2.5 Reviewer B and Phase 5 Reviewer B.
 
-Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single responsibility, every code path tested, edge cases handled. Depth: `references/code-rules.md`.
+Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single responsibility, every code path tested, edge cases handled. Depth: `rules/code-quality.md`.
 
 ---
 
@@ -318,7 +312,7 @@ Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single r
 | `references/review-and-verify.md` | DoD + self-review checklist + escalation rules |
 | `references/finish.md` | Phase 6 — 4-options, archive, worktree cleanup |
 | `references/frontend-design.md` | visual law (load on FE/UI/design tasks) |
-| `references/code-rules.md` | SOLID/DRY/types/layering deep dive |
+| `rules/code-quality.md` (plugin root) | SOLID/DRY/types/layering deep dive — canonical location (legacy `references/code-rules.md` is a forwarding stub) |
 | `references/parallel-agents.md` | parallel subagent dispatch templates |
 | `evals/evals.json` | optional eval harness |
 
