@@ -14,7 +14,7 @@ Self-contained. **Never call other skills** — third-party plugins may not be i
 - **Default for every prompt** that asks for any of: building / adding / fixing / refactoring / redesigning / restyling / debugging / polishing / migrating / testing / discussing-then-building.
 - **Slash command:** `/hackify:hackify <ask>` to start, `/hackify:hackify resume <slug>` to continue.
 - **Carve-outs (skill optional):** trivial factual Q&A, one-line typo fixes, pure read-only inspection that won't lead to writing/editing/committing.
-- **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick`. Skips Plan+Gate, Spec review, Multi-reviewer, and 4-options finish; runs Clarify-if-needed → Implement → Verify → Summary; falls back to full hackify on signal (≥2 failed attempts, >3 files touched, security-sensitive path, user requests Phase 5).
+- **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick`. Skips Plan+Gate, Spec review, Multi-reviewer, and 4-options finish; runs Clarify-if-needed → Implement → Verify → Summary; stays in quick mode until you explicitly switch to full hackify.
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.
 

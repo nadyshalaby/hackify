@@ -5,6 +5,27 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-05-16
+
+> **Patch-level scope, patch-level label.** Quick mode is now user-locked. Workflow phases are unchanged; only one runtime contract — auto-fallback — is removed.
+
+### Changed
+
+- **`skills/quick/SKILL.md`** — quick mode is now user-locked. Once `/hackify:quick` is invoked (explicitly or via auto-discovery), it stays in quick mode for the entire task. Promotion to full hackify requires an explicit user phrase: `switch to full`, `go to full mode`, `promote to full`, `/hackify:hackify`, `do full review`, `run Phase 5`, or `run multi-reviewer` (case-insensitive, scanned in the most recent user message only). The promotion procedure (write work-doc from accumulated context, hand off to full hackify Phase 2, preserve intent + partial diff in Daily Updates) is preserved verbatim under the new section heading "Promotion to full hackify (user-initiated only)" — only the trigger surface changes from automatic to manual.
+- **`skills/quick/SKILL.md`** frontmatter description — the "Falls back to full hackify automatically on any of 4 testable signals" sentence replaced with a "User-locked mode" sentence stating quick mode stays in quick mode until the user explicitly promotes; also documents non-resumability (no work-doc → no pause/resume across sessions). The auto-discovery routing guidance ("Do NOT auto-fire on cross-file refactors, redesigns, debug…") is preserved — it controls which skill the harness picks when no slash command is typed, not the runtime fallback contract.
+- **`skills/hackify/SKILL.md`** line 17 — the cross-reference to quick mode's fallback signals replaced with `stays in quick mode until you explicitly switch to full hackify`.
+- **`README.md`** lines 28 and 95–104 — fallback-trigger paragraph and 4-row trigger list replaced with a "User-initiated promotion to full hackify" subsection listing the explicit promotion phrases.
+
+### Removed
+
+- **Four auto-fallback signals from `/hackify:quick`** — (a) implementation-attempt counter reaching 2, (b) `(git diff --name-only HEAD; git ls-files --others --exclude-standard) | sort -u | wc -l > 3`, (c) `grep -iE 'auth|crypto|migration|secret|token|password'` against touched paths, (d) most-recent-user-message scan for `Phase 5` / `multi-reviewer` / `do full review`. Triggers (a)–(c) are removed entirely; (d) is preserved as an explicit user-initiated promotion phrase, no longer described as a fallback.
+- **Scratch `.quick-<slug>.md` attempt-counter file** — no longer created; the attempt counter is gone.
+- **Anti-rationalization rows** in `skills/quick/SKILL.md` that referenced fallback triggers ("It's only one file, no need to check the diff scope" / "Attempt 2 failed but I have a great idea for attempt 3" / "The diff touches an `auth_helper.ts` file but it is just a comment edit") — removed; one replacement row added stating quick mode never auto-promotes.
+
+### Rationale
+
+The 4-signal auto-fallback was intended as a safety net but conflicted with user-stated intent: when a user explicitly invokes `/hackify:quick`, they have opted into a single-session, no-work-doc, no-resume flow and expect the AI to comply for the duration of the task. Silently switching modes mid-task violated that contract. The carve-out routing list in the skill description (which steers auto-discovery toward full hackify for cross-file refactors / redesigns / auth-crypto-migration work) remains the safety net at the routing layer, before quick mode is ever invoked.
+
 ## [0.2.2] — 2026-05-14
 
 > **Patch label, refactor + additive scope.** Removes the prompt-based smart router that picked between full hackify, quick, and brainstorm — routing is now handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery. In its place, hackify graduates to a four-primitive plugin layout: `skills/` (workflows), `rules/` (always-on engineering law), `agents/` (formal sub-agent definitions), `hooks/` (UserPromptSubmit reminders). Each primitive owns the concern it is best at — and ONLY that concern. The hook is explicitly NON-routing: it injects `rules/hard-caps.md` into context every prompt, never classifies full vs quick from prompt content. Moving the classifier into the hook would just relocate the problem; this release deletes the classifier instead.

@@ -25,7 +25,7 @@ Hackify replaces multi-skill ceremony (separate spec, plan, brainstorm, execute,
 
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
-For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that escalates to full hackify automatically when the task outgrows its carve-out.
+For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify.
 
 ## Install
 
@@ -92,16 +92,15 @@ Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify) → 
 
 Plan + Gate, Spec self-review, Multi-reviewer, and the four-options finish menu are skipped. Step F (the summary table) is the only Phase 6 piece kept. At most **one** implementation subagent is dispatched.
 
-Quick mode escalates to full hackify on any of these four testable triggers:
+### User-initiated promotion to full hackify
 
-| Trigger | Predicate |
-|---|---|
-| **(a)** Two failed implementation passes | Attempt counter reaches `2` |
-| **(b)** Diff outgrows the carve-out | `git diff --name-only HEAD \| wc -l > 3` (including untracked) |
-| **(c)** Security-sensitive surface touched | Any path matching `auth\|crypto\|migration\|secret\|token\|password` |
-| **(d)** User invokes full review | Latest user message contains `Phase 5`, `multi-reviewer`, or `do full review` |
+Quick mode never auto-promotes. The user explicitly triggers promotion by saying any of these phrases (case-insensitive, most recent message only):
 
-On fallback, quick mode writes a work-doc from accumulated context and hands control to full hackify Phase 2 — no half-done state, no lost context.
+- `switch to full` / `go to full mode` / `promote to full`
+- `/hackify:hackify` (explicit slash command)
+- `do full review` / `run Phase 5` / `run multi-reviewer`
+
+On promotion, quick mode writes a work-doc from accumulated context (intent, clarify answers, any partial diff) and hands control to full hackify Phase 2 — no half-done state, no lost context. If the user does not promote, quick mode stays in quick mode for the entire task.
 
 ## Companion skills (v0.2.0)
 
