@@ -19,7 +19,7 @@ No Plan+Gate. No Spec self-review. No Multi-reviewer. No four-options finish men
 
 | Phase | Action | Rationale |
 |---|---|---|
-| **1 — Clarify** | Run the wizard at `skills/hackify/references/clarify-questions.md` if the ask has any ambiguity. Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. | A misread ask costs more than a one-question wizard. |
+| **1 — Clarify** | Run the wizard at `skills/hackify/references/clarify-questions.md` if the ask has any ambiguity. **If the ask names a file or symbol but not a fix, read it end-to-end before judging ambiguity.** Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. | A misread ask costs more than a one-question wizard. |
 | **3 — Implement** | Dispatch at most ONE foreground subagent with a file allowlist, or write inline for 1–3-line single-file edits. File-allowlist constraint applies — agent touches declared files only. | Scope discipline keeps quick mode quick. Spread is your call — promote to full hackify if the task outgrows the carve-out. |
 | **4 — Verify** | Run the project's full triad (test + lint + typecheck) fresh. Paste output. Zero failures, zero errors. | Skipping verify is how typo fixes ship broken. |
 | **6F — Summary table** | Generate the 2-column Area/Change table per `skills/hackify/references/finish.md` and print to chat. | The user opted into speed, not opacity. |

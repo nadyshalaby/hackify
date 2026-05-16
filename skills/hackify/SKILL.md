@@ -15,6 +15,7 @@ Self-contained. **Never call other skills** — third-party plugins may not be i
 - **Slash command:** `/hackify:hackify <ask>` to start, `/hackify:hackify resume <slug>` to continue.
 - **Carve-outs (skill optional):** trivial factual Q&A, one-line typo fixes, pure read-only inspection that won't lead to writing/editing/committing.
 - **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick`. Skips Plan+Gate, Spec review, Multi-reviewer, and 4-options finish; runs Clarify-if-needed → Implement → Verify → Summary; stays in quick mode until you explicitly switch to full hackify.
+- **Full-autopilot alternative:** for substantive tasks where you trust the pipeline and don't want gates, use `/hackify:yolo`. Same phases as full hackify (clarify, exploration, plan, spec-review, implement, verify, multi-reviewer, finish) but Phase 2 sign-off and Phase 6 4-options menu auto-pass. No work-doc on disk → no pause/resume across sessions. Phase 5 multi-reviewer findings are auto-fixed in-place at every severity; inspect with `git diff HEAD~1` after the commit lands.
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.
 

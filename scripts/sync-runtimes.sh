@@ -81,6 +81,7 @@ MIRROR_SOURCES=(
   "skills/writing-skills/SKILL.md"
   "skills/receiving-code-review/SKILL.md"
   "skills/quick/SKILL.md"
+  "skills/yolo/SKILL.md"
   "commands/summary.md"
   "rules/hard-caps.md"
   "rules/code-quality.md"

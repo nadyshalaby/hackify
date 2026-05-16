@@ -5,6 +5,26 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-05-16
+
+> **Patch-level scope, patch-level label.** Adds a new sibling skill `/hackify:yolo` (full-autopilot mode) and a one-sentence exploration nudge to quick mode. No phase change to full or quick.
+
+### Added
+
+- **`skills/yolo/SKILL.md`** — new full-autopilot sibling skill. Same workflow phases as `/hackify:hackify` (Clarify with exploration, in-chat Plan, Spec-review, parallel Implement, Verify, Multi-reviewer, Finish) but two gates auto-pass: Phase 2 plan sign-off and Phase 6 4-options finish menu. The in-chat plan block (assistant message) replaces the on-disk work-doc as the Phase 2.5 / Phase 5 reviewer audit subject. Phase 5 multi-reviewer findings auto-fix in-place at every severity (Critical AND Important); Minor findings logged to chat (no Retrospective doc exists). Phase 6 default is commit to current branch locally, no push — user inspects with `git log -1` / `git diff HEAD~1` afterward. Auto-discovery triggers include `/hackify:yolo`, `yolo`, `just do it`, `don't ask me` and 7 other autonomy phrases — the canonical list lives in `skills/yolo/SKILL.md` frontmatter. No work-doc → no pause/resume across sessions.
+- **`scripts/sync-runtimes.sh`** — `MIRROR_SOURCES` array gains the entry `"skills/yolo/SKILL.md"` so the new skill mirrors into all 7 runtime distributions.
+- **`scripts/validate-dod.sh`** — two new check groups. Check `[34]` validates `skills/yolo/SKILL.md` exists, has `name: yolo` frontmatter matching the slug regex, has `description:` frontmatter, and the body contains the 10 required tokens (`Phase 1`, `Phase 2.5`, `Phase 3`, `Phase 4`, `Phase 5`, `Phase 6`, `in-chat plan`, `auto-pass`, `commit to current branch locally`, `no work-doc`). Check `[35]` validates `skills/quick/SKILL.md` contains the verbatim string `read it end-to-end before judging ambiguity`. A new positive-match helper `check_token_present` (mirror of the existing `check_no_token` shape) is added and reused by both check groups.
+
+### Changed
+
+- **`skills/quick/SKILL.md`** — the Phase 1 row in the "Kept phases" table gains a bolded sentence: `**If the ask names a file or symbol but not a fix, read it end-to-end before judging ambiguity.**` No other change to quick mode.
+- **`skills/hackify/SKILL.md`** — the "When to invoke" section gains a new bullet introducing YOLO as the full-autopilot alternative alongside the existing Compressed-flow alternative.
+- **`README.md`** — hero callout "Two flows, one discipline" rewritten to "Three flows, one discipline"; the flow comparison table gains a `Hackify YOLO` row between the existing Full and Quick rows; a new `### YOLO mode` subsection describes when to use YOLO and the no-work-doc trade-off; the slash-command reference table gains a `/hackify:yolo <ask>` row.
+
+### Rationale
+
+Full hackify and quick mode together left a middle-ground gap: substantive tasks where the user trusts the pipeline and doesn't want to gate on plan sign-off or the finish menu, but still wants spec-review, parallel implementation, and multi-reviewer rigor. YOLO fills it. The auto-fix-Critical contract is deliberate — the user opted into autopilot; surfacing findings mid-flow would defeat the purpose. The "When NOT to use YOLO" table flags auth/crypto/migration/secret as the load-bearing carve-out where auto-fix is risky. The quick-mode exploration nudge is unrelated and small: it tells the AI to read a named file end-to-end before judging ambiguity, addressing a quiet failure mode where the AI guessed at intent instead of consulting the file the user named.
+
 ## [0.2.3] - 2026-05-16
 
 > **Patch-level scope, patch-level label.** Quick mode is now user-locked. Workflow phases are unchanged; only one runtime contract — auto-fallback — is removed.

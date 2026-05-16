@@ -45,6 +45,17 @@ check_no_token() {
   fi
 }
 
+check_token_present() {
+  local token="$1"
+  local path="$2"
+  if grep -qF -- "$token" "$path" 2>/dev/null; then
+    green "  ok   '$token' present in $path"
+  else
+    red "  FAIL '$token' missing from $path"
+    FAILED=$((FAILED + 1))
+  fi
+}
+
 check_line_range() {
   local file="$1"
   local min="$2"
@@ -665,6 +676,42 @@ for f in "skills/hackify/SKILL.md" "skills/quick/SKILL.md"; do
     green "  ok   $f has no link to smart-router.md"
   fi
 done
+
+yellow "[34] skills/yolo/SKILL.md exists with name + description frontmatter and required body tokens"
+check_file "skills/yolo/SKILL.md"
+if [ -f "skills/yolo/SKILL.md" ]; then
+  if grep -q "^name: yolo$" "skills/yolo/SKILL.md"; then
+    green "  ok   skills/yolo/SKILL.md has name: yolo"
+  else
+    red "  FAIL skills/yolo/SKILL.md missing 'name: yolo' frontmatter"
+    FAILED=$((FAILED + 1))
+  fi
+  if echo "yolo" | grep -Eq '^[a-z0-9-]{1,64}$'; then
+    green "  ok   skills/yolo/SKILL.md slug 'yolo' matches regex ^[a-z0-9-]{1,64}\$"
+  else
+    red "  FAIL skills/yolo/SKILL.md slug 'yolo' fails slug regex"
+    FAILED=$((FAILED + 1))
+  fi
+  if grep -q "^description:" "skills/yolo/SKILL.md"; then
+    green "  ok   skills/yolo/SKILL.md has description: frontmatter"
+  else
+    red "  FAIL skills/yolo/SKILL.md missing 'description:' frontmatter"
+    FAILED=$((FAILED + 1))
+  fi
+  check_token_present "Phase 1" "skills/yolo/SKILL.md"
+  check_token_present "Phase 2.5" "skills/yolo/SKILL.md"
+  check_token_present "Phase 3" "skills/yolo/SKILL.md"
+  check_token_present "Phase 4" "skills/yolo/SKILL.md"
+  check_token_present "Phase 5" "skills/yolo/SKILL.md"
+  check_token_present "Phase 6" "skills/yolo/SKILL.md"
+  check_token_present "in-chat plan" "skills/yolo/SKILL.md"
+  check_token_present "auto-pass" "skills/yolo/SKILL.md"
+  check_token_present "commit to current branch locally" "skills/yolo/SKILL.md"
+  check_token_present "no work-doc" "skills/yolo/SKILL.md"
+fi
+
+yellow "[35] skills/quick/SKILL.md Phase 1 contains the exploration nudge sentence"
+check_token_present "read it end-to-end before judging ambiguity" "skills/quick/SKILL.md"
 
 echo
 if [ "$FAILED" -eq 0 ]; then

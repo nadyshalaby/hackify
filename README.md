@@ -43,11 +43,12 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 /plugin install hackify@hackify-marketplace
 ```
 
-## Two flows, one discipline
+## Three flows, one discipline
 
 | Skill | Slash command | When to use |
 |---|---|---|
 | **Full hackify** | `/hackify:hackify` | Any substantive task: features, refactors, redesigns, debug investigations, migrations, multi-file changes, security-sensitive work. **The default.** |
+| **Hackify YOLO** | `/hackify:yolo` | Substantive task where you trust the pipeline and don't want to gate on plan sign-off or finish menu. Full discipline; auto-passes Phase 2 + Phase 6. No work-doc → no pause/resume. |
 | **Quick hackify** | `/hackify:quick` | Small bug fixes, one- to three-line edits, single-file polish, typo work, direct quick-effort requests. Compressed four-phase flow. |
 
 Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
@@ -101,6 +102,17 @@ Quick mode never auto-promotes. The user explicitly triggers promotion by saying
 - `do full review` / `run Phase 5` / `run multi-reviewer`
 
 On promotion, quick mode writes a work-doc from accumulated context (intent, clarify answers, any partial diff) and hands control to full hackify Phase 2 — no half-done state, no lost context. If the user does not promote, quick mode stays in quick mode for the entire task.
+
+### YOLO mode
+
+`/hackify:yolo` is the full-autopilot sibling. Same workflow phases as `/hackify:hackify` — clarify (with exploration), in-chat plan, spec-review, parallel implementation, verify, multi-reviewer, finish — but two gates auto-pass:
+
+- **Phase 2 plan-gate** — no sign-off; the in-chat plan block is posted and Phase 2.5 begins immediately
+- **Phase 6 finish menu** — auto-picks Option 1: commit to current branch locally, no push
+
+Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical AND Important); Minor findings logged to chat. You inspect with `git log -1` / `git diff HEAD~1` after the commit lands.
+
+**No work-doc on disk.** YOLO never writes to `docs/work/` — the plan exists only in chat. Close the chat mid-task and progress is gone. Invoke `/hackify:hackify` if you need pause/resume or want to sign off on the plan first.
 
 ## Companion skills (v0.2.0)
 
@@ -169,6 +181,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:hackify <ask>` | Start a full workflow on a new task. |
 | `/hackify:hackify resume <slug>` | Resume a paused work-doc. |
 | `/hackify:quick <ask>` | Start the compressed-flow sibling. |
+| `/hackify:yolo <ask>` | Start the full-autopilot sibling. |
 | `/hackify:summary` | Print the current Area/Change summary table on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
 | `/brainstorm <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
 | `/writing-skills` | Author new hackify-conformant skills via a 9-check self-validation loop. |
