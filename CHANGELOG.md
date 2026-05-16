@@ -5,6 +5,24 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-05-16
+
+> **Patch-level scope, patch-level label.** Closes two v0.2.4 retrospective follow-ups in one commit. No behavior change to any skill or workflow phase.
+
+### Added
+
+- **`scripts/gen-demo-gif.py`** — new Python+Pillow generator for the README hero GIF. Renders a 1200×675, 7-frame, 600 ms/frame animation showing the 6-phase pipeline (1 Clarify → 2 Plan → 3 Implement → 4 Verify → 5 Review → 6 Finish) with sequential phase highlight. Requires Pillow (`pip install Pillow>=10`). Run with `python3 scripts/gen-demo-gif.py [output_path]` — defaults to `docs/assets/hackify-demo.gif`. Solves the "no source committed" problem the v0.2.1 → v0.2.4 GIF transition hit.
+- **`scripts/validate-dod.d/*.sh`** — 8 new modules (`00-helpers.sh`, `10-required-files.sh`, `20-templates.sh`, `30-version-and-summary.sh`, `40-quick-skill.sh`, `50-runtimes-and-companions.sh`, `60-primitives.sh`, `70-invariants-and-new.sh`) sourced in order by the orchestrator. Each module is well under the 500 LOC hard cap; `00-helpers.sh` exports all shared color printers + `check_*` helpers used by the 34 check groups distributed across the 7 check modules.
+
+### Changed
+
+- **`docs/assets/hackify-demo.gif`** — regenerated. The title label is now just `Hackify` (the explicit `v0.2.1` version overlay is removed) so future version bumps no longer require a GIF refresh unless phases or install commands change.
+- **`scripts/validate-dod.sh`** — rewritten as a thin orchestrator (≤60 LOC, was 723 LOC). Responsibilities reduced to: define `REPO_ROOT` / `FAILED` / `DOD_MODULES_DIR`, `cd` to repo root, explicitly `source` each of the 8 `scripts/validate-dod.d/*.sh` modules in lexicographic order, print the final summary line. No `shellcheck disable` directives — modules are sourced by explicit path, not by glob.
+
+### Rationale
+
+The v0.2.4 retrospective surfaced two follow-ups: refresh the README hero GIF (drifted to a stale `v0.2.1` label) and split `scripts/validate-dod.sh` past the 500 LOC hard cap. Both ship here as pure housekeeping in one commit — no skill content changes, no plugin contract changes, no auto-discovery behavior changes. The GIF now has a committed source script, so future regenerations are reproducible; the validate-dod script no longer violates its own hard cap.
+
 ## [0.2.4] - 2026-05-16
 
 > **Patch-level scope, patch-level label.** Adds a new sibling skill `/hackify:yolo` (full-autopilot mode) and a one-sentence exploration nudge to quick mode. No phase change to full or quick.
