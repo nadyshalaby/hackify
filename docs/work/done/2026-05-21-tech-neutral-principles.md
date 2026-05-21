@@ -1,12 +1,12 @@
 ---
 slug: 2026-05-21-tech-neutral-principles
 title: Tech-neutral rewrite + Karpathy four-principles integration
-status: reviewing
+status: done
 type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: phase-5-review-patches
+current_task: null
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -278,8 +278,79 @@ Solo task. Discovered + fixed a regen-coverage defect as a corollary of T1+T2.
 
 ## 7. Sprint Review (Phase 4 / 5)
 
-_(populated during Phases 4 and 5)_
+### DoD checklist with evidence
+
+- [x] **Banned-term sweep zero hits across primitives** — 7 surviving hits, ALL carve-out scan-target tokens on rule lines:
+  - `rules/hard-caps.md:14` (1) — canonical no-suppression rule
+  - `agents/spec-reviewer-rules.md:61` (1) — METHOD step 4
+  - `agents/code-reviewer-quality.md:69-81` (4) + `:120` (1) — METHOD steps 7-9 + anchored Critical SEVERITY example + new drift-protection callout
+- [x] **`rules/four-principles.md` exists** — 58 LOC; 4 H2 principle sections + cross-references to `hard-caps.md`, `code-quality.md`, `SKILL.md` Phases 1/3/5; Karpathy attribution footer.
+- [x] **`anti-patterns.md` exists** — 372 LOC; 7 polyglot worked examples (Python / Go / Ruby / YAML / Kotlin / Rust / typed JS-like); per-block keyword census max 28.6% (def, 4/14 blocks).
+- [x] **SKILL.md Working Principles stub** — 9 LOC at L22; link + 1-sentence pointer per principle; each principle name appears exactly 1 time in SKILL.md (DRY-verified).
+- [x] **`→ verify: <check>` SHOULD in template** — guidance sentence + example task line both present at `work-doc-template.md`.
+- [x] **`rules/hard-caps.md` role-based language** — filename globs (`*.routes.ts`, etc.) replaced with "router / service / middleware / guard / controller modules"; lint-suppression brand tokens preserved per AC#1 carve-out.
+- [x] **`code-rules.md` + `runtime-adapters.md` audited (T24)** — both already neutral; NO-OP.
+- [x] **Behavioral guarantees preserved** — phase structure intact; 4-section wizard contract anchors 8/8/8/8 in `clarify-questions.md`; 7-section sub-agent contract anchors all ≥1 in `parallel-agents.md`, all reviewer agents, implementer agent; hard caps unchanged; hook wiring unchanged; DoD validator unchanged.
+- [x] **`bash scripts/validate-dod.sh` → ALL CHECKS PASSED** — pre-rewrite baseline matched.
+- [x] **`bash scripts/sync-runtimes.sh` idempotent at 150 files** — across 6 full-mirror runtimes + copilot-cli MANIFEST.md. Both new files (four-principles.md, anti-patterns.md) propagate to all 6 full-mirror runtimes.
+- [x] **CHANGELOG v0.2.6 entry + plugin.json/marketplace.json version lockstep at 0.2.6** — DoD check [16] confirmed `ok`.
+- [x] **No new lint suppressions / `!` / empty catches** — confirmed across the diff; no suppressions introduced; only the carve-out scan-target literals remain (all on rule lines).
+
+### Self-review
+
+| Item | Pass | Notes |
+|---|---|---|
+| DRY | ✓ | Principle names DRY-verified (each appears 1× in SKILL.md); hard-caps list collapsed to pointer in code-quality.md after Reviewer B Important. |
+| Named types | ✓ | N/A — prose only. |
+| Layering | ✓ | N/A — prose only. |
+| No lint suppressions | ✓ | All surviving brand tokens are carve-out scan-target literals on rule lines. |
+| File-size caps (≤500 LOC) | ✓ | New files: four-principles.md=58, anti-patterns.md=372. Pre-existing exceedances (parallel-agents.md=1783, clarify-questions.md=639) NOT introduced by this work. |
+| Function caps | ✓ | N/A — no functions added. Existing shell functions in sync-runtimes.sh untouched. |
+| Dead code removed | ✓ | N/A — prose only. |
+| Edge cases covered | ✓ | Hook fail-safe contract preserved; MIRROR_SOURCES update propagates to all 7 runtimes; carve-out tokens documented + drift-protected. |
+| Naming for intent | ✓ | Placeholders `<test runner command>` / `<linter command>` / `<typecheck command>` / `<package manager install command>` consistent across 5 files. |
+| Error handling explicit | ✓ | N/A — prose only; hook script untouched. |
+| No security regressions | ✓ | Reviewer A: 9/9 OWASP/CWE/NIST/RFC citations preserved in security agent; hook JSON-wrap safety preserved; no secrets. |
+| No new `!` non-null | ✓ | N/A. |
+| No empty catches | ✓ | Confirmed by grep. |
+| No bare `Error` throws | ✓ | N/A. |
+
+### Reviewer subagent feedback (3 parallel reviewers, Phase 5)
+
+- **Critical:** none.
+- **Important:** 1 from Reviewer B — DRY violation in `rules/code-quality.md:121-131` (restated hard-caps verbatim, pre-existing on main but touched by this diff). **Fixed** in Phase 5 patches commit: collapsed to one-line pointer to `rules/hard-caps.md`.
+- **Minor:**
+  1. (Reviewer B) `anti-patterns.md:217` Kotlin example mixed `@ts-ignore` syntax (Kotlin uses `@Suppress`) and leaked a carve-out token outside the allowlist. **Fixed**: rephrased comment to not name the literal token.
+  2. (Reviewer C) CHANGELOG v0.2.6 missing the sync-runtimes.sh MIRROR_SOURCES extension bullet. **Fixed**: added one-line bullet under `### Changed`.
+  3. (Reviewer C) Work-doc frontmatter stale (`status: verifying`). **Fixed**: bumped to `reviewing` → `done`.
+  4. (Reviewer A) Drift-protection notes for the carve-out tokens in `spec-reviewer-rules.md` + `code-reviewer-quality.md`. **Fixed**: added "literal scan target — see hard-caps.md:14" callouts.
+  5. (Reviewer A) Carve-out parenthetical adds ~140 chars to every UserPromptSubmit injection. **Accepted as documentation overhead** — no defect.
 
 ## 8. Retrospective
 
-_(populated during Phase 6)_
+What surprised, what to remember:
+
+- **The work-doc tracks reality, not the plan.** Initial hit counts in the Sprint Backlog were ~2× off (parallel-agents.md was 32 not 14; code-quality.md was 9 not 3). Spec-review caught it; we re-ran the AC regex once and patched the work-doc annotations. Next time: run the AC regex BEFORE writing the hit-count table, not after the plan is drafted.
+- **The spec-review caught two files (`code-rules.md`, `runtime-adapters.md`) that the plan would have shipped past.** Both ended up no-ops, but had they contained leaks, the AC#1 sweep would have failed at Phase 4. The 3-reviewer spec audit pays for itself; don't skip.
+- **MIRROR_SOURCES is an enumerated array, not a glob.** Authoring NEW canonical files needs a corresponding script update; this was a discovered defect caught only because of the Phase 4 spot-check (`dist/claude-code/rules/four-principles.md` missing). Pattern to remember: whenever T1/T2 adds NEW files to a canonical-source folder, T23 (or equivalent build step) needs an explicit script update — this should be a checklist item in `scripts/sync-runtimes.sh`'s header comment.
+- **Lint-suppression brand tokens (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`) are a NAMED carve-out**, not voice leaks. AC#1 needs to enumerate them explicitly; otherwise a future neutralizer will strip them and gut the rule. The drift-protection callouts added in Phase 5 patches lock this in.
+- **Polyglot examples must stay in `anti-patterns.md` only.** Pure abstract is the prose voice everywhere else. The Kotlin `@ts-ignore` leak was a small example of the inverse — a polyglot example pulling a foreign-language token across its boundary. Future authors of anti-patterns.md need to keep each example self-consistent within its named language.
+- **Industry standards ≠ ecosystem brands.** OWASP, CWE, NIST, RFC 6749, RFC 7519, SemVer 2.0.0, Keep a Changelog, RFC 2119 — these are load-bearing citation targets in reviewer prompts. Reviewer T10 stripped 4 such mentions from supplementary prose in W3; we let it because the canonical citations remained in the security agent. If a future neutralization pass strips standards from the security agent itself, the rule loses citability — flag aggressively.
+- **Pre-existing over-cap files (`parallel-agents.md` = 1783 LOC, `clarify-questions.md` = 639 LOC) are now visible.** Both exceed the 500-LOC file-size hard cap. Not introduced by this work; flagged here for a follow-up split work-doc.
+
+### Summary of changes shipped
+
+| Area | Change |
+|---|---|
+| Doctrine | New `rules/four-principles.md` (58 LOC) — canonical home for Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution; attributed to Karpathy's framing. |
+| Examples | New `skills/hackify/references/anti-patterns.md` (372 LOC) — 7 polyglot wrong/right worked examples across Python, Go, Ruby, YAML, Kotlin, Rust, typed JS-like. |
+| Voice | Pure-abstract neutralization across `rules/`, `agents/`, `skills/`, `README.md` — ecosystem brand names (TypeScript, Biome, bun, npm, Node.js, Jest, Vitest, ESLint, Prettier, NestJS, Next.js, React, tsx, package.json) stripped from prose. |
+| Carve-out | Lint-suppression scan-target tokens (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`) preserved literal on rule lines; drift-protection callouts added to reviewer agents. |
+| Standards | OWASP / CWE / NIST / RFC 6749 / RFC 7519 citations (9 total) preserved in `agents/code-reviewer-security.md`. |
+| Template | `references/work-doc-template.md` Sprint Backlog format gains SHOULD `→ verify: <check>` per-task suffix + example task line. |
+| Hard caps | `rules/hard-caps.md` filename globs (`*.routes.ts` etc.) replaced with role-based language ("router / service / middleware / guard / controller modules"). |
+| DRY | `rules/code-quality.md` hard-caps duplication collapsed to one-line pointer to `rules/hard-caps.md`. |
+| Version | `0.2.5` → `0.2.6` in `plugin.json`, `marketplace.json`, README badge, CHANGELOG entry. |
+| Cross-refs | `four-principles.md` linked from `code-quality.md`, `SKILL.md`, `anti-patterns.md`, `README.md`; `anti-patterns.md` linked from `clarify-questions.md`. |
+| Build | `scripts/sync-runtimes.sh` `MIRROR_SOURCES` extended with the two new canonical files; regen idempotent at 150 files across 7 runtime distributions. |
+| Behavior | Phase structure, 4-section wizard contract, 7-section sub-agent contract, hard caps, hook wiring, DoD validator — all unchanged. |
