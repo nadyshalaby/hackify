@@ -5,6 +5,25 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-05-21
+
+> **Patch-level scope, patch-level label.** Tech-neutral rewrite plus four-principles integration. No phase, wizard, sub-agent contract, hard-cap, hook-wiring, or DoD-validator behavior change — the substrate stays identical; the prose substrate becomes runtime-agnostic and the doctrinal core becomes explicit.
+
+### Added
+
+- **`rules/four-principles.md`** — new canonical always-on rules file enumerating the four principles that gate every substantive turn: **Think Before Coding**, **Simplicity First**, **Surgical Changes**, **Goal-Driven Execution**. Attributed to Andrej Karpathy's framing. Sits alongside `rules/hard-caps.md` and `rules/code-quality.md` as the third always-on engineering law; the hard caps and code-quality rules operationalize these four principles, and the workflow phases enforce them. Canonical home — other files link here rather than restating the principle bodies.
+- **`skills/hackify/references/anti-patterns.md`** — new polyglot reference with at least six wrong-vs-right worked examples covering the failure modes the four principles guard against (assumption-skipping, speculative abstraction, scope creep, drive-by edits, premature optimization, hidden coupling). Each example is paired so reviewers can cite a concrete contrast when flagging a finding.
+- **Work-doc per-task `→ verify: <check>` suffix.** `references/work-doc-template.md` Sprint Backlog rows gain a SHOULD-suffixed `→ verify: <check>` clause so each task carries its own acceptance signal inline — the Phase 4 verifier reads the suffix rather than reverse-engineering intent from the task body.
+
+### Changed
+
+- **Pure-abstract neutralization pass across `rules/`, `agents/`, `skills/`, and `README.md`.** Ecosystem brand names stripped from prose in favor of role nouns — `linter`, `test runner`, `package manager`, `type checker`, `formatter`. The lint-suppression scan-target tokens carved out — those literal directive strings stay as-is because the rule that bans them must name them. `CHANGELOG.md` historical entries also carved out — prior versions retain their original wording.
+- **Behavioral guarantees preserved.** Phase structure, the Wizard contract, the 7-section sub-agent contract, the hard caps (40 LOC / 3 params / 3 nesting / 500 LOC), hook wiring (`UserPromptSubmit` injects `rules/hard-caps.md`), and the DoD validator's check set all unchanged. Reviewers verifying upgrades read the same surface they read on `0.2.5`; only the prose substrate moved.
+
+### Rationale
+
+The v0.2.5 surface had two latent fragilities. First, the prose hard-coded a single runtime's tool names in places where role nouns would have done the same job — every new runtime adapter inherited that drift and had to be re-scrubbed. Second, the doctrinal core of hackify ("think before you code, ship the minimum, change only what was asked, drive every line to the stated goal") lived implicitly across `skills/hackify/SKILL.md`, `rules/code-quality.md`, and the reviewer prompts, with no canonical home. v0.2.6 promotes that doctrine to `rules/four-principles.md` so it can be cited, audited, and extended in one place, and finishes the runtime-agnostic prose pass so the substrate is portable to any AI coding tool that honors the four primitives.
+
 ## [0.2.5] - 2026-05-16
 
 > **Patch-level scope, patch-level label.** Closes two v0.2.4 retrospective follow-ups in one commit. No behavior change to any skill or workflow phase.
