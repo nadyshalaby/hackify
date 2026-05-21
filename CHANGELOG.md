@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Pure-abstract neutralization pass across `rules/`, `agents/`, `skills/`, and `README.md`.** Ecosystem brand names stripped from prose in favor of role nouns — `linter`, `test runner`, `package manager`, `type checker`, `formatter`. The lint-suppression scan-target tokens carved out — those literal directive strings stay as-is because the rule that bans them must name them. `CHANGELOG.md` historical entries also carved out — prior versions retain their original wording.
 - **Behavioral guarantees preserved.** Phase structure, the Wizard contract, the 7-section sub-agent contract, the hard caps (40 LOC / 3 params / 3 nesting / 500 LOC), hook wiring (`UserPromptSubmit` injects `rules/hard-caps.md`), and the DoD validator's check set all unchanged. Reviewers verifying upgrades read the same surface they read on `0.2.5`; only the prose substrate moved.
+- **`scripts/sync-runtimes.sh` `MIRROR_SOURCES` extended** with the two new canonical files (`rules/four-principles.md` + `skills/hackify/references/anti-patterns.md`) so all seven runtime distributions under `dist/<runtime>/` ship them. Direct corollary of the two new files above; idempotent regen confirmed at 150 files across the 7 runtime targets.
 
 ### Rationale
 

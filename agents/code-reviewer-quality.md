@@ -66,6 +66,11 @@ A severity-tagged list of quality and layering defects in the diff
    or inline `type ... = {` with two or more properties. Flag every
    match — the type must move to the module's interfaces/DTO folder
    or to a shared types folder.
+   (The literal tokens named in steps 7–9 below — `// biome-ignore`,
+   `// eslint-disable`, `@ts-ignore`, `@ts-expect-error` — ARE the scan
+   targets of the no-suppression rule; they cannot be abstracted in this
+   prompt without defeating the rule. See `rules/hard-caps.md:14`.)
+
 7. Grep diff hunks for new occurrences of `// biome-ignore`. Every
    new occurrence is at least Important; Critical if it would have
    been blocked by a rule quoted in step 2.

@@ -120,15 +120,7 @@ If something CAN go wrong, write code that handles it. Don't hope.
 
 ## Hard caps (zero tolerance)
 
-- ≤ **40 lines** per function/method
-- ≤ **3 parameters** (group into interface/DTO if more)
-- ≤ **3 levels of nesting** (guard clauses, early returns)
-- ≤ **500 lines** per file
-- **0 lint suppressions** — no `biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`. Sole exception: `@ts-expect-error` in test files for deliberately invalid input, with a comment explaining WHY.
-- **0 non-null `!`** in production code
-- **0 empty catches** (`catch (e) {}` is unconditionally banned)
-- **0 inline `interface`/`type` blocks ≥2 props** in router, service, or middleware modules
-- **0 bare `Error` throws** in domain code — use named domain error classes from the project's error catalog (backend) or named `Error` subclasses (frontend)
+Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps.md) — every cap (size, ban, refuse-on-sight) is defined there. This doc operationalizes the principles that motivate the caps; the caps themselves are not restated here to keep one canonical source.
 
 ---
 

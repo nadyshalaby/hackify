@@ -214,7 +214,7 @@ fun handle(raw: String) {
     @Suppress("UNCHECKED_CAST")
     val payload = parseJson(raw) as Map<String, Any>          // shape is "complex"
 
-    @ts-ignore  // pretend equivalent — silence the checker
+    // (`@Suppress` extended here in real code — silence the checker, lose the schema)
     val amount = payload["data"]!!["amount"] as Double         // forced non-null
     val currency = payload["data"]!!["currency"] as String
 

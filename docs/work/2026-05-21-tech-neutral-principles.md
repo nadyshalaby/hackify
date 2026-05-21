@@ -1,12 +1,12 @@
 ---
 slug: 2026-05-21-tech-neutral-principles
 title: Tech-neutral rewrite + Karpathy four-principles integration
-status: verifying
+status: reviewing
 type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: phase-4-verify
+current_task: phase-5-review-patches
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |

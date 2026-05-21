@@ -59,7 +59,9 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 4. For each {task → file → planned change}, walk through whether the
    change can be implemented without SUPPRESSING A LINT RULE
    (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`
-   outside `*.test.ts`).
+   outside `*.test.ts`). These four tokens are literal scan targets —
+   they cannot be abstracted; see `rules/hard-caps.md:14` for the
+   canonical carve-out rationale.
 5. For each {task → file → planned change}, walk through whether the
    change can be implemented without INTRODUCING A NON-NULL `!`
    assertion in production code.
