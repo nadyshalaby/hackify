@@ -6,7 +6,7 @@ type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W2:T5+T6+T13+T14
+current_task: W3:T7+T8+T9+T10
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -141,10 +141,10 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 2 — Hackify skill + template + companion skills A (parallel — 4 tasks)
 
-- [ ] **T5** — Neutralize `skills/hackify/SKILL.md` (6 hits): strip ecosystem terms; insert a ≤10-line "Working principles" stub whose body is link + 1-sentence pointer per principle (NO inline restatement of principle content); keep all phase structure and counts intact. Files: `skills/hackify/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; each principle name (`Think Before Coding`, `Simplicity First`, `Surgical Changes`, `Goal-Driven Execution`) appears ≤1 time in the file; `bash scripts/validate-dod.sh` still finds all required phase strings.
-- [ ] **T6** — Neutralize `skills/hackify/references/work-doc-template.md` (4 hits): replace ecosystem-specific test/lint/typecheck commands with `<test runner command>`/`<linter command>`/`<typecheck command>` placeholders; add `→ verify: <check>` SHOULD suffix to the Sprint Backlog format with one example task line. Files: `skills/hackify/references/work-doc-template.md`. → verify: full AC banned-term regex returns 0 hits; grep finds the `→ verify:` exemplar AND a SHOULD-strength sentence describing the convention; template-contract DoD check still passes.
-- [ ] **T13** — Neutralize `skills/quick/SKILL.md`. Files: `skills/quick/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; full phase shape preserved.
-- [ ] **T14** — Neutralize `skills/yolo/SKILL.md`. Files: `skills/yolo/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; auto-pass behavior intact.
+- [x] **T5** — Neutralize `skills/hackify/SKILL.md` (6 hits): strip ecosystem terms; insert a ≤10-line "Working principles" stub whose body is link + 1-sentence pointer per principle (NO inline restatement of principle content); keep all phase structure and counts intact. Files: `skills/hackify/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; each principle name (`Think Before Coding`, `Simplicity First`, `Surgical Changes`, `Goal-Driven Execution`) appears ≤1 time in the file; `bash scripts/validate-dod.sh` still finds all required phase strings.
+- [x] **T6** — Neutralize `skills/hackify/references/work-doc-template.md` (4 hits): replace ecosystem-specific test/lint/typecheck commands with `<test runner command>`/`<linter command>`/`<typecheck command>` placeholders; add `→ verify: <check>` SHOULD suffix to the Sprint Backlog format with one example task line. Files: `skills/hackify/references/work-doc-template.md`. → verify: full AC banned-term regex returns 0 hits; grep finds the `→ verify:` exemplar AND a SHOULD-strength sentence describing the convention; template-contract DoD check still passes.
+- [x] **T13** — Neutralize `skills/quick/SKILL.md`. Files: `skills/quick/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; full phase shape preserved.
+- [x] **T14** — Neutralize `skills/yolo/SKILL.md`. Files: `skills/yolo/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; auto-pass behavior intact.
 
 ### Wave 3 — Hackify references A (parallel — 4 tasks)
 
@@ -191,6 +191,19 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** Per-file banned-term sweep: four-principles=0, anti-patterns=0, code-quality=1 (carve-out), hard-caps=1 (carve-out), CHANGELOG=0. Carve-out tokens grep confirms they appear only on lint-suppression rule lines + anti-patterns Example 5 narrative. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY ✓ named types (N/A prose) ✓ layering (N/A) ✓ no suppressions ✓ edge cases ✓ no scope creep.
+
+### W2 — Hackify skill + template + companion skills A — done 2026-05-21
+
+4 agents dispatched in parallel; T5 + T6 made substantive edits; T13 + T14 were already neutral (no-op).
+
+- **T5** (SKILL.md, 6 hits → 0) — Working Principles stub inserted at L22 (between "When to invoke" and "The phases"), 9 lines. Each principle name (`Think Before Coding`, `Simplicity First`, `Surgical Changes`, `Goal-Driven Execution`) appears exactly once across the file (DRY verified). Notable replacement: L186 lint-suppression brand-token list → generic "inline ignore directives, file-level disables, expect-error pragmas outside test files" — allowed by AC#1 (carve-out is "MAY", not MUST). Canonical literal tokens still live in `rules/hard-caps.md`.
+- **T6** (work-doc-template.md, 4 hits → 0) — replaced `bun test`/`bun run lint`/`bun run typecheck` with `<test runner command>`/`<linter command>`/`<typecheck command>` placeholders. Added SHOULD-strength sentence to Sprint Backlog guidance: *"Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed."* Example task line updated to demonstrate the pattern.
+- **T13** (quick/SKILL.md, 0 hits → 0) — file was already neutral; no edits. User-locked semantics, phase shape (Clarify-if-needed → Implement → Verify → Summary), Phase 4 triad, Phase 6F summary, non-promotion rules all preserved.
+- **T14** (yolo/SKILL.md, 0 hits → 0) — file was already neutral; no edits. All 6 phases present; auto-pass semantics (Phase 2 plan-gate + Phase 6 4-options menu); no-work-doc invariant; trigger keyword list preserved.
+
+- **Wave verification.** Per-file banned-term sweep: SKILL.md=0, work-doc-template=0, quick=0, yolo=0. Principle-name DRY: 1/1/1/1. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ DRY (each principle name once in SKILL.md; principle bodies only in `rules/four-principles.md`) ✓ no suppressions ✓ no scope creep (file allowlists respected by all 4 agents).
 
 ## 7. Sprint Review (Phase 4 / 5)
 

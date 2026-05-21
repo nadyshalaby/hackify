@@ -19,6 +19,15 @@ Self-contained. **Never call other skills** — third-party plugins may not be i
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.
 
+## Working principles
+
+Four principles frame every phase. Read [rules/four-principles.md](../../rules/four-principles.md) for the full doctrine.
+
+- **Think Before Coding** — surface assumptions and ambiguity before code (operationalized by Phase 1).
+- **Simplicity First** — minimum code that solves the ask (operationalized by Phase 3 file allowlists).
+- **Surgical Changes** — every changed line traces to the request (operationalized by Phase 5 scope-consistency review).
+- **Goal-Driven Execution** — convert asks into verifiable goals with `→ verify:` checks (operationalized by Phase 4 evidence-before-claims).
+
 ## The phases (lean, expert-led)
 
 | Phase | What |
@@ -40,7 +49,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 - **Location.** `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` in flight; move to `<project>/docs/work/done/<YYYY-MM-DD>-<slug>.md` once shipped.
 - **Skeleton** (`references/work-doc-template.md`). Frontmatter: `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, `sprint_goal`. Body: Original Ask → Clarifying Q&A → Acceptance Criteria → Approach → Sprint Backlog → Daily Updates → Sprint Review → Retrospective.
-- **State is the file.** No companion JSON, no in-conversation memory. Resume = open file, read frontmatter, jump to next unchecked checkbox.
+- **State is the file.** No companion sidecar, no in-conversation memory. Resume = open file, read frontmatter, jump to the first unchecked checkbox.
 - **Project root.** Each sub-project is its own git repo. Work-doc lives inside the project repo. Multi-project tasks: one doc per project, linked via `related` frontmatter field.
 
 ---
@@ -52,7 +61,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions.md`).
 2. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
 3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions.md`. Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) documented at the top of that file. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
-4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the next batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
+4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
 5. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
 
 **Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions.md`.
@@ -146,7 +155,7 @@ Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Sin
 
 ### Wave-end persistence (mandatory)
 
-**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the next wave's task IDs. Skipping this step is an abandoned-state bug — interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
+**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug — interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
 
 ---
 
@@ -183,7 +192,7 @@ Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Sin
 - [ ] All `Sprint Backlog` checkboxes ticked
 - [ ] Every Phase 2 DoD bullet verified — paste evidence per bullet (output, screenshot ref, or verifying script)
 - [ ] No placeholders, no `TODO` without owners, no `console.log`/`println!`, no commented-out code
-- [ ] No new lint suppressions (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`) — zero tolerance
+- [ ] No new lint or type-checker suppressions (inline ignore directives, file-level disables, expect-error pragmas outside test files) — zero tolerance
 - [ ] No new `!` non-null assertions in production code
 - [ ] Manual smoke check (if user opted in) — list steps and outcomes
 
@@ -253,7 +262,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 1. Locate the work-doc — search `<project>/docs/work/*.md` for the slug. Multiple project candidates → ask which. Fallback: recursively search known project roots.
 2. Read frontmatter. Honor `status` and `current_task`.
 3. Read the latest Daily Updates entry to see where you stopped.
-4. Confirm: *"Resuming `<title>` at `<status>`, next task: `<T<n>>`. Continue?"*
+4. Confirm: *"Resuming `<title>` at `<status>`, upcoming task: `<T<n>>`. Continue?"*
 5. Resume from the appropriate phase — do NOT re-run earlier phases unless asked.
 
 **Stale doc detection.** If `created` is >14 days old, check whether the codebase moved underneath the plan (`git log --since="<created>" -- <touched files>`). On drift, surface it before continuing.
@@ -262,7 +271,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 ### Pause checkpoint (mid-wave exit)
 
-**Pause checkpoint (mid-wave exit).** When the user's prompt contains any of the **pause-keyword list** — `pause`, `stop`, `exit`, `later`, `tomorrow`, `come back`, `pick this up later` — during an active wave, the parent does five things in order: (1) wait for any in-flight subagents to return; (2) finish the work-doc update for completed agents (tick their checkboxes, append their Daily Updates entry); (3) write a `## Pause checkpoint` entry to the Daily Updates with timestamp, completed-task list, and partial-state notes; (4) update frontmatter `current_task` to reflect the partial-state (e.g., `W3b — T3.2 done, T3.3 in progress (deferred to next session)`); (5) tell the user: `Your progress is saved. Resume with "continue work on <slug>".`
+**Pause checkpoint (mid-wave exit).** When the user's prompt contains any of the **pause-keyword list** — `pause`, `stop`, `exit`, `later`, `tomorrow`, `come back`, `pick this up later` — during an active wave, the parent does five things in order: (1) wait for any in-flight subagents to return; (2) finish the work-doc update for completed agents (tick their checkboxes, append their Daily Updates entry); (3) write a `## Pause checkpoint` entry to the Daily Updates with timestamp, completed-task list, and partial-state notes; (4) update frontmatter `current_task` to reflect the partial-state (e.g., `W3b — T3.2 done, T3.3 in progress (deferred to a later session)`); (5) tell the user: `Your progress is saved. Resume with "continue work on <slug>".`
 
 ---
 
