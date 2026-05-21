@@ -7,7 +7,7 @@ created: 2026-05-21
 project: hackify
 related:
   - 2026-05-21-tech-neutral-principles
-current_task: W2:T3+T4+T5+T6+T7+T8+T9+T10+T11+T17
+current_task: W3:T12+T13+T14
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -127,16 +127,16 @@ Every file under the 500-LOC cap. Phase grouping preserved everywhere except pha
 
 ### Wave 2 — Cross-ref updates + sync-runtimes housekeeping (parallel — 9 tasks)
 
-- [ ] **T3** — Update `skills/hackify/SKILL.md` cross-references: replace mentions of `parallel-agents.md` with the specific split file or subdir index; same for `clarify-questions.md`. Preserve the file map table semantics. Files: `skills/hackify/SKILL.md`. → verify: no remaining bare `parallel-agents.md` or `clarify-questions.md` references in this file; all new refs point to actual files under the subdirs.
-- [ ] **T4** — Update `skills/quick/SKILL.md` cross-references (clarify-questions mentions). Files: `skills/quick/SKILL.md`. → verify: same as T3.
-- [ ] **T5** — Update `skills/writing-skills/SKILL.md` cross-references. Files: `skills/writing-skills/SKILL.md`. → verify: same as T3.
-- [ ] **T6** — Update `skills/receiving-code-review/SKILL.md` cross-reference. Files: `skills/receiving-code-review/SKILL.md`. → verify: same as T3.
-- [ ] **T7** — Update `agents/spec-reviewer-dependencies.md` cross-reference (parallel-agents mention). Files: `agents/spec-reviewer-dependencies.md`. → verify: same as T3.
-- [ ] **T8** — Update `skills/hackify/references/review-and-verify.md` cross-reference. Files: `skills/hackify/references/review-and-verify.md`. → verify: same as T3.
-- [ ] **T9** — Update `skills/hackify/references/implement-and-test.md` cross-reference. Files: `skills/hackify/references/implement-and-test.md`. → verify: same as T3.
-- [ ] **T10** — Update `README.md` cross-references. Files: `README.md`. → verify: same as T3.
-- [ ] **T11** — Update `scripts/sync-runtimes.sh`: add a header-comment block explaining `MIRROR_SOURCES` is enumerated (not a glob) — new canonical files always need an explicit array entry; extend `MIRROR_SOURCES` with all 22 new split files (12 parallel-agents/ + 10 clarify-questions/); remove the 2 old entries (`parallel-agents.md`, `clarify-questions.md`). Files: `scripts/sync-runtimes.sh`. → verify: header comment present (≥3 lines); `grep -c 'parallel-agents/' scripts/sync-runtimes.sh` ≥ 12; `grep -c 'clarify-questions/' scripts/sync-runtimes.sh` ≥ 10; old entries absent.
-- [ ] **T17** — Update `scripts/validate-dod.d/20-templates.sh` to point at the new file paths: `PA_FILE` becomes the directory `skills/hackify/references/parallel-agents/`; `CQ_FILE` becomes `skills/hackify/references/clarify-questions/`. Adjust check [9] (template structural conformance) to iterate every `.md` file under `parallel-agents/` (excluding `README.md`) and confirm the 7-section contract anchors appear. Adjust check [13] (no leaked absolute paths) to iterate every file in both subdirs. Adjust check [14] (wizard structural conformance) to iterate every bank file in `clarify-questions/`. Files: `scripts/validate-dod.d/20-templates.sh`. → verify: `bash scripts/validate-dod.sh` exits 0 after T1+T2+T17 land in dist/ (so this check runs after the dist regen in T15 — but T17 itself just edits the script; the actual gate is T15's DoD run); script has no remaining references to `parallel-agents.md` or `clarify-questions.md` as files.
+- [x] **T3** — Update `skills/hackify/SKILL.md` cross-references: replace mentions of `parallel-agents.md` with the specific split file or subdir index; same for `clarify-questions.md`. Preserve the file map table semantics. Files: `skills/hackify/SKILL.md`. → verify: no remaining bare `parallel-agents.md` or `clarify-questions.md` references in this file; all new refs point to actual files under the subdirs.
+- [x] **T4** — Update `skills/quick/SKILL.md` cross-references (clarify-questions mentions). Files: `skills/quick/SKILL.md`. → verify: same as T3.
+- [x] **T5** — Update `skills/writing-skills/SKILL.md` cross-references. Files: `skills/writing-skills/SKILL.md`. → verify: same as T3.
+- [x] **T6** — Update `skills/receiving-code-review/SKILL.md` cross-reference. Files: `skills/receiving-code-review/SKILL.md`. → verify: same as T3.
+- [x] **T7** — Update `agents/spec-reviewer-dependencies.md` cross-reference (parallel-agents mention). Files: `agents/spec-reviewer-dependencies.md`. → verify: same as T3.
+- [x] **T8** — Update `skills/hackify/references/review-and-verify.md` cross-reference. Files: `skills/hackify/references/review-and-verify.md`. → verify: same as T3.
+- [x] **T9** — Update `skills/hackify/references/implement-and-test.md` cross-reference. Files: `skills/hackify/references/implement-and-test.md`. → verify: same as T3.
+- [x] **T10** — Update `README.md` cross-references. Files: `README.md`. → verify: same as T3.
+- [x] **T11** — Update `scripts/sync-runtimes.sh`: add a header-comment block explaining `MIRROR_SOURCES` is enumerated (not a glob) — new canonical files always need an explicit array entry; extend `MIRROR_SOURCES` with all 22 new split files (12 parallel-agents/ + 10 clarify-questions/); remove the 2 old entries (`parallel-agents.md`, `clarify-questions.md`). Files: `scripts/sync-runtimes.sh`. → verify: header comment present (≥3 lines); `grep -c 'parallel-agents/' scripts/sync-runtimes.sh` ≥ 12; `grep -c 'clarify-questions/' scripts/sync-runtimes.sh` ≥ 10; old entries absent.
+- [x] **T17** — Update `scripts/validate-dod.d/20-templates.sh` to point at the new file paths: `PA_FILE` becomes the directory `skills/hackify/references/parallel-agents/`; `CQ_FILE` becomes `skills/hackify/references/clarify-questions/`. Adjust check [9] (template structural conformance) to iterate every `.md` file under `parallel-agents/` (excluding `README.md`) and confirm the 7-section contract anchors appear. Adjust check [13] (no leaked absolute paths) to iterate every file in both subdirs. Adjust check [14] (wizard structural conformance) to iterate every bank file in `clarify-questions/`. Files: `scripts/validate-dod.d/20-templates.sh`. → verify: `bash scripts/validate-dod.sh` exits 0 after T1+T2+T17 land in dist/ (so this check runs after the dist regen in T15 — but T17 itself just edits the script; the actual gate is T15's DoD run); script has no remaining references to `parallel-agents.md` or `clarify-questions.md` as files.
 
 ### Wave 3 — Delete originals + Phase 6 spec extension + version bump (parallel — 3 tasks)
 
@@ -160,6 +160,26 @@ Every file under the 500-LOC cap. Phase grouping preserved everywhere except pha
 - **T2** (clarify-questions/, 10 files) — extracted from 639-LOC source. 4-section contract spec lives ONLY in `wizard-contract.md`; banks reference it. Every wizard-bearing file (universal-preamble + 6 banks) carries all 4 anchors as section markers (those are bank-content scaffolds, not spec restatement — expected). `picking-and-combining.md` correctly omits anchors (closing rules, not a wizard).
 - **Wave verification.** parallel-agents/: 12 files, max LOC 455 (phase-5-multi-review.md). clarify-questions/: 10 files, max LOC 98 (feature.md). All under 500 LOC cap. 7-section anchors all ≥1 in template-contract.md. 4-section anchors 1/1/1/1 in feature.md (sanity check). Sources unchanged at 1783 and 639. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED` (still reads old paths — will switch over after T17).
 - **Self-review.** ✓ DRY (specs centralized) ✓ no suppressions ✓ source files untouched ✓ all caps respected ✓ no scope creep (T1d was a direct corollary of the T1 discovery; not new feature).
+
+### W2 — Cross-ref updates + sync-runtimes + validate-dod housekeeping — done 2026-05-21
+
+10 parallel agents dispatched; all 10 reported pass. Total bare cross-refs migrated: 23 → 0 (T3 alone had 8).
+
+- **T3** (SKILL.md, 8 refs → 0): file-map table both rows updated to subdirs; phase-specific refs routed to specific files.
+- **T4** (quick/SKILL.md, 1 → 0): generic wizard ref → `clarify-questions/README.md`.
+- **T5** (writing-skills/SKILL.md, 4 → 0): all contract refs routed to the two canonical contract files (`template-contract.md`, `wizard-contract.md`).
+- **T6** (receiving-code-review/SKILL.md, 1 → 0): Phase 5 ref routed to `phase-5-multi-review.md`.
+- **T7** (spec-reviewer-dependencies.md, 1 → 0): adjusted relative path to `../skills/hackify/references/parallel-agents.md` — wait, this implementer used the old single-file path because it noted "parallel-agents.md lives directly at skills/hackify/references/parallel-agents.md with no subdir". That was true at the time but the OLD file still exists and gets deleted in T12; the reference should point at the NEW subdir. **Flagged for T12-time fix-up.**
+- **T8** (review-and-verify.md, 2 → 0): both `references/parallel-agents.md` refs routed to sibling-relative `parallel-agents/<file>.md`.
+- **T9** (implement-and-test.md, 1 → 0): Implementation wave ref → `parallel-agents/phase-3-implementation.md`.
+- **T10** (README.md, 4 → 0 — the broader `\b` grep caught 4, not just the 2 the narrow grep showed; agent fixed all 4): version badge correctly left untouched (T14's scope).
+- **T11** (sync-runtimes.sh): header comment block added; 22 new entries (12 parallel-agents/ + 10 clarify-questions/) inserted in alphabetical order; 2 old bare entries removed. Dry-run reports `270 files across 7 runtimes` (baseline was 150).
+- **T17** (validate-dod.d/20-templates.sh): rewired checks [9]/[13]/[14] to iterate the new subdirs. PA_DIR/CQ_DIR constants introduced; 5 helpers extracted to keep each yellow-block under the 40-LOC function cap. Discovered + fixed an `is_pa_non_template` exclusion for `template-contract.md` (which literally lists `/Users/`, `/home/`, `/tmp/` as banned scan tokens — would have caused a check [13] false positive). validate-dod.sh exits 0 with originals + new subdirs both present.
+
+- **Wave verification.** No bare cross-refs in primitives (`grep -rnE '(^|[^/])parallel-agents\.md|(^|[^/])clarify-questions\.md' rules/ agents/ skills/ README.md commands/ scripts/`) except 2 illustrative prose-mentions inside reviewer-template example output (T12 deletes the source; the extracted twin in `phase-2.5-spec-review-c-dependencies.md` is verbatim example prose, not a real cross-ref). sync-runtimes dry-run 270/7. validate-dod ALL CHECKS PASSED.
+
+- **Self-review.** ✓ DRY (canonical contracts ref'd, not restated) ✓ no suppressions ✓ all caps respected ✓ scope creep contained (T7's relative-path quirk noted for T12-time cleanup; no other deviations).
+
 
 
 

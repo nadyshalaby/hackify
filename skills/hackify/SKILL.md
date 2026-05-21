@@ -58,13 +58,13 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 **Goal.** Understand the ask precisely enough that no question survives into Phase 3.
 
-1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions.md`).
+1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions/README.md`).
 2. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
-3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions.md`. Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) documented at the top of that file. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
+3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
 4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
 5. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
 
-**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions.md`.
+**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions/README.md`.
 
 ---
 
@@ -95,7 +95,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 3. **Patch the work-doc.** Apply Critical + Important in place; record Minor in Retrospective.
 4. **Re-gate ONLY if user's signed-off invariants changed** (Critical finding widened scope). Else straight to Phase 3.
 
-Template: `references/parallel-agents.md` "Spec self-review (Phase 2.5)". **Hard rule:** Phase 2.5 is non-skippable, even for small docs — a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
+Templates: `references/parallel-agents/phase-2.5-spec-review-a-consistency.md`, `references/parallel-agents/phase-2.5-spec-review-b-rules.md`, `references/parallel-agents/phase-2.5-spec-review-c-dependencies.md` (subdir index: `references/parallel-agents/README.md`). **Hard rule:** Phase 2.5 is non-skippable, even for small docs — a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
 
 ---
 
@@ -138,7 +138,7 @@ Template: `references/parallel-agents.md` "Spec self-review (Phase 2.5)". **Hard
 | Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |
 | Word cap | ≤200 words per agent report. |
 
-Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Single-task waves are fine** — dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
+Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task waves are fine** — dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
 
 **Test mode per task:**
 
@@ -279,7 +279,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 Whenever 2+ pieces of work are independent — **dispatch foreground subagents in parallel in a single message**. Never sequential when independent.
 
-**Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
+**Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents/template-contract.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
 
 **Use parallel agents for:**
 
@@ -292,7 +292,7 @@ Whenever 2+ pieces of work are independent — **dispatch foreground subagents i
 | 4 | Cross-module verification — tests in different packages | optional |
 | 5 | Multi-reviewer code review — security/quality/plan lenses | MANDATORY (non-trivial diffs) |
 
-**Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents.md`.
+**Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents/README.md`.
 
 ---
 
@@ -316,14 +316,14 @@ Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single r
 |---|---|
 | `SKILL.md` | this file (the workflow) |
 | `references/work-doc-template.md` | markdown skeleton for every task |
-| `references/clarify-questions.md` | per-task-type question banks for Phase 1 |
+| `references/clarify-questions/` | per-task-type question banks for Phase 1 (subdir index: `README.md`; canonical wizard contract: `wizard-contract.md`) |
 | `references/implement-and-test.md` | TDD walkthrough, per-stack test commands |
 | `references/debug-when-stuck.md` | 4-phase root-cause hunt for Phase 3b |
 | `references/review-and-verify.md` | DoD + self-review checklist + escalation rules |
 | `references/finish.md` | Phase 6 — 4-options, archive, worktree cleanup |
 | `references/frontend-design.md` | visual law (load on FE/UI/design tasks) |
 | `rules/code-quality.md` (plugin root) | SOLID/DRY/types/layering deep dive — canonical location (legacy `references/code-rules.md` is a forwarding stub) |
-| `references/parallel-agents.md` | parallel subagent dispatch templates |
+| `references/parallel-agents/` | parallel subagent dispatch templates (subdir index: `README.md`; canonical template contract: `template-contract.md`) |
 | `evals/evals.json` | optional eval harness |
 
 Load reference files **only when the phase needs them** — keeps context lean.

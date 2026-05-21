@@ -78,7 +78,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `references/parallel-agents.md` under "Multi-reviewer (Phase 5)". Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `parallel-agents/phase-5-multi-review.md`. Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
 
 The self-review still happens — the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
@@ -120,7 +120,7 @@ When you escalate, **also** complete the self-review — escalation is *additive
 
 ### Reviewer subagent prompt template
 
-This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `references/parallel-agents.md` "Template Contract" (SEVERITY mandatory because this is a review template).
+This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
 
 ```
 Subagent type: general-purpose

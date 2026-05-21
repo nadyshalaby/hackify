@@ -64,16 +64,46 @@ cd "$REPO_ROOT"
 # Files we mirror into every "full mirror" runtime (everything except
 # copilot-cli, which gets MANIFEST.md only). Each entry is a path relative to
 # the repo root; the same relative path is used inside dist/<runtime>/.
+#
+# ATTENTION future maintainers:
+#   MIRROR_SOURCES is an EXPLICIT ENUMERATION, not a glob. When you add a
+#   NEW canonical source file under skills/, commands/, .claude-plugin/, or
+#   rules/, you MUST add an explicit entry to MIRROR_SOURCES below — otherwise
+#   the dist/<runtime>/ trees will silently ship without it. Same goes for
+#   CLAUDE_CODE_EXTRA (only mirrored into dist/claude-code/).
+#   This was discovered the hard way in v0.2.6 when rules/four-principles.md
+#   and skills/hackify/references/anti-patterns.md were authored but
+#   forgotten in MIRROR_SOURCES until the spot-check in T23.
 MIRROR_SOURCES=(
   "skills/hackify/SKILL.md"
   "skills/hackify/references/anti-patterns.md"
-  "skills/hackify/references/clarify-questions.md"
+  "skills/hackify/references/clarify-questions/README.md"
+  "skills/hackify/references/clarify-questions/debug.md"
+  "skills/hackify/references/clarify-questions/feature.md"
+  "skills/hackify/references/clarify-questions/fix.md"
+  "skills/hackify/references/clarify-questions/picking-and-combining.md"
+  "skills/hackify/references/clarify-questions/refactor.md"
+  "skills/hackify/references/clarify-questions/research.md"
+  "skills/hackify/references/clarify-questions/revamp-redesign.md"
+  "skills/hackify/references/clarify-questions/universal-preamble.md"
+  "skills/hackify/references/clarify-questions/wizard-contract.md"
   "skills/hackify/references/code-rules.md"
   "skills/hackify/references/debug-when-stuck.md"
   "skills/hackify/references/finish.md"
   "skills/hackify/references/frontend-design.md"
   "skills/hackify/references/implement-and-test.md"
-  "skills/hackify/references/parallel-agents.md"
+  "skills/hackify/references/parallel-agents/README.md"
+  "skills/hackify/references/parallel-agents/phase-1-research.md"
+  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-a-consistency.md"
+  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-b-rules.md"
+  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-c-dependencies.md"
+  "skills/hackify/references/parallel-agents/phase-3-implementation.md"
+  "skills/hackify/references/parallel-agents/phase-3b-debug-evidence.md"
+  "skills/hackify/references/parallel-agents/phase-4-cross-package-verification.md"
+  "skills/hackify/references/parallel-agents/phase-5-aggregation.md"
+  "skills/hackify/references/parallel-agents/phase-5-escalation.md"
+  "skills/hackify/references/parallel-agents/phase-5-multi-review.md"
+  "skills/hackify/references/parallel-agents/template-contract.md"
   "skills/hackify/references/review-and-verify.md"
   "skills/hackify/references/runtime-adapters.md"
   "skills/hackify/references/work-doc-template.md"
@@ -93,7 +123,7 @@ MIRROR_SOURCES=(
 # primitive directories (agents/, hooks/) so the entire repo layout is
 # reproducible inside dist/claude-code/. Other runtimes never see agents/ or
 # hooks/ — they fall back to the inline templates in
-# `skills/hackify/references/parallel-agents.md` (already in MIRROR_SOURCES).
+# `skills/hackify/references/parallel-agents/` (already in MIRROR_SOURCES).
 # CLAUDE_CODE_EXTRA is a flat array of explicit paths; NOT a glob — enumerate
 # every file by name.
 CLAUDE_CODE_EXTRA=(

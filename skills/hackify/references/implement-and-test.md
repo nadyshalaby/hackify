@@ -14,7 +14,7 @@ The single-task fallback (one agent, one task) only applies when a wave naturall
     file allowlist must NOT overlap with peers in the same wave.
 3.  Dispatch ONE Agent per task in the wave, in a SINGLE assistant message
     (parallel Agent tool calls). Each prompt is self-contained per the
-    template in references/parallel-agents.md (Implementation wave).
+    template in references/parallel-agents/phase-3-implementation.md.
 4.  Wait for ALL agents to return.
 5.  Verify each agent stayed inside its file allowlist:
        git diff --name-only ⇒ should match the union of allowlists.

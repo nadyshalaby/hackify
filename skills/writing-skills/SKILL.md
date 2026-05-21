@@ -64,8 +64,8 @@ This is the core deliverable behind every produced skill. Run every check agains
 1. **Frontmatter conformance.** Frontmatter is present, fenced by `---` lines top and bottom. `name:` matches the regex `^[a-z0-9-]{1,64}$` (kebab-case, no leading dash, no double dashes). `description:` is between 40 and 300 words inclusive.
 2. **Auto-discovery triggers in description.** The `description:` field contains AT LEAST 3 distinct trigger phrases the harness can substring-match against a user prompt — slash command, phrase patterns, or both.
 3. **Required body sections present in order.** H1 title followed by H2 sections `## When to invoke`, `## Workflow shape`, `## Anti-rationalizations`, and `## One-line summary` — in that order. Additional H2 sections are allowed BETWEEN those four, but the four anchors MUST appear in order.
-4. **Sub-agent prompts conform to the 7-section contract.** Every embedded sub-agent prompt inside the skill body has all 7 sections — ROLE, INPUTS, OBJECTIVE, METHOD, VERIFICATION, SEVERITY (review/audit templates only — omitted entirely from build/research templates), OUTPUT. Each section header appears on its own line in the form `**SECTION-NAME**.` — the bold marker plus a literal trailing period, matching the canonical templates in `skills/hackify/references/parallel-agents.md`.
-5. **Wizard prompts conform to the 4-section Wizard contract.** Every embedded wizard inside the skill body has all 4 sections — SCENARIO, COMPOSITION, QUESTIONS, EXIT CRITERIA — matching the canonical structure documented in `skills/hackify/references/clarify-questions.md`. Each QUESTIONS entry specifies text / header (≤12 chars) / options (A-D, option A suffixed ` (Recommended)`) / why-this-matters.
+4. **Sub-agent prompts conform to the 7-section contract.** Every embedded sub-agent prompt inside the skill body has all 7 sections — ROLE, INPUTS, OBJECTIVE, METHOD, VERIFICATION, SEVERITY (review/audit templates only — omitted entirely from build/research templates), OUTPUT. Each section header appears on its own line in the form `**SECTION-NAME**.` — the bold marker plus a literal trailing period, matching the canonical templates in `skills/hackify/references/parallel-agents/template-contract.md`.
+5. **Wizard prompts conform to the 4-section Wizard contract.** Every embedded wizard inside the skill body has all 4 sections — SCENARIO, COMPOSITION, QUESTIONS, EXIT CRITERIA — matching the canonical structure documented in `skills/hackify/references/clarify-questions/wizard-contract.md`. Each QUESTIONS entry specifies text / header (≤12 chars) / options (A-D, option A suffixed ` (Recommended)`) / why-this-matters.
 6. **Every OUTPUT word-cap is explicit.** Every sub-agent prompt's OUTPUT section names a word cap in the form `≤N words`. No implicit caps. No "keep it short." Cap appears at the top of the OUTPUT section.
 7. **Zero soft-language outside Anti-rationalizations.** The body MUST contain zero matches for the banned-substring list. The exception is for clearly-marked Anti-rationalizations rows or labeled bad-pattern example callouts. Haiku-class models read these prompts; soft language defeats them.
 
@@ -117,11 +117,11 @@ skills/writing-skills/
 The meta-skill is single-file by design. Reference material it depends on lives in the canonical hackify tree and is read at dispatch time:
 
 ```
-skills/hackify/SKILL.md                                  <- the full workflow this meta-skill produces variants of
-skills/hackify/references/parallel-agents.md             <- 7-section sub-agent contract (binding)
-skills/hackify/references/clarify-questions.md           <- 4-section Wizard contract (binding)
-skills/quick/SKILL.md                                    <- structural exemplar for a workflow-variant skill
-scripts/validate-dod.sh                                  <- v0.2.0 enforcement harness the 9 checks mirror
+skills/hackify/SKILL.md                                          <- the full workflow this meta-skill produces variants of
+skills/hackify/references/parallel-agents/template-contract.md   <- 7-section sub-agent contract (binding)
+skills/hackify/references/clarify-questions/wizard-contract.md   <- 4-section Wizard contract (binding)
+skills/quick/SKILL.md                                            <- structural exemplar for a workflow-variant skill
+scripts/validate-dod.sh                                          <- v0.2.0 enforcement harness the 9 checks mirror
 ```
 
 Read these at dispatch time. Do not inline-copy them into the produced skill — produced skills reference them by path, the same way `skills/quick/SKILL.md` does.

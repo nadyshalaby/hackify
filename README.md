@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, brainstorm, writing-skills, receiving-code-review). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents.md`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, brainstorm, writing-skills, receiving-code-review). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -191,7 +191,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 
 Parallelism is the default, not the exception. Whenever two or more pieces of work are independent — spec review, implementation tasks in the same wave, code review concerns, cross-package verification, multi-boundary debug evidence — hackify dispatches foreground subagents in a single message and waits for the whole batch.
 
-The safety property that makes this work is a **strict file allowlist** baked into every agent's prompt. The wave planner groups tasks so no two tasks in the same wave touch the same file; each agent is told the exact files it may touch and instructed to stop if it discovers it needs another. Dispatch templates conform to a canonical seven-section contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) — see [`skills/hackify/references/parallel-agents.md`](skills/hackify/references/parallel-agents.md).
+The safety property that makes this work is a **strict file allowlist** baked into every agent's prompt. The wave planner groups tasks so no two tasks in the same wave touch the same file; each agent is told the exact files it may touch and instructed to stop if it discovers it needs another. Dispatch templates conform to a canonical seven-section contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) — see [`skills/hackify/references/parallel-agents/template-contract.md`](skills/hackify/references/parallel-agents/template-contract.md) and the subdir index at [`skills/hackify/references/parallel-agents/README.md`](skills/hackify/references/parallel-agents/README.md).
 
 ## Repository layout
 
@@ -223,14 +223,14 @@ skills/
     SKILL.md                           the full workflow
     references/
       work-doc-template.md             markdown skeleton for every task
-      clarify-questions.md             per-task-type question banks (Phase 1)
+      clarify-questions/               per-task-type question banks (Phase 1) — subdir index in README.md; canonical wizard contract in wizard-contract.md; one bank per task type (feature/fix/refactor/revamp-redesign/debug/research) + universal-preamble + picking-and-combining
       implement-and-test.md            TDD walkthrough, per-stack test commands
       debug-when-stuck.md              4-phase root-cause hunt (Phase 3b)
       review-and-verify.md             DoD + 14-item self-review + escalation
       finish.md                        Phase 6 — options, archive, summary table
       frontend-design.md               visual law (loaded on FE / UI tasks)
       code-rules.md                    forwarding stub → rules/code-quality.md
-      parallel-agents.md               parallel subagent dispatch templates (cross-runtime fallback)
+      parallel-agents/                 parallel subagent dispatch templates (cross-runtime fallback) — subdir index in README.md; canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review, escalation, aggregation
       runtime-adapters.md              primitive → per-runtime mapping table
     evals/
       evals.json                       optional eval harness
