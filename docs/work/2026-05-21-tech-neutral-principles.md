@@ -6,7 +6,7 @@ type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W5:T17+T18+T19
+current_task: W6:T20+T21
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -163,9 +163,9 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 5 — Companion skill + sub-agents A (parallel — 3 tasks)
 
-- [ ] **T17** — Neutralize `skills/writing-skills/SKILL.md` (1 hit). Files: `skills/writing-skills/SKILL.md`. → verify: full AC banned-term regex returns 0 hits.
-- [ ] **T18** — Neutralize `agents/wave-task-implementer.md` (8 hits): replace per-stack test commands with placeholders. Files: `agents/wave-task-implementer.md`. → verify: full AC banned-term regex returns 0 hits; 7-section sub-agent contract preserved.
-- [ ] **T19** — Neutralize all 3 code reviewer agents: `agents/code-reviewer-security.md` (2 hits), `agents/code-reviewer-quality.md` (5 hits), `agents/code-reviewer-plan-consistency.md` (0 hits — audit only). Files: all three. → verify: full AC banned-term regex returns 0 hits across all three; 7-section contract preserved in each.
+- [x] **T17** — Neutralize `skills/writing-skills/SKILL.md` (1 hit). Files: `skills/writing-skills/SKILL.md`. → verify: full AC banned-term regex returns 0 hits.
+- [x] **T18** — Neutralize `agents/wave-task-implementer.md` (8 hits): replace per-stack test commands with placeholders. Files: `agents/wave-task-implementer.md`. → verify: full AC banned-term regex returns 0 hits; 7-section sub-agent contract preserved.
+- [x] **T19** — Neutralize all 3 code reviewer agents: `agents/code-reviewer-security.md` (2 hits), `agents/code-reviewer-quality.md` (5 hits), `agents/code-reviewer-plan-consistency.md` (0 hits — audit only). Files: all three. → verify: full AC banned-term regex returns 0 hits across all three; 7-section contract preserved in each.
 
 ### Wave 6 — Sub-agents B + perimeter (parallel — 2 tasks)
 
@@ -231,6 +231,21 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** All 7 audited files at 0 hits. 4-section contract anchors 8/8/8/8. Anti-patterns cross-ref present in clarify-questions.md. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY ✓ no suppressions ✓ structural anchors preserved (4-section wizard contract, decision-table contract, 4-phase debug method) ✓ no scope creep.
+
+### W5 — Companion skill + sub-agents A — done 2026-05-21
+
+3 agents dispatched in parallel; all 3 made substantive edits.
+
+- **T17** (writing-skills/SKILL.md, 1 hit → 0) — single `next ` token in "next section" reworded to "following section". 9-check self-validation list + 7-section sub-agent contract + 4-section wizard contract enforcement language preserved verbatim.
+- **T18** (wave-task-implementer.md, 8 hits → 0; agent found 9 total per cluster, all neutralized): replaced `TypeScript / Bun / Node service trees`, `React component libraries`, `Drizzle/Prisma data layers`, `Hono/NestJS request lifecycles` with role-based language. Lint-suppression brand list in ROLE+METHOD-step-2 generalized to "inline ignore directives, file-level disables, expect-error pragmas outside test files — canonical scan tokens in `rules/hard-caps.md`". Stack-summary placeholder `<runtime> + <web framework> + <ORM/data layer> + <database>`. Filename-glob inline-type ban → role-based phrasing pointing at canonical list in `rules/hard-caps.md`. 6 of 7 contract anchors verified (SEVERITY = 0 — correct: implementer is NOT a reviewer, SEVERITY is review-only). File allowlist discipline + TDD discipline (RED→GREEN→REFACTOR; watch-it-fail) preserved.
+- **T19** (3 code-reviewer agents, total 7 AC hits → 3 carve-outs):
+  - **code-reviewer-security.md** (2 AC hits → 0): ROLE expertise block rewritten; also abstracted out-of-AC ecosystem names (Fastify/Hono/Drizzle/Prisma/Better Auth/Auth.js/Redis/Postgres/GitHub Actions). **OWASP/CWE/NIST/RFC 6749/RFC 7519 citation count preserved at 9 — zero generalized.** This resolves the Phase 2.5 concern about T10 stripping standards in `review-and-verify.md`; canonical citations are intact in the security reviewer prompt itself.
+  - **code-reviewer-quality.md** (5 AC hits → 3 carve-outs): 2 substantive edits (L12 + L79); 3 surviving hits are all literal scan-target tokens (`// biome-ignore`, `// eslint-disable`, `// biome-ignore lint/suspicious/noExplicitAny`) preserved per AC#1 carve-out (a) — abstracting them would gut the rule. Same pattern as `rules/hard-caps.md`.
+  - **code-reviewer-plan-consistency.md** (0 hits): NO-OP. Standards cited (SemVer 2.0.0 / Keep a Changelog 1.1.0 / RFC 2119) preserved.
+
+- **Wave verification.** Per-file banned-term sweep: writing-skills=0, wave-task-implementer=0, security=0, quality=3 (carve-outs), plan-consistency=0. OWASP/CWE/NIST/RFC in security reviewer = 9 (≥7 threshold met). 7-section contract anchors all ≥1 across 4 files (SEVERITY = 0 only in wave-task-implementer, by design). `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ DRY ✓ named scan-target carve-outs preserved ✓ industry-standard citations preserved (resolves Phase 2.5 concern) ✓ 7-section contract intact ✓ no scope creep.
 
 ## 7. Sprint Review (Phase 4 / 5)
 

@@ -53,7 +53,7 @@ Drop questions whose answers are already evident from the user's prompt. Never a
 
 Additional H2 sections are allowed and encouraged when the skill needs them.
 
-**Step 3 — Self-validate.** Run the 9-check list (next section) against the in-memory draft. If ANY check fails, loop back to Step 2 and revise. The output of Step 3 is a 9-row table of yes/no answers with one-line evidence each.
+**Step 3 — Self-validate.** Run the 9-check list (following section) against the in-memory draft. If ANY check fails, loop back to Step 2 and revise. The output of Step 3 is a 9-row table of yes/no answers with one-line evidence each.
 
 **Step 4 — Write.** Single `Write` call to `skills/<slug>/SKILL.md`. No incremental writes. No partial drafts on disk. After the write, run `grep -n '^## ' <path>` and `wc -l <path>` to confirm structure and size.
 
