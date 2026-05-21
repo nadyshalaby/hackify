@@ -6,7 +6,7 @@ type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W3:T7+T8+T9+T10
+current_task: W4:T11+T12+T15+T16+T24
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -148,10 +148,10 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 3 — Hackify references A (parallel — 4 tasks)
 
-- [ ] **T7** — Neutralize `skills/hackify/references/implement-and-test.md` (28 hits): rewrite per-stack quick reference into per-discipline phrasing; keep TDD discipline intact. Files: `skills/hackify/references/implement-and-test.md`. → verify: full AC banned-term regex returns 0 hits; TDD discipline section preserved.
-- [ ] **T8** — Neutralize `skills/hackify/references/parallel-agents.md` (32 hits, largest offender): rewrite templates without ecosystem assumptions; preserve the 7-section sub-agent template contract. Files: `skills/hackify/references/parallel-agents.md`. → verify: full AC banned-term regex returns 0 hits; the 7-section template heading set (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) appears unchanged.
-- [ ] **T9** — Neutralize `skills/hackify/references/finish.md` (8 hits): replace commit/PR examples that hardcode ecosystem brands. Files: `skills/hackify/references/finish.md`. → verify: full AC banned-term regex returns 0 hits; 4-options menu structure preserved.
-- [ ] **T10** — Neutralize `skills/hackify/references/review-and-verify.md` (7 hits): rewrite per-stack quick reference; preserve the 14-item self-review checklist. Files: `skills/hackify/references/review-and-verify.md`. → verify: full AC banned-term regex returns 0 hits; 14 self-review checklist items still present and countable.
+- [x] **T7** — Neutralize `skills/hackify/references/implement-and-test.md` (28 hits): rewrite per-stack quick reference into per-discipline phrasing; keep TDD discipline intact. Files: `skills/hackify/references/implement-and-test.md`. → verify: full AC banned-term regex returns 0 hits; TDD discipline section preserved.
+- [x] **T8** — Neutralize `skills/hackify/references/parallel-agents.md` (32 hits, largest offender): rewrite templates without ecosystem assumptions; preserve the 7-section sub-agent template contract. Files: `skills/hackify/references/parallel-agents.md`. → verify: full AC banned-term regex returns 0 hits; the 7-section template heading set (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) appears unchanged.
+- [x] **T9** — Neutralize `skills/hackify/references/finish.md` (8 hits): replace commit/PR examples that hardcode ecosystem brands. Files: `skills/hackify/references/finish.md`. → verify: full AC banned-term regex returns 0 hits; 4-options menu structure preserved.
+- [x] **T10** — Neutralize `skills/hackify/references/review-and-verify.md` (7 hits): rewrite per-stack quick reference; preserve the 14-item self-review checklist. Files: `skills/hackify/references/review-and-verify.md`. → verify: full AC banned-term regex returns 0 hits; 14 self-review checklist items still present and countable.
 
 ### Wave 4 — Hackify references B + companion skills B + audit (parallel — 5 tasks)
 
@@ -204,6 +204,19 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** Per-file banned-term sweep: SKILL.md=0, work-doc-template=0, quick=0, yolo=0. Principle-name DRY: 1/1/1/1. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY (each principle name once in SKILL.md; principle bodies only in `rules/four-principles.md`) ✓ no suppressions ✓ no scope creep (file allowlists respected by all 4 agents).
+
+### W3 — Hackify references A — done 2026-05-21
+
+4 agents dispatched in parallel; all 4 made substantive edits; total 75 banned-term replacements across 4 files.
+
+- **T7** (implement-and-test.md, 28 hits → 0) — per-stack quick-reference section replaced with per-discipline (`<test runner command>` / `<linter command>` / `<typecheck command>` / `<coverage command>`). Component-mode test guidance rephrased to use "HTTP-client boundary" / "auth-client boundary" / "test runner's `waitFor` primitive" instead of named libraries. TDD discipline content (RED→GREEN→REFACTOR, "watch the test fail before writing impl") preserved verbatim.
+- **T8** (parallel-agents.md, 34 hits → 0; 1783 LOC, pre-existing over the 500-LOC cap — flagged in Retrospective). 7-section sub-agent contract anchors all preserved (ROLE 13×, INPUTS 12×, OBJECTIVE 12×, METHOD 29×, VERIFICATION 14×, SEVERITY 9×, OUTPUT 24×). All 3 dispatch templates intact (Spec self-review × 3, Implementation wave, Multi-reviewer × 3). Lint-suppression brand tokens neutralized inside METHOD/SEVERITY example prose (consistent with W2/T5 precedent — AC#1 carve-out is `MAY`). Broader-brand sweep (hono/fastify/drizzle/prisma/postgres/redis/express/django/spring/rails) also clean.
+- **T9** (finish.md, 8 hits → 0) — all command examples replaced with `<test runner command>` / `<linter command>` / `<typecheck command>` / `<package manager install command>` placeholders. 4-options menu (Merge / Push+PR / Keep / Discard) preserved; "discard" verbatim semantics preserved; Step F Area/Change summary table guidance preserved.
+- **T10** (review-and-verify.md, 7 hits → 0; agent stripped 11 total, exceeding the minimum by 4). 14-item self-review checklist preserved (L86-106, count = 14). Severity tiers (Critical / Important / Minor), escalation rule (any diff beyond a one-line typo), pushback-with-evidence rule preserved. **Nuance:** agent also stripped `OWASP Top 10 (2021)`, `OAuth/OIDC`, `CORS/CSRF` — these are industry standards (not ecosystem brands). Canonical citations remain in `agents/code-reviewer-security.md` (9 hits — untouched until W5), so reviewer precision is not degraded for the security agent itself; only the supplementary guidance in `review-and-verify.md` was generalized. Flagged for Phase 5 review.
+
+- **Wave verification.** Per-file banned-term sweep: implement-and-test=0, parallel-agents=0, finish=0, review-and-verify=0. 7-section anchors all ≥1. 14-item checklist count = 14. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ DRY ✓ no suppressions ✓ structural anchors preserved ✓ TDD discipline preserved. Flag: parallel-agents.md exceeds 500-LOC hard cap (pre-existing, not introduced by this work).
 
 ## 7. Sprint Review (Phase 4 / 5)
 

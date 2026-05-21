@@ -9,8 +9,8 @@ The last phase. The goal is to land the work cleanly, archive the work-doc, and 
 Even if it passed in Phase 4. State drifts (other commits, env changes, hook updates). Re-run:
 
 ```
-[backend]   bun test && bun run lint && bun run typecheck
-[frontend]  bun run test && bun run lint && bun run typecheck
+[backend]   <test runner command> && <linter command> && <typecheck command>
+[frontend]  <test runner command> && <linter command> && <typecheck command>
 ```
 
 (Substitute your project's actual test / lint / typecheck commands.)
@@ -76,9 +76,9 @@ gh pr create --title "<concise PR title>" --body "$(cat <<'EOF'
 
 ## Test plan
 
-- [ ] Tests pass: `bun test`
-- [ ] Linter clean: `bun run lint`
-- [ ] Typecheck clean: `bun run typecheck`
+- [ ] Tests pass: `<test runner command>`
+- [ ] Linter clean: `<linter command>`
+- [ ] Typecheck clean: `<typecheck command>`
 - [ ] Manual smoke (if applicable): [list]
 
 ## Related
@@ -129,7 +129,7 @@ The Retrospective section is **mandatory** at this point. 3–8 bullets covering
 
 - What surprised during implementation
 - What you learned about the codebase
-- What pattern you'd reuse / avoid next time
+- What pattern you'd reuse / avoid in future tasks
 - Follow-up work that emerged (link issues, link `/schedule` jobs)
 - Any review feedback marked Minor that wasn't addressed (with rationale)
 
@@ -181,10 +181,8 @@ BRANCH="<type>/<slug>"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH"
 cd "$WORKTREE_PATH"
 
-# Auto-detect setup
-[ -f bun.lock ] && bun install
-[ -f package-lock.json ] && npm ci
-[ -f Cargo.toml ] && cargo build
+# Auto-detect setup (substitute your project's package manager install command)
+<package manager install command>
 
 # Run tests once for clean baseline
 <project test command>
