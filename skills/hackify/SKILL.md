@@ -243,6 +243,21 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 **Step C — execute the choice.** **1 or 2:** Commit follows project convention; ends with Claude Code Co-Authored-By trailer. PRs include Summary, Test plan, and link to work-doc. **3:** Stop. Leave everything in place. **4:** Confirm, then `git checkout` base branch and remove worktree if any. Never `git reset --hard` without explicit user instruction.
 
+**Step C.5 — Cleanup sweep** (mandatory; runs before archive). Sweep for 8 classes of leftover/abandoned/stale state introduced or surfaced during the sprint. Each class needs a one-line evidence record in the work-doc Phase 6 archive (0 findings counts).
+
+| # | Cleanup class | Audit |
+|---|---|---|
+| a | Stale cross-references | grep for references to files/sections that no longer exist after this sprint. |
+| b | Broken internal anchor links | scan markdown anchor links inside touched files. |
+| c | TODO/FIXME without owners | grep diff for new `TODO`/`FIXME` lacking an explicit owner or follow-up issue. |
+| d | Empty directories left after file moves | `find` for empty dirs under primitives. |
+| e | Dead branches | local + remote branches created during the sprint that won't be merged. |
+| f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD` cross-checked against work-doc Sprint Backlog file allowlists. |
+| g | Pre-existing dead code surfaced but deliberately not touched | move to a Retrospective follow-up entry (do NOT silently leave). |
+| h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
+
+If any class finds defects, fix them inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. Detailed audit commands per class: `references/finish.md`.
+
 **Step D — archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory — 3–8 bullets on what surprised, what to remember.
 
 **Step E — worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.

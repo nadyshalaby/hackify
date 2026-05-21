@@ -10,12 +10,15 @@ check_file "LICENSE"
 check_file "CHANGELOG.md"
 check_file ".gitignore"
 
-yellow "[2] reference files (expect ≥10)"
-ref_count=$(find skills/hackify/references -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
-if [ "$ref_count" -ge 10 ]; then
-  green "  ok   skills/hackify/references/ has $ref_count markdown files (≥10)"
+yellow "[2] reference files (expect ≥20 across references/ tree)"
+# Recursive count so the per-topic subdirs (parallel-agents/, clarify-questions/)
+# introduced in v0.2.7 are included. Pre-v0.2.7 layout had all references at
+# maxdepth 1; v0.2.7 split two oversized files into per-topic subdirs.
+ref_count=$(find skills/hackify/references -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$ref_count" -ge 20 ]; then
+  green "  ok   skills/hackify/references/ has $ref_count markdown files (≥20)"
 else
-  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected ≥10)"
+  red "  FAIL skills/hackify/references/ has $ref_count markdown files (expected ≥20)"
   FAILED=$((FAILED + 1))
 fi
 

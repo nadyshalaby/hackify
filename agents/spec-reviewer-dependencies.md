@@ -84,7 +84,7 @@ If ANY answer is "no", loop back to METHOD.
 **SEVERITY**.
 - **Critical** — A planned wave will fail or corrupt state if dispatched
   as written. Anchored examples:
-  - Tasks T5 and T6 both modify `../skills/hackify/references/parallel-agents.md` and the plan puts
+  - Tasks T5 and T6 both modify `../skills/hackify/references/parallel-agents/README.md` and the plan puts
     them in the same wave = Critical (concurrent edit conflict).
   - Task T9 reads a CHANGELOG entry that Task T11 creates, but T9 is
     scheduled in an earlier wave than T11 = Critical.
