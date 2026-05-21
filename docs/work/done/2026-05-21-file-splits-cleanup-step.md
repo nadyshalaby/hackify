@@ -1,13 +1,13 @@
 ---
 slug: 2026-05-21-file-splits-cleanup-step
 title: Split over-cap reference files + extend Phase 6 with cleanup step
-status: implementing
+status: done
 type: refactor
 created: 2026-05-21
 project: hackify
 related:
   - 2026-05-21-tech-neutral-principles
-current_task: W4:T15+T16
+current_task: null
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -146,8 +146,8 @@ Every file under the 500-LOC cap. Phase grouping preserved everywhere except pha
 
 ### Wave 4 — Dist regen + apply new cleanup step to this sprint (sequential — 2 tasks)
 
-- [ ] **T15** — Regenerate `dist/` via `bash scripts/sync-runtimes.sh`; second run for idempotency; `bash scripts/validate-dod.sh`. → verify: first run exits 0 with a new file count reflecting the net change (was 150 from v0.2.6 baseline; now ~150 + (22 new − 2 deleted) × 6 full-mirror runtimes = ~270); second run produces zero further changes; validate-dod exits 0 with `ALL CHECKS PASSED` (T17's path updates to validate-dod.d/20-templates.sh are exercised here).
-- [ ] **T16** — Apply the new Phase 6 Step C.5 cleanup sweep to THIS sprint. Walk through the 8 cleanup classes (a-h) and record one-line evidence per class in the Phase 6 archive of this work-doc. Files: this work-doc (`docs/work/2026-05-21-file-splits-cleanup-step.md`). → verify: Phase 6 archive contains a "Step C.5 — Cleanup sweep evidence" subsection with all 8 cleanup classes audited and outcome (0 / N findings).
+- [x] **T15** — Regenerate `dist/` via `bash scripts/sync-runtimes.sh`; second run for idempotency; `bash scripts/validate-dod.sh`. → verify: first run exits 0 with a new file count reflecting the net change (was 150 from v0.2.6 baseline; now ~150 + (22 new − 2 deleted) × 6 full-mirror runtimes = ~270); second run produces zero further changes; validate-dod exits 0 with `ALL CHECKS PASSED` (T17's path updates to validate-dod.d/20-templates.sh are exercised here).
+- [x] **T16** — Apply the new Phase 6 Step C.5 cleanup sweep to THIS sprint. Walk through the 8 cleanup classes (a-h) and record one-line evidence per class in the Phase 6 archive of this work-doc. Files: this work-doc (`docs/work/2026-05-21-file-splits-cleanup-step.md`). → verify: Phase 6 archive contains a "Step C.5 — Cleanup sweep evidence" subsection with all 8 cleanup classes audited and outcome (0 / N findings).
 
 ## 6. Daily Updates
 
@@ -196,10 +196,86 @@ Every file under the 500-LOC cap. Phase grouping preserved everywhere except pha
 
 
 
+### W4 — Dist regen + apply new cleanup step — done 2026-05-21
+
+2 sequential tasks (T15 dist regen → T16 dog-food the cleanup step on this sprint).
+
+- **T15** (dist regen): `bash scripts/sync-runtimes.sh` reported `OK — synced 270 files across 7 runtimes`. Second run identical (idempotent). **Discovered + fixed a Phase 6 Step C.5 class (a) finding in-band**: 12 stale monolith files persisted in `dist/<runtime>/skills/hackify/references/` (`parallel-agents.md` + `clarify-questions.md` × 6 full-mirror runtimes) because sync-runtimes is non-destructive by contract. Deleted via `find dist -type f \( -name 'parallel-agents.md' -o -name 'clarify-questions.md' \) -delete`. Re-ran sync-runtimes — still 270 files, still idempotent. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`. Per-runtime counts: claude-code=54, full-mirror runtimes=43 each, copilot-cli=1.
+- **T16** (Step C.5 dog-food): walked the new 8-class sweep on this sprint's state. Results below.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
-_(populated during Phases 4 and 5)_
+### DoD checklist with evidence
+
+- [x] **No file in `rules/`, `agents/`, `skills/` exceeds 500 LOC** — `find rules agents skills -type f -name '*.md' -exec wc -l {} \; | awk '$1 > 500'` returns no matches.
+- [x] **`skills/hackify/references/parallel-agents/` exists with 12 files** — all listed; each ≤500 LOC; 7-section contract anchors preserved in `template-contract.md` AND in every reviewer/implementer file.
+- [x] **`skills/hackify/references/clarify-questions/` exists with 10 files** — all listed; 4-section wizard anchors `SCENARIO/COMPOSITION/QUESTIONS/EXIT CRITERIA` appear in each of 7 wizard-bearing files; canonical spec lives only in `wizard-contract.md`; banks reference it.
+- [x] **`parallel-agents.md` + `clarify-questions.md` deleted** — confirmed absent; no forwarding stubs.
+- [x] **All cross-references updated** — 0 actionable bare refs across `rules/`, `agents/`, `skills/`, `README.md`, `commands/`, `scripts/`. The 1 surviving match is illustrative example prose in `phase-2.5-spec-review-c-dependencies.md` (dependency reviewer's mock output naming a hypothetical filename — not a real cross-ref).
+- [x] **`scripts/sync-runtimes.sh`** — ATTENTION-future-maintainers header comment present; 22 new entries in `MIRROR_SOURCES`; 2 old bare entries removed.
+- [x] **`bash scripts/sync-runtimes.sh`** — regenerates cleanly; idempotent (270 files both runs); every new split file mirrors to all 6 full-mirror runtimes.
+- [x] **`bash scripts/validate-dod.sh`** — `ALL CHECKS PASSED`. T17 + T18 collectively rewired checks [2], [9], [13], [14] to the new subdir layout.
+- [x] **Phase 6 cleanup step added** — `Step C.5` present in `skills/hackify/SKILL.md` L246 (summary table, 8 classes) AND `skills/hackify/references/finish.md` L117+ (full per-class detail). `skills/yolo/SKILL.md` carries 1-line pointer; `skills/quick/SKILL.md` correctly omits (no Steps C/D in quick mode).
+- [x] **Phase 6 cleanup step applied to THIS sprint (T16 evidence)** — see Step C.5 evidence subsection below.
+- [x] **Behavioral guarantees preserved** — 7-section sub-agent contract intact across all template files; 4-section wizard contract intact across all bank files; carve-out scan-target tokens preserved per `rules/hard-caps.md:14`; hook wiring unchanged; DoD validator coverage extended, not reduced.
+- [x] **CHANGELOG.md** — `## [0.2.7] - 2026-05-21` entry present; `plugin.json` + `marketplace.json` lockstep at 0.2.7; README badge at 0.2.7.
+
+### Step C.5 — Cleanup sweep evidence (T16, eating our own dog food)
+
+| Class | Audit | Findings | Action |
+|---|---|---|---|
+| **(a) Stale cross-references** | `grep -rnE '(^\|[^/])parallel-agents\.md\|(^\|[^/])clarify-questions\.md' rules/ agents/ skills/ README.md commands/ scripts/` | 1 match — `phase-2.5-spec-review-c-dependencies.md:86` (illustrative example prose inside a dependency-reviewer template, naming a hypothetical filename in its mock output) | **0 actionable findings.** Match is verbatim extraction of source example prose — not a real cross-reference. |
+| **(b) Broken internal anchor links** | `grep -rnE '\]\([^)]*#[^)]*\)' skills/hackify/references/parallel-agents/ skills/hackify/references/clarify-questions/` | 0 matches | **0 findings.** No anchor-style links to break. |
+| **(c) TODO/FIXME without owners** | `git diff main..HEAD \| grep -E '^\+.*\b(TODO\|FIXME)\b'` filtered for ownership | 0 actionable (the 3 grep hits were Step C.5 documentation text describing the rule — meta, not actual TODOs introduced) | **0 findings.** |
+| **(d) Empty directories** | `find rules agents skills hooks scripts -type d -empty` | 0 matches | **0 findings.** All file moves cleaned up. |
+| **(e) Dead branches** | `git branch -a` | Only `main` + current `refactor/tech-neutral-principles` (intentional, in-flight) | **0 findings.** No abandoned branches. |
+| **(f) Unrelated changes that snuck in** | `git diff --name-only main..HEAD` cross-checked against work-doc Sprint Backlogs (cumulative for v0.2.6 + v0.2.7) | 54 files touched; every file maps to a task in either work-doc | **0 findings.** Zero scope creep. |
+| **(g) Pre-existing dead code surfaced but not touched** | review v0.2.6 Retrospective follow-ups | v0.2.6 flagged `parallel-agents.md` (1783 LOC) + `clarify-questions.md` (639 LOC) as cap violations; v0.2.7 RESOLVED both via this sprint | **0 findings.** Surfaced items addressed; no new ones surfaced this sprint. |
+| **(h) Work-doc references to file paths that just changed** | grep both sprint work-docs for the deleted paths | 9 hits in archived v0.2.6 work-doc + 12 hits in current v0.2.7 work-doc | **0 findings.** All hits are historical narrative (Original Ask quotes, Q&A history, daily-update timelines). Work-doc immutability per hackify convention — historical paths preserve the record of what changed. |
+
+### Self-review
+
+| Item | Pass | Notes |
+|---|---|---|
+| DRY | ✓ | Contract specs centralized (template-contract.md, wizard-contract.md); banks reference, don't restate. |
+| File-size caps (≤500 LOC) | ✓ | All 22 new files ≤500. Largest: phase-5-multi-review.md at 455 LOC. |
+| No lint suppressions | ✓ | None introduced. Carve-out scan-target literals on rule lines preserved (documented). |
+| No `!` non-null assertions | ✓ | N/A — prose + shell only. |
+| No empty catches | ✓ | Confirmed via grep on touched shell files (sync-runtimes.sh, validate-dod.d/*.sh). |
+| Behavioral preservation | ✓ | 7-section + 4-section contracts intact; hook wiring untouched; DoD validator extended (not reduced). |
+| Scope creep | ✓ | Step C.5 class (f) sweep confirms 0 unrelated files touched. |
+
+### Reviewer subagent feedback (Phase 2.5)
+
+3 spec reviewers fired BEFORE Phase 3. Reviewer A surfaced the Critical `validate-dod.d/20-templates.sh` missing-task gap → T17 added in W2. Reviewer B surfaced the Critical `phase-5-multi-review.md` ~600 LOC cap risk → final split landed at 455 LOC (safe). Reviewer C surfaced the T13/T14 cross-wave diff-awareness need → both task descriptions augmented with explicit "pull latest after W2" notes. All 3 spec-review Importants addressed in the patches commit before W1 dispatched.
+
+### Mid-Phase 3 discoveries
+
+- **W1/T1 missed 3 template sections** (Phase 1 Research / Phase 4 Cross-package verification / Phase 5 Code-review escalation) that would have been silently lost on T12 deletion. Dispatched T1d as a fix-up; subdir grew from 9 → 12 files.
+- **W3/T12+T13+T14 all independently discovered the same blocker**: `scripts/validate-dod.d/10-required-files.sh` check [2] used `find -maxdepth 1` and required ≥10 files; post-deletion only 9 remained at maxdepth 1. Added T18 as in-wave fix-up: recursive find + threshold ≥20 (actual 31).
+- **W4/T15 surfaced 12 stale dist/ files** (the deleted monoliths persisted because sync-runtimes is non-destructive). Cleaned in-band as part of T15. Step C.5 class (a) finding caught proactively.
 
 ## 8. Retrospective
 
-_(populated during Phase 6)_
+- **The Step C.5 cleanup sweep paid for itself on the first run.** Class (a) caught 12 stale `dist/` monoliths that would have shipped with the new subdirs alongside them — a real user-visible defect if someone installed by copying `dist/<runtime>/`. The very work-doc that authored the cleanup step also benefited from it. The framing is right: **Phase 6 needs a cleanup gate because Phase 3 cleanup is incomplete-by-construction** (each implementer's allowlist prevents them from touching siblings).
+- **Three independent agents discovering the same blocker is a strong signal.** When W3/T12, T13, and T14 all flagged `10-required-files.sh` independently in their reports, that wasn't redundancy — it was the validator working as designed (each agent ran its own DoD check and surfaced the failure with its own root-cause analysis). Each report saved 1 round-trip; the cumulative effect was instant fix-up.
+- **My Q1 line-range estimates were wrong by ~600 LOC.** I projected phase-2.5 spec-review at ~500 LOC; actual measurement showed 1106. Reviewer B caught this in Phase 2.5; the corrected layout split per-template (3 reviewer files) and kept the sprint goal honest. **Always measure before estimating in the plan.**
+- **`MIRROR_SOURCES` enumeration paid the second tax.** v0.2.6 discovered it the first time (added a header comment for v0.2.7). v0.2.7 surfaced 22 new files needing 22 explicit entries — the comment now tells future authors why. The sprint after next will be the test of whether the comment is enough or whether `MIRROR_SOURCES` needs a glob-mode opt-in.
+- **Pre-existing 500-LOC violators didn't make themselves known until v0.2.6 surfaced them.** Two over-cap files lived through 5+ minor releases without any tooling flagging them. **Follow-up: add a DoD check that file sizes ≤500 across all primitives** — a once-and-for-all guardrail instead of relying on Retrospective vigilance. Filed as a v0.2.8 candidate.
+- **The "diff-aware" notes on cross-wave file collisions worked.** T13 and T14 both touched files that W2 had already edited (SKILL.md / README.md). Each agent's prompt led with a `*(Diff-aware: read the post-W2 state)*` note; both implementers respected it; no stale paths were re-introduced. Pattern to keep.
+- **Step C.5 class (g) is the most easily forgotten.** "Pre-existing dead code surfaced but not touched → Retrospective follow-up." The discipline is: if you NOTICE dead code while doing other work, write it down — don't silently leave it AND don't expand scope. The follow-up about file-size-cap as a DoD check above is an example of class (g) discipline.
+
+### Summary of changes shipped
+
+| Area | Change |
+|---|---|
+| File split A | `skills/hackify/references/parallel-agents.md` (1783 LOC) → 12 files under `parallel-agents/`: `README` + `template-contract` + `phase-1-research` + 3× `phase-2.5-spec-review-{a-consistency,b-rules,c-dependencies}` + `phase-3-implementation` + `phase-3b-debug-evidence` + `phase-4-cross-package-verification` + `phase-5-multi-review` + `phase-5-escalation` + `phase-5-aggregation`. All ≤500 LOC. |
+| File split B | `skills/hackify/references/clarify-questions.md` (639 LOC) → 10 files under `clarify-questions/`: `README` + canonical `wizard-contract` + `universal-preamble` + 6 task-type banks + `picking-and-combining`. All ≤500 LOC. |
+| DRY | 4-section wizard contract spec lives ONLY in `wizard-contract.md`; banks reference it. Same pattern for `template-contract.md` (7-section sub-agent contract). |
+| Deletions | Both monoliths deleted (no forwarding stubs); 12 stale dist/ copies removed in-band by T15. |
+| Cross-refs | 23 bare cross-references migrated across 8 markdown consumers + `scripts/sync-runtimes.sh` + `scripts/validate-dod.d/20-templates.sh`. |
+| Phase 6 Step C.5 | NEW mandatory pre-archive cleanup sweep. 8 cleanup classes (stale cross-refs / broken anchors / TODO without owner / empty dirs / dead branches / scope creep / surfaced dead code / work-doc path drift). Summary table in `SKILL.md`; full per-class detail + audit commands in `references/finish.md`; yolo carries 1-line pointer. |
+| Sync script hardening | `scripts/sync-runtimes.sh` ATTENTION-future-maintainers header comment explains `MIRROR_SOURCES` is enumerated (not glob); `MIRROR_SOURCES` extended with 22 new entries; dist regen mirrors 270 files across 7 runtimes (was 150). |
+| Validator hardening | `scripts/validate-dod.d/20-templates.sh` checks [9]/[13]/[14] rewired to iterate the new subdirs; `scripts/validate-dod.d/10-required-files.sh` check [2] rewired to recurse (`-maxdepth 1` → recursive; threshold ≥10 → ≥20). |
+| Version | `0.2.6` → `0.2.7` in `plugin.json` + `marketplace.json` (lockstep); CHANGELOG `## [0.2.7]` entry; README version badge. |
+| Behavior | Phase structure, 7-section + 4-section contracts, hard caps, hook wiring, DoD validator semantics — all unchanged. |
