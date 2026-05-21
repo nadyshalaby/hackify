@@ -66,6 +66,7 @@ cd "$REPO_ROOT"
 # the repo root; the same relative path is used inside dist/<runtime>/.
 MIRROR_SOURCES=(
   "skills/hackify/SKILL.md"
+  "skills/hackify/references/anti-patterns.md"
   "skills/hackify/references/clarify-questions.md"
   "skills/hackify/references/code-rules.md"
   "skills/hackify/references/debug-when-stuck.md"
@@ -85,6 +86,7 @@ MIRROR_SOURCES=(
   "commands/summary.md"
   "rules/hard-caps.md"
   "rules/code-quality.md"
+  "rules/four-principles.md"
 )
 
 # claude-code additionally mirrors the plugin manifests + the claude-code-native

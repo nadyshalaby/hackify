@@ -1,12 +1,12 @@
 ---
 slug: 2026-05-21-tech-neutral-principles
 title: Tech-neutral rewrite + Karpathy four-principles integration
-status: implementing
+status: verifying
 type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W7:T23
+current_task: phase-4-verify
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -174,7 +174,7 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 7 — Dist regen (sequential — 1 task)
 
-- [ ] **T23** — Regenerate `dist/` via `bash scripts/sync-runtimes.sh`; run a second time to confirm idempotency; run `bash scripts/validate-dod.sh`. Files: `dist/` tree (regenerated). → verify: first `sync-runtimes.sh` run exits 0; second run produces zero further `git diff` output under `dist/`; `validate-dod.sh` exits 0; spot-check via `diff -r` that at least one representative runtime target (`dist/claude-code/skills/hackify/`) mirrors the canonical source after the rewrite.
+- [x] **T23** — Regenerate `dist/` via `bash scripts/sync-runtimes.sh`; run a second time to confirm idempotency; run `bash scripts/validate-dod.sh`. Files: `dist/` tree (regenerated). → verify: first `sync-runtimes.sh` run exits 0; second run produces zero further `git diff` output under `dist/`; `validate-dod.sh` exits 0; spot-check via `diff -r` that at least one representative runtime target (`dist/claude-code/skills/hackify/`) mirrors the canonical source after the rewrite.
 
 ## 6. Daily Updates
 
@@ -260,6 +260,21 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** Per-file banned-term sweep: consistency=0, rules=1 (carve-out), dependencies=0, README=0. README runtime-target preservation: `claude-code` ×4, `codex` ×1, `codex-cli` ×1 (install snippets intact). README four-principles cross-ref present. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY ✓ scan-target carve-outs preserved ✓ runtime-target identifiers preserved in README ✓ four-principles cross-ref added ✓ version badge lockstep with T22 ✓ no scope creep.
+
+### W7 — Dist regen — done 2026-05-21
+
+Solo task. Discovered + fixed a regen-coverage defect as a corollary of T1+T2.
+
+- **First regen attempt.** Ran `bash scripts/sync-runtimes.sh` from worktree root. Reported `OK — synced 138 files across 7 runtimes`. Second run produced identical output (idempotent). DoD validator green.
+- **Spot-check found a defect.** `dist/claude-code/rules/four-principles.md` and `dist/claude-code/skills/hackify/references/anti-patterns.md` were MISSING. Root cause: `scripts/sync-runtimes.sh` uses an enumerated `MIRROR_SOURCES` array (line 67-88), not a glob. The two NEW files added in W1 (T1 + T2) were never in the array, so the regen could not copy them.
+- **Fix (in-scope corollary):** added two lines to `MIRROR_SOURCES`:
+  - `"skills/hackify/references/anti-patterns.md"` (in alphabetical position with the other references)
+  - `"rules/four-principles.md"` (in alphabetical position with the other rules files)
+- **Re-regen.** Ran sync-runtimes.sh again: `OK — synced 150 files across 7 runtimes` (+12 = 2 new files × 6 full-mirror runtimes; copilot-cli is MANIFEST.md only). Re-ran for idempotency: identical 150-file count.
+- **Cross-runtime verification.** Both new files now exist under `dist/{claude-code,codex-cli,codex-app,gemini-cli,opencode,cursor}/` — all 6 full-mirror runtimes. File counts per runtime: claude-code=34 (adds agents/+hooks/+.claude-plugin/), codex-cli=23, codex-app=23, gemini-cli=23, opencode=23, cursor=23, copilot-cli=1 (MANIFEST.md only).
+- **Final DoD validator.** `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ regen idempotent ✓ both new files propagate to all 6 full-mirror runtimes ✓ DoD validator green ✓ in-scope defect fix (sync-runtimes.sh script update is a direct corollary of T1+T2's new-file authoring, not scope creep).
 
 ## 7. Sprint Review (Phase 4 / 5)
 
