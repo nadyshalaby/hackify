@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.2-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.6-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -137,7 +137,7 @@ Hackify recognizes a non-trivial build task, invokes `/hackify:hackify`, and ask
 
 You answer. Hackify drafts the work-doc, presents it, waits for sign-off. Once you say *"go"*, parallel reviewers scrutinize the plan, then dependency-ordered waves of foreground agents implement the change, verify it, run multi-reviewer code review, and finish with the four-options menu and a 2-column Area/Change summary table.
 
-You can pause at any phase by closing the terminal. Next time you say *"continue work on invitation-token-expiry"*, hackify reads the frontmatter, finds the next unchecked task, and picks up exactly there.
+You can pause at any phase by closing the terminal. Later, when you say *"continue work on invitation-token-expiry"*, hackify reads the frontmatter, finds the following unchecked task, and picks up exactly there.
 
 ## The work-doc
 
@@ -168,11 +168,11 @@ branch: feat/invitation-token-expiry
 - [x] T1 — Add `expires_at` column + migration
 - [x] T2 — Reject expired tokens in invitations service
 - [ ] T3 — Show "expired" state in the accept-invite UI
-- [ ] T4 — Backend test (Vitest)
-- [ ] T5 — Frontend test (Playwright)
+- [ ] T4 — Backend test
+- [ ] T5 — Frontend test
 ```
 
-State lives in the file. No companion JSON, no hidden in-conversation memory. Resume by saying *"continue work on `<slug>`"* — the assistant reads the frontmatter, finds the next unchecked task, and picks up exactly there. Docs older than fourteen days trigger a `git log` drift check before resuming.
+State lives in the file. No companion JSON, no hidden in-conversation memory. Resume by saying *"continue work on `<slug>`"* — the assistant reads the frontmatter, finds the following unchecked task, and picks up exactly there. Docs older than fourteen days trigger a `git log` drift check before resuming.
 
 ## Slash commands
 
@@ -283,6 +283,8 @@ cp -R dist/codex-cli/* ~/.codex/prompts/
 
 ## Design principles
 
+See [`rules/four-principles.md`](rules/four-principles.md) for the canonical write-up of the four working principles — Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution — that underpin every phase below.
+
 - **One file, not many.** The work-doc replaces a spec doc, a plan doc, a progress file, a review log, and a post-mortem. One file is easier to keep current than five.
 - **Clarify everything up front.** A batched questionnaire before any code is written catches misreads while they are cheap.
 - **One hard gate, not many.** Between Plan and Implement. Everything else runs continuously with progress reports.
@@ -297,11 +299,11 @@ cp -R dist/codex-cli/* ~/.codex/prompts/
 
 Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the v0.2.2 `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded.
 
-### Stack assumptions
+### Voice — abstract principles, concrete adaptation
 
-The reference rules ship with the author's stack baked in: Bun, Biome, two-space indent, single quotes, no semicolons. That stack is documented in [`rules/code-quality.md`](rules/code-quality.md) and is explicitly **substitute your own** — swap in npm or pnpm, ESLint or Prettier, four-space indent — the workflow does not care.
+The reference rules are written in language-agnostic voice: package manager, linter, formatter, type system, test runner — never a brand. That voice is documented in [`rules/code-quality.md`](rules/code-quality.md) and is explicitly **substitute your own toolchain** — swap in whatever package manager, linter, formatter, indent width, or quote style your project already uses; the workflow does not care.
 
-What does carry across stacks are the principles: DRY enforced by searching before writing, named types for any object shape with 2+ properties, strict layer separation, zero lint suppressions, zero non-null assertions in production code, functions ≤40 LOC, files ≤500 LOC, edge cases handled rather than hoped away.
+What does carry across toolchains are the principles: DRY enforced by searching before writing, named types for any object shape with 2+ properties, strict layer separation, zero lint suppressions, zero non-null assertions in production code, functions ≤40 LOC, files ≤500 LOC, edge cases handled rather than hoped away.
 
 ### Editing the workflow
 
@@ -312,8 +314,8 @@ The workflow is plain markdown — no compiled logic to subclass. Edit `SKILL.md
 **Does hackify work for tiny tasks like fixing a typo?**
 For one-line typo fixes with no behavioral impact, use the carve-out (no skill needed). For anything with even modest ambiguity, prefer `/hackify:quick`. The four-phase compressed flow is exactly right for small-and-direct work.
 
-**Does hackify lock me into Bun, Biome, or TypeScript?**
-No. Those are the author's reference stack. The phases, the gate, the parallel-agent dispatch, the verification rigor, the multi-reviewer pass — none of that is tied to a language or toolchain.
+**Does hackify lock me into a specific language or toolchain?**
+No. The reference rules are written in language-agnostic voice — package manager, linter, formatter, type system, test runner — and you supply the concrete commands for your own stack. The phases, the gate, the parallel-agent dispatch, the verification rigor, the multi-reviewer pass — none of that is tied to a language or toolchain.
 
 **How are the parallel subagents safe?**
 Two mechanisms. Each agent's prompt carries a strict file allowlist — the agent is told the exact files it may touch and is instructed to stop if it discovers it needs another. The wave planner groups tasks so no two agents in the same wave share a file. Tasks in wave N may only depend on results from waves 1 through N-1.
@@ -322,13 +324,13 @@ Two mechanisms. Each agent's prompt carries a strict file allowlist — the agen
 No. Hackify is intentionally self-contained. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined in `SKILL.md` or one of the bundled reference files.
 
 **What happens if I interrupt mid-implementation?**
-The work-doc holds state. Implementation Log entries are written per task, so the next session reads the latest entry and picks up at the next unchecked checkbox. Interrupting during a parallel wave is safe — the parent waits for all dispatched agents to return before writing log entries.
+The work-doc holds state. Implementation Log entries are written per task, so the following session reads the latest entry and picks up at the following unchecked checkbox. Interrupting during a parallel wave is safe — the parent waits for all dispatched agents to return before writing log entries.
 
 **Does the workflow support monorepos?**
 Yes. Each sub-project (e.g., backend and frontend repos) is its own git repo with its own `docs/work/` directory. When a task spans multiple projects, create one work-doc per project and link them via the `related` frontmatter field. Phase 4 verification fans out across packages by default — one agent per package.
 
 **What if a task needs a file outside its allowlist?**
-The agent stops and reports back rather than editing the file. The parent decides: re-dispatch with a widened allowlist, or split the work into a follow-up task in the next wave.
+The agent stops and reports back rather than editing the file. The parent decides: re-dispatch with a widened allowlist, or split the work into a follow-up task in the subsequent wave.
 
 ## Troubleshooting
 

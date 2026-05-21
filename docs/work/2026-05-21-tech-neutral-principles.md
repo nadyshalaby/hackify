@@ -6,7 +6,7 @@ type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W6:T20+T21
+current_task: W7:T23
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -169,8 +169,8 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 6 — Sub-agents B + perimeter (parallel — 2 tasks)
 
-- [ ] **T20** — Neutralize all 3 spec reviewer agents: `agents/spec-reviewer-consistency.md` (0 hits — audit only), `agents/spec-reviewer-rules.md` (2 hits), `agents/spec-reviewer-dependencies.md` (0 hits — audit only). Files: all three. → verify: full AC banned-term regex returns 0 hits across all three; 7-section contract preserved.
-- [ ] **T21** — Neutralize `README.md` (7 hits): rewrite the "what hackify enforces" section in abstract voice; keep the install snippet only if it's a runtime-target name (e.g., `claude-code`, `cursor`, `codex-cli`) — those are runtime identifiers, not ecosystem brands. Files: `README.md`. → verify: full AC banned-term regex returns 0 hits in the body prose (runtime-target identifiers explicitly carved out and noted in a comment in the file or this work-doc).
+- [x] **T20** — Neutralize all 3 spec reviewer agents: `agents/spec-reviewer-consistency.md` (0 hits — audit only), `agents/spec-reviewer-rules.md` (2 hits), `agents/spec-reviewer-dependencies.md` (0 hits — audit only). Files: all three. → verify: full AC banned-term regex returns 0 hits across all three; 7-section contract preserved.
+- [x] **T21** — Neutralize `README.md` (7 hits): rewrite the "what hackify enforces" section in abstract voice; keep the install snippet only if it's a runtime-target name (e.g., `claude-code`, `cursor`, `codex-cli`) — those are runtime identifiers, not ecosystem brands. Files: `README.md`. → verify: full AC banned-term regex returns 0 hits in the body prose (runtime-target identifiers explicitly carved out and noted in a comment in the file or this work-doc).
 
 ### Wave 7 — Dist regen (sequential — 1 task)
 
@@ -246,6 +246,20 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** Per-file banned-term sweep: writing-skills=0, wave-task-implementer=0, security=0, quality=3 (carve-outs), plan-consistency=0. OWASP/CWE/NIST/RFC in security reviewer = 9 (≥7 threshold met). 7-section contract anchors all ≥1 across 4 files (SEVERITY = 0 only in wave-task-implementer, by design). `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY ✓ named scan-target carve-outs preserved ✓ industry-standard citations preserved (resolves Phase 2.5 concern) ✓ 7-section contract intact ✓ no scope creep.
+
+### W6 — Sub-agents B + perimeter — done 2026-05-21
+
+2 agents dispatched in parallel; T20 edited 1 of 3 spec-reviewer files; T21 made substantive edits to README.
+
+- **T20** (3 spec-reviewer agents):
+  - **spec-reviewer-consistency.md** (0 hits): NO-OP audit.
+  - **spec-reviewer-rules.md** (2 AC hits → 1 carve-out): 1 substantive edit at L16 — "NestJS / Fastify / Hono" → "HTTP service frameworks"; paired with "Drizzle and Prisma data layers" → "ORM / data-mapper persistence layers". Literal scan-target tokens at L61 (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`) preserved per AC#1 carve-out (a). Reviewer's authoritative rule sources (`{{project_root}}/CLAUDE.md` + `{{user_global_rules_path}}`) preserved.
+  - **spec-reviewer-dependencies.md** (0 hits): NO-OP audit.
+- **T21** (README.md, 7 hits → 0): Version badge bumped 0.2.2 → 0.2.6 (badge was stale; this brings it into lockstep with T22's CHANGELOG + JSON bumps). Backend/Frontend test-tool parentheticals stripped ("Backend test (Vitest)" → "Backend test"; "Frontend test (Playwright)" → "Frontend test"). Stack-assumptions paragraph rewritten in abstract voice (heading renamed to "Voice — abstract principles, concrete adaptation", matching T3 precedent). FAQ heading reworded: "Does hackify lock me into Bun, Biome, or TypeScript?" → "Does hackify lock me into a specific language or toolchain?". `next ` token false-positives reworded (×5). **Four-principles cross-ref added to "Design principles" section** — was not previously present.
+
+- **Wave verification.** Per-file banned-term sweep: consistency=0, rules=1 (carve-out), dependencies=0, README=0. README runtime-target preservation: `claude-code` ×4, `codex` ×1, `codex-cli` ×1 (install snippets intact). README four-principles cross-ref present. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ DRY ✓ scan-target carve-outs preserved ✓ runtime-target identifiers preserved in README ✓ four-principles cross-ref added ✓ version badge lockstep with T22 ✓ no scope creep.
 
 ## 7. Sprint Review (Phase 4 / 5)
 
