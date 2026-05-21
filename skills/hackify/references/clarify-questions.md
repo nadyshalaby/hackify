@@ -8,7 +8,7 @@ Phase 1 builds **one batched questionnaire** drawn from the bank for the matched
 
 Tool constraints to design around:
 
-- **1–4 questions per call.** If your batch is larger, send **multiple back-to-back `AskUserQuestion` calls in the same turn** — fire the next call as soon as the previous batch is answered, with no chat narration in between unless something needs clarifying. Aim for ≤16 total questions across all batches; if you need more, your scope is too broad — narrow first.
+- **1–4 questions per call.** If your batch is larger, send **multiple back-to-back `AskUserQuestion` calls in the same turn** — fire the following call as soon as the previous batch is answered, with no chat narration in between unless something needs clarifying. Aim for ≤16 total questions across all batches; if you need more, your scope is too broad — narrow first.
 - **2–4 options per question.** Mutually exclusive by default. Use `multiSelect: true` ONLY when options are genuinely combinable (e.g., "which edge cases to handle"). Never use multiSelect for "pick one approach" questions.
 - **First option is the recommendation.** Suffix its `label` with ` (Recommended)`. Even if you'd personally rank a different option higher, leading with your strongest opinion saves the user time.
 - **No "Other" option** — the tool auto-injects free-text input.
@@ -22,6 +22,8 @@ Tool constraints to design around:
 - Order: scope-shaping questions first (anything whose answer changes which other questions matter), then data model, then UX, then logistics (worktree, tests, output).
 - Combine related sub-questions into one wizard question with letter options — don't burn a separate question on every micro-decision.
 - Short, concrete, no filler. Drop any question whose answer is in `CLAUDE.md`, your codebase-exploration tool output, or the codebase itself — confirm in the preamble instead.
+
+Hackify also ships an anti-patterns reference at [anti-patterns.md](anti-patterns.md) with worked wrong/right examples. Phase 1 doesn't load it (you're not writing code yet); Phase 3 implementers do. Keep it on your radar when drafting Q&A that touches a known anti-pattern (e.g., over-abstraction, scope creep, lint-suppression rationalization).
 
 ---
 
@@ -43,7 +45,7 @@ Each bank MUST contain these four sections, in this order, with these exact name
 
    *Mini-example:* "If user prompt already names the target file, skip Q1 (Scope). Else ask Q1. If `CLAUDE.md` pins the package manager, skip Q5 (Tooling). Else ask Q5."
 
-3. **QUESTIONS** — the candidate question pool (4–8 per bank). Each question MUST conform to the Question structure (next subsection). Questions whose answer is already evident from context MUST be dropped at composition time, not asked.
+3. **QUESTIONS** — the candidate question pool (4–8 per bank). Each question MUST conform to the Question structure (following subsection). Questions whose answer is already evident from context MUST be dropped at composition time, not asked.
 
    *Mini-example:* "Q1 — Scope. text: `Single file or cross-module?` header: `Scope`. options: A `Single file (Recommended)` / B `Cross-module` / C `Cross-project`. why-this-matters: determines whether the worktree is created and whether Phase 4 cross-package verification runs."
 
@@ -136,7 +138,7 @@ Use when the user is adding new behavior the system doesn't currently have — a
 
 - Always ask Q1 (Goal shape) — it determines whether the plan needs a DoD sentence written by us or already supplied.
 - If the user's prompt already lists out-of-scope items, skip Q2 (Scope boundary).
-- Skip Q3 (Where it lives) and confirm in the preamble if the user prompt names a file path matching `^[A-Za-z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|md|json|yaml|yml|sql)$`.
+- Skip Q3 (Where it lives) and confirm in the preamble if the user prompt explicitly names a concrete file path.
 - Always ask Q4 (Data model) and Q5 (Public API) unless the prompt rules them out (e.g. "no DB changes, no new endpoint").
 - Skip Q6 (UI surface) if the task is explicitly backend-only or CLI-only.
 - Always ask Q7 (Acceptance criteria) — it gates Phase 2's DoD section.

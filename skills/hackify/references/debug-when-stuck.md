@@ -207,7 +207,7 @@ These are the rationalizations that turn a 30-minute bug into a 3-hour bug. Catc
 
 ## Working example (for orientation)
 
-> **Bug.** `bun test test/integration/invitations.test.ts` fails with `expected 200 to equal 401`. The first attempt added `await` to the auth header parsing. Didn't help.
+> **Bug.** `<test runner command> test/integration/invitations.test.<ext>` fails with `expected 200 to equal 401`. The first attempt added `await` to the auth header parsing. Didn't help.
 >
 > **D1.** Stack trace points to the auth middleware. Added log at boundary: middleware sees a `Cookie: better-auth.session=…` header, returns 200. But test expects 401. Oh — the test calls a route that **does not** require auth. So the actual issue is the route handler itself returning 200 with no body, but the test asserts a specific JSON shape and the assertion library reports it as 401.
 >

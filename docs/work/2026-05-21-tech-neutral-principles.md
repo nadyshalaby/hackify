@@ -6,7 +6,7 @@ type: refactor
 created: 2026-05-21
 project: hackify
 related: []
-current_task: W4:T11+T12+T15+T16+T24
+current_task: W5:T17+T18+T19
 worktree: /Users/corecave/Code/hackify-neutral
 branch: refactor/tech-neutral-principles
 sprint_goal: |
@@ -155,11 +155,11 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 
 ### Wave 4 — Hackify references B + companion skills B + audit (parallel — 5 tasks)
 
-- [ ] **T11** — Neutralize `skills/hackify/references/clarify-questions.md` (3 hits) + add cross-ref to `anti-patterns.md`. Files: `skills/hackify/references/clarify-questions.md`. → verify: full AC banned-term regex returns 0 hits; all 7 task-type banks present; the 4-section wizard contract (`SCENARIO`/`COMPOSITION`/`QUESTIONS`/`EXIT CRITERIA`) intact; grep finds the anti-patterns cross-reference.
-- [ ] **T12** — Neutralize `skills/hackify/references/debug-when-stuck.md` (1 hit) + `skills/hackify/references/frontend-design.md` (1 hit). Files: both. → verify: full AC banned-term regex returns 0 hits across both files; debug-method 4-phase structure preserved.
-- [ ] **T15** — Neutralize `skills/brainstorm/SKILL.md` (3 hits). Files: `skills/brainstorm/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; 4-section wizard contract intact.
-- [ ] **T16** — Neutralize `skills/receiving-code-review/SKILL.md` (2 hits). Files: `skills/receiving-code-review/SKILL.md`. → verify: full AC banned-term regex returns 0 hits.
-- [ ] **T24** — Audit and (if needed) neutralize `skills/hackify/references/code-rules.md` (0 hits — forwarding stub; verify it still forwards correctly to `rules/code-quality.md`) and `skills/hackify/references/runtime-adapters.md` (0 hits — but inspect every section for ecosystem assumptions). Files: both. → verify: full AC banned-term regex returns 0 hits across both files; `code-rules.md`'s forwarding pointer still resolves; `runtime-adapters.md` documents each runtime mapping in language-agnostic primitive names.
+- [x] **T11** — Neutralize `skills/hackify/references/clarify-questions.md` (3 hits) + add cross-ref to `anti-patterns.md`. Files: `skills/hackify/references/clarify-questions.md`. → verify: full AC banned-term regex returns 0 hits; all 7 task-type banks present; the 4-section wizard contract (`SCENARIO`/`COMPOSITION`/`QUESTIONS`/`EXIT CRITERIA`) intact; grep finds the anti-patterns cross-reference.
+- [x] **T12** — Neutralize `skills/hackify/references/debug-when-stuck.md` (1 hit) + `skills/hackify/references/frontend-design.md` (1 hit). Files: both. → verify: full AC banned-term regex returns 0 hits across both files; debug-method 4-phase structure preserved.
+- [x] **T15** — Neutralize `skills/brainstorm/SKILL.md` (3 hits). Files: `skills/brainstorm/SKILL.md`. → verify: full AC banned-term regex returns 0 hits; 4-section wizard contract intact.
+- [x] **T16** — Neutralize `skills/receiving-code-review/SKILL.md` (2 hits). Files: `skills/receiving-code-review/SKILL.md`. → verify: full AC banned-term regex returns 0 hits.
+- [x] **T24** — Audit and (if needed) neutralize `skills/hackify/references/code-rules.md` (0 hits — forwarding stub; verify it still forwards correctly to `rules/code-quality.md`) and `skills/hackify/references/runtime-adapters.md` (0 hits — but inspect every section for ecosystem assumptions). Files: both. → verify: full AC banned-term regex returns 0 hits across both files; `code-rules.md`'s forwarding pointer still resolves; `runtime-adapters.md` documents each runtime mapping in language-agnostic primitive names.
 
 ### Wave 5 — Companion skill + sub-agents A (parallel — 3 tasks)
 
@@ -217,6 +217,20 @@ Flat checklist. One commit per task. Each task `→ verify:` line states the gat
 - **Wave verification.** Per-file banned-term sweep: implement-and-test=0, parallel-agents=0, finish=0, review-and-verify=0. 7-section anchors all ≥1. 14-item checklist count = 14. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
 
 - **Self-review.** ✓ DRY ✓ no suppressions ✓ structural anchors preserved ✓ TDD discipline preserved. Flag: parallel-agents.md exceeds 500-LOC hard cap (pre-existing, not introduced by this work).
+
+### W4 — Hackify references B + companion skills B + audit — done 2026-05-21
+
+5 agents dispatched in parallel; 4 edited, 1 (T24) no-op.
+
+- **T11** (clarify-questions.md, 3 hits → 0) — neutralized `next ` token (×2) and a file-path regex that listed extensions including `.ts`/`.tsx` (replaced with prose "explicitly names a concrete file path"). Cross-ref paragraph to `anti-patterns.md` landed at L26 between "Composing the questionnaire" and the next divider. 4-section wizard contract anchors verified intact (count = 8 per section: 1 universal + 7 task-type banks).
+- **T12** (debug-when-stuck.md + frontend-design.md, 1 + 1 hits in AC regex → 0; agent also stripped 3 illustrative brand mentions in frontend-design.md per task carve-out: Tailwind/tailwind.config/index.css → utility-framework / utility-framework config / stylesheet entry point). 4-phase debug structure (ROOT CAUSE / PATTERN ANALYSIS / HYPOTHESIS / IMPLEMENT) preserved.
+- **T15** (brainstorm/SKILL.md, 3 hits → 0; agent found 4 total: all `next ` token false-positives, rewritten to `following`). Graduation rule + no-work-doc-until-graduation invariant + Socratic 1-or-2-questions-per-turn pattern + Brainstorm Provenance block all preserved.
+- **T16** (receiving-code-review/SKILL.md, 2 hits → 0) — generalized lint-suppression brand-token list at L41 to "any linter or type-checker suppression directive introduced outside the test-file carve-out"; reworded "next column" → "Severity column". Per-finding decision table (Finding / Severity / Decision / Evidence) preserved; decision domain (accept / push-back / defer) preserved verbatim. **Minor follow-up flagged:** `vi.useFakeTimers()` example at L80 remains (outside the AC regex but ecosystem-specific) — left for a follow-up pass.
+- **T24** (code-rules.md + runtime-adapters.md) — NO-OP. Both files already neutral under AC regex and wider scan. `code-rules.md` still forwards to `rules/code-quality.md`. `runtime-adapters.md` still names every target runtime (claude-code, cursor, codex, codex-cli, copilot, gemini, opencode) and preserves native-tool names (load-bearing, not brand leakage).
+
+- **Wave verification.** All 7 audited files at 0 hits. 4-section contract anchors 8/8/8/8. Anti-patterns cross-ref present in clarify-questions.md. `bash scripts/validate-dod.sh` → `ALL CHECKS PASSED`.
+
+- **Self-review.** ✓ DRY ✓ no suppressions ✓ structural anchors preserved (4-section wizard contract, decision-table contract, 4-phase debug method) ✓ no scope creep.
 
 ## 7. Sprint Review (Phase 4 / 5)
 
