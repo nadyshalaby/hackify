@@ -3,7 +3,7 @@
 #
 # Injects rules/hard-caps.md as additional context on every user prompt so
 # the hard caps and zero-tolerance bans are always loaded. NON-routing — this
-# hook MUST NOT inspect the prompt or classify full vs quick vs brainstorm.
+# hook MUST NOT inspect the prompt or classify full vs quick vs groom.
 #
 # Output contract: the harness reads a single JSON envelope from stdout. Raw
 # stdout becomes a transcript message instead of injected context, so the

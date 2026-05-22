@@ -1,9 +1,9 @@
 ---
-name: writing-skills
-description: Authors NEW skills that conform to hackify's binding contracts — NOT a generic Claude Code skill creator. Produces SKILL.md files under skills/<slug>/ that pass every check the v0.2.0 validate-dod.sh harness runs against hackify-conformant skills. Enforces the 7-section sub-agent contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), the 4-section Wizard contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA), the SKILL.md frontmatter schema, the name regex `^[a-z0-9-]{1,64}$`, the mandatory OUTPUT word-cap on every embedded sub-agent prompt, and Haiku-portability via zero soft-language tolerance in the body. Auto-discovery triggers — invoke when the user says `/writing-skills`, `author a hackify skill`, `create a new skill for hackify`, `make a hackify-style skill`, or `new hackify skill`. Self-validates every authored skill against the same 9-check checklist before declaring done; the meta-skill eats its own dog food. Explicit non-goal — does NOT author arbitrary Claude Code skills and does NOT replace the skill-creator plugin.
+name: skillsmith
+description: Authors NEW skills that conform to hackify's binding contracts — NOT a generic Claude Code skill creator. Produces SKILL.md files under skills/<slug>/ that pass every check the v0.2.0 validate-dod.sh harness runs against hackify-conformant skills. Enforces the 7-section sub-agent contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), the 4-section Wizard contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA), the SKILL.md frontmatter schema, the name regex `^[a-z0-9-]{1,64}$`, the mandatory OUTPUT word-cap on every embedded sub-agent prompt, and Haiku-portability via zero soft-language tolerance in the body. Auto-discovery triggers — invoke when the user says `/hackify:skillsmith`, `author a hackify skill`, `create a new skill for hackify`, `make a hackify-style skill`, or `new hackify skill`. Self-validates every authored skill against the same 9-check checklist before declaring done; the meta-skill eats its own dog food. Explicit non-goal — does NOT author arbitrary Claude Code skills and does NOT replace the skill-creator plugin.
 ---
 
-# Writing-Skills — author hackify-conformant skills
+# Skillsmith — author hackify-conformant skills
 
 This is a META-SKILL — a skill that authors skills. Scope is narrow on purpose: every output is a NEW skill that lives under `skills/<slug>/SKILL.md` inside the hackify plugin tree and passes every structural check the v0.2.0 enforcement layer (`scripts/validate-dod.sh`) runs against hackify-conformant skills.
 
@@ -11,7 +11,7 @@ This skill is self-contained. It never calls other skills. The 9-check self-vali
 
 ## When to invoke
 
-- **Slash command:** `/writing-skills`.
+- **Slash command:** `/hackify:skillsmith`.
 - **Phrase triggers** (case-insensitive substring match on the user prompt):
   - `author a hackify skill`
   - `create a new skill for hackify`
@@ -110,7 +110,7 @@ These thoughts mean STOP and apply the listed reality. Every row below contains 
 ## File map
 
 ```
-skills/writing-skills/
+skills/skillsmith/
   SKILL.md                              <- this file (the meta-skill)
 ```
 

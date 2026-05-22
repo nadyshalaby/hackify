@@ -1,9 +1,9 @@
 ---
-name: receiving-code-review
-description: Structured response engine for reviewer findings — converts a batch of comments into a per-finding decision table with columns Finding / Severity / Decision / Evidence. Two trigger surfaces. First, Phase 5 internal — the full hackify multi-reviewer dispatch returns parallel security/quality/plan-consistency findings and this skill produces the response table before the parent acts on them. Second, external paste — the user pastes review feedback from GitHub PR comments, Slack quotes, or email, and asks the model to respond. Each row picks exactly one of `accept` / `push-back` / `defer`. Push-back REQUIRES technical evidence with file:line, prior commit, or established pattern. Critical findings cannot be pushed back without explicit Phase 5 escalation. Use this skill when the user types `/receiving-code-review`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", or "address review findings", or when Phase 5 multi-reviewer has just returned and the parent must decide what to fix.
+name: review-triage
+description: Structured response engine for reviewer findings — converts a batch of comments into a per-finding decision table with columns Finding / Severity / Decision / Evidence. Two trigger surfaces. First, Phase 5 internal — the full hackify multi-reviewer dispatch returns parallel security/quality/plan-consistency findings and this skill produces the response table before the parent acts on them. Second, external paste — the user pastes review feedback from GitHub PR comments, Slack quotes, or email, and asks the model to respond. Each row picks exactly one of `accept` / `push-back` / `defer`. Push-back REQUIRES technical evidence with file:line, prior commit, or established pattern. Critical findings cannot be pushed back without explicit Phase 5 escalation. Use this skill when the user types `/hackify:review-triage`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", or "address review findings", or when Phase 5 multi-reviewer has just returned and the parent must decide what to fix.
 ---
 
-# Receiving-Code-Review — structured response to reviewer findings
+# Review-Triage — structured response to reviewer findings
 
 This skill converts a batch of reviewer comments into a per-finding response table. Every comment becomes one row. Every row carries a Decision (`accept` / `push-back` / `defer`) and Evidence anchored in code, not opinion.
 
@@ -17,7 +17,7 @@ Two trigger paths, both end in the same output table.
 
 **Path B — External paste.** Triggered when the user pastes external review feedback into chat and asks for a response. Detection rule — the most recent user message contains a review-shaped paste, where a paste is review-shaped if it has multiple bullet or numbered items AND each item has either a `file:line` anchor OR a normative verb (`should`, `must`, `consider`, `recommend`, `prefer`, `avoid`). Common sources — GitHub PR comments, Slack quotes, email review, reviewer DM.
 
-**Auto-discovery triggers.** Invoke this skill when the user types `/receiving-code-review`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", "address review findings", or pastes review-shaped feedback and asks for a response.
+**Auto-discovery triggers.** Invoke this skill when the user types `/hackify:review-triage`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", "address review findings", or pastes review-shaped feedback and asks for a response.
 
 **Carve-out (skill optional).** A single-comment review with one obvious fix is fine to handle inline without the table. The table is mandatory when there are 2+ findings.
 

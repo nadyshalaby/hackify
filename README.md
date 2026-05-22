@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.8-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.9-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -21,7 +21,7 @@ Clarify → Plan → Implement → Verify → Review → Finish — anchored to 
 
 ## Overview
 
-Hackify replaces multi-skill ceremony (separate spec, plan, brainstorm, execute, verify, review, and finish skills) with **one workflow and one work-doc per task**. The work-doc is the spec, the plan, the progress tracker, the review log, and the post-mortem — all in a single file at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`. Pause whenever. Resume by saying *"continue work on `<slug>`"*.
+Hackify replaces multi-skill ceremony (separate spec, plan, groom, execute, verify, review, and finish skills) with **one workflow and one work-doc per task**. The work-doc is the spec, the plan, the progress tracker, the review log, and the post-mortem — all in a single file at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`. Pause whenever. Resume by saying *"continue work on `<slug>`"*.
 
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, brainstorm, writing-skills, receiving-code-review, codewalk). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -118,9 +118,9 @@ Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Criti
 
 Four skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends, the meta-loop, and onboarding to unfamiliar code:
 
-- **`/brainstorm <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
-- **`/writing-skills`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
-- **`/receiving-code-review`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
+- **`/hackify:groom <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
+- **`/hackify:skillsmith`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
+- **`/hackify:review-triage`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
 - **`/codewalk <entry-point>`** *(new in v0.2.8)* — interactive call-stack viewer for code you didn't write. Depth-first walk from one entry point (route, handler, CLI command, queue job, UI action), stopping every 5 functions to confirm depth and stopping cold on runtime ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch). Emits a `.codewalk/<slug>/` browser viewer — GitHub-PR-style three-pane layout with invoked-line highlights, clickable call-site anchors, layered Mermaid sequence diagram, invariants per boundary, failure modes with blast radius, branches not taken listed by name, and an amber diff banner when you re-trace the same entry. Closes with 5 comprehension questions + a `safe to change` / `load-bearing` / `Chesterton's fence` decisions checklist.
 
 ## Example
@@ -184,9 +184,9 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:quick <ask>` | Start the compressed-flow sibling. |
 | `/hackify:yolo <ask>` | Start the full-autopilot sibling. |
 | `/hackify:summary` | Print the current Area/Change summary table on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
-| `/brainstorm <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
-| `/writing-skills` | Author new hackify-conformant skills via a 9-check self-validation loop. |
-| `/receiving-code-review` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
+| `/hackify:groom <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
+| `/hackify:skillsmith` | Author new hackify-conformant skills via a 9-check self-validation loop. |
+| `/hackify:review-triage` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
 | `/codewalk <entry-point>` | Trace one execution path from a single entry point and open a `.codewalk/<slug>/` browser viewer with annotated code + Mermaid diagrams + decisions checklist. |
 
 ## Parallel agents
@@ -240,12 +240,12 @@ skills/
     SKILL.md                           /hackify:quick compressed flow
   yolo/
     SKILL.md                           /hackify:yolo full-autopilot sibling
-  brainstorm/
-    SKILL.md                           /brainstorm Socratic pre-task refinement
-  writing-skills/
-    SKILL.md                           /writing-skills skill authoring + validator
-  receiving-code-review/
-    SKILL.md                           /receiving-code-review reviewer-response table
+  groom/
+    SKILL.md                           /hackify:groom Socratic pre-task refinement
+  skillsmith/
+    SKILL.md                           /hackify:skillsmith skill authoring + validator
+  review-triage/
+    SKILL.md                           /hackify:review-triage reviewer-response table
   codewalk/
     SKILL.md                           /codewalk interactive call-stack viewer
     references/

@@ -19,8 +19,8 @@ for target in 'dist/claude-code/' 'dist/codex-cli/' 'dist/codex-app/' 'dist/gemi
 done
 
 yellow "[25] v0.2.0 new skill SKILL.md presence + frontmatter + name regex"
-NEW_SKILL_FILES="skills/brainstorm/SKILL.md skills/writing-skills/SKILL.md skills/receiving-code-review/SKILL.md"
-NEW_SKILL_SLUGS="brainstorm writing-skills receiving-code-review"
+NEW_SKILL_FILES="skills/groom/SKILL.md skills/skillsmith/SKILL.md skills/review-triage/SKILL.md"
+NEW_SKILL_SLUGS="groom skillsmith review-triage"
 # Bash 3.2-safe parallel iteration via positional split
 set -- $NEW_SKILL_FILES
 NEW_FILES_LIST="$*"

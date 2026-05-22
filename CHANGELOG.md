@@ -5,6 +5,21 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2026-05-22
+
+> **Companion-skill rename pass.** Three companion skills are renamed to avoid auto-discovery substring collisions with the Anthropic Superpowers plugin and other third-party skill packs that ship near-identical slugs. No behavior change to any skill, workflow phase, sub-agent contract, hard-cap, hook wiring, or DoD-validator check — only the slugs, their directory paths, and every cross-reference to them moved. `codewalk` is unchanged (already hackify-distinctive).
+
+### Changed
+
+- **`skills/brainstorm/` → `skills/groom/`** (Socratic pre-task refinement). Frontmatter `name:` updated, `# Brainstorm` heading rewritten to `# Groom`, `Brainstorm Provenance` work-doc block renamed to `Groom Provenance`, slash trigger `/brainstorm` → `/hackify:groom`. Auto-discovery trigger list drops the bare `brainstorm` substring and adopts `groom` (sprint-vocab fit alongside the existing `Sprint Backlog` / `Daily Updates` / `Sprint Review` labels in work-docs).
+- **`skills/writing-skills/` → `skills/skillsmith/`** (meta-skill that authors hackify-conformant skills). Frontmatter `name:` updated, `# Writing-Skills` heading rewritten to `# Skillsmith`, slash trigger `/writing-skills` → `/hackify:skillsmith`. Bare `writing-skills` substring dropped from auto-discovery.
+- **`skills/receiving-code-review/` → `skills/review-triage/`** (per-finding reviewer-response decision table). Frontmatter `name:` updated, `# Receiving-Code-Review` heading rewritten to `# Review-Triage`, slash trigger `/receiving-code-review` → `/hackify:review-triage`. Bare `receiving-code-review` substring dropped from auto-discovery.
+- **Cascading cross-reference updates across active files** — `README.md` (Companion-skills bullets, Slash-commands table, Repository layout, Plugin-primitives skill list), `scripts/sync-runtimes.sh` (`MIRROR_SOURCES` array + 6 install-note paragraphs), `scripts/validate-dod.d/50-runtimes-and-companions.sh` (`NEW_SKILL_FILES` + `NEW_SKILL_SLUGS`), and `hooks/inject-hard-caps.sh` (one comment line). The legacy-pattern phrase `plan/spec/brainstorm/execute/verify/review/finish ceremony` in `skills/hackify/SKILL.md` is intentionally preserved — it names the historical multi-skill pattern hackify replaces, not our renamed skill.
+
+### Rationale
+
+The `brainstorm`, `writing-skills`, and `receiving-code-review` slugs were generic enough to substring-collide with Anthropic's Superpowers plugin and other third-party skill packs. When two plugins offer auto-discovery-triggered skills with overlapping substrings, the harness has no deterministic tiebreaker — invocation depends on plugin load order or description-field ranking, neither of which is portable across runtimes. The rename moves all three to hackify-distinctive slugs that signal craft (`skillsmith`), sprint vocabulary (`groom`, `review-triage`), and consequently de-collide with any plugin's generic naming. Archived work-docs under `docs/work/done/` and pre-v0.2.9 CHANGELOG entries retain the original names verbatim — they are a frozen historical record and re-writing them would violate the work-doc immutability convention.
+
 ## [0.2.8] - 2026-05-22
 
 > **New companion skill: `codewalk`.** Interactive call-stack viewer for code you didn't write — a senior-peer walkthrough of one execution path from a single entry point (route, handler, CLI command, queue job, UI action), rendered as a GitHub-PR-style three-pane app under `.codewalk/<slug>/` in the target repo. Bundled viewer assets (Tailwind + Alpine + Prism + Mermaid via CDN) plus a Node-stdlib server with a cross-platform fallback chain. No behavior change to any existing skill or workflow phase.

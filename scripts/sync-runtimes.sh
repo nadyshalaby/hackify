@@ -108,9 +108,9 @@ MIRROR_SOURCES=(
   "skills/hackify/references/runtime-adapters.md"
   "skills/hackify/references/work-doc-template.md"
   "skills/hackify/evals/evals.json"
-  "skills/brainstorm/SKILL.md"
-  "skills/writing-skills/SKILL.md"
-  "skills/receiving-code-review/SKILL.md"
+  "skills/groom/SKILL.md"
+  "skills/skillsmith/SKILL.md"
+  "skills/review-triage/SKILL.md"
   "skills/quick/SKILL.md"
   "skills/yolo/SKILL.md"
   "commands/summary.md"
@@ -242,7 +242,7 @@ exactly as Claude Code expects a plugin to be laid out.
 ## Contents
 
 - `skills/hackify/` — the full hackify workflow (SKILL.md + references/ + evals/)
-- `skills/brainstorm/`, `skills/writing-skills/`, `skills/receiving-code-review/`,
+- `skills/groom/`, `skills/skillsmith/`, `skills/review-triage/`,
   `skills/quick/` — companion skills referenced by the hackify workflow.
 - `commands/summary.md` — the `/hackify:summary` slash command body.
 - `.claude-plugin/plugin.json` + `marketplace.json` — plugin manifests.
@@ -269,15 +269,15 @@ collection of skill markdown files plus a slash-command body.
    `~/.codex/prompts/hackify/` (preserve subdirectory structure).
 2. Restart Codex CLI so the prompt index is rebuilt.
 3. Invoke the workflow by referencing `hackify/SKILL.md` (or the per-skill
-   SKILL.md for `quick`, `brainstorm`, etc.) in your prompt.
+   SKILL.md for `quick`, `groom`, etc.) in your prompt.
 
 ## Contents
 
 - `skills/hackify/SKILL.md` — the universal end-to-end dev workflow.
 - `skills/hackify/references/` — sub-agent and wizard prompt templates.
 - `skills/hackify/evals/evals.json` — eval cases.
-- `skills/brainstorm/SKILL.md`, `skills/writing-skills/SKILL.md`,
-  `skills/receiving-code-review/SKILL.md`, `skills/quick/SKILL.md` — companions.
+- `skills/groom/SKILL.md`, `skills/skillsmith/SKILL.md`,
+  `skills/review-triage/SKILL.md`, `skills/quick/SKILL.md` — companions.
 - `commands/summary.md` — body for the `/hackify:summary` shortcut (Codex CLI
   has no native slash-command registry; paste the body when needed).
 
@@ -304,8 +304,8 @@ context.
 2. Upload `skills/hackify/SKILL.md` as the primary instruction set.
 3. Upload everything under `skills/hackify/references/` as supporting
    reference documents (Codex App will let the model retrieve them by name).
-4. Optionally upload the companion skill files (`brainstorm`,
-   `writing-skills`, `receiving-code-review`, `quick`) the same way.
+4. Optionally upload the companion skill files (`groom`,
+   `skillsmith`, `review-triage`, `quick`) the same way.
 5. Paste the body of `commands/summary.md` into a Codex App "saved prompt"
    slot if you want a one-click summary trigger.
 
@@ -339,9 +339,9 @@ and review.
 - `skills/hackify/SKILL.md` — the universal end-to-end dev workflow.
 - `skills/hackify/references/` — sub-agent templates and the wizard.
 - `skills/hackify/evals/evals.json` — eval cases.
-- `skills/brainstorm/SKILL.md` — early-stage idea shaping.
-- `skills/writing-skills/SKILL.md` — guidance for authoring new skills.
-- `skills/receiving-code-review/SKILL.md` — protocol for handling review
+- `skills/groom/SKILL.md` — early-stage idea shaping.
+- `skills/skillsmith/SKILL.md` — guidance for authoring new skills.
+- `skills/review-triage/SKILL.md` — protocol for handling review
   feedback.
 - `skills/quick/SKILL.md` — compressed-flow companion for small fixes.
 - `commands/summary.md` — body of the `/hackify:summary` summary command.
@@ -370,8 +370,8 @@ as a set of mode-style markdown files plus reference documents.
 3. Add the reference files from `skills/hackify/references/` as attachments
    or auxiliary context (OpenCode will load them on demand when the mode
    prompt references them).
-4. Repeat for the companion skills (`quick`, `brainstorm`,
-   `writing-skills`, `receiving-code-review`) if you want them available as
+4. Repeat for the companion skills (`quick`, `groom`,
+   `skillsmith`, `review-triage`) if you want them available as
    separate modes.
 
 ## Contents
@@ -472,7 +472,7 @@ needed.
    `===== END SKILL.md =====` markers below as your initial prompt.
 3. Follow the workflow steps the SKILL.md prescribes (clarification gate,
    plan gate, implementation, verification, review).
-4. For the companion skills (`quick`, `brainstorm`, etc.) repeat the same
+4. For the companion skills (`quick`, `groom`, etc.) repeat the same
    paste-on-demand pattern with their SKILL.md bodies from the canonical
    `skills/<name>/SKILL.md`.
 
