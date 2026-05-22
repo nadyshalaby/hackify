@@ -83,12 +83,13 @@ if [ "$DRY_RUN" -eq 0 ]; then
   yellow "Syncing canonical hackify -> dist/<runtime>/ for ${#RUNTIMES[@]} runtimes"
 fi
 
-emit_claude_code
-emit_codex_cli
-emit_codex_app
-emit_gemini_cli
-emit_opencode
-emit_cursor
-emit_copilot_cli
+for runtime in "${RUNTIMES[@]}"; do
+  fn="emit_${runtime//-/_}"
+  if ! declare -F "$fn" >/dev/null; then
+    red "FATAL: missing emitter function $fn (expected from $SYNC_D/${runtime}.sh)"
+    exit 2
+  fi
+  "$fn"
+done
 
 print_runtime_summary

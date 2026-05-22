@@ -9,10 +9,7 @@
 
 set -uo pipefail
 
-red()    { printf '\033[31m%s\033[0m\n' "$*"; }
-green()  { printf '\033[32m%s\033[0m\n' "$*"; }
-yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
-cyan()   { printf '\033[36m%s\033[0m\n' "$*"; }
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/colors.sh"
 
 HACKIFY_SLUGS=(hackify quick yolo groom skillsmith review-triage codewalk)
 PLUGINS_ROOT="${CLAUDE_PLUGINS_ROOT:-$HOME/.claude/plugins}"
@@ -81,7 +78,7 @@ for slug in "${HACKIFY_SLUGS[@]}"; do
     ok_count=$((ok_count + 1))
   else
     yellow "  WARN $slug:"
-    printf "$matches"
+    printf '%b' "$matches"
   fi
 done
 

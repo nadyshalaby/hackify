@@ -37,9 +37,7 @@ USAGE
   esac
 done
 
-red()    { printf '\033[31m%s\033[0m\n' "$*"; }
-green()  { printf '\033[32m%s\033[0m\n' "$*"; }
-yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
+. "$REPO_ROOT/scripts/lib/colors.sh"
 
 PLUGIN_JSON=".claude-plugin/plugin.json"
 
@@ -61,7 +59,21 @@ if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
   exit 2
 fi
 
+# Semver shape: MAJOR.MINOR.PATCH (with optional -prerelease).
+if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+  red "FATAL: version '$VERSION' does not match semver MAJOR.MINOR.PATCH[-prerelease]"
+  exit 2
+fi
+
 TAG="v$VERSION"
+
+# HEAD must be on main — a tag pushed from a feature branch ends up pointing at
+# a commit unreachable from main, while `git push origin main` pushes stale.
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo '')"
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  red "FATAL: HEAD is on '$CURRENT_BRANCH', not 'main'. Switch to main before releasing."
+  exit 2
+fi
 
 # Dirty working tree?
 DIRTY="$(git status --porcelain)"
@@ -97,6 +109,11 @@ if [ "$DRY_RUN" -eq 1 ]; then
 fi
 
 # --- prompt + execute --------------------------------------------------------
+if [ ! -t 0 ]; then
+  red "FATAL: stdin is not a TTY — refusing to release non-interactively. Run with --dry-run to plan."
+  exit 2
+fi
+
 printf 'Proceed? [y/N] '
 read -r answer
 case "$answer" in

@@ -22,10 +22,8 @@
 #   prune_runtime_dist <runtime>
 #   print_runtime_summary
 
-# --- color helpers (match validate-dod.sh style) -----------------------------
-red()    { printf '\033[31m%s\033[0m\n' "$*"; }
-green()  { printf '\033[32m%s\033[0m\n' "$*"; }
-yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
+# --- color helpers (canonical home: scripts/lib/colors.sh) ------------------
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/colors.sh"
 
 # --- canonical source manifest ----------------------------------------------
 # ATTENTION future maintainers:
