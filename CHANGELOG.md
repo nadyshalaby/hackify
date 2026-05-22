@@ -5,6 +5,25 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-05-22
+
+> **New companion skill: `codewalk`.** Interactive call-stack viewer for code you didn't write — a senior-peer walkthrough of one execution path from a single entry point (route, handler, CLI command, queue job, UI action), rendered as a GitHub-PR-style three-pane app under `.codewalk/<slug>/` in the target repo. Bundled viewer assets (Tailwind + Alpine + Prism + Mermaid via CDN) plus a Node-stdlib server with a cross-platform fallback chain. No behavior change to any existing skill or workflow phase.
+
+### Added
+
+- **`skills/codewalk/SKILL.md`** — new top-level companion skill. Phase 1-7 workflow (confirm entry → read repo conventions → depth-first walk → emit `data.json` → materialize viewer by copying assets → launch `node serve.js` → 5 comprehension questions + decisions checklist). Mandatory 5-function depth-check block printed to chat. Auto-discovery triggers: `/codewalk`, `walk this code`, `walk me through`, `trace this call stack`, `trace this flow`, `explain this flow`, `what happens when`, `onboard me to`, plus six more substring matches. On ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch) the skill STOPS and asks rather than guessing the runtime path. Self-contained — never calls other skills.
+- **`skills/codewalk/references/data-schema.md`** — exact JSON contract between trace and viewer (nodes, edges, layers, diagrams, deferred_branches, diff_vs_previous). Slug convention is documented per entry-point shape: HTTP routes → `<method-lowercase>-<path-sanitized>`, CLI commands → `cli-<sanitized>`, queue jobs → `job-<queue>-<job-name>`, UI actions → `ui-<component>-<action>`.
+- **`skills/codewalk/references/trace-rubric.md`** — how to walk the stack with rigor. Covers invoked-block identification (the hardest field — only lines that fire on this path), side-effect classification (`db` / `queue` / `http` / `cache` / `auth` / `fs`), picking the one risk per node, branches-not-taken listed by name and never expanded, and the procedural format for the depth-check block.
+- **`skills/codewalk/assets/{index.html, viewer.js, viewer.css, serve.js}`** — bundled viewer template copied per trace into `.codewalk/<slug>/`. Three-pane layout (file tree by visit order with function-count badges / code viewer with green-border invoked lines + dimmed-italic skipped lines + clickable call-site anchors + hover docblock tooltip / right-rail metadata pane). Diagrams tab renders a Mermaid sequence diagram by architectural layer, module-dependency map, data-shape evolution chain, invariants per boundary, failure modes with blast radius, deferred branches, and an amber diff banner when `data.json` re-trace differs from the prior run. `serve.js` picks a free port starting at 8765 using only Node stdlib, opens the default browser cross-platform; fallback chain to `python3 -m http.server`, `python -m http.server`, `npx serve`, `php -S`, `ruby httpd` is documented when Node is missing.
+
+### Changed
+
+- **`README.md`** — version badge synced from stale `0.2.2` to `0.2.6`. "Plugin primitives" sentence and "Companion skills" section now enumerate `codewalk`. Companion-skills heading no longer carries the `(v0.2.0)` suffix since the section now spans v0.2.0–v0.2.6 introductions. Slash-commands table gains a `/codewalk` row. Repository-layout block adds `skills/codewalk/` with its `references/` and `assets/` children. FAQ gains a codewalk entry (offline behavior + repo-source isolation). Troubleshooting table gains three codewalk-specific rows (Node missing → fallback chain, viewer doesn't open → copy URL manually, port range exhausted → kill range or edit `START_PORT`).
+
+### Fixed
+
+- **`README.md`** — pre-existing v0.2.4 oversights swept up while integrating codewalk: `skills/yolo/` is now listed in the repository-layout block, the "Plugin primitives" sentence now enumerates `yolo`, and the line `Both skills auto-trigger from natural-language prompts` now reads `All three skills auto-trigger from natural-language prompts` (the table above had grown from two to three flows when yolo shipped). Overview paragraph now mentions `/hackify:yolo` alongside `/hackify:quick` instead of introducing yolo cold further down the page.
+
 ## [0.2.5] - 2026-05-16
 
 > **Patch-level scope, patch-level label.** Closes two v0.2.4 retrospective follow-ups in one commit. No behavior change to any skill or workflow phase.

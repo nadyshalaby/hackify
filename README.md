@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.2-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.6-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -25,7 +25,7 @@ Hackify replaces multi-skill ceremony (separate spec, plan, brainstorm, execute,
 
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
-For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify.
+For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
 ## Install
 
@@ -51,9 +51,9 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 | **Hackify YOLO** | `/hackify:yolo` | Substantive task where you trust the pipeline and don't want to gate on plan sign-off or finish menu. Full discipline; auto-passes Phase 2 + Phase 6. No work-doc → no pause/resume. |
 | **Quick hackify** | `/hackify:quick` | Small bug fixes, one- to three-line edits, single-file polish, typo work, direct quick-effort requests. Compressed four-phase flow. |
 
-Both skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
+All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, brainstorm, writing-skills, receiving-code-review). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents.md`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, brainstorm, writing-skills, receiving-code-review, codewalk). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents.md`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -114,13 +114,14 @@ Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Criti
 
 **No work-doc on disk.** YOLO never writes to `docs/work/` — the plan exists only in chat. Close the chat mid-task and progress is gone. Invoke `/hackify:hackify` if you need pause/resume or want to sign off on the plan first.
 
-## Companion skills (v0.2.0)
+## Companion skills
 
-Three skills ship alongside `hackify` and `quick` to cover the bookends and the meta-loop:
+Four skills ship alongside `hackify` and `quick` to cover the bookends, the meta-loop, and onboarding to unfamiliar code:
 
 - **`/brainstorm <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
 - **`/writing-skills`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
 - **`/receiving-code-review`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
+- **`/codewalk <entry-point>`** *(new in v0.2.6)* — interactive call-stack viewer for code you didn't write. Depth-first walk from one entry point (route, handler, CLI command, queue job, UI action), stopping every 5 functions to confirm depth and stopping cold on runtime ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch). Emits a `.codewalk/<slug>/` browser viewer — GitHub-PR-style three-pane layout with invoked-line highlights, clickable call-site anchors, layered Mermaid sequence diagram, invariants per boundary, failure modes with blast radius, branches not taken listed by name, and an amber diff banner when you re-trace the same entry. Closes with 5 comprehension questions + a `safe to change` / `load-bearing` / `Chesterton's fence` decisions checklist.
 
 ## Example
 
@@ -186,6 +187,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/brainstorm <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
 | `/writing-skills` | Author new hackify-conformant skills via a 9-check self-validation loop. |
 | `/receiving-code-review` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
+| `/codewalk <entry-point>` | Trace one execution path from a single entry point and open a `.codewalk/<slug>/` browser viewer with annotated code + Mermaid diagrams + decisions checklist. |
 
 ## Parallel agents
 
@@ -236,12 +238,24 @@ skills/
       evals.json                       optional eval harness
   quick/
     SKILL.md                           /hackify:quick compressed flow
+  yolo/
+    SKILL.md                           /hackify:yolo full-autopilot sibling
   brainstorm/
     SKILL.md                           /brainstorm Socratic pre-task refinement
   writing-skills/
     SKILL.md                           /writing-skills skill authoring + validator
   receiving-code-review/
     SKILL.md                           /receiving-code-review reviewer-response table
+  codewalk/
+    SKILL.md                           /codewalk interactive call-stack viewer
+    references/
+      data-schema.md                   data.json contract for the viewer
+      trace-rubric.md                  invoked-block / side-effects / risk / depth-check
+    assets/
+      index.html                       three-pane viewer shell (Tailwind + Alpine + Prism + Mermaid)
+      viewer.js                        Alpine component: navigation, render, tooltips
+      viewer.css                       Prism overrides + invoked-line highlight
+      serve.js                         Node-stdlib HTTP server (port pick + browser open)
 dist/                                  generated per-runtime packages (gitignored)
 docs/
   work/                                in-flight work-docs (per task)
@@ -330,6 +344,9 @@ Yes. Each sub-project (e.g., backend and frontend repos) is its own git repo wit
 **What if a task needs a file outside its allowlist?**
 The agent stops and reports back rather than editing the file. The parent decides: re-dispatch with a widened allowlist, or split the work into a follow-up task in the next wave.
 
+**Does codewalk work offline, and does it touch my repo's source?**
+First load pulls Tailwind, Alpine, Prism, and Mermaid from public CDNs — after that the browser cache serves them, so subsequent traces work offline. The trace itself never modifies repo source; every artifact lands under `.codewalk/<slug>/`, which the skill auto-adds to `.gitignore` so traces stay out of commits.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -338,6 +355,9 @@ The agent stops and reports back rather than editing the file. The parent decide
 | `No ED25519 host key is known for github.com and you have requested strict checking.` | Run `ssh-keyscan -t ed25519,rsa,ecdsa github.com >> ~/.ssh/known_hosts`. Idempotent; safe to re-run. |
 | `Permission denied (publickey).` | Local git config is rewriting HTTPS to SSH. Either remove the rewrite, or register an SSH key with GitHub. |
 | Plugin does not appear after install | Run `/reload-plugins` or restart Claude Code. The skill registers as `/hackify:hackify` and auto-triggers on any non-trivial prompt. |
+| `/codewalk` says `node: command not found` | Run any one of `python3 -m http.server 8765`, `python -m http.server 8765`, `npx --yes serve -l 8765`, `php -S 127.0.0.1:8765`, or `ruby -run -e httpd . -p 8765` from inside `.codewalk/<slug>/`. The skill prints this fallback chain when it cannot find Node. |
+| `/codewalk` viewer doesn't open in the browser | The viewer prints its URL (`http://127.0.0.1:<port>/`) on its own line — copy it into your browser. The default-browser launch is best-effort and may be blocked on headless or remote shells. |
+| `/codewalk` reports no free port between 8765 and 8815 | Another process is holding the 51-port range. Kill it (`lsof -ti :8765-8815 \| xargs kill`) or edit `START_PORT` in `.codewalk/<slug>/serve.js`. |
 
 See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 

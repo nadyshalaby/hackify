@@ -1,0 +1,101 @@
+/* codewalk viewer — overrides on top of Tailwind Play + Prism Tomorrow. */
+
+[x-cloak] { display: none !important; }
+
+.bg-neutral-925 { background-color: #161616; }
+
+/* ── Source code rendering ────────────────────────────────────────────── */
+
+.cw-source {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  background: #0d0d0d;
+  border: 1px solid #262626;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cw-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 0 0 0;
+  border-left: 3px solid transparent;
+  white-space: pre;
+  position: relative;
+  transition: background 60ms ease;
+}
+
+.cw-line__num {
+  user-select: none;
+  width: 3.5em;
+  text-align: right;
+  padding: 0 0.75em;
+  color: #525252;
+  flex-shrink: 0;
+  border-right: 1px solid #1f1f1f;
+}
+
+.cw-line__code {
+  padding: 0 1em;
+  flex: 1;
+  min-width: 0;
+  white-space: pre;
+  overflow: visible;
+}
+
+/* Invoked line: green left border + soft green wash. */
+.cw-line.cw-invoked {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+.cw-line.cw-invoked .cw-line__num {
+  color: #34d399;
+}
+
+/* Non-invoked line: dimmed. */
+.cw-line.cw-skipped {
+  opacity: 0.32;
+}
+.cw-line.cw-skipped .cw-line__code {
+  font-style: italic;
+}
+
+/* Call-site anchor: subtle underline, pointer cursor. */
+.cw-call {
+  border-bottom: 1px dashed #34d399;
+  color: #6ee7b7 !important;
+  cursor: pointer;
+  text-decoration: none;
+  padding-bottom: 1px;
+}
+.cw-call:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-bottom-style: solid;
+}
+
+/* Risk highlight: amber dot in the gutter (decorative; the metadata pane shows the text). */
+.cw-risk-marker {
+  position: absolute;
+  left: -3px;
+  top: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.6);
+}
+
+/* ── Mermaid container ────────────────────────────────────────────────── */
+
+.mermaid {
+  text-align: center;
+  background: transparent;
+}
+
+/* ── Scrollbar polish ─────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #404040; }
