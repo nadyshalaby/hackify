@@ -83,7 +83,7 @@ Before writing CSS, settle:
 
 ### Build the visual system
 
-Lock these as **CSS variables / Tailwind tokens** before painting any component:
+Lock these as **CSS variables / utility-framework tokens** before painting any component:
 
 - **Type hierarchy** — display, h1-h4, body, caption, mono. Specify font family, weight, size, line-height, letter-spacing for each. Pair a distinctive display with a refined body.
 - **Color** — one dominant field (background + neutrals), one accent (signal), 1-2 supporting tones. Use logical names (`bg`, `surface`, `border`, `text-primary`, `text-muted`, `accent`, `accent-hover`) not hex names.
@@ -92,7 +92,7 @@ Lock these as **CSS variables / Tailwind tokens** before painting any component:
 - **Motion rules** — duration scale (75/150/300/500ms), ease curves (one curve for entry, one for exit), what gets animated (reveal? hover? scroll-triggered?).
 - **Surface treatment** — borders, shadows, blur, noise, grain, mesh gradients. Pick a treatment vocabulary; apply consistently.
 
-If working inside an existing product, inherit from the project's tokens. **Don't invent a new token system** — extend the one in `index.css` / `tailwind.config`.
+If working inside an existing product, inherit from the project's tokens. **Don't invent a new token system** — extend the one in the project's stylesheet entry point / utility-framework config.
 
 ### Compose with intention
 
@@ -192,6 +192,6 @@ These design-skill items are already enforced elsewhere — don't repeat:
 
 - File-size caps (covered by `code-rules.md`)
 - Function/method caps (covered by `code-rules.md`)
-- TypeScript strict mode (covered by `code-rules.md`)
+- Static-type strict mode (covered by `code-rules.md`)
 - Accessibility *as a hygiene rule* (covered everywhere; the principle is preserved above as part of the quality gate)
 - Performance basics (covered by `review-and-verify.md`)

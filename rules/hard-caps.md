@@ -11,11 +11,11 @@ Injected into every prompt by hackify's `UserPromptSubmit` hook. Zero-tolerance,
 
 ## Bans (zero tolerance)
 
-- **0 lint suppressions** — no `biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error` in production. Sole exception: `@ts-expect-error` in test files for deliberately invalid input, with a comment explaining WHY.
+- **0 lint suppressions** — no `biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error` in production. Sole exception: `@ts-expect-error` in test files for deliberately invalid input, with a comment explaining WHY. (These specific tokens stay literal because they ARE the strings linters and reviewers grep for; abstracting them would defeat the rule.)
 - **0 non-null `!`** assertions in production code.
 - **0 empty catches** — `catch (e) {}` is unconditionally banned.
-- **0 inline `interface`/`type` blocks ≥ 2 props** in `*.routes.ts`, `*.service.ts`, `*.middleware.ts`, `*.guard.ts`, `*.controller.ts`.
-- **0 bare `Error` throws** in domain code — use named error subclasses.
+- **0 inline `interface`/`type` blocks ≥ 2 props** in router / service / middleware / guard / controller modules.
+- **0 bare `Error` throws** in domain code — use a domain-specific exception subclass.
 
 ## Always-on principles
 

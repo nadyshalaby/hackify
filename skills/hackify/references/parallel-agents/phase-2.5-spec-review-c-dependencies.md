@@ -1,7 +1,6 @@
----
-name: spec-reviewer-dependencies
-description: Phase 2.5 Spec-review C — proposes a topological execution-wave plan for a hackify work-doc Sprint Backlog and flags dependency/ordering/parallelism risks (file-collision edges within a wave, missing prerequisites, oversized or undersized tasks) before Phase 3 implementation begins.
----
+# Phase 2.5 — Spec-review C (dependency / ordering / parallelism)
+
+This file is the dispatchable sub-agent prompt for the third of three parallel Phase 2.5 spec reviewers (A = internal consistency in `phase-2.5-spec-review-a-consistency.md`; B = architectural risks in `phase-2.5-spec-review-b-rules.md`; C = dependency / ordering here). Load it whenever the parent fires the Phase 2.5 wave; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md` — do not restate it here.
 
 ```
 Subagent type: general-purpose
@@ -84,7 +83,7 @@ If ANY answer is "no", loop back to METHOD.
 **SEVERITY**.
 - **Critical** — A planned wave will fail or corrupt state if dispatched
   as written. Anchored examples:
-  - Tasks T5 and T6 both modify `../skills/hackify/references/parallel-agents/README.md` and the plan puts
+  - Tasks T5 and T6 both modify `parallel-agents.md` and the plan puts
     them in the same wave = Critical (concurrent edit conflict).
   - Task T9 reads a CHANGELOG entry that Task T11 creates, but T9 is
     scheduled in an earlier wave than T11 = Critical.

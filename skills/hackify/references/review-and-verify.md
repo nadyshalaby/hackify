@@ -31,7 +31,7 @@ Bad:
 Good:
 
 ```
-$ cd <project> && bun test
+$ cd <project> && <test-runner-command>
 ✓ 87 pass
 0 fail
 Ran 87 tests across 12 files. [3.42s]
@@ -44,8 +44,7 @@ Bad:
 Good:
 
 ```
-$ bun run lint
-$ biome check src/
+$ <lint-command> src/
 Checked 142 files in 89ms. No fixes needed.
 ```
 
@@ -59,7 +58,7 @@ If you can't show the output, you don't know it's true. Re-run.
 | One package green, another not run | Run all packages |
 | Test command exits 0 but skips suites | Check the count — "0 tests ran" is a fail |
 | Linter exits 0 with warnings | Confirm warnings are pre-existing; if new, fix |
-| Typecheck "skipped" or "incremental" | Force fresh: delete `tsconfig.tsbuildinfo` if needed |
+| Typecheck "skipped" or "incremental" | Force fresh: delete the incremental typecheck cache if needed |
 
 ### Regression-test red-green cycle
 
@@ -79,32 +78,32 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `references/parallel-agents.md` under "Multi-reviewer (Phase 5)". Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `parallel-agents/phase-5-multi-review.md`. Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
 
 The self-review still happens — the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
 ```
 - [ ] DRY — no duplicated logic; existing helpers reused; new helpers extracted if 3+ uses
 - [ ] Layering — presentation/domain/infrastructure separation honored
-        Backend: routes are pure delegation; services own business logic + DB; no HTTP framework imports in services
-        Frontend: routes thin; features own logic; components dumb; lib is glue only
+        Server-side: request handlers are pure delegation; services own business logic + data access; no transport-framework imports in services
+        Client-side: route shells thin; features own logic; components dumb; shared lib is glue only
 - [ ] Named types — every shape with ≥2 props has a named interface/type in the right folder
-        Backend: <module>/interfaces or src/common/types
-        Frontend: <feature>/types.ts or src/lib/types
-- [ ] No lint suppressions (biome-ignore, eslint-disable, @ts-ignore, @ts-expect-error)
-        Sole carve-out: @ts-expect-error in test files for deliberately invalid input, with WHY
-- [ ] File-size cap — no file >500 LOC; split by responsibility
+        Server-side: <module>/interfaces or shared common types
+        Client-side: <feature>/types or shared lib types
+- [ ] No lint suppressions — no linter or type-checker suppression directives
+        Sole carve-out: a type-checker expect-error pragma in test files for deliberately invalid input, with WHY
+- [ ] File-size caps — no file >500 LOC; split by responsibility
 - [ ] Function caps — ≤40 LOC, ≤3 params, ≤3 nesting levels
-- [ ] Dead code — no unused exports, methods, imports; no commented-out code
-- [ ] Edge cases — null/undefined, empty arrays/strings, concurrent access, partial failures
+- [ ] Dead code removed — no unused exports, methods, imports; no commented-out code
+- [ ] Edge cases covered — null/undefined, empty arrays/strings, concurrent access, partial failures
 - [ ] Naming for intent — variables/functions describe WHAT they DO, not HOW
-- [ ] Error handling — explicit per path; no silent swallows; no empty catches
-        Backend: throw named domain errors from src/errors/
-        Frontend: throw named Error subclasses with .name set
-- [ ] No `!` non-null assertions in production code
-- [ ] Security — no hardcoded secrets, no SQL string-concat, sanitized paths, validated inputs
-- [ ] Tests cover behavior not implementation; no mocks where real code would work
-- [ ] Comments only on WHY (non-obvious constraints), never WHAT
+- [ ] Error handling explicit — every path handled; no silent swallows
+        Server-side: throw named domain errors from a dedicated errors module
+        Client-side: throw named error subclasses with a stable name set
+- [ ] No security regressions — no hardcoded secrets, no query-string concatenation against the data store, sanitized paths, validated inputs
+- [ ] No new `!` non-null assertions in production code
+- [ ] No empty catches — every catch either logs, rethrows, or transforms; bare `catch (e) {}` is banned
+- [ ] No bare `Error` throws in domain code — domain code throws named, domain-specific error subclasses
 ```
 
 ### When to escalate to a reviewer subagent
@@ -114,14 +113,14 @@ Spawn a **foreground** general-purpose reviewer subagent when ANY of:
 - Diff > 300 LOC
 - Diff touches > 8 files
 - Cross-module refactor (touches multiple bounded contexts)
-- Touches **any** of: auth/permissions, cryptography, database migrations, payment/billing, public API contracts, security headers, CORS/CSRF, OAuth flows, session management
+- Touches **any** of: auth/permissions, cryptography, database migrations, payment/billing, public API contracts, security headers, cross-origin and request-forgery defenses, delegated-identity flows, session management
 - User explicitly asked for deeper review
 
 When you escalate, **also** complete the self-review — escalation is *additive* defense, not replacement.
 
 ### Reviewer subagent prompt template
 
-This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `references/parallel-agents.md` "Template Contract" (SEVERITY mandatory because this is a review template).
+This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
 
 ```
 Subagent type: general-purpose
@@ -134,14 +133,15 @@ review verdicts, distinguishing a real defect from a stylistic preference,
 and signing off on diffs that touch sensitive surfaces (auth, migrations,
 public API contracts, billing, cryptography).
 
-Your stack expertise covers: TypeScript backend services on Bun / Node,
-Postgres migrations and row-level security, OAuth/OIDC and session
-management, multi-tenant data isolation, and cross-package monorepo
-refactors.
+Your stack expertise covers: server-side services in a strongly typed
+language, relational database migrations and row-level security,
+delegated-identity and session management, multi-tenant data isolation,
+and cross-package monorepo refactors.
 
-You apply SOLID, Clean Code (Martin), and OWASP Top 10 (2021) when the
-diff has a security surface; RFC 2119 keywords when judging whether a
-prior reviewer's finding is normative or advisory.
+You apply SOLID, Clean Code (Martin), and the prevailing top-ten web
+application security risk catalogue when the diff has a security
+surface; RFC 2119 keywords when judging whether a prior reviewer's
+finding is normative or advisory.
 
 You reject: silent agreement with prior reviewers without a citation,
 "looks fine" verdicts without a file:line anchor, severity downgrades
@@ -160,8 +160,9 @@ Bias against: paraphrasing a prior reviewer's claim without quoting it.
 5. `{{head_sha}}` — git SHA marking the head of the diff.
 6. `{{diff_kind}}` — one of `feature` / `fix` / `refactor` / `redesign`.
 7. `{{stack_summary}}` — one-line stack description
-   (e.g. "Bun + Hono + Drizzle + Postgres" or
-   "Vite + React 19 + shadcn/ui + Tailwind v4").
+   (e.g. "server-side request handler + relational ORM + relational
+   database" or "client-side build tool + component framework +
+   component library + utility-CSS framework").
 8. `{{sensitive_surfaces}}` — comma-separated list of sensitive areas the
    diff touches (e.g. "auth, migrations, public API contracts").
 9. `{{reviewer_a_report}}` — verbatim text of the Phase 5 Reviewer A
@@ -205,8 +206,9 @@ adds any net-new findings the prior reviewers missed.
 6. Apply your specialist lenses to the diff to catch what the three prior
    reviewers may have missed: SOLID violations, Clean Code (Martin)
    smells, and — when `{{sensitive_surfaces}}` mentions auth, sessions,
-   tokens, crypto, or migrations — the relevant OWASP Top 10 (2021)
-   categories. Record any net-new finding with a file:line citation.
+   tokens, crypto, or migrations — the relevant categories from the
+   prevailing top-ten web application security risk catalogue. Record
+   any net-new finding with a file:line citation.
 7. For every Definition-of-Done bullet in the work-doc, confirm the diff
    delivers it. Any DoD bullet not delivered by the diff is a Critical
    finding under "plan consistency."
@@ -243,8 +245,9 @@ before producing OUTPUT.
     language let unverifiable schema findings get downgraded").
   - Reviewer A flagged an auth-route guard as "Important" but the diff
     actually removes the guard from a route reachable by unauthenticated
-    callers — escalate to Critical and cite OWASP Top 10 (2021) A01
-    (Broken Access Control).
+    callers — escalate to Critical and cite the broken-access-control
+    category from the prevailing top-ten web application security risk
+    catalogue.
 - **Important** — A defect that risks rework, scope drift, or quality
   regression but will not by itself ship a broken release. Anchored
   examples:

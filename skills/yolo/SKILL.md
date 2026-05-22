@@ -29,6 +29,8 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 | **Phase 2 — Plan sign-off** | Hard gate; waits for explicit `go` / `approved` / `yes` | No gate; the in-chat plan block is posted and Phase 2.5 begins immediately |
 | **Phase 6 — 4-options finish menu** | User picks 1 / 2 / 3 / 4 | Auto-picks Option 1: commit to current branch locally, no push. User inspects with `git log -1` / `git diff HEAD~1` afterward. |
 
+*Phase 6 Step C.5 cleanup sweep also applies here — see `../hackify/references/finish.md` Step C.5.*
+
 ## Kept phases — identical to full hackify
 
 | Phase | Action | Why kept |

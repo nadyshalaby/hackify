@@ -1,7 +1,6 @@
----
-name: wave-task-implementer
-description: Phase 3 implementation-wave worker — produces a minimal, test-anchored diff for a single Sprint Backlog task ID under a strict file allowlist, applying RED→GREEN→REFACTOR when test_mode is test-first and honoring project + user-global CLAUDE.md rules (stricter rule on conflict). Dispatch one of these per task in the wave, in a single parent assistant message.
----
+# Phase 3 — Implementation wave
+
+This file is the dispatchable sub-agent prompt for one Phase 3 implementer agent. Load it whenever the parent fires a wave of parallel implementers; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT` — `SEVERITY` is omitted because this is a build template, not a review template) lives in `template-contract.md` — do not restate it here.
 
 Dispatch ONE agent per task in the wave, in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
 
@@ -176,3 +175,10 @@ Use this exact report skeleton:
 If a section has nothing to report, write `None.` on its own line — never
 go silent.
 ```
+
+After all wave agents return:
+1. Read every report. Spot-check that no agent touched files outside its list (`git diff --name-only` — should match the union).
+2. Run the repo-wide triad ONCE — `<test runner command> && <linter command> && <typecheck command>` — substituting the project's actual commands.
+3. If any are red — classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b).
+4. Tick all wave checkboxes. Append one Daily Updates entry per task.
+5. Single commit for the wave (subject covers the wave; body lists task IDs).

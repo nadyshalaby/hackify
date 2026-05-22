@@ -5,7 +5,7 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.6] - 2026-05-22
+## [0.2.8] - 2026-05-22
 
 > **New companion skill: `codewalk`.** Interactive call-stack viewer for code you didn't write — a senior-peer walkthrough of one execution path from a single entry point (route, handler, CLI command, queue job, UI action), rendered as a GitHub-PR-style three-pane app under `.codewalk/<slug>/` in the target repo. Bundled viewer assets (Tailwind + Alpine + Prism + Mermaid via CDN) plus a Node-stdlib server with a cross-platform fallback chain. No behavior change to any existing skill or workflow phase.
 
@@ -18,11 +18,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **`README.md`** — version badge synced from stale `0.2.2` to `0.2.6`. "Plugin primitives" sentence and "Companion skills" section now enumerate `codewalk`. Companion-skills heading no longer carries the `(v0.2.0)` suffix since the section now spans v0.2.0–v0.2.6 introductions. Slash-commands table gains a `/codewalk` row. Repository-layout block adds `skills/codewalk/` with its `references/` and `assets/` children. FAQ gains a codewalk entry (offline behavior + repo-source isolation). Troubleshooting table gains three codewalk-specific rows (Node missing → fallback chain, viewer doesn't open → copy URL manually, port range exhausted → kill range or edit `START_PORT`).
+- **`README.md`** — version badge synced to `0.2.8`. "Plugin primitives" sentence and "Companion skills" section now enumerate `codewalk`. Companion-skills heading no longer carries the `(v0.2.0)` suffix since the section now spans v0.2.0–v0.2.8 introductions. Slash-commands table gains a `/codewalk` row. Repository-layout block adds `skills/codewalk/` with its `references/` and `assets/` children. FAQ gains a codewalk entry (offline behavior + repo-source isolation). Troubleshooting table gains three codewalk-specific rows (Node missing → fallback chain, viewer doesn't open → copy URL manually, port range exhausted → kill range or edit `START_PORT`).
 
 ### Fixed
 
 - **`README.md`** — pre-existing v0.2.4 oversights swept up while integrating codewalk: `skills/yolo/` is now listed in the repository-layout block, the "Plugin primitives" sentence now enumerates `yolo`, and the line `Both skills auto-trigger from natural-language prompts` now reads `All three skills auto-trigger from natural-language prompts` (the table above had grown from two to three flows when yolo shipped). Overview paragraph now mentions `/hackify:yolo` alongside `/hackify:quick` instead of introducing yolo cold further down the page.
+
+## [0.2.7] - 2026-05-21
+
+> **Patch-level scope, patch-level label.** Two oversized reference files split into per-topic subdirs, all cross-references migrated, and Phase 6 gains a mandatory pre-archive cleanup sweep. No phase, wizard, sub-agent contract, hard-cap, hook-wiring, or DoD-validator behavior change — the substrate stays identical; only file layout and one new Phase 6 step move.
+
+### Changed
+
+- **`skills/hackify/references/parallel-agents.md` (1783 LOC) split into 12 files under `skills/hackify/references/parallel-agents/`.** Each sub-topic (orchestration, dispatch model, file allowlists, wave structure, sub-agent contract, review parallelism, failure handling, etc.) becomes its own file under the new subdir. The old monolithic file is deleted with no forwarding stub — consumers update their cross-refs to the new paths.
+- **`skills/hackify/references/clarify-questions.md` (639 LOC) split into 10 files under `skills/hackify/references/clarify-questions/`.** Same pattern: each question category becomes its own file under the new subdir, monolithic file deleted with no forwarding stub.
+- **11 cross-references migrated** across consuming files (skills, agents, validator modules) to point at the new subdir paths; 1 fix-up applied to `agents/spec-reviewer-dependencies.md`. No reader follows a broken link after the split.
+- **`scripts/sync-runtimes.sh`** — `MIRROR_SOURCES` extended with 22 new entries (12 + 10) covering every file under the two new subdirs. New ATTENTION-future-maintainers header comment explains that `MIRROR_SOURCES` is enumerated (not glob-discovered) so future file additions must be appended explicitly. Idempotent regen now mirrors 270 files across 7 runtimes (was 150).
+- **`scripts/validate-dod.d/20-templates.sh`** — checks `[9]`, `[13]`, and `[14]` rewired to iterate the new `parallel-agents/` and `clarify-questions/` subdirs instead of grepping the deleted monolithic files. Same assertions, new traversal target.
+
+### Added
+
+- **Phase 6 cleanup step (Step C.5) — new mandatory pre-archive sweep.** Covers 8 cleanup classes before the work-doc is archived: stale cross-refs, broken anchors, TODO without owner, empty directories, dead branches, scope creep, surfaced dead code, and work-doc path drift. Applied to this very sprint's Phase 6 as proof-of-concept; the sweep is now part of every future task's Phase 6.
+
+### Rationale
+
+`parallel-agents.md` and `clarify-questions.md` had grown past the 500 LOC hard cap, with `parallel-agents.md` at 3.5× the cap and `clarify-questions.md` at 1.3×. Both files mixed many sub-topics that readers consult independently, so the natural split was per-topic subdirs rather than arbitrary line-count chunks. Behavioral guarantees preserved — 7-section sub-agent contract, 4-section wizard contract, lint-suppression carve-out tokens, hook wiring, hard caps — all unchanged. The Phase 6 cleanup step closes a recurring failure mode where finished sprints left stale cross-refs, empty dirs, or surfaced dead code in the tree because the finisher had no checklist to sweep against.
+
+## [0.2.6] - 2026-05-21
+
+> **Patch-level scope, patch-level label.** Tech-neutral rewrite plus four-principles integration. No phase, wizard, sub-agent contract, hard-cap, hook-wiring, or DoD-validator behavior change — the substrate stays identical; the prose substrate becomes runtime-agnostic and the doctrinal core becomes explicit.
+
+### Added
+
+- **`rules/four-principles.md`** — new canonical always-on rules file enumerating the four principles that gate every substantive turn: **Think Before Coding**, **Simplicity First**, **Surgical Changes**, **Goal-Driven Execution**. Attributed to Andrej Karpathy's framing. Sits alongside `rules/hard-caps.md` and `rules/code-quality.md` as the third always-on engineering law; the hard caps and code-quality rules operationalize these four principles, and the workflow phases enforce them. Canonical home — other files link here rather than restating the principle bodies.
+- **`skills/hackify/references/anti-patterns.md`** — new polyglot reference with at least six wrong-vs-right worked examples covering the failure modes the four principles guard against (assumption-skipping, speculative abstraction, scope creep, drive-by edits, premature optimization, hidden coupling). Each example is paired so reviewers can cite a concrete contrast when flagging a finding.
+- **Work-doc per-task `→ verify: <check>` suffix.** `references/work-doc-template.md` Sprint Backlog rows gain a SHOULD-suffixed `→ verify: <check>` clause so each task carries its own acceptance signal inline — the Phase 4 verifier reads the suffix rather than reverse-engineering intent from the task body.
+
+### Changed
+
+- **Pure-abstract neutralization pass across `rules/`, `agents/`, `skills/`, and `README.md`.** Ecosystem brand names stripped from prose in favor of role nouns — `linter`, `test runner`, `package manager`, `type checker`, `formatter`. The lint-suppression scan-target tokens carved out — those literal directive strings stay as-is because the rule that bans them must name them. `CHANGELOG.md` historical entries also carved out — prior versions retain their original wording.
+- **Behavioral guarantees preserved.** Phase structure, the Wizard contract, the 7-section sub-agent contract, the hard caps (40 LOC / 3 params / 3 nesting / 500 LOC), hook wiring (`UserPromptSubmit` injects `rules/hard-caps.md`), and the DoD validator's check set all unchanged. Reviewers verifying upgrades read the same surface they read on `0.2.5`; only the prose substrate moved.
+- **`scripts/sync-runtimes.sh` `MIRROR_SOURCES` extended** with the two new canonical files (`rules/four-principles.md` + `skills/hackify/references/anti-patterns.md`) so all seven runtime distributions under `dist/<runtime>/` ship them. Direct corollary of the two new files above; idempotent regen confirmed at 150 files across the 7 runtime targets.
+
+### Rationale
+
+The v0.2.5 surface had two latent fragilities. First, the prose hard-coded a single runtime's tool names in places where role nouns would have done the same job — every new runtime adapter inherited that drift and had to be re-scrubbed. Second, the doctrinal core of hackify ("think before you code, ship the minimum, change only what was asked, drive every line to the stated goal") lived implicitly across `skills/hackify/SKILL.md`, `rules/code-quality.md`, and the reviewer prompts, with no canonical home. v0.2.6 promotes that doctrine to `rules/four-principles.md` so it can be cited, audited, and extended in one place, and finishes the runtime-agnostic prose pass so the substrate is portable to any AI coding tool that honors the four primitives.
 
 ## [0.2.5] - 2026-05-16
 

@@ -27,7 +27,7 @@ The deliverable is a single 4-column markdown table. One row per finding — nev
 
 | Column | Spec |
 |---|---|
-| Finding | Concise restatement of the reviewer's concern, ≤25 words. Include the `file:line` anchor when the reviewer provided one. Do not paraphrase severity tags into this cell — they go in the next column. |
+| Finding | Concise restatement of the reviewer's concern, ≤25 words. Include the `file:line` anchor when the reviewer provided one. Do not paraphrase severity tags into this cell — they go in the Severity column. |
 | Severity | Exactly one of `Critical` / `Important` / `Minor`. Mirror the reviewer's tag verbatim when they tagged. Otherwise infer per the Severity rubric below. |
 | Decision | Exactly one of `accept` / `push-back` / `defer`. No other strings. Lowercase, hyphen in `push-back`. |
 | Evidence | For `accept` — the commit-shaped one-liner of what the fix will be (`fix: validate token expiry in auth.service.ts:142`). For `push-back` — 1–3 sentences with file:line citations, prior-commit SHA, or referenced precedent. For `defer` — the follow-up issue/ticket reference, or the literal string "follow-up entry queued in Retrospective." |
@@ -38,7 +38,7 @@ Rows are ordered by Severity (Critical first, then Important, then Minor), then 
 
 When the reviewer tagged severity, mirror their tag. When they did not, infer using these anchored rules.
 
-**Critical.** Security defect (auth bypass, injection vector, secret leak, broken access control), correctness bug (data corruption, wrong write path, broken concurrency invariant), layering violation (HTTP framework imports in services, controller running business logic), lint suppression introduced (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error` outside the test-file carve-out), test broken or skipped, migration not idempotent, public API contract changed without callers updated.
+**Critical.** Security defect (auth bypass, injection vector, secret leak, broken access control), correctness bug (data corruption, wrong write path, broken concurrency invariant), layering violation (transport-layer imports inside domain services, controller running business logic), any linter or type-checker suppression directive introduced outside the test-file carve-out, test broken or skipped, migration not idempotent, public API contract changed without callers updated.
 
 **Important.** Quality and maintenance concerns that degrade the codebase without shipping broken — DRY violation (duplicated logic ≥3 lines, helper exists but was inlined), unclear naming (variables named for what they ARE not what they DO), inline object type with 2+ properties in a route/service/middleware module, missing edge case (null/undefined/empty array/concurrent access path), bare `Error` throw in domain code, function exceeds 40 LOC, file exceeds 500 LOC, `!` non-null assertion in production code, dead code (unused export, orphan import).
 
@@ -102,7 +102,7 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the response-table engine)
 ```
 
-This skill has no `references/` directory. Cross-references point into the main hackify skill — `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the escalation reviewer template, `skills/hackify/references/parallel-agents.md` for the Phase 5 multi-reviewer dispatch templates that feed this skill on Path A.
+This skill has no `references/` directory. Cross-references point into the main hackify skill — `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the escalation reviewer template, `skills/hackify/references/parallel-agents/phase-5-multi-review.md` for the Phase 5 multi-reviewer dispatch templates that feed this skill on Path A.
 
 ## One-line summary
 

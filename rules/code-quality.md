@@ -1,16 +1,21 @@
 # Code Rules — Always-On
 
+> **Working principles.** This doc is the deep doctrine. The 4 working principles that
+> frame it — Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven
+> Execution — live at [rules/four-principles.md](four-principles.md). Read that first;
+> come back here for the operational rules.
+
 These rules are global, project-agnostic, and load-bearing. They mirror the principles in a typical project-root `CLAUDE.md` — but recompiled here so hackify is self-contained even if those files are absent.
 
 When in conflict with project `CLAUDE.md`, project rules win (more specific). When in conflict between user-global `CLAUDE.md` and a workspace `CLAUDE.md`, the **stricter** rule wins.
 
 ---
 
-## Author's reference stack — substitute your own
+## Voice — abstract principles, concrete adaptation
 
-This file leans on a concrete stack for examples (Bun, Biome, TypeScript, Hono, Drizzle, React, Tailwind). **Substitute your own toolchain freely.** The *principles* — DRY, no inline types, strict layering, edge-case discipline, hard caps, no lint suppressions — apply regardless of stack. When you see `Bun`, read "your package manager"; when you see `Biome`, read "your linter/formatter"; when you see `Hono`/`Drizzle`/`React`, read "your HTTP framework / ORM / UI framework".
+This file is written in abstract, ecosystem-neutral voice. Paths, file globs, and role names are placeholders for the equivalent in your stack — substitute freely. Where the text says "package manager," "linter / formatter," "type system," "test runner," "HTTP framework," "ORM," or "UI framework," read your own toolchain.
 
-The stack-specific paths and commands are illustrative, not prescriptive. Adapt the *patterns* to your codebase.
+The *principles* — DRY, no inline types, strict layering, edge-case discipline, hard caps, no lint suppressions — apply regardless of stack. The patterns adapt; the principles do not.
 
 ---
 
@@ -23,10 +28,10 @@ DRY is not a guideline. It is a hard requirement.
 - When fixing a bug, the fix MUST use existing patterns. Inventing new patterns to fix existing code is forbidden.
 - Study how similar problems are already solved in this codebase BEFORE writing new code. New code MUST look like it was written by the same author as existing code.
 
-Typical reusable locations in a layered TypeScript codebase:
+Typical reusable locations in a layered codebase:
 
-- **Backend:** `src/common/utils/`, `src/common/list/`, `src/errors/`, `src/db/pool.ts`, `src/db/<schema>/schema.ts`, `src/auth/`, `src/config/env.ts`
-- **Frontend:** `src/lib/`, `src/lib/list/`, `src/lib/auth-client.ts`, `src/lib/api.ts`, `src/components/ui/` (design-system primitives)
+- **Backend:** common-utility module, list helpers, error catalog, DB pool / client, schema definitions, auth module, env-config module
+- **Frontend:** shared lib module, list helpers, auth-client wrapper, API client, design-system primitives
 
 If you import a singleton (`auth`, `api`, `pool`, etc.) — confirm you're using the canonical one. Don't construct a second.
 
@@ -44,12 +49,12 @@ Inline object shapes are BANNED.
 
 **Where named types live:**
 
-- **Backend module-level:** `<module>/interfaces/<module>.types.ts` or `<module>/dto/<action>.dto.ts`
-- **Backend cross-module:** `src/common/types/`
-- **Frontend feature-level:** `src/features/<feature>/types.ts`
-- **Frontend cross-feature:** `src/lib/types/` (rare; prefer feature-local)
+- **Backend module-level:** the module's own `interfaces/` or `dto/` folder
+- **Backend cross-module:** a shared common-types folder
+- **Frontend feature-level:** the feature's own `types` file
+- **Frontend cross-feature:** a shared lib-types folder (rare; prefer feature-local)
 
-**Forbidden:** defining an `interface` or `type` (≥2 props) inside `*.routes.ts`, `*.routes.tsx`, `*.service.ts`, `*.middleware.ts`, `*.guard.ts`. Extract to the right folder.
+**Forbidden:** defining an `interface` or `type` (≥2 props) inside any router, service, middleware, guard, or controller module. Extract to the right folder.
 
 ---
 
@@ -57,25 +62,25 @@ Inline object shapes are BANNED.
 
 Dependencies flow inward. Layers do not leak.
 
-### Backend (HTTP framework, e.g. Hono / Express / Fastify)
+### Backend (HTTP framework)
 
 | Layer | Lives in | Allowed | Forbidden |
 |---|---|---|---|
-| **Presentation** | `*/routes/*.ts`, `*/middleware/*.ts` | route wiring, request parsing (Zod), one service call | business rules, direct DB, multi-step orchestration, `try/catch` for control flow |
-| **Domain** | `<module>/<module>.service.ts`, hooks, validators | all business logic; owns DB access via clients passed in | importing the HTTP framework, reading the request object, route paths, HTTP status codes |
-| **Infrastructure** | `db/`, transport adapters, factories | external clients, transports, factories | business decisions |
+| **Presentation** | router and middleware modules | route wiring, request parsing via a schema validator, one service call | business rules, direct DB, multi-step orchestration, `try/catch` for control flow |
+| **Domain** | service modules, hooks, validators | all business logic; owns DB access via clients passed in | importing the HTTP framework, reading the request object, route paths, HTTP status codes |
+| **Infrastructure** | DB clients, transport adapters, factories | external clients, transports, factories | business decisions |
 
 Routes are pure delegation: **one handler = one service call + one response**. Zero conditionals beyond request validation.
 
-### Frontend (React / similar)
+### Frontend (component framework)
 
 | Layer | Lives in | Allowed | Forbidden |
 |---|---|---|---|
-| **Routes** | `src/routes/**` | route definitions, loaders that delegate to a feature hook | business logic, fetch calls inline, useState orchestration |
-| **Features** | `src/features/<feature>/` | screens, forms, feature-local components and hooks | reaching into another feature's internals, importing route files |
-| **Components** | `src/components/` | dumb UI; props in / DOM out; one clear responsibility | API calls, auth-client calls, useNavigate/useRouter |
-| **Lib** | `src/lib/` | framework glue, singletons, formatters, error mappers | feature logic, route-specific code |
-| **Stores** | `src/stores/` | cross-tree UI state (Zustand, Redux, etc.) | session/auth state (the auth library owns this) |
+| **Routes** | the routes tree | route definitions, loaders that delegate to a feature hook | business logic, fetch calls inline, local-state orchestration |
+| **Features** | the features tree | screens, forms, feature-local components and hooks | reaching into another feature's internals, importing route files |
+| **Components** | the components tree | dumb UI; props in / DOM out; one clear responsibility | API calls, auth-client calls, router-navigation calls |
+| **Lib** | the shared lib tree | framework glue, singletons, formatters, error mappers | feature logic, route-specific code |
+| **Stores** | the stores tree | cross-tree UI state via a client state-store library | session/auth state (the auth library owns this) |
 
 ---
 
@@ -115,15 +120,7 @@ If something CAN go wrong, write code that handles it. Don't hope.
 
 ## Hard caps (zero tolerance)
 
-- ≤ **40 lines** per function/method
-- ≤ **3 parameters** (group into interface/DTO if more)
-- ≤ **3 levels of nesting** (guard clauses, early returns)
-- ≤ **500 lines** per file
-- **0 lint suppressions** — no `biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`. Sole exception: `@ts-expect-error` in test files for deliberately invalid input, with a comment explaining WHY.
-- **0 non-null `!`** in production code
-- **0 empty catches** (`catch (e) {}` is unconditionally banned)
-- **0 inline `interface`/`type` blocks ≥2 props** in `*.routes.ts`, `*.service.ts`, `*.middleware.ts`
-- **0 bare `Error` throws** in domain code — use named domain error classes from `src/errors/` (backend) or named `Error` subclasses (frontend)
+Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps.md) — every cap (size, ban, refuse-on-sight) is defined there. This doc operationalizes the principles that motivate the caps; the caps themselves are not restated here to keep one canonical source.
 
 ---
 
@@ -148,10 +145,10 @@ If something CAN go wrong, write code that handles it. Don't hope.
 
 - Never hardcode API keys, secrets, or credentials.
 - Never commit `.env` or any file containing secrets. `.env.example` is the only env file in version control.
-- Validate ALL user input at system boundaries (Zod for HTTP, runtime checks for IPC).
+- Validate ALL user input at system boundaries (schema validator for HTTP, runtime checks for IPC).
 - Sanitize file paths to prevent directory traversal.
 - Use parameterized queries — NEVER string-concatenate SQL.
-- Platform-specific secret keys (e.g. Apple `.p8` push keys, service-account JSON) live under a gitignored `src/config/keys/` directory or outside the repo. Test fixtures under `test/fixtures/**` are the only such files committed.
+- Platform-specific secret keys (push-notification keys, service-account JSON, etc.) live under a gitignored keys directory or outside the repo. Test fixtures under a dedicated test-fixtures tree are the only such files committed.
 
 ---
 
@@ -165,7 +162,7 @@ If something CAN go wrong, write code that handles it. Don't hope.
 
 ## Type & interface placement (recap)
 
-BANNED: defining `interface` or `type` inside `*.service.ts`, `*.controller.ts`, `*.guard.ts`, `*.routes.ts`, `*.middleware.ts`. Extract.
+BANNED: defining `interface` or `type` inside any service, controller, guard, router, or middleware module. Extract.
 
 ---
 
@@ -182,7 +179,7 @@ BANNED: defining `interface` or `type` inside `*.service.ts`, `*.controller.ts`,
 - **Entity class name uniqueness** — every ORM entity name is globally unique across schemas (no `Tenant.User` and `Control.User`).
 - **No re-exports** — import from canonical source. Never re-export from a secondary location.
 - **Service scope awareness** — request-scoped services CANNOT be injected into singletons (cron jobs, event handlers, queue processors). Create dedicated singleton services for cross-scope.
-- **Shared utility extraction** — utilities live in shared dirs (`src/common/utils/` backend, `src/lib/` frontend). Search before adding.
+- **Shared utility extraction** — utilities live in shared directories (a common-utils tree on the backend, a lib tree on the frontend). Search before adding.
 - **Config factory reuse** — never inline a config a factory already provides.
 - **Module import hygiene** — only import modules whose services you actually inject from.
 - **Global type augmentation** — framework request types are extended ONCE, globally, in a type-declaration file. No local `request` interfaces or `any` casts.
@@ -191,14 +188,14 @@ BANNED: defining `interface` or `type` inside `*.service.ts`, `*.controller.ts`,
 
 ---
 
-## Tooling baseline (reference stack — adapt to yours)
+## Tooling baseline (adapt to your stack)
 
-- **Package manager:** Bun. (Substitute npm / pnpm / yarn if your project uses one of those — pick ONE and stick with it.)
-- **Linter / formatter:** Biome (backend) or ESLint+Prettier (frontend; documented divergence is acceptable when the frontend ecosystem has stronger ESLint plugin support).
-- **TypeScript strict mode** + `noUncheckedIndexedAccess`. Backend additionally `exactOptionalPropertyTypes`, `verbatimModuleSyntax`.
-- **Validation:** Zod for env, request bodies, schema-driven types.
+- **Package manager:** pick ONE and stick with it. Lockfile committed.
+- **Linter / formatter:** pick ONE per surface (backend, frontend) and enforce it in CI. Documented divergence between surfaces is acceptable when ecosystem support diverges.
+- **Type system:** maximally strict mode — opt in to every safety flag your type checker offers (no implicit-any, no unchecked indexed access, exact optional properties).
+- **Validation:** a single schema-validator library for env, request bodies, and schema-driven types.
 
-Biome convention used in this skill's examples: **no semicolons, single quotes, 2-space indent.** Match your project's formatter config; don't fight it.
+Match your project's formatter config; don't fight it.
 
 ---
 

@@ -19,6 +19,15 @@ Self-contained. **Never call other skills** — third-party plugins may not be i
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.
 
+## Working principles
+
+Four principles frame every phase. Read [rules/four-principles.md](../../rules/four-principles.md) for the full doctrine.
+
+- **Think Before Coding** — surface assumptions and ambiguity before code (operationalized by Phase 1).
+- **Simplicity First** — minimum code that solves the ask (operationalized by Phase 3 file allowlists).
+- **Surgical Changes** — every changed line traces to the request (operationalized by Phase 5 scope-consistency review).
+- **Goal-Driven Execution** — convert asks into verifiable goals with `→ verify:` checks (operationalized by Phase 4 evidence-before-claims).
+
 ## The phases (lean, expert-led)
 
 | Phase | What |
@@ -40,7 +49,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 - **Location.** `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` in flight; move to `<project>/docs/work/done/<YYYY-MM-DD>-<slug>.md` once shipped.
 - **Skeleton** (`references/work-doc-template.md`). Frontmatter: `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, `sprint_goal`. Body: Original Ask → Clarifying Q&A → Acceptance Criteria → Approach → Sprint Backlog → Daily Updates → Sprint Review → Retrospective.
-- **State is the file.** No companion JSON, no in-conversation memory. Resume = open file, read frontmatter, jump to next unchecked checkbox.
+- **State is the file.** No companion sidecar, no in-conversation memory. Resume = open file, read frontmatter, jump to the first unchecked checkbox.
 - **Project root.** Each sub-project is its own git repo. Work-doc lives inside the project repo. Multi-project tasks: one doc per project, linked via `related` frontmatter field.
 
 ---
@@ -49,13 +58,13 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 **Goal.** Understand the ask precisely enough that no question survives into Phase 3.
 
-1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions.md`).
+1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions/README.md`).
 2. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
-3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions.md`. Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) documented at the top of that file. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
-4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the next batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
+3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
+4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
 5. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
 
-**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions.md`.
+**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions/README.md`.
 
 ---
 
@@ -86,7 +95,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 3. **Patch the work-doc.** Apply Critical + Important in place; record Minor in Retrospective.
 4. **Re-gate ONLY if user's signed-off invariants changed** (Critical finding widened scope). Else straight to Phase 3.
 
-Template: `references/parallel-agents.md` "Spec self-review (Phase 2.5)". **Hard rule:** Phase 2.5 is non-skippable, even for small docs — a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
+Templates: `references/parallel-agents/phase-2.5-spec-review-a-consistency.md`, `references/parallel-agents/phase-2.5-spec-review-b-rules.md`, `references/parallel-agents/phase-2.5-spec-review-c-dependencies.md` (subdir index: `references/parallel-agents/README.md`). **Hard rule:** Phase 2.5 is non-skippable, even for small docs — a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
 
 ---
 
@@ -129,7 +138,7 @@ Template: `references/parallel-agents.md` "Spec self-review (Phase 2.5)". **Hard
 | Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |
 | Word cap | ≤200 words per agent report. |
 
-Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Single-task waves are fine** — dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
+Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task waves are fine** — dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
 
 **Test mode per task:**
 
@@ -146,7 +155,7 @@ Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Sin
 
 ### Wave-end persistence (mandatory)
 
-**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the next wave's task IDs. Skipping this step is an abandoned-state bug — interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
+**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug — interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
 
 ---
 
@@ -183,7 +192,7 @@ Template: `references/parallel-agents.md` "Implementation wave (Phase 3)". **Sin
 - [ ] All `Sprint Backlog` checkboxes ticked
 - [ ] Every Phase 2 DoD bullet verified — paste evidence per bullet (output, screenshot ref, or verifying script)
 - [ ] No placeholders, no `TODO` without owners, no `console.log`/`println!`, no commented-out code
-- [ ] No new lint suppressions (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`) — zero tolerance
+- [ ] No new lint or type-checker suppressions (inline ignore directives, file-level disables, expect-error pragmas outside test files) — zero tolerance
 - [ ] No new `!` non-null assertions in production code
 - [ ] Manual smoke check (if user opted in) — list steps and outcomes
 
@@ -234,6 +243,21 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 **Step C — execute the choice.** **1 or 2:** Commit follows project convention; ends with Claude Code Co-Authored-By trailer. PRs include Summary, Test plan, and link to work-doc. **3:** Stop. Leave everything in place. **4:** Confirm, then `git checkout` base branch and remove worktree if any. Never `git reset --hard` without explicit user instruction.
 
+**Step C.5 — Cleanup sweep** (mandatory; runs before archive). Sweep for 8 classes of leftover/abandoned/stale state introduced or surfaced during the sprint. Each class needs a one-line evidence record in the work-doc Phase 6 archive (0 findings counts).
+
+| # | Cleanup class | Audit |
+|---|---|---|
+| a | Stale cross-references | grep for references to files/sections that no longer exist after this sprint. |
+| b | Broken internal anchor links | scan markdown anchor links inside touched files. |
+| c | TODO/FIXME without owners | grep diff for new `TODO`/`FIXME` lacking an explicit owner or follow-up issue. |
+| d | Empty directories left after file moves | `find` for empty dirs under primitives. |
+| e | Dead branches | local + remote branches created during the sprint that won't be merged. |
+| f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD` cross-checked against work-doc Sprint Backlog file allowlists. |
+| g | Pre-existing dead code surfaced but deliberately not touched | move to a Retrospective follow-up entry (do NOT silently leave). |
+| h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
+
+If any class finds defects, fix them inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. Detailed audit commands per class: `references/finish.md`.
+
 **Step D — archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory — 3–8 bullets on what surprised, what to remember.
 
 **Step E — worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.
@@ -253,7 +277,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 1. Locate the work-doc — search `<project>/docs/work/*.md` for the slug. Multiple project candidates → ask which. Fallback: recursively search known project roots.
 2. Read frontmatter. Honor `status` and `current_task`.
 3. Read the latest Daily Updates entry to see where you stopped.
-4. Confirm: *"Resuming `<title>` at `<status>`, next task: `<T<n>>`. Continue?"*
+4. Confirm: *"Resuming `<title>` at `<status>`, upcoming task: `<T<n>>`. Continue?"*
 5. Resume from the appropriate phase — do NOT re-run earlier phases unless asked.
 
 **Stale doc detection.** If `created` is >14 days old, check whether the codebase moved underneath the plan (`git log --since="<created>" -- <touched files>`). On drift, surface it before continuing.
@@ -262,7 +286,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 ### Pause checkpoint (mid-wave exit)
 
-**Pause checkpoint (mid-wave exit).** When the user's prompt contains any of the **pause-keyword list** — `pause`, `stop`, `exit`, `later`, `tomorrow`, `come back`, `pick this up later` — during an active wave, the parent does five things in order: (1) wait for any in-flight subagents to return; (2) finish the work-doc update for completed agents (tick their checkboxes, append their Daily Updates entry); (3) write a `## Pause checkpoint` entry to the Daily Updates with timestamp, completed-task list, and partial-state notes; (4) update frontmatter `current_task` to reflect the partial-state (e.g., `W3b — T3.2 done, T3.3 in progress (deferred to next session)`); (5) tell the user: `Your progress is saved. Resume with "continue work on <slug>".`
+**Pause checkpoint (mid-wave exit).** When the user's prompt contains any of the **pause-keyword list** — `pause`, `stop`, `exit`, `later`, `tomorrow`, `come back`, `pick this up later` — during an active wave, the parent does five things in order: (1) wait for any in-flight subagents to return; (2) finish the work-doc update for completed agents (tick their checkboxes, append their Daily Updates entry); (3) write a `## Pause checkpoint` entry to the Daily Updates with timestamp, completed-task list, and partial-state notes; (4) update frontmatter `current_task` to reflect the partial-state (e.g., `W3b — T3.2 done, T3.3 in progress (deferred to a later session)`); (5) tell the user: `Your progress is saved. Resume with "continue work on <slug>".`
 
 ---
 
@@ -270,7 +294,7 @@ Push back only with **technical evidence** — never performative agreement. If 
 
 Whenever 2+ pieces of work are independent — **dispatch foreground subagents in parallel in a single message**. Never sequential when independent.
 
-**Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
+**Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents/template-contract.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
 
 **Use parallel agents for:**
 
@@ -283,7 +307,7 @@ Whenever 2+ pieces of work are independent — **dispatch foreground subagents i
 | 4 | Cross-module verification — tests in different packages | optional |
 | 5 | Multi-reviewer code review — security/quality/plan lenses | MANDATORY (non-trivial diffs) |
 
-**Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents.md`.
+**Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents/README.md`.
 
 ---
 
@@ -307,14 +331,14 @@ Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single r
 |---|---|
 | `SKILL.md` | this file (the workflow) |
 | `references/work-doc-template.md` | markdown skeleton for every task |
-| `references/clarify-questions.md` | per-task-type question banks for Phase 1 |
+| `references/clarify-questions/` | per-task-type question banks for Phase 1 (subdir index: `README.md`; canonical wizard contract: `wizard-contract.md`) |
 | `references/implement-and-test.md` | TDD walkthrough, per-stack test commands |
 | `references/debug-when-stuck.md` | 4-phase root-cause hunt for Phase 3b |
 | `references/review-and-verify.md` | DoD + self-review checklist + escalation rules |
 | `references/finish.md` | Phase 6 — 4-options, archive, worktree cleanup |
 | `references/frontend-design.md` | visual law (load on FE/UI/design tasks) |
 | `rules/code-quality.md` (plugin root) | SOLID/DRY/types/layering deep dive — canonical location (legacy `references/code-rules.md` is a forwarding stub) |
-| `references/parallel-agents.md` | parallel subagent dispatch templates |
+| `references/parallel-agents/` | parallel subagent dispatch templates (subdir index: `README.md`; canonical template contract: `template-contract.md`) |
 | `evals/evals.json` | optional eval harness |
 
 Load reference files **only when the phase needs them** — keeps context lean.

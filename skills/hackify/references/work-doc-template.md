@@ -64,7 +64,9 @@ A short, verifiable checklist. Each item must be testable or observable.
 
 Flat checklist. One commit per task. Each task is 5–30 minutes of focused work.
 
-- [ ] **T1** — [task name]: [1-line description]. Files: `path/a.ts`, `path/a.test.ts`.
+Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed. The verify line is the per-task analogue of the top-level Acceptance Criteria checklist; it lets the implementer agent ship and self-confirm without waiting on the parent for cross-task confirmation.
+
+- [ ] **T1** — [task name]: [1-line description]. Files: `<path/a>`, `<path/a.test>`. → verify: `<one-line check>` (test command, grep, file existence, etc.).
 - [ ] **T2** — [task name]: ...
 - [ ] **T3** — ...
 
@@ -94,17 +96,17 @@ Append one entry per task as you complete (or get stuck on) it.
 
 - [ ] **All tests pass** —
   ```
-  $ bun test
+  $ <test runner command>
   [paste output]
   ```
 - [ ] **Lint clean** —
   ```
-  $ bun run lint
+  $ <linter command>
   [paste output]
   ```
 - [ ] **Typecheck clean** —
   ```
-  $ bun run typecheck
+  $ <typecheck command>
   [paste output]
   ```
 - [ ] **[DoD bullet 1]** — [evidence: command, output, screenshot reference, or short script]
@@ -137,7 +139,7 @@ Append one entry per task as you complete (or get stuck on) it.
 
 ## 8. Retrospective
 
-3–8 bullets. What surprised. What to remember next time. Pointers to follow-up work.
+3–8 bullets. What surprised. What to remember for future sprints. Pointers to follow-up work.
 
 - …
 - …

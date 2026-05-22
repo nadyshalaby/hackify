@@ -9,8 +9,8 @@ The last phase. The goal is to land the work cleanly, archive the work-doc, and 
 Even if it passed in Phase 4. State drifts (other commits, env changes, hook updates). Re-run:
 
 ```
-[backend]   bun test && bun run lint && bun run typecheck
-[frontend]  bun run test && bun run lint && bun run typecheck
+[backend]   <test runner command> && <linter command> && <typecheck command>
+[frontend]  <test runner command> && <linter command> && <typecheck command>
 ```
 
 (Substitute your project's actual test / lint / typecheck commands.)
@@ -76,9 +76,9 @@ gh pr create --title "<concise PR title>" --body "$(cat <<'EOF'
 
 ## Test plan
 
-- [ ] Tests pass: `bun test`
-- [ ] Linter clean: `bun run lint`
-- [ ] Typecheck clean: `bun run typecheck`
+- [ ] Tests pass: `<test runner command>`
+- [ ] Linter clean: `<linter command>`
+- [ ] Typecheck clean: `<typecheck command>`
 - [ ] Manual smoke (if applicable): [list]
 
 ## Related
@@ -114,6 +114,94 @@ git push origin --delete <feature-branch>  # ONLY if branch was already pushed A
 
 ---
 
+## Step C.5 — Cleanup sweep (mandatory, before archive)
+
+Runs after Step C completes and before Step D archives the work-doc. Sweeps 8 classes of leftover/abandoned/stale state introduced or surfaced during the sprint. **Every class produces a one-line evidence record** in the work-doc Phase 6 archive — 0 findings counts as a valid record. If any class finds defects, fix inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it.
+
+The SKILL.md Phase 6 table names the classes; the audit commands and remediation rules per class live here.
+
+### Class (a) — Stale cross-references
+
+Catches references to files / sections / anchors that no longer exist after this sprint's file moves, splits, or deletions.
+
+```
+grep -rnE 'old-path|deleted-file' rules/ agents/ skills/ commands/ scripts/ README.md
+```
+
+Substitute `old-path` / `deleted-file` with the actual paths this sprint moved or deleted (the work-doc's Architectural touchpoints list is the source). Evidence record example: *"Class (a) stale cross-refs: 0 found via `grep -rnE 'parallel-agents\.md|clarify-questions\.md' rules/ agents/ skills/`"*. If findings appear → fix inline (update the reference to the new path).
+
+### Class (b) — Broken internal anchor links
+
+Catches markdown anchor links (`[text](#anchor)` or `[text](./file.md#anchor)`) inside touched files whose target heading was renamed or removed during the sprint.
+
+```
+grep -rnE '\]\(#[a-z0-9-]+\)|\]\([^)]+\.md#[a-z0-9-]+\)' <touched-files>
+```
+
+For each hit, confirm the target heading still exists in the destination file. Evidence record example: *"Class (b) broken anchors: 0 broken / 4 valid in 2 files"*. If findings appear → fix inline (update the anchor or restore the heading).
+
+### Class (c) — TODO/FIXME without owners
+
+Catches new `TODO` / `FIXME` markers introduced during the sprint that lack an owner handle or follow-up issue link.
+
+```
+git diff main..HEAD -- '*.md' '*.ts' '*.tsx' '*.js' '*.sh' \
+  | grep -E '^\+' \
+  | grep -iE 'TODO|FIXME' \
+  | grep -vE '@[a-z0-9-]+|#[0-9]+'
+```
+
+Evidence record example: *"Class (c) ownerless TODO/FIXME: 0 found in diff"*. If findings appear → either add an owner handle / issue link inline, or remove the TODO if it's not actionable. Never leave an anonymous TODO in a hackify-shipped diff.
+
+### Class (d) — Empty directories left after file moves
+
+Catches directories that were emptied by this sprint's file moves but not removed.
+
+```
+find rules agents skills commands scripts -type d -empty
+```
+
+Evidence record example: *"Class (d) empty dirs: 0 under `rules/ agents/ skills/ commands/ scripts/`"*. If findings appear → `rmdir <path>` inline (or `git rm` if git is tracking the empty dir via `.gitkeep`).
+
+### Class (e) — Dead branches
+
+Catches local + remote branches created during the sprint that won't be merged (abandoned spikes, scratch branches, worktree-only branches that landed via squash on a different branch).
+
+```
+git branch --list | grep -v '^\*'
+git branch -r --list 'origin/*'
+```
+
+Cross-reference each branch against the work-doc's `branch:` frontmatter and any spike-branch mentions in Daily Updates. Evidence record example: *"Class (e) dead branches: 1 found (`spike/old-attempt`); deleting locally"*. If findings appear → `git branch -d <branch>` (or `-D` if intentionally abandoned); for remote, `git push origin --delete <branch>` only if the user confirms.
+
+### Class (f) — Unrelated changes that snuck in
+
+Final scope-creep audit. Cross-checks the full diff against the work-doc's Sprint Backlog file allowlists.
+
+```
+git diff main..HEAD --name-only | sort -u
+```
+
+Compare the list against the union of every task's declared file allowlist in the Sprint Backlog. Any path in the diff but not in any allowlist → scope creep. Evidence record example: *"Class (f) scope creep: 0 unrelated paths in diff (27 paths, all in Sprint Backlog allowlists)"*. If findings appear → either justify the path inline (it served a load-bearing task discovered mid-sprint and should be added to the Sprint Backlog retroactively), or revert the path-specific changes before archiving.
+
+### Class (g) — Pre-existing dead code surfaced but not touched
+
+Catches dead code (unused exports, unreferenced helpers, orphan modules) the sprint *discovered* but deliberately did not delete to keep scope small.
+
+Review Daily Updates entries for any "noticed X is unused but out of scope" mentions. Evidence record example: *"Class (g) surfaced dead code: 1 instance (`oldHelper` in `lib/utils.ts`); filed as Retrospective follow-up #3"*. If findings appear → move each instance to a numbered Retrospective follow-up entry with file:line and a one-sentence rationale. Do NOT silently leave undocumented — the surfaced-but-not-deleted pattern is how dead code compounds.
+
+### Class (h) — Work-doc references to file paths that just changed
+
+Catches the work-doc *itself* (and any sibling work-docs in `docs/work/`) referencing file paths that this sprint moved, renamed, or deleted.
+
+```
+grep -rnE 'old-path|moved-file' docs/work/
+```
+
+Substitute with the actual paths this sprint changed. Evidence record example: *"Class (h) work-doc path drift: 0 stale paths in `docs/work/` after substitution"*. If findings appear → fix inline in the work-doc (and in any sibling work-doc that referenced a path this sprint changed). The current sprint's work-doc is the most-likely offender because it was written before the file moves landed.
+
+---
+
 ## Step D — archive the work-doc (Options 1 + 2 only)
 
 Move the work-doc from `<project>/docs/work/<slug>.md` to `<project>/docs/work/done/<slug>.md`. Update frontmatter:
@@ -129,7 +217,7 @@ The Retrospective section is **mandatory** at this point. 3–8 bullets covering
 
 - What surprised during implementation
 - What you learned about the codebase
-- What pattern you'd reuse / avoid next time
+- What pattern you'd reuse / avoid in future tasks
 - Follow-up work that emerged (link issues, link `/schedule` jobs)
 - Any review feedback marked Minor that wasn't addressed (with rationale)
 
@@ -181,10 +269,8 @@ BRANCH="<type>/<slug>"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH"
 cd "$WORKTREE_PATH"
 
-# Auto-detect setup
-[ -f bun.lock ] && bun install
-[ -f package-lock.json ] && npm ci
-[ -f Cargo.toml ] && cargo build
+# Auto-detect setup (substitute your project's package manager install command)
+<package manager install command>
 
 # Run tests once for clean baseline
 <project test command>

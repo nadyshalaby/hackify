@@ -14,7 +14,7 @@ The single-task fallback (one agent, one task) only applies when a wave naturall
     file allowlist must NOT overlap with peers in the same wave.
 3.  Dispatch ONE Agent per task in the wave, in a SINGLE assistant message
     (parallel Agent tool calls). Each prompt is self-contained per the
-    template in references/parallel-agents.md (Implementation wave).
+    template in references/parallel-agents/phase-3-implementation.md.
 4.  Wait for ALL agents to return.
 5.  Verify each agent stayed inside its file allowlist:
        git diff --name-only ⇒ should match the union of allowlists.
@@ -54,7 +54,7 @@ Skip steps deliberately and the work-doc Implementation Log records why. **Watch
 | HTTP handlers / route wiring | test-after acceptable | Use integration test against ephemeral DB |
 | DB migrations | test-first via integration | Run migration up/down on ephemeral DB |
 | UI cosmetics / spacing / colors / copy | manual smoke (if user opted in) | Always offer to add an automated test if behavior is testable |
-| Form validation, computed UI state | **test-first** | Vitest browser mode — test the behavior |
+| Form validation, computed UI state | **test-first** | Component / browser-mode test runner — test the behavior |
 | Storybook / docs / config-only changes | manual or none | Note rationale in log |
 | Pure scaffolding (empty file creation) | none | Note rationale |
 
@@ -101,58 +101,65 @@ After green only. Now you can:
 
 ---
 
-## Per-stack test commands (reference examples)
+## Per-discipline command reference
 
-Use these **fresh** during Phase 4 verification — paste full output. Adapt the commands to whatever your project's `package.json` (or equivalent) actually defines.
+Hackify does NOT pick a stack. The agent runs whatever the project already wires for each discipline. Look in the project's `CLAUDE.md`, README, or package manifest to find the literal command — do not guess.
 
-### Backend project (example: Bun + Postgres)
+Use these **fresh** during Phase 4 verification — paste full output.
 
-```
-bun test                         # all tests (unit + integration + e2e)
-bun test path/to/file.test.ts    # single file
-bun test --watch                 # watch mode
-bun run lint                     # Biome check
-bun run lint:fix                 # Biome check --write
-bun run typecheck                # tsc --noEmit
-bun run db:up                    # start postgres + mailpit (required for integration)
-bun run db:migrate:control       # apply public-schema migrations
-bun run db:migrate:tenants       # apply tenant migrations to all active tenants
-```
+### Test runner
 
-Integration tests REQUIRE a real database. **Never mock the DB** — let integration tests catch real-world regressions; unit-test the pure logic separately.
-
-### Frontend project (example: Vite + Vitest + React)
+Run the project's configured test command. File-scoped form is preferred during Phase 3 (one test, one file); full-suite form is required during Phase 4 verification.
 
 ```
-bun run test                     # Vitest run (browser mode, headless)
-bun run test:watch               # Vitest watch
-bun run test:browser             # Vitest with browser UI (debugging)
-bun run test:browser:install     # ONE-TIME: download Chromium for Playwright
-bun run test:coverage            # Vitest with coverage
-bun run lint                     # ESLint
-bun run format:check             # Prettier --check
-bun run typecheck                # via vite build (tsc -b && vite build)
+<test runner command>                       # full suite
+<test runner command> <path/to/test/file>   # single file (Phase 3 inner loop)
+<test runner command> --watch               # watch mode (if supported)
 ```
 
-Frontend tests in this stack use **`vitest-browser-react`'s async `render(...)`** — always `await` it. Helpers must be `async`.
+Integration tests REQUIRE a real backing service (database, queue, cache). **Never mock the database** when an integration target exists — let integration tests catch real-world regressions, and unit-test the pure logic separately.
 
-Typical mocking conventions:
+### Linter
 
-- **Auth-flow tests** (sign-in, OTP, sign-out) → mock `@/lib/auth-client` via `vi.mock`.
-- **Non-auth feature tests** → mock `@/lib/api` (your HTTP-client wrapper).
-- **Fire-and-forget patterns** → wrap assertions in `await vi.waitFor(...)`.
-
-### Generic Bun project
+Run the project's configured linter / formatter check. Auto-fix variants are fine during Phase 3; the gate in Phase 4 is the read-only check, exit 0.
 
 ```
-bun test
-bun run lint    # if scripted; else `biome check`
-bun run typecheck
+<linter command>          # check only — must exit 0 in Phase 4
+<linter fix command>      # auto-fix variant, if available
 ```
 
-### Generic Node project
+### Type checker
 
-Use whatever the project defines. Read `package.json` scripts before guessing.
+Run the project's configured typecheck command. Must exit 0 in Phase 4.
+
+```
+<typecheck command>
+```
+
+### Coverage tool (when applicable)
+
+Run the project's configured coverage command when the work-doc's acceptance criteria call for a coverage target.
+
+```
+<coverage command>
+```
+
+### Integration prerequisites (when applicable)
+
+If integration tests need a backing service, start it via the project's documented bring-up command before running the test command. Document the command set in the work-doc Plan section so the agent does not invent one.
+
+```
+<service bring-up command>            # e.g. start database, queue, mail catcher
+<migration command>                   # apply pending schema migrations
+```
+
+### Component / browser-mode tests (when applicable)
+
+When the test target is a UI component rendered in a real browser:
+
+- Always `await` the async render helper the project's component test runner exposes; helpers that wrap it must also be `async`.
+- Mock at the **HTTP-client boundary** for non-auth feature tests, and at the **auth-client boundary** for auth-flow tests.
+- For fire-and-forget side effects, wrap assertions in the test runner's `waitFor` primitive.
 
 ---
 
@@ -193,8 +200,8 @@ If you've cycled through "fix → re-run → fix again" twice on the same task w
 
 For UI cosmetic changes, copy edits, color tweaks where automated tests don't add value:
 
-1. Run dev server (`bun run dev` in the frontend project).
-2. Open browser to the affected page (whatever URL the dev server prints, e.g. `http://localhost:5173/...`).
+1. Run the project's dev server via its documented command (see the project's `CLAUDE.md` / README — do not guess).
+2. Open the browser to the affected page (whatever URL the dev server prints).
 3. Walk the **golden path** — the primary user flow that touches your change.
 4. Walk **edge cases** the change could regress (RTL toggle if bilingual, mobile breakpoint, dark mode if relevant, empty state, error state).
 5. Test surrounding features for regressions — did your spacing change break a different page?
@@ -203,7 +210,7 @@ For UI cosmetic changes, copy edits, color tweaks where automated tests don't ad
    ```markdown
    - **Test mode:** manual smoke (cosmetic-only)
    - **Smoke steps:**
-     - Opened http://localhost:5173/_authenticated/team — toolbar buttons aligned ✓
+     - Opened <dev URL>/team — toolbar buttons aligned ✓
      - Toggled RTL via Lang switcher — buttons mirror correctly ✓
      - 320px viewport — no horizontal scroll ✓
      - Hovered "Invite teammate" — focus ring visible ✓
