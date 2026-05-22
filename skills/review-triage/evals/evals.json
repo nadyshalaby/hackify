@@ -1,0 +1,41 @@
+{
+  "skill_name": "review-triage",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-pasted-pr-findings",
+      "prompt": "respond to these review findings: (1) Critical — SQL injection risk in `users.controller.ts:42` because the search query interpolates the raw `q` param; (2) Important — DRY violation: same date-formatting logic appears in 3 services; (3) Minor — variable name `usr` should be `user`. Tell me what to accept, push back on, or defer.",
+      "assertions": [
+        {"text": "review-triage skill is invoked (auto-discovery fires on 'respond to' + review-shaped paste)"},
+        {"text": "Output is a per-finding table with the exact columns: Finding | Severity | Decision | Evidence"},
+        {"text": "Decision values are drawn ONLY from the closed set: accept / push-back / defer"},
+        {"text": "The Critical SQL-injection finding's decision is 'accept' (Critical findings cannot be pushed back without explicit Phase 5 escalation)"},
+        {"text": "Every push-back row carries technical evidence with file:line, prior commit, or established pattern"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-address-review-findings",
+      "prompt": "address review findings from my last PR — comments are pasted at the bottom of this message: [3 comments inline about file naming, missing tests, unused imports]",
+      "assertions": [
+        {"text": "review-triage skill is invoked (auto-discovery fires on 'address review findings' substring)"},
+        {"text": "Each pasted comment becomes ONE row in the response table — no comment is collapsed or omitted"},
+        {"text": "If any decision is 'defer', the row includes a follow-up entry destination (e.g., Retrospective bullet, separate ticket)"},
+        {"text": "Final table is followed by an action-summary line counting accept / push-back / defer outcomes"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-generic-pr-review-request",
+      "prompt": "review this PR diff for correctness bugs and tell me what you find",
+      "assertions": [
+        {"text": "review-triage skill is NOT invoked — the request is to PRODUCE a code review, not respond to one"},
+        {"text": "Routing goes to the built-in /code-review skill OR to full hackify with the review verb classified as a research/audit task"},
+        {"text": "Transcript explicitly notes review-triage's scope is reviewer-finding RESPONSE, not review production"}
+      ],
+      "files": []
+    }
+  ]
+}

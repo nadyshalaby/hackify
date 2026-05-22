@@ -1,0 +1,41 @@
+{
+  "skill_name": "skillsmith",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-author-new-hackify-skill",
+      "prompt": "author a new hackify skill that helps me write CHANGELOG entries from a git log range",
+      "assertions": [
+        {"text": "skillsmith skill is invoked (auto-discovery fires on 'author a hackify skill' substring)"},
+        {"text": "Output creates a new SKILL.md under skills/<slug>/ with valid frontmatter (name, description) and kebab-case slug matching `^[a-z0-9-]{1,64}$`"},
+        {"text": "SKILL.md description is detailed enough for harness auto-discovery (≥3 trigger phrases, explicit non-trigger guidance, scope statement)"},
+        {"text": "Skill self-validates against the 9-check checklist before declaring done — checklist results pasted into the response"},
+        {"text": "Any embedded sub-agent prompt has the mandatory 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) with OUTPUT word-cap"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-make-hackify-style-skill",
+      "prompt": "make a hackify-style skill for tracking flaky-test occurrences across CI runs",
+      "assertions": [
+        {"text": "skillsmith skill is invoked (auto-discovery fires on 'make a hackify-style skill' substring)"},
+        {"text": "Skill recognizes this is in-scope (hackify-conformant, not arbitrary skill authoring) and proceeds"},
+        {"text": "Frontmatter description meets the Wizard contract criteria (4 sections: SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA if the skill embeds a wizard) OR explicitly notes that no wizard is needed"},
+        {"text": "Self-validation reports zero soft-language matches in the body (Haiku-portability check)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-generic-script-request",
+      "prompt": "write a Python script that parses our CI logs and counts flaky tests",
+      "assertions": [
+        {"text": "skillsmith skill is NOT invoked — the request is a generic script, not a hackify skill (no 'hackify skill' / 'SKILL.md' / 'skills/' framing)"},
+        {"text": "Routing goes to full hackify or quick instead, depending on scope cues"},
+        {"text": "Transcript explicitly notes that skillsmith's scope is hackify-conformant skill authoring only, not arbitrary script writing"}
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "skill_name": "codewalk",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-walk-login-flow",
+      "prompt": "walk me through the login flow starting at POST /api/auth/login — I just joined this team and need to understand the call graph",
+      "assertions": [
+        {"text": "codewalk skill is invoked (auto-discovery fires on 'walk me through' substring)"},
+        {"text": "Skill confirms the entry point (POST /api/auth/login) before walking — if route is ambiguous (multiple handlers, env-flag-gated), the skill STOPS and asks rather than guessing"},
+        {"text": "Walk is depth-first with a mandatory 5-function depth-check printed to chat at depth 5"},
+        {"text": "Skill emits .codewalk/<slug>/data.json + copies the viewer assets (index.html, viewer.js, viewer.css, serve.js) from the skill's assets/ directory"},
+        {"text": "Skill appends `.codewalk/` to .gitignore if not already present (or prints the one-liner if .gitignore is missing)"},
+        {"text": "Slug for the trace follows the documented convention for HTTP routes: `post-api-auth-login` (method-lowercase + path-sanitized)"},
+        {"text": "Skill launches `node serve.js` at the end (or falls back to documented chain: python3 -m http.server, npx serve, php -S, ruby httpd)"},
+        {"text": "Chat handoff at the end includes 5 comprehension questions + a decisions checklist (safe-to-change / load-bearing / Chesterton's fence)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-trace-call-stack-with-explicit-entry",
+      "prompt": "trace this call stack from POST /api/orders — focus on what hits the database",
+      "assertions": [
+        {"text": "codewalk skill is invoked (auto-discovery fires on 'trace this call stack' substring)"},
+        {"text": "Per-node side-effect classification includes the `db` tag where the trace touches database code"},
+        {"text": "Branches not taken are listed BY NAME in the deferred_branches section and NEVER expanded inline"},
+        {"text": "If the trace encounters ambiguity (env flag, feature gate, tenant guard, DI token, dynamic dispatch), the skill STOPS and asks rather than guessing — does not proceed with an assumed path"},
+        {"text": "Mermaid sequence diagram in the viewer is organized by architectural layer (route -> service -> repository -> db)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-explain-failing-test",
+      "prompt": "explain why this test fails: `expect(getUser(42)).resolves.toBeDefined()` keeps timing out",
+      "assertions": [
+        {"text": "codewalk skill is NOT invoked — the request is debug investigation of a failing test, not a senior-peer walkthrough of an entry-point execution path"},
+        {"text": "Routing goes to full hackify (Phase 3b debug) or quick, depending on scope cues"},
+        {"text": "Transcript explicitly notes codewalk's scope is a chosen entry-point walkthrough, not test debugging"}
+      ],
+      "files": []
+    }
+  ]
+}

@@ -12,6 +12,8 @@
 #   50-runtimes-and-companions.sh     — checks [24]-[26], [28]
 #   60-primitives.sh                  — checks [29]-[32]
 #   70-invariants-and-new.sh          — checks [33]-[34]
+#   80-file-size-caps.sh              — check [80] — file-size ≤ 500 LOC across primitives
+#   90-collisions.sh                  — check [90] — sibling-plugin slug collision (soft)
 #
 # Note: -e is intentionally omitted — modules accumulate failures into
 # FAILED and the orchestrator exits non-zero at the end. -e would abort
@@ -33,6 +35,8 @@ source "$DOD_MODULES_DIR/40-quick-skill.sh"
 source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
+source "$DOD_MODULES_DIR/80-file-size-caps.sh"
+source "$DOD_MODULES_DIR/90-collisions.sh"
 
 if [ "$FAILED" -eq 0 ]; then
   green "ALL CHECKS PASSED"

@@ -1,6 +1,6 @@
 {
   "name": "hackify-marketplace",
-  "description": "Self-hosted marketplace for the hackify plugin — one end-to-end dev workflow for every task.",
+  "description": "Self-hosted marketplace for the hackify plugin — one end-to-end dev workflow for every task. Ships two channels: `hackify` (latest tagged release, recommended) and `hackify-edge` (bleeding-edge main, for early adopters).",
   "owner": {
     "name": "Nady Shalaby",
     "email": "nadyshalaby@gmail.com",
@@ -12,10 +12,10 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nadyshalaby/hackify.git",
-        "ref": "main"
+        "ref": "v0.3.0"
       },
-      "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file.",
-      "version": "0.2.9",
+      "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file. Latest tagged release — the stable channel.",
+      "version": "0.3.0",
       "category": "workflow",
       "keywords": [
         "workflow",
@@ -23,6 +23,27 @@
         "code-review",
         "spec-driven",
         "parallel-agents"
+      ],
+      "homepage": "https://github.com/nadyshalaby/hackify",
+      "license": "MIT"
+    },
+    {
+      "name": "hackify-edge",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/nadyshalaby/hackify.git",
+        "ref": "main"
+      },
+      "description": "Bleeding-edge hackify — tracks the `main` branch directly. Unreleased commits land in your plugin tree on every plugin refresh. For early adopters who want to test pre-release features and report issues. Production users should pin to `hackify` (latest tag) instead.",
+      "version": "0.3.0",
+      "category": "workflow",
+      "keywords": [
+        "workflow",
+        "tdd",
+        "code-review",
+        "spec-driven",
+        "parallel-agents",
+        "edge"
       ],
       "homepage": "https://github.com/nadyshalaby/hackify",
       "license": "MIT"

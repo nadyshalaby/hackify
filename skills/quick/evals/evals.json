@@ -1,0 +1,44 @@
+{
+  "skill_name": "quick",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-quick-typo-fix",
+      "prompt": "quick fix the typo on line 42 of README.md — `recieve` should be `receive`",
+      "assertions": [
+        {"text": "quick skill is invoked (auto-discovery fires on 'quick fix' substring)"},
+        {"text": "Phase 1 Clarify is skipped (no ambiguity in the ask)"},
+        {"text": "Phase 2 Plan + Gate is skipped — quick mode goes directly to Phase 3 Implement"},
+        {"text": "Phase 2.5 Spec-review is skipped (compressed flow)"},
+        {"text": "Phase 5 Multi-reviewer is skipped (compressed flow)"},
+        {"text": "Phase 4 Verify still runs (test + lint + typecheck triad mandatory)"},
+        {"text": "Phase 6 Step F summary table prints to chat (2-column Area/Change)"},
+        {"text": "Quick mode does NOT auto-promote to full hackify after the edit lands — stays in quick mode for the duration of the task"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-small-change-to-readme",
+      "prompt": "small change to the README — bump the install-step example to use `bun install` instead of `npm install`",
+      "assertions": [
+        {"text": "quick skill is invoked (auto-discovery fires on 'small change' substring)"},
+        {"text": "At most ONE implementation sub-agent is dispatched (per quick's per-task agent budget)"},
+        {"text": "File allowlist for the sub-agent is exactly `[README.md]` — agent stops if it discovers another file is needed"},
+        {"text": "Step F summary table is printed even though no test changes apply (table summarizes the prose edit)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-refactor-everywhere",
+      "prompt": "refactor everywhere we call `getUserById` — consolidate the 12 callsites onto a single helper",
+      "assertions": [
+        {"text": "quick skill is NOT invoked — the prompt has cross-file scope keywords ('refactor everywhere', 12 callsites) that route to full hackify"},
+        {"text": "Routing decision explicitly cites the cross-file refactor non-trigger rule"},
+        {"text": "Full hackify auto-fires and opens Phase 1 Clarify"}
+      ],
+      "files": []
+    }
+  ]
+}

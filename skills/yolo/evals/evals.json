@@ -1,0 +1,42 @@
+{
+  "skill_name": "yolo",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-yolo-add-feature",
+      "prompt": "yolo — add a /healthz endpoint to the API that returns 200 with `{ ok: true }`",
+      "assertions": [
+        {"text": "yolo skill is invoked (auto-discovery fires on the literal 'yolo' substring)"},
+        {"text": "Phase 2 plan is posted IN-CHAT (no work-doc file created under docs/work/) and auto-passed — no sign-off prompt blocks the flow"},
+        {"text": "Phase 2.5 spec-review still runs (3 parallel reviewers) — yolo does NOT skip the spec-review gate"},
+        {"text": "Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical + Important + Minor) and a follow-up edit lands automatically; Minor findings additionally logged to chat"},
+        {"text": "Phase 6 finish-menu is auto-passed: commit lands on current branch locally; no push to origin"},
+        {"text": "Final commit message follows project convention and ends with the Claude Code Co-Authored-By trailer"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-go-full-auto",
+      "prompt": "go full auto — implement the rate-limit middleware we discussed",
+      "assertions": [
+        {"text": "yolo skill is invoked (auto-discovery fires on 'go full auto' substring)"},
+        {"text": "Skill explicitly notes that yolo has NO pause/resume across sessions (no work-doc on disk)"},
+        {"text": "Phase 4 verification triad (tests + lint + typecheck) runs with fresh evidence — yolo does NOT skip verification"},
+        {"text": "If Phase 5 surfaces a Critical security finding, it is auto-fixed and the fix is itself re-verified before the commit lands"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-ambiguous-do-it",
+      "prompt": "do it",
+      "assertions": [
+        {"text": "yolo skill is NOT invoked — the prompt 'do it' is too ambiguous and explicitly listed as a non-trigger in yolo's frontmatter description"},
+        {"text": "Skill routing defaults to context-dependent behavior (continuing prior turn, or asking for clarification) rather than entering autopilot"},
+        {"text": "Transcript does NOT auto-pass any gate based on the 'do it' phrase alone"}
+      ],
+      "files": []
+    }
+  ]
+}

@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.9-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives (v0.2.2).** Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -144,8 +144,8 @@ You can pause at any phase by closing the terminal. Later, when you say *"contin
 
 A single markdown file holds everything about a task: spec, plan, progress, review log, post-mortem. While in flight it lives at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`; after Phase 6 it moves to `<project>/docs/work/done/`.
 
-**Frontmatter:** `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, and (v0.2.0) `sprint_goal` — a one-sentence framing of the win condition.
-**Body (v0.2.0 sprint vocabulary):** Original Ask → Clarifying Q&A → **Acceptance Criteria** (was Definition of Done) → Approach → **Sprint Backlog** (was Tasks) → **Daily Updates** (was Implementation Log) → **Sprint Review** (was Verification) → **Retrospective** (was Post-mortem). The sections do the same jobs; the labels just align with how teams already talk about work. Pre-v0.2.0 work-docs archived under `docs/work/done/` keep their original headings and resume unchanged — the resume logic reads either vocabulary.
+**Frontmatter:** `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, and (since v0.2.0) `sprint_goal` — a one-sentence framing of the win condition.
+**Body** (since v0.2.0 sprint vocabulary): Original Ask → Clarifying Q&A → **Acceptance Criteria** (was Definition of Done) → Approach → **Sprint Backlog** (was Tasks) → **Daily Updates** (was Implementation Log) → **Sprint Review** (was Verification) → **Retrospective** (was Post-mortem). The sections do the same jobs; the labels just align with how teams already talk about work. Pre-v0.2.0 work-docs archived under `docs/work/done/` keep their original headings and resume unchanged — the resume logic reads either vocabulary.
 
 ```markdown
 ---
@@ -201,10 +201,10 @@ The safety property that makes this work is a **strict file allowlist** baked in
 .claude-plugin/
   plugin.json                          plugin manifest
   marketplace.json                     self-hosted marketplace entry
-rules/                                 always-on engineering law (v0.2.2)
+rules/                                 always-on engineering law (since v0.2.2)
   hard-caps.md                         short doctrine injected every prompt via hook
   code-quality.md                      DRY, named types, layering deep dive (canonical)
-agents/                                formal sub-agent definitions (v0.2.2 — claude-code only)
+agents/                                formal sub-agent definitions (since v0.2.2 — claude-code only)
   spec-reviewer-consistency.md         Phase 2.5 Reviewer A
   spec-reviewer-rules.md               Phase 2.5 Reviewer B
   spec-reviewer-dependencies.md        Phase 2.5 Reviewer C
@@ -212,7 +212,7 @@ agents/                                formal sub-agent definitions (v0.2.2 — 
   code-reviewer-quality.md             Phase 5 Reviewer B
   code-reviewer-plan-consistency.md    Phase 5 Reviewer C
   wave-task-implementer.md             Phase 3 wave-task implementer
-hooks/                                 prompt-time injection (v0.2.2 — claude-code only)
+hooks/                                 prompt-time injection (since v0.2.2 — claude-code only)
   hooks.json                           UserPromptSubmit hook declaration
   inject-hard-caps.sh                  injects rules/hard-caps.md into context every prompt
 commands/
@@ -269,7 +269,7 @@ Reference files load only when the relevant phase needs them. `SKILL.md` is what
 
 ## Multi-runtime support
 
-Hackify v0.2.0 ships for seven runtimes: **Claude Code**, **OpenAI Codex CLI**, **OpenAI Codex App**, **Google Gemini CLI**, **OpenCode**, **Cursor**, and **GitHub Copilot CLI**. The canonical source of every skill lives in `skills/`; `scripts/sync-runtimes.sh` fans that source out into per-runtime packages under `dist/<runtime>/`, which is gitignored.
+Hackify ships (since v0.2.0) for seven runtimes: **Claude Code**, **OpenAI Codex CLI**, **OpenAI Codex App**, **Google Gemini CLI**, **OpenCode**, **Cursor**, and **GitHub Copilot CLI**. The canonical source of every skill lives in `skills/`; `scripts/sync-runtimes.sh` fans that source out into per-runtime packages under `dist/<runtime>/`, which is gitignored.
 
 | Tier | Runtimes | What works |
 |---|---|---|
@@ -311,7 +311,7 @@ See [`rules/four-principles.md`](rules/four-principles.md) for the canonical wri
 
 ### Project-level rules
 
-Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the v0.2.2 `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded.
+Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the (since v0.2.2) `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded.
 
 ### Voice — abstract principles, concrete adaptation
 

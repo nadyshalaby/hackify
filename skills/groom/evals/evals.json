@@ -1,0 +1,41 @@
+{
+  "skill_name": "groom",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-lets-discuss-rate-limiting",
+      "prompt": "let's discuss adding rate limiting to the public API — I'm not sure yet whether to do it per-IP, per-API-key, or both",
+      "assertions": [
+        {"text": "groom skill is invoked (auto-discovery fires on 'let's discuss' substring)"},
+        {"text": "Transcript shows 1 or 2 forking questions per turn, never more, NOT batched as a wizard"},
+        {"text": "Each follow-up question is preceded by a one-sentence reflection mirroring what the user just said"},
+        {"text": "No work-doc is created in docs/work/ until the user signals build intent (lazy work-doc creation)"},
+        {"text": "Questions surface real forks (per-IP vs per-API-key tradeoffs, sliding-window vs token-bucket, fail-open vs fail-closed) — not vanity questions like color or naming"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-explicit-groom-trigger",
+      "prompt": "groom this backlog item: 'add audit log retention policy' — I want to think through scope before we commit",
+      "assertions": [
+        {"text": "groom skill is invoked (auto-discovery fires on 'groom' substring)"},
+        {"text": "First turn opens with a one-sentence reflection on the backlog item plus 1-2 forking questions about scope (retention duration / which event types / archival vs deletion / compliance driver)"},
+        {"text": "Skill does NOT immediately graduate to hackify Phase 1 — stays in Socratic mode until user signals build intent"},
+        {"text": "No scratch file created at docs/work/.groom-<slug>.md or any other scratch path"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-build-verb-present",
+      "prompt": "add rate limiting to the public API at 100 req/min per IP",
+      "assertions": [
+        {"text": "groom skill is NOT invoked — the prompt contains a build verb ('add') and specific implementation parameters, so it routes to full hackify or quick instead"},
+        {"text": "If a routing decision is logged in the transcript, it explicitly cites the build-verb non-trigger rule"},
+        {"text": "Transcript does NOT contain 'let me ask a question to surface a fork' or other Socratic-loop language"}
+      ],
+      "files": []
+    }
+  ]
+}
