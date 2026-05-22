@@ -123,7 +123,7 @@ Full hackify and quick mode together left a middle-ground gap: substantive tasks
 
 The 4-signal auto-fallback was intended as a safety net but conflicted with user-stated intent: when a user explicitly invokes `/hackify:quick`, they have opted into a single-session, no-work-doc, no-resume flow and expect the AI to comply for the duration of the task. Silently switching modes mid-task violated that contract. The carve-out routing list in the skill description (which steers auto-discovery toward full hackify for cross-file refactors / redesigns / auth-crypto-migration work) remains the safety net at the routing layer, before quick mode is ever invoked.
 
-## [0.2.2] — 2026-05-14
+## [0.2.2] - 2026-05-14
 
 > **Patch label, refactor + additive scope.** Removes the prompt-based smart router that picked between full hackify, quick, and brainstorm — routing is now handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery. In its place, hackify graduates to a four-primitive plugin layout: `skills/` (workflows), `rules/` (always-on engineering law), `agents/` (formal sub-agent definitions), `hooks/` (UserPromptSubmit reminders). Each primitive owns the concern it is best at — and ONLY that concern. The hook is explicitly NON-routing: it injects `rules/hard-caps.md` into context every prompt, never classifies full vs quick from prompt content. Moving the classifier into the hook would just relocate the problem; this release deletes the classifier instead.
 
@@ -162,7 +162,7 @@ The v0.2.1 smart-router classifier was a custom prompt-content matcher embedded 
 
 No migration for skill users — slash commands, descriptions, and the work-doc contract are unchanged on the user-facing surface. Plugin authors who fork hackify pick up the new four-primitive contract: `rules/` for always-on law, `agents/` for parallel-dispatch defs, `hooks/` for prompt-time reminders, `skills/` for workflows.
 
-## [0.2.1] — 2026-05-11
+## [0.2.1] - 2026-05-11
 
 > **Patch label, refactor-only scope.** Pure refactor — no new features, no bug fixes against shipped behavior. Extracts the smart-router block to a single canonical reference shared by both SKILLs, hardens two validator checks flagged in the v0.2.0 Retrospective, and honestly retires the v0.2.0 AC10 gross target as a documented incompatibility (the router block was post-v0.2.0 additive prose, not pre-existing prose, so its extraction is gross-neutral against AC10's anchor). Wins are measured in net SKILL-file line reduction (−37 / −39) and single-source-of-truth architecture for the router rules.
 
@@ -183,7 +183,7 @@ No migration for skill users — slash commands, descriptions, and the work-doc 
 
 - **AC10 disposition reframed honestly.** The v0.2.0 work-doc Retrospective flagged AC10's gross-20%-on-pre-existing-prose target as missed and deferred to v0.2.1. v0.2.1 reframes that disposition: the router block was post-v0.2.0 additive prose, NOT pre-existing prose, so its extraction is gross-neutral against AC10's anchor. AC10's gross target is hereby **retired as a documented incompatibility** rather than "recovered." v0.2.1's win is measured in net SKILL-file line reduction (−37 / −39 across the two SKILLs) and single-source-of-truth architecture for the router.
 
-## [0.2.0] — 2026-05-11
+## [0.2.0] - 2026-05-11
 
 > **Minor-level scope, minor-level label.** First release where the plugin source is tool-agnostic: the canonical hackify source no longer hard-codes Claude Code tool names, and a runtime-sync script emits per-runtime distributions. Ships three new skills (`brainstorm`, `writing-skills`, `receiving-code-review`), a sprint-style work-doc vocabulary, a smart pre-Phase-1 router shared by full and quick modes, wave-end persistence + pause-checkpoint behavior, and a tightened token + soft-language pass on both SKILL files. No breaking change to the workflow phases, the 7-section sub-agent contract, or the Wizard contract; archived pre-0.2.0 work-docs work without migration.
 
@@ -227,7 +227,7 @@ No migration for skill users — slash commands, descriptions, and the work-doc 
 
 - **`references/` count check** in `scripts/validate-dod.sh` updated from 9 to 10 to reflect the new `runtime-adapters.md` added by T3.2.
 
-## [0.1.4] — 2026-05-11
+## [0.1.4] - 2026-05-11
 
 > **Patch label, minor-level scope.** Two new ergonomics features ship under a patch label per release-cadence preference. No breaking change to the workflow shape or template contracts; v0.1.3 templates and wizard banks ship unchanged.
 
@@ -254,7 +254,7 @@ No migration for skill users — slash commands, descriptions, and the work-doc 
 
 - **Checks `[18]`–`[23]` added** to `scripts/validate-dod.sh`: `[18]` `commands/summary.md` exists with `description:` frontmatter and `Area`/`Change` body tokens; `[19]` SKILL.md Phase 6 section contains `Summary table` and references `/hackify:summary`; `[20]` `references/finish.md` contains the Summary-table authoring subsection with `| Area |` worked-example header; `[21]` `skills/quick/SKILL.md` exists with `name:` (regex `^[a-z0-9-]{1,64}$`) and `description:` frontmatter; `[22]` quick-mode SKILL.md contains `Skipped phases` and the 4 skipped-phase tokens (Phase 2, Phase 2.5, Phase 5, four-options); `[23]` quick-mode SKILL.md contains `Summary table` (mandatory step is documented).
 
-## [0.1.3] — 2026-05-11
+## [0.1.3] - 2026-05-11
 
 > **Patch label, minor-level scope.** Despite being a patch release, this is a substantial rewrite of every sub-agent prompt and every clarify-wizard bank in the plugin. The label reflects the maintainer's release-cadence preference, not the underlying change size. Users upgrading from 0.1.2 should expect templates to look different — the workflow phases and DoD shapes are unchanged.
 
@@ -287,7 +287,7 @@ No migration for skill users — slash commands, descriptions, and the work-doc 
 - Existing in-flight work-docs need no migration — the workflow shape is unchanged.
 - Custom sub-agent prompts in user projects can adopt the 7-section contract incrementally. Running `bash scripts/validate-dod.sh` from the plugin source after editing surfaces the same checks the plugin's own templates pass.
 
-## [0.1.2] — 2026-05-11
+## [0.1.2] - 2026-05-11
 
 ### Fixed
 
@@ -297,13 +297,13 @@ No migration for skill users — slash commands, descriptions, and the work-doc 
 
 - README "Troubleshooting" section covering the three most common install failures: source-type rejection (fixed in 0.1.1), SSH host-key prompts (one-liner with `ssh-keyscan`), and SSH auth errors (the protocol switch shipped in 0.1.2).
 
-## [0.1.1] — 2026-05-11
+## [0.1.1] - 2026-05-11
 
 ### Fixed
 
 - `marketplace.json` `plugins[0].source` was set to the bare string `"."`, which the current Claude Code plugin-marketplace schema rejects with "This plugin uses a source type your Claude Code version does not support." Replaced with the documented typed-object form `{"source": "github", "repo": "nadyshalaby/hackify"}`. `/plugin install hackify@hackify-marketplace` now succeeds against the published GitHub repo.
 
-## [0.1.0] — 2026-05-11
+## [0.1.0] - 2026-05-11
 
 ### Added
 

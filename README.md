@@ -116,7 +116,7 @@ Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Criti
 
 ## Companion skills
 
-Four skills ship alongside `hackify` and `quick` to cover the bookends, the meta-loop, and onboarding to unfamiliar code:
+Four skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends, the meta-loop, and onboarding to unfamiliar code:
 
 - **`/brainstorm <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
 - **`/writing-skills`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
