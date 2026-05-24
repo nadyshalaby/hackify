@@ -5,6 +5,28 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-05-25
+
+> **Patch-level scope: codewalk skill upgrades.** Three additive changes to the `/codewalk` skill, surfaced after dog-fooding it against a real 53-endpoint NestJS API. All changes are backwards-compatible — existing `.codewalk/<slug>/` traces keep working; the dark theme stays the default. No changes to other skills, hooks, validators, hard-caps, agents, or rules. Bumping minor isn't warranted — the contract grows, no surface narrows.
+
+### Added
+
+- **`skills/codewalk/assets/playbook.html` + `playbook.js` + `playbook.css`** — new playbook mode for multi-entry codewalks. Light-mode-first index page that lists every traced entry in a service, grouped by domain, with a live filter input, method-color chips (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`/`SSE`/`CLI`/`JOB`/`UI`), and a one-click theme toggle. Each row links into its sibling slug folder's per-trace viewer in a new tab, propagating the theme via `?theme=light|dark` so the viewer opens in the same mode. Catalog-driven: reads `.codewalk/_catalog.json` at runtime.
+- **`skills/codewalk/assets/build-playbook.mjs`** — new catalog-driven builder. Reads `.codewalk/_catalog.json` (and optional `_traces.json`), copies the playbook + per-trace viewer assets to disk, and writes one `<slug>/data.json` per catalog entry. When `_traces.json` carries a rich entry for a slug, that entry's nodes/edges populate the per-trace viewer directly; otherwise the slug gets a stub `data.json` that the user can deepen later with `/codewalk <entry>`. Single file, 198 LOC, under the cap.
+- **Light-mode viewer support in `assets/viewer.css`, `assets/viewer.js`, `assets/index.html`.** Toggle in the per-trace viewer header (☀/☾). Theme precedence: URL `?theme=light|dark` → `localStorage["codewalk-theme"]` → default `dark`. Persistent across reloads via `localStorage`. Prism stylesheet (`#cw-prism-css`) and Mermaid (`theme: 'default'` vs `'dark'`) swap in lockstep. Dark mode stays the default — no behavior change for users who don't touch the toggle.
+- **`skills/codewalk/references/data-schema.md` § "Playbook mode — multi-entry catalog"** — documents the new `_catalog.json` and optional `_traces.json` formats with field-by-field schemas, slug rules, color palette, and builder invocation. Legacy `endpoints` is accepted as an alias for `entries` in the catalog.
+- **`skills/codewalk/SKILL.md` § "Playbook mode — multi-entry codewalks"** — full workflow shape (Phase 1' → 7'), the "single-entry vs playbook" decision table, file-map update with the four new asset files, and the rule that playbook mode only fires on explicit triggers ("all endpoints", "every endpoint", "index playbook", "browse all routes"). Single-entry mode remains the default.
+
+### Changed
+
+- **`skills/codewalk/assets/viewer.js` HTML entity decode in `renderSource`.** Source strings authored by sub-agents and round-tripped through JSON often carry `&lt;`, `&gt;`, `&amp;`, `&quot;`, `&#39;` instead of their literal characters (typically when the agent inlined TypeScript generics or JSX in a JSON code block). Previously these reached Prism un-decoded and rendered as visible entity text in the viewer's source pane. A new `decodeEntities()` helper runs before Prism highlighting; safe because the source is rendered, not executed.
+- **`skills/codewalk/assets/viewer.js` dangling-`callee_id` guard in `renderSource`.** Call sites whose `callee_id` doesn't resolve to a node in `data.json` now render as plain text instead of a broken-link `cw-call` span. The console-warning in `_index` (pointing the trace author at the missing node) is unchanged. Fixes a viewer dead-click on stub data.json files where the controller references a service that isn't yet walked.
+- **`skills/codewalk/assets/index.html` Prism stylesheet now has `id="cw-prism-css"`** so the viewer can swap dark→light at runtime. Mermaid initialization now reads the same theme signal at boot (URL param OR localStorage) so the first render lands in the correct theme without a flash.
+
+### Rationale
+
+Three improvements surfaced in one session of dog-fooding `/codewalk` against a NestJS API with 53 endpoints. The playbook mode + builder are the headline — single-entry codewalks scale poorly past ~10 entries because there's no top-level index to navigate from, and operators were stitching their own index together by hand. The light-mode + entity-decode + dangling-callee fixes are smaller-surface but all came from the same session, so they ship together rather than spread across three patch releases. Patch-level (not minor) because every change is additive: dark mode is still default, the schema is opt-in (only fires when the user authors a `_catalog.json`), and existing `.codewalk/<slug>/` folders keep loading exactly as before.
+
 ## [0.3.0] - 2026-05-22
 
 > **Minor-level scope.** Six plugin enhancements ship together: file-size cap validator, sync-runtimes prune-on-mirror with modular per-runtime emitters, two-channel marketplace (`hackify` stable tag + `hackify-edge` main), `scripts/release.sh` tag-on-version-bump helper, sibling-plugin collision-detection script wired as a soft warning, eval coverage for the six non-hackify skills, and a README version-label drift sweep. Closes six known gaps in one release. Tagged via the new `scripts/release.sh` — eating own dog food.

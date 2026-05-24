@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.3.1-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -121,7 +121,7 @@ Four skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends,
 - **`/hackify:groom <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
 - **`/hackify:skillsmith`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
 - **`/hackify:review-triage`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
-- **`/codewalk <entry-point>`** *(since v0.2.8)* — interactive call-stack viewer for code you didn't write. Depth-first walk from one entry point (route, handler, CLI command, queue job, UI action), stopping every 5 functions to confirm depth and stopping cold on runtime ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch). Emits a `.codewalk/<slug>/` browser viewer — GitHub-PR-style three-pane layout with invoked-line highlights, clickable call-site anchors, layered Mermaid sequence diagram, invariants per boundary, failure modes with blast radius, branches not taken listed by name, and an amber diff banner when you re-trace the same entry. Closes with 5 comprehension questions + a `safe to change` / `load-bearing` / `Chesterton's fence` decisions checklist.
+- **`/codewalk <entry-point>`** *(since v0.2.8)* — interactive call-stack viewer for code you didn't write. Depth-first walk from one entry point (route, handler, CLI command, queue job, UI action), stopping every 5 functions to confirm depth and stopping cold on runtime ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch). Emits a `.codewalk/<slug>/` browser viewer — GitHub-PR-style three-pane layout with invoked-line highlights, clickable call-site anchors, layered Mermaid sequence diagram, invariants per boundary, failure modes with blast radius, branches not taken listed by name, and an amber diff banner when you re-trace the same entry. Closes with 5 comprehension questions + a `safe to change` / `load-bearing` / `Chesterton's fence` decisions checklist. *(Since v0.3.1)* — a header **theme toggle** (light/dark, persisted via `localStorage`); and a **playbook mode** that fires on "all endpoints" / "every endpoint" / "index playbook" triggers, producing a top-level `.codewalk/index.html` light-mode index of every entry in the service (catalog-driven via `_catalog.json`, each row linkable into its own per-trace viewer).
 
 ## Example
 
@@ -187,7 +187,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:groom <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
 | `/hackify:skillsmith` | Author new hackify-conformant skills via a 9-check self-validation loop. |
 | `/hackify:review-triage` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
-| `/codewalk <entry-point>` | Trace one execution path from a single entry point and open a `.codewalk/<slug>/` browser viewer with annotated code + Mermaid diagrams + decisions checklist. |
+| `/codewalk <entry-point>` | Trace one execution path from a single entry point and open a `.codewalk/<slug>/` browser viewer with annotated code + Mermaid diagrams + decisions checklist. Light/dark theme toggle in the header (since v0.3.1); use phrases like *"all endpoints"* / *"index playbook"* to switch to multi-entry playbook mode (since v0.3.1) which produces a top-level `.codewalk/index.html` index of every entry. |
 
 ## Parallel agents
 
@@ -247,15 +247,19 @@ skills/
   review-triage/
     SKILL.md                           /hackify:review-triage reviewer-response table
   codewalk/
-    SKILL.md                           /codewalk interactive call-stack viewer
+    SKILL.md                           /codewalk interactive call-stack viewer (single-entry + playbook modes)
     references/
-      data-schema.md                   data.json contract for the viewer
+      data-schema.md                   data.json + _catalog.json + _traces.json contracts
       trace-rubric.md                  invoked-block / side-effects / risk / depth-check
     assets/
-      index.html                       three-pane viewer shell (Tailwind + Alpine + Prism + Mermaid)
-      viewer.js                        Alpine component: navigation, render, tooltips
-      viewer.css                       Prism overrides + invoked-line highlight
+      index.html                       per-trace viewer shell (Tailwind + Alpine + Prism + Mermaid)
+      viewer.js                        Alpine component: navigation, render, theme toggle, tooltips
+      viewer.css                       Prism overrides + invoked-line highlight + light-mode block
       serve.js                         Node-stdlib HTTP server (port pick + browser open)
+      playbook.html                    multi-entry index page (since v0.3.1)
+      playbook.js                      Alpine component for the index (filter + theme)
+      playbook.css                     light/dark base styles for the playbook
+      build-playbook.mjs               catalog-driven multi-entry builder (since v0.3.1)
 dist/                                  generated per-runtime packages (gitignored)
 docs/
   work/                                in-flight work-docs (per task)

@@ -14,7 +14,10 @@ function codewalk() {
     _byId: {},
     _callers: {},
 
+    theme: 'dark',
+
     async boot() {
+      this._applyInitialTheme()
       try {
         const res = await fetch('./data.json', { cache: 'no-store' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -30,10 +33,46 @@ function codewalk() {
       }
       this.$watch('tab', () => this._renderMermaid())
       this.$watch('storyMode', () => queueMicrotask(() => this._wireTooltips()))
+      this.$watch('theme', (v) => this._persistTheme(v))
       document.addEventListener('keydown', (e) => this._onKey(e))
       this._renderMermaid()
       queueMicrotask(() => this._wireTooltips())
     },
+
+    _applyInitialTheme() {
+      // Precedence (since v0.3.1): URL ?theme=light|dark → localStorage codewalk-theme → default 'dark'.
+      const params = new URLSearchParams(location.search)
+      const fromUrl = params.get('theme')
+      const fromStorage = (() => { try { return localStorage.getItem('codewalk-theme') } catch { return null } })()
+      const next = fromUrl || fromStorage || 'dark'
+      this.theme = next === 'light' ? 'light' : 'dark'
+      this._applyThemeClass()
+    },
+
+    _applyThemeClass() {
+      const cls = document.body.classList
+      if (this.theme === 'light') cls.add('cw-light')
+      else cls.remove('cw-light')
+      // Swap Prism stylesheet href so token colors track the theme.
+      const prism = document.getElementById('cw-prism-css')
+      if (prism) {
+        const light = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css'
+        const dark = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css'
+        prism.href = this.theme === 'light' ? light : dark
+      }
+    },
+
+    _persistTheme(v) {
+      try { localStorage.setItem('codewalk-theme', v) } catch { /* private mode */ }
+      this._applyThemeClass()
+      // Re-render mermaid in the new theme.
+      if (window.mermaid?.initialize) {
+        window.mermaid.initialize({ startOnLoad: false, theme: v === 'light' ? 'default' : 'dark', securityLevel: 'loose' })
+      }
+      if (this.tab === 'diagrams') this._renderMermaid()
+    },
+
+    toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light' },
 
     _validate(d) {
       if (d.version !== 1) console.warn('[codewalk] expected schema version 1, got', d.version)
@@ -151,7 +190,11 @@ function codewalk() {
     renderSource(node) {
       const lang = this._prismLang(node.language || this.data.language)
       const grammar = Prism.languages[lang] || Prism.languages.javascript || Prism.languages.markup
-      const highlighted = grammar ? Prism.highlight(node.source || '', grammar, lang) : escapeHTML(node.source || '')
+      // Decode HTML entities that may appear in agent-generated source strings
+      // (e.g. `Promise&lt;X&gt;` from JSON-escaped TypeScript). Without this,
+      // Prism receives the entity text and tokens render wrong (since v0.3.1).
+      const raw = decodeEntities(node.source || '')
+      const highlighted = grammar ? Prism.highlight(raw, grammar, lang) : escapeHTML(raw)
       const lines = highlighted.split('\n')
       const startLine = node.function_range?.[0] ?? 1
       const invoked = new Set(node.invoked_lines || [])
@@ -162,7 +205,10 @@ function codewalk() {
         const absLine = startLine + i
         const isInvoked = invoked.has(absLine)
         const call = callsByLine[absLine]
-        const code = call
+        // Only wrap as a clickable call site when the callee_id resolves to a
+        // node we have — dangling refs render as plain text (since v0.3.1).
+        const isResolvedCall = call && this._byId[call.callee_id]
+        const code = isResolvedCall
           ? `<span class="cw-call" data-callee-id="${escapeAttr(call.callee_id)}">${lines[i] || '&nbsp;'}</span>`
           : lines[i] || '&nbsp;'
         const cls = `cw-line ${isInvoked ? 'cw-invoked' : 'cw-skipped'}`
@@ -248,6 +294,18 @@ function escapeHTML(s) {
 
 function escapeAttr(s) {
   return escapeHTML(s).replace(/"/g, '&quot;')
+}
+
+// Decode the small set of HTML entities that show up in agent-generated source
+// strings (TypeScript generics, JSX, etc.). Kept here rather than in renderSource
+// so the same helper is available to playbook.js (since v0.3.1).
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
 }
 
 window.codewalk = codewalk

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>codewalk playbook</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23ffffff'/><path d='M3 4h10M3 8h7M3 12h10' stroke='%23059669' stroke-width='2' stroke-linecap='round'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./playbook.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased" x-data="playbook()" x-init="boot()" x-cloak>
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-5">
+      <div class="flex items-start justify-between gap-6">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
+            <span x-text="catalog.title || 'codewalk playbook'"></span>
+            <span class="text-sm font-normal text-slate-500 ml-2">index of entry points</span>
+          </h1>
+          <p class="text-sm text-slate-600 mt-1.5 max-w-2xl" x-text="catalog.description || 'Every traced entry point in this repository. Each row opens an individual codewalk trace.'"></p>
+        </div>
+        <button
+          @click="toggleTheme()"
+          class="px-3 py-1.5 text-xs font-mono border rounded-md transition"
+          :class="theme === 'light' ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'"
+          :title="theme === 'light' ? 'switch to dark mode' : 'switch to light mode'"
+          x-text="theme === 'light' ? '☀ light' : '☾ dark'"
+        ></button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-center">
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input
+            type="text"
+            x-model="filter"
+            placeholder="Filter by route, method, summary, controller…"
+            class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            @keydown.escape="filter = ''"
+          />
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <template x-for="method in methods" :key="method">
+            <button
+              @click="toggleMethod(method)"
+              :class="methodActive(method) ? methodClass(method, true) : 'border-slate-200 text-slate-500 hover:bg-slate-100'"
+              class="px-2.5 py-1 text-[11px] font-mono border rounded-md transition"
+              x-text="method"
+            ></button>
+          </template>
+        </div>
+
+        <div class="text-xs text-slate-500 font-mono whitespace-nowrap">
+          <span class="text-slate-900 font-semibold" x-text="filtered.length"></span> /
+          <span x-text="catalog.entries.length"></span> entries
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-10">
+
+    <template x-for="domain in catalog.domains" :key="domain.key">
+      <section x-show="entriesByDomain[domain.key]?.length" class="pb-2">
+        <header class="flex items-baseline justify-between mb-3 border-b border-slate-200 pb-2">
+          <div class="flex items-baseline gap-3">
+            <span :class="domainPillClass(domain.color)" class="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded" x-text="domain.label"></span>
+            <h2 class="text-sm text-slate-700" x-text="domain.description"></h2>
+          </div>
+          <span class="text-xs text-slate-500 font-mono" x-text="entriesByDomain[domain.key]?.length + ' entries'"></span>
+        </header>
+
+        <div class="grid grid-cols-1 gap-1.5">
+          <template x-for="ep in entriesByDomain[domain.key]" :key="ep.slug">
+            <a
+              :href="`./${ep.slug}/index.html?theme=${theme}`"
+              target="_blank"
+              class="group flex items-center gap-3 px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:border-emerald-300 hover:shadow-sm transition"
+            >
+              <span :class="methodClass(ep.method, true)" class="shrink-0 px-2 py-0.5 text-[10px] font-mono font-semibold rounded uppercase tracking-wider w-12 text-center" x-text="ep.method"></span>
+              <code class="font-mono text-sm text-slate-900 group-hover:text-emerald-700 truncate" x-text="ep.route"></code>
+              <span class="text-xs text-slate-500 truncate flex-1" x-text="ep.summary || ''"></span>
+              <span class="text-[10px] font-mono text-slate-400 hidden lg:inline truncate max-w-xs" x-text="entryShort(ep.entry || ep.controller || '')"></span>
+              <svg class="w-4 h-4 text-slate-300 group-hover:text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M7 17L17 7M17 7H8M17 7V16"/>
+              </svg>
+            </a>
+          </template>
+        </div>
+      </section>
+    </template>
+
+    <section x-show="filter && filtered.length === 0" class="text-center py-16 text-slate-500">
+      <p class="text-lg mb-2">no entries match</p>
+      <p class="text-sm">try a different filter, or clear it with <kbd class="px-1.5 py-0.5 text-xs bg-slate-100 rounded border border-slate-200">esc</kbd></p>
+    </section>
+
+    <section x-show="loadError" class="text-center py-16 text-rose-600">
+      <p class="font-mono mb-2">could not load _catalog.json</p>
+      <p class="text-sm" x-text="loadError"></p>
+    </section>
+
+    <footer class="pt-8 mt-12 border-t border-slate-200 text-xs text-slate-500">
+      <p class="mb-1">
+        Generated by <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">/codewalk</code>
+        playbook mode — each per-entry trace is a static page under <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">&lt;slug&gt;/</code>.
+      </p>
+      <p>
+        Re-run a single trace with <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">/codewalk &lt;entry&gt;</code> in Claude Code to refresh that entry's <code>data.json</code>.
+      </p>
+    </footer>
+  </main>
+
+  <script src="./playbook.js"></script>
+</body>
+</html>

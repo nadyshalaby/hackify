@@ -150,6 +150,56 @@ If `.codewalk/<slug>/data.json` already exists when Phase 4 starts, load the pre
 
 Empty arrays in `diff_vs_previous` are fine. The viewer renders an amber callout when the object is non-null and at least one array has entries.
 
+## Playbook mode — multi-entry codewalks (since v0.3.1)
+
+**Single-entry mode is the default.** Switch to playbook mode only when the user wants a top-level index of *every* entry point in a service, each trace openable individually. Trigger phrases: "all endpoints", "every endpoint", "index playbook", "browse all routes", "playbook of <thing>".
+
+In playbook mode the deliverable is the same per-slug viewer, *plus* a top-level `.codewalk/index.html` that lists every traced entry, grouped by domain, with a live filter and method-color chips. Each row links into its sibling slug folder's viewer in a new tab.
+
+### Workflow shape (playbook mode)
+
+```
+Phase 1' (survey + classify entries) → Phase 2' (light mode check) →
+Phase 3' (author _catalog.json) → Phase 4' (optional: gather _traces.json) →
+Phase 5' (copy assets + run build-playbook.mjs) → Phase 6' (launch) →
+Phase 7' (chat handoff)
+```
+
+**Phase 1' — survey the service.** Enumerate every endpoint / handler / job worth tracing. For an HTTP API this usually means every `@Controller`-decorated method, every CLI command, and every queue-job registration. Group entries into 4-10 domains (Search, Ingest, Admin, Health, etc.).
+
+**Phase 2' — light or dark.** Ask the user once: dark (default, matches single-entry mode) or light (recommended for mixed audience / projector demos). The viewer ships both and honors `?theme=light` URL param + a `localStorage` preference. Pass through to the builder via the catalog title or in chat — the build itself doesn't take a flag; the viewer toggles at runtime.
+
+**Phase 3' — author `_catalog.json`** at `.codewalk/_catalog.json`. Schema is in `references/data-schema.md` § "Playbook mode". Required fields per entry: `slug`, `method`, `route`, `domain`, `summary`, `controller` (or `entry`). The `slug` derives by the same rules as single-entry mode.
+
+**Phase 4' — optional `_traces.json`** at `.codewalk/_traces.json`. When present, each entry's rich nodes/edges populate that slug's `data.json` directly. When absent, the builder writes a stub per slug — the user can deepen any specific slug later with `/codewalk <entry>`.
+
+**Phase 5' — materialize.** Copy `assets/build-playbook.mjs` to `.codewalk/_build.mjs`, then run it:
+
+```bash
+cp <skill-dir>/assets/build-playbook.mjs .codewalk/_build.mjs
+node .codewalk/_build.mjs --out .codewalk
+```
+
+The builder copies `playbook.html` (renamed to `index.html`), `playbook.js`, `playbook.css`, `serve.js` to `.codewalk/`. For each catalog entry, it creates `.codewalk/<slug>/` and copies the per-trace viewer assets + writes `data.json` (rich if `_traces.json` had it, stub otherwise).
+
+**Phase 6' — launch.** Same `node .codewalk/serve.js` as single-entry mode — the server serves the playbook at `/` and every slug folder at `/<slug>/`.
+
+**Phase 7' — chat handoff.** Print: total entries, how many got rich traces vs stubs, the playbook URL, and instructions to deepen any individual slug with `/codewalk <entry>`. Skip the 5 comprehension questions (they're per-trace, not per-playbook). Skip the decisions checklist.
+
+### When to use playbook mode
+
+| Signal | Mode |
+|---|---|
+| "Walk me through `POST /signup`" | single-entry |
+| "How does the migration runner work?" | single-entry |
+| "Trace every endpoint in this API" | playbook |
+| "I want an index of all our background jobs, each clickable" | playbook |
+| "Build a navigable map of all routes" | playbook |
+| One specific bug to debug | single-entry |
+| Onboarding doc for the entire service | playbook |
+
+When in doubt, ask. Playbook mode is heavier — it touches every entry, not one.
+
 ## Anti-rationalizations
 
 | Tempting shortcut | Why it breaks the deliverable |
@@ -169,16 +219,20 @@ Empty arrays in `diff_vs_previous` are fine. The viewer renders an amber callout
 skills/codewalk/
 ├── SKILL.md                       ← this file
 ├── assets/
-│   ├── index.html                 ← viewer shell (Tailwind + Alpine + Prism + Mermaid + marked, all CDN)
-│   ├── viewer.js                  ← Alpine component (load/render/navigate/diagrams)
-│   ├── viewer.css                 ← Prism overrides + invoked-line highlight + tooltip
-│   └── serve.js                   ← Node stdlib HTTP server (port pick + browser open)
+│   ├── index.html                 ← per-trace viewer shell (Tailwind + Alpine + Prism + Mermaid + marked, all CDN)
+│   ├── viewer.js                  ← Alpine component (load/render/navigate/diagrams/theme)
+│   ├── viewer.css                 ← Prism overrides + invoked-line highlight + light-mode block
+│   ├── serve.js                   ← Node stdlib HTTP server (port pick + browser open)
+│   ├── playbook.html              ← multi-entry index page (since v0.3.1, light-mode-first)
+│   ├── playbook.js                ← Alpine component for the index (catalog filter + theme)
+│   ├── playbook.css               ← light/dark base styles for the playbook
+│   └── build-playbook.mjs         ← catalog-driven multi-entry builder (since v0.3.1)
 └── references/
-    ├── data-schema.md             ← the exact JSON contract the viewer consumes
+    ├── data-schema.md             ← the exact JSON contract the viewer + catalog consume
     └── trace-rubric.md            ← how to walk the stack (invoked block / side effects / risk / branches / depth check)
 ```
 
-The viewer per-trace lives at `.codewalk/<slug>/` in the target repo (not in this skill folder):
+The per-trace viewer (single-entry mode) lives at `.codewalk/<slug>/` in the target repo:
 
 ```
 <repo-root>/.codewalk/<slug>/
@@ -187,6 +241,21 @@ The viewer per-trace lives at `.codewalk/<slug>/` in the target repo (not in thi
 ├── viewer.css         ← copied
 ├── serve.js           ← copied
 └── data.json          ← generated this run (the only file that varies per trace)
+```
+
+In playbook mode the same `.codewalk/<slug>/` folders exist for every catalog entry, plus a top-level index:
+
+```
+<repo-root>/.codewalk/
+├── index.html         ← playbook (copied from skills/codewalk/assets/playbook.html)
+├── playbook.js        ← copied
+├── playbook.css       ← copied
+├── serve.js           ← copied
+├── _build.mjs         ← copied from build-playbook.mjs (re-runnable)
+├── _catalog.json      ← authored by the skill in Phase 3'
+├── _traces.json       ← optional; authored by the skill in Phase 4'
+└── <slug>/            ← one per catalog entry (same layout as single-entry mode)
+    └── …
 ```
 
 ## Expected non-issues in the browser console
@@ -204,4 +273,4 @@ The viewer per-trace lives at `.codewalk/<slug>/` in the target repo (not in thi
 
 ## One-line summary
 
-`/codewalk <entry-point>` → depth-first walk with stop-and-ask on ambiguity → `.codewalk/<slug>/{index.html, viewer.js, viewer.css, serve.js, data.json}` → `node serve.js` → browser viewer + 5 comprehension questions + decisions checklist.
+`/codewalk <entry-point>` → depth-first walk with stop-and-ask on ambiguity → `.codewalk/<slug>/{index.html, viewer.js, viewer.css, serve.js, data.json}` → `node serve.js` → browser viewer (light or dark, toggle in header) + 5 comprehension questions + decisions checklist. **Playbook mode** (since v0.3.1): when the user asks for "all endpoints" / "index playbook", author `_catalog.json` + optional `_traces.json`, run `build-playbook.mjs`, and ship a top-level light-mode index with every entry linkable into its own viewer.

@@ -99,3 +99,74 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #262626; border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: #404040; }
+
+/* ── Light-mode overrides (since v0.3.1) ──────────────────────────────────
+   Opt in by adding `cw-light` to <body>. The viewer toggles it from
+   ?theme=light, localStorage, or the header toggle button. */
+
+body.cw-light .bg-neutral-925 { background-color: #f5f5f7 !important; }
+body.cw-light .bg-neutral-950 { background-color: #fafafa !important; }
+body.cw-light .bg-neutral-900 { background-color: #ffffff !important; }
+body.cw-light .bg-neutral-800,
+body.cw-light .bg-neutral-800\/50 { background-color: #efeff2 !important; }
+
+body.cw-light .text-neutral-100,
+body.cw-light .text-neutral-200 { color: #18181b !important; }
+body.cw-light .text-neutral-300 { color: #374151 !important; }
+body.cw-light .text-neutral-400,
+body.cw-light .text-neutral-500 { color: #6b7280 !important; }
+body.cw-light .text-neutral-600 { color: #9ca3af !important; }
+body.cw-light .text-neutral-700 { color: #d1d5db !important; }
+
+body.cw-light .border-neutral-800 { border-color: #e5e7eb !important; }
+body.cw-light .border-neutral-700 { border-color: #d1d5db !important; }
+body.cw-light .divide-neutral-800 > * + * { border-color: #e5e7eb !important; }
+
+body.cw-light .hover\:bg-neutral-800:hover,
+body.cw-light .hover\:bg-neutral-800\/50:hover { background-color: #efeff2 !important; }
+
+body.cw-light .text-emerald-200 { color: #047857 !important; }
+body.cw-light .text-emerald-300,
+body.cw-light .text-emerald-400 { color: #059669 !important; }
+body.cw-light .bg-emerald-900\/30,
+body.cw-light .bg-emerald-900\/40 { background-color: rgba(5, 150, 105, 0.08) !important; }
+body.cw-light .border-emerald-700\/50 { border-color: #059669 !important; }
+
+body.cw-light .text-amber-100,
+body.cw-light .text-amber-200,
+body.cw-light .text-amber-300,
+body.cw-light .text-amber-400 { color: #b45309 !important; }
+body.cw-light .bg-amber-900\/30 { background-color: rgba(180, 83, 9, 0.10) !important; }
+body.cw-light .border-amber-800\/50 { border-color: #b45309 !important; }
+
+body.cw-light .text-rose-300,
+body.cw-light .text-rose-400 { color: #be123c !important; }
+
+body.cw-light .cw-source {
+  background: #fbfbfd;
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+body.cw-light .cw-line__num {
+  color: #b3b6bc;
+  border-right-color: #e5e7eb;
+}
+body.cw-light .cw-line__code { color: #18181b; }
+body.cw-light .cw-line.cw-invoked { background: rgba(5, 150, 105, 0.08); }
+body.cw-light .cw-line.cw-invoked .cw-line__num { color: #047857; font-weight: 600; }
+body.cw-light .cw-call { color: #047857 !important; border-bottom-color: #059669; }
+body.cw-light .cw-call:hover { background: rgba(5, 150, 105, 0.10); }
+
+body.cw-light ::-webkit-scrollbar-thumb { background: #d4d4d8; }
+body.cw-light ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+/* Theme toggle button (header). */
+.cw-theme-btn {
+  width: 1.75rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border-radius: 4px;
+}

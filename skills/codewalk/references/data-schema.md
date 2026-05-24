@@ -225,4 +225,73 @@ Sanitization: lowercase ASCII alphanumeric + dash. Collapse runs of dashes. Stri
 - `invoked_lines` is a subset of the line numbers between `function_range[0]` and `function_range[1]` inclusive.
 - `source` line count equals `function_range[1] - function_range[0] + 1`.
 
+## Playbook mode — multi-entry catalog (since v0.3.1)
+
+When the user wants every endpoint / handler / job in a service traceable from a single index page, the skill switches to **playbook mode**. The deliverable is the same per-slug viewer plus a top-level `index.html` that lists every entry with live filtering. Two extra JSON files drive the build:
+
+### `_catalog.json`
+
+Top-level registry that the playbook's `index.html` consumes directly via `fetch('./_catalog.json')`. Required at `.codewalk/_catalog.json` for the playbook to render.
+
+```json
+{
+  "title": "MyService API Playbook",
+  "description": "Every traced entry point in this repository.",
+  "domains": [
+    { "key": "search", "label": "Search", "description": "Hot-path retrieval and selection persistence", "color": "emerald" },
+    { "key": "ingest", "label": "Ingest", "description": "Webhook + upload paths", "color": "violet" }
+  ],
+  "entries": [
+    {
+      "slug": "get-api-search",
+      "method": "GET",
+      "route": "/api/search",
+      "domain": "search",
+      "summary": "Hot-path search (Path A) or text fallback (Path B)",
+      "controller": "apps/api/src/search/search.controller.ts",
+      "entry": "GET /api/search"
+    }
+  ]
+}
+```
+
+Rules:
+- `slug` matches `/^[a-z0-9-]{1,80}$/` and uniquely identifies the sibling folder under `.codewalk/<slug>/`.
+- `domain` must reference a `domains[].key` (otherwise the entry lands in `_uncategorized`).
+- `method` is uppercase. The playbook ships color chips for `GET`/`POST`/`PATCH`/`PUT`/`DELETE`/`SSE`/`CLI`/`JOB`/`UI`; other values render in slate.
+- `color` is one of the Tailwind palette names the playbook knows: `emerald`, `violet`, `sky`, `indigo`, `fuchsia`, `rose`, `amber`, `teal`.
+- `summary` is one short sentence shown on the row. Keep it under ~90 chars.
+- Legacy `endpoints` is accepted as an alias for `entries` (so old IAR-style catalogs keep working).
+
+### `_traces.json` (optional)
+
+When present alongside `_catalog.json`, the builder uses it to populate rich per-slug `data.json` files in one pass. Without it, each slug folder gets a stub `data.json` that the user can deepen later via `/codewalk <entry>`.
+
+```json
+{
+  "entries": [
+    {
+      "slug": "get-api-search",
+      "entry_point": "GET /api/search",
+      "nodes": [/* same shape as the single-entry data.json nodes[] */],
+      "edges": [/* same shape as the single-entry data.json edges[] */],
+      "diagrams": { "sequence_mermaid": "...", "module_deps_mermaid": "..." },
+      "deferred_branches": []
+    }
+  ]
+}
+```
+
+Each `entries[i]` carries the same node/edge contract documented in the sections above; the builder copies them straight into `<slug>/data.json` and wraps with `version`, `generated_at`, `repo_root`. Slugs that appear in `_catalog.json` but not in `_traces.json` get the stub.
+
+### Builder
+
+The builder is shipped as `assets/build-playbook.mjs`. The skill copies it to `.codewalk/_build.mjs` during Phase 5 and runs it once. Re-run is idempotent — safe after the catalog grows or a `_traces.json` is added.
+
+```
+node .codewalk/_build.mjs --out .codewalk
+```
+
+See `SKILL.md` § "Playbook mode" for the full multi-entry workflow.
+
 Violating any of these is not a crash, but is a visible bug in the rendered viewer. The trace agent is the only validator.
