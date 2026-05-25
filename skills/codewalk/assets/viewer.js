@@ -83,6 +83,7 @@ function codewalk() {
     _index() {
       this._byId = {}
       this._callers = {}
+      this._byTypeName = {}
       for (const n of this.data.nodes) this._byId[n.id] = n
       for (const e of this.data.edges) {
         if (!this._callers[e.to]) this._callers[e.to] = []
@@ -92,6 +93,26 @@ function codewalk() {
         for (const cs of n.call_sites || []) {
           if (!this._byId[cs.callee_id]) console.warn('[codewalk] dangling callee_id', cs.callee_id, 'at', n.id)
         }
+      }
+      // Build a PascalCase-name → node-id map so the renderer can hyperlink any
+      // `class-name` token (TS class/type/interface/Zod schema, etc.) that
+      // appears in source. Names may be raw (`Foo`), qualified (`Foo.bar`), or
+      // annotated (`Foo (entity)`); extract the leading PascalCase identifier
+      // and rank matches so type-layer nodes win over function-layer nodes
+      // sharing the same head, and class-level nodes (name === head) win over
+      // qualified method-level nodes (name === `head.method`) (since v0.3.3).
+      const rank = (n, head) => {
+        if (n.layer === 'type') return 3
+        const simple = String(n.name || '').replace(/\s*\(.*$/, '').trim().split('.').pop()
+        return simple === head ? 2 : 1
+      }
+      for (const n of this.data.nodes) {
+        const cleaned = String(n.name || '').replace(/\s*\(.*$/, '').trim()
+        const head = cleaned.split('.')[0]
+        if (!/^[A-Z][A-Za-z0-9_$]*$/.test(head)) continue
+        const priorId = this._byTypeName[head]
+        const priorRank = priorId ? rank(this._byId[priorId], head) : -1
+        if (rank(n, head) > priorRank) this._byTypeName[head] = n.id
       }
     },
 
@@ -207,7 +228,13 @@ function codewalk() {
       // Prism receives the entity text and tokens render wrong (since v0.3.1).
       const raw = decodeEntities(node.source || '')
       const highlighted = grammar ? Prism.highlight(raw, grammar, lang) : escapeHTML(raw)
-      const lines = highlighted.split('\n')
+      // Hyperlink PascalCase type/class references: wrap every Prism
+      // `class-name` token whose text matches a known node name (via
+      // `_byTypeName`) in a `.cw-call` anchor (since v0.3.3). Self-references
+      // (same node) and missing matches stay un-wrapped. The call_sites
+      // line-level wrap below still applies in addition.
+      const enriched = this._linkTypeTokens(highlighted, node.id)
+      const lines = enriched.split('\n')
       const startLine = node.function_range?.[0] ?? 1
       const invoked = new Set(node.invoked_lines || [])
       const callsByLine = {}
@@ -227,6 +254,30 @@ function codewalk() {
         out.push(`<div class="${cls}" data-line="${absLine}"><span class="cw-line__num">${absLine}</span><span class="cw-line__code">${code}</span></div>`)
       }
       return out.join('')
+    },
+
+    _linkTypeTokens(html, selfId) {
+      const map = this._byTypeName || {}
+      const names = Object.keys(map).filter((n) => map[n] !== selfId)
+      if (!names.length) return html
+      // Build an alternation; order longest-first so `ProductsListQueryDto`
+      // wins over a hypothetical shorter prefix when both are registered.
+      const alt = names.sort((a, b) => b.length - a.length).map((n) => n.replace(/[$]/g, '\\$&')).join('|')
+      const identRe = new RegExp(`\\b(?:${alt})\\b`, 'g')
+      // Replace only inside text nodes — never inside HTML tags (attributes /
+      // existing span openers). Split into tag-or-text chunks and rebuild;
+      // this works whether the input is Prism-tokenized output OR plain
+      // escaped HTML (since v0.3.3 — Prism's TypeScript grammar fails to
+      // self-bootstrap on prism-core, so on first render the highlighter
+      // returns escaped plain text with no class-name spans to match).
+      return html.replace(/(<[^>]+>)|([^<]+)/g, (_m, tag, text) => {
+        if (tag) return tag
+        return text.replace(identRe, (name) => {
+          const id = map[name]
+          if (!id || id === selfId) return name
+          return `<span class="cw-call cw-type-link" data-callee-id="${escapeAttr(id)}">${name}</span>`
+        })
+      })
     },
 
     _prismLang(l) {

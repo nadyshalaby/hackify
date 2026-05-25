@@ -5,6 +5,24 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-05-25
+
+> **Patch-level scope: codewalk viewer follow-up — type-token hyperlinks, light-mode skipped-line legibility, clickable header breadcrumb.** Three additive fixes surfaced when actually using the v0.3.2 playbook end-to-end on a real 53-endpoint NestJS service. User-visible polish only; no schema change, no trace re-walk required.
+
+### Added
+
+- **`skills/codewalk/assets/viewer.js` `_byTypeName` index + `_linkTypeTokens()` Prism post-processor.** On every trace load, `_index()` now builds a PascalCase-name → node-id lookup over every node whose simple name (last `.` segment) matches `^[A-Z][A-Za-z0-9_$]*$`, preferring `layer: "type"` nodes when two layers share a name. `renderSource()` then wraps every Prism `class-name` token whose text matches a known node in a `.cw-call.cw-type-link` anchor — so a class/interface/type/DTO/Zod-schema identifier appearing anywhere in the source pane is now clickable and jumps to that node's viewer. Self-references (same node) and missing matches stay un-wrapped. Works alongside the existing line-level `call_sites[]` wrap; both can co-exist on the same line and the inner type-link wins on click (via `closest('[data-callee-id]')`).
+- **`.cw-type-link` styling.** Dotted underline (vs the dashed underline used by the line-level `.cw-call`) so the user can distinguish "click this whole call-site line" from "click this one type identifier" at a glance. Color tracks Prism's `class-name` palette per theme.
+
+### Changed
+
+- **`skills/codewalk/assets/viewer.html` header breadcrumb is now interactive (since v0.3.3).** The previously-decorative `codewalk` span is a back-link to `../` (the playbook index), with a `← codewalk` label + hover affordance — so a user reading any per-trace viewer can one-click back to the catalog. The entry-point label (e.g., `GET /api/admin/products`) became a `<button>` that calls `select(data.nodes[0].id)` and jumps to the entry node — useful after the user has navigated several layers deep through call-site clicks and wants to reset to the root without using the Back arrow.
+- **`skills/codewalk/assets/viewer.css` light-mode skipped-line styling.** The dark-mode rule applies `opacity: 0.32 + font-style: italic` to non-invoked lines; on a white background this rendered as faded grey-on-grey italic that the user reported as unreadable. Light mode now overrides with solid `color: #6b7280`, no opacity, no italic, and force-overrides every nested Prism token to the same grey via `body.cw-light .cw-line.cw-skipped .cw-line__code *` — so non-invoked branches stay legible without visually competing with the green-highlighted invoked block. The gutter line-numbers stay lighter (#c4c7cc) to preserve the invoked/skipped contrast in the gutter.
+
+### Rationale
+
+The v0.3.2 deep-trace mandate produced rich traces where every controller/service/repository/external boundary AND every type/interface/DTO referenced on the path emitted its own node — but the viewer only hyperlinked the FUNCTION nodes via line-level `call_sites[]` wraps. The TYPE nodes were reachable from the file tree but not from the source pane where the user actually reads them — a `ProductFilter` identifier in a method signature led nowhere. v0.3.3 closes that gap by hyperlinking at the Prism-token level so the type/class/DTO identifier the user sees in the source IS the click target. Two adjacent gaps surfaced the same session: the decorative `codewalk` breadcrumb suggested a back-link that wasn't there (the user expected to click it to return to the playbook), and the light-mode skipped-line styling was inherited from dark mode where italic+0.32-opacity is legible on `#0d0d0d` but unreadable on `#fbfbfd`. Patch-level (not minor) because every change is additive: existing v0.3.2 traces render correctly without re-walking, the breadcrumb still works without a parent playbook (404 on `../` is acceptable for one-off traces), and the dark theme styling is untouched.
+
 ## [0.3.2] - 2026-05-25
 
 > **Patch-level scope: codewalk depth & types mandate, update-by-default, light theme by default, hackify finish hand-off.** Six additive changes to the codewalk + hackify skills, surfaced when re-running the v0.3.1 playbook against a real 53-endpoint NestJS API and finding: every trace stopped at the controller boundary (one node per slug); re-runs blind-overwrote existing files; the dark-by-default viewer didn't match the user's expectation that tooling demos open light. Backwards-compatible — single-entry and playbook traces written under v0.3.1 still load; users who prefer dark can `?theme=dark` or click the header ☾ toggle.

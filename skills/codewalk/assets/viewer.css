@@ -187,6 +187,30 @@ body.cw-light .cw-line.cw-invoked .cw-line__num { color: #047857; font-weight: 6
 body.cw-light .cw-call { color: #047857 !important; border-bottom-color: #059669; }
 body.cw-light .cw-call:hover { background: rgba(5, 150, 105, 0.10); }
 
+/* Skipped (non-invoked) lines on light background: the dark-mode rule uses
+   `opacity: 0.32 + italic` which on white renders as faded grey-on-grey that
+   the user reported as unreadable. Override to a solid mid-grey, drop the
+   italic, and force every nested Prism token to the same grey so the
+   syntax-highlighted-but-not-invoked branches stay legible without competing
+   visually with the invoked block (since v0.3.3). */
+body.cw-light .cw-line.cw-skipped { opacity: 1; }
+body.cw-light .cw-line.cw-skipped .cw-line__code,
+body.cw-light .cw-line.cw-skipped .cw-line__code * {
+  color: #6b7280 !important;
+  font-style: normal !important;
+}
+body.cw-light .cw-line.cw-skipped .cw-line__num { color: #c4c7cc; }
+
+/* Inline type-link tokens (since v0.3.3). The Prism `class-name` token is
+   wrapped in a `.cw-call.cw-type-link` span when its text matches a known
+   node name. Use a softer underline than the line-level cw-call so users
+   can distinguish "click whole call-site line" from "click this one type
+   identifier". */
+.cw-type-link { border-bottom-style: dotted !important; }
+body.cw-light .cw-type-link { color: #1d4ed8 !important; border-bottom-color: #1d4ed8 !important; }
+body.cw-light .cw-type-link:hover { background: rgba(29, 78, 216, 0.08); }
+.cw-type-link:hover { background: rgba(96, 165, 250, 0.12); }
+
 /* Prism syntax tokens — the default `prism.min.css` light theme uses pale hues
    (slategray for comments, #999 for punctuation) that look washed on our
    off-white code-pane background. Override with stronger values that hold

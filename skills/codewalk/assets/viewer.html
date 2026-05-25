@@ -34,9 +34,14 @@
   <!-- Top bar -->
   <header class="border-b border-neutral-800 bg-neutral-900 sticky top-0 z-20">
     <div class="flex items-center gap-3 px-4 py-2 text-sm">
-      <span class="font-mono text-neutral-500">codewalk</span>
+      <a href="../" class="font-mono text-neutral-500 hover:text-emerald-300 transition-colors" title="back to playbook">← codewalk</a>
       <span class="text-neutral-700">/</span>
-      <span class="font-medium text-neutral-100 truncate max-w-[40ch]" x-text="data.entry_point || 'no data.json found'"></span>
+      <button
+        @click="data.nodes?.[0]?.id && select(data.nodes[0].id)"
+        class="font-medium text-neutral-100 truncate max-w-[40ch] hover:text-emerald-300 transition-colors text-left"
+        :title="'jump to entry: ' + (data.nodes?.[0]?.name || '')"
+        x-text="data.entry_point || 'no data.json found'"
+      ></button>
       <span class="text-neutral-700">·</span>
       <span class="text-neutral-500 font-mono text-xs" x-text="data.slug || ''"></span>
 
