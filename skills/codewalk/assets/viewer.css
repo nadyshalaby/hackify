@@ -112,16 +112,28 @@ body.cw-light .bg-neutral-800\/50 { background-color: #efeff2 !important; }
 
 /* Dark-mode text-neutral-* utilities translate to white-on-grey hues; on a
    light background they need to flip to dark-on-white hues so the body copy
-   stays readable. Earlier (v0.3.1/v0.3.2-pre) versions mapped neutral-700 →
-   #d1d5db which is light-grey on white — effectively invisible. Tightened
-   here so every shade above 300 carries WCAG AA contrast vs #ffffff. */
+   stays readable. Two-prong selector list because the body element itself
+   carries both `cw-light` AND a `text-neutral-200` utility — a descendant-
+   combinator selector (the second clause) does NOT match `body.cw-light`
+   itself, so the same-element form (first clause) is required to defeat
+   Tailwind Play CDN's runtime-injected `.text-neutral-200`. */
+body.cw-light.text-neutral-100,
+body.cw-light.text-neutral-200,
 body.cw-light .text-neutral-100,
 body.cw-light .text-neutral-200 { color: #0a0a0a !important; }
+body.cw-light.text-neutral-300,
 body.cw-light .text-neutral-300 { color: #1f2937 !important; }
+body.cw-light.text-neutral-400,
 body.cw-light .text-neutral-400 { color: #1f2937 !important; }
+body.cw-light.text-neutral-500,
 body.cw-light .text-neutral-500 { color: #374151 !important; }
+body.cw-light.text-neutral-600,
 body.cw-light .text-neutral-600 { color: #4b5563 !important; }
+body.cw-light.text-neutral-700,
 body.cw-light .text-neutral-700 { color: #6b7280 !important; }
+/* Base fallback — covers any plain inherited text on body that doesn't carry
+   a text-neutral-* utility class. */
+body.cw-light { color: #0a0a0a; }
 
 body.cw-light .border-neutral-800 { border-color: #e5e7eb !important; }
 body.cw-light .border-neutral-700 { border-color: #d1d5db !important; }
