@@ -225,6 +225,38 @@ Don't skip this. The Retrospective is what compounds learning across tasks. It's
 
 ---
 
+## Step D.5 — Codewalk follow-up (since v0.3.2)
+
+If the task touched an **entry point** — a route handler, a CLI command, a queue / Inngest function, a UI action — ask the user whether to refresh or create a `/codewalk` trace for it. Codewalk is the cheapest way to keep the team's mental model of the touched flow in sync with the change you just shipped.
+
+**Detect entry-point touches** from the work-doc's "Files changed" list (or `git diff --stat <base>..HEAD --name-only` if absent). An entry-point file matches any of:
+
+- `*.controller.ts` / `*Controller.ts` / `controllers/*.ts` (NestJS, Express)
+- `*.cli.ts` / `cli/*.ts` / `bin/*.ts` (CLI commands)
+- `inngest/*.ts` / `*.queue.ts` / `*.job.ts` / `workers/*.ts` (queue/job handlers)
+- `app/**/route.ts` / `pages/api/*.ts` (Next.js routes)
+- `*RouteHandler.ts` / `*.action.ts` (UI actions, server actions)
+- `routes/*.{ts,py,rb,go,rs}` (Express/Flask/Rails/Echo/Axum)
+
+If zero entry-point files were touched, **skip this step silently** — no prompt.
+
+Otherwise, ask the user via the `AskUserQuestion` tool (one question, wizard-style):
+
+> **Header:** Codewalk
+>
+> **Question:** This task touched `<file>` (and N other entry-point files). Update or create a `/codewalk` trace so the next reader has the current call graph?
+>
+> Options:
+> - **Update existing trace at `.codewalk/<slug>/`** *(Recommended)* — slug already exists; re-running `/codewalk` will merge, preserve manual edits, and surface a diff callout.
+> - **Create new codewalk for `<entry>`** — slug does not exist yet; this seeds the team's catalog with this flow.
+> - **Skip — no codewalk needed** — the touched entry is internal-only / not worth tracing, or the team uses a different artifact for this.
+
+To detect the slug, derive it from the touched controller's primary route (`<method-lowercase>-<path-sanitized>` per `skills/codewalk/references/data-schema.md` "Slug convention"). If the catalog `.codewalk/_catalog.json` exists, prefer the slug from there.
+
+On "Update" or "Create", invoke `/codewalk <entry-point>` immediately. On "Skip", continue to Step E. Do not loop — this is a single ask per Finish.
+
+---
+
 ## Step E — worktree cleanup
 
 If the work was done in a git worktree (frontmatter `worktree:` is set):

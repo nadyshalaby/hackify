@@ -260,6 +260,8 @@ If any class finds defects, fix them inline before archiving; if a defect is too
 
 **Step D — archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory — 3–8 bullets on what surprised, what to remember.
 
+**Step D.5 — Codewalk follow-up** *(since v0.3.2; 1 or 2 only)*: if the task touched an entry-point file (controller, CLI command, queue/Inngest function, UI action, route handler), ask the user via `AskUserQuestion` whether to *update an existing* `.codewalk/<slug>/` trace, *create a new codewalk* for the touched entry, or *skip*. On Update/Create, invoke `/codewalk <entry-point>` immediately — codewalk runs in update-by-default mode so a re-invoke preserves manual edits and produces an amber diff callout. Skip silently when no entry-point files were touched. Details + the file-pattern detection list + the exact AskUserQuestion shape: `references/finish.md` Step D.5.
+
 **Step E — worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.
 
 **Step F — Summary table** (1 or 2 only): Generate a concise 2-column Area/Change markdown table covering every change shipped. Print to chat. Append the same table to the archived work-doc inside Retrospective under a new `## Summary of changes shipped` subheading. Area labels are 1–4 word concept/theme tokens; Change cells ≤25 words with `backticks` for technical terms. See `references/finish.md` "Summary table — authoring guidance".

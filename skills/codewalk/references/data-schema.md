@@ -35,7 +35,7 @@ The schema below is normative. Field names are exact. The order of array element
 | `repo_root` | string | yes | Absolute path of the repo the trace targets. Used by the viewer to render relative paths and `git blame` link targets. |
 | `nodes` | array | yes | One entry per function on the path. Order is visit order (DFS). Length ≥ 1. |
 | `edges` | array | yes | One entry per call edge taken on the path. Order is invocation order. |
-| `layers` | object | yes | Bucketing of node IDs by architectural layer. Keys: `controller`, `service`, `repository`, `external`, `other`. Values are arrays of node IDs. Empty arrays allowed. |
+| `layers` | object | yes | Bucketing of node IDs by architectural layer. Keys: `controller`, `service`, `repository`, `external`, `type`, `other`. Values are arrays of node IDs. Empty arrays allowed. |
 | `diagrams` | object | yes | Pre-rendered Mermaid sources plus structured invariants and failure modes. Schema below. |
 | `deferred_branches` | array | yes | Branches not taken at any node, lifted to top level so the viewer can show them on the Diagrams tab. Empty array if none. |
 | `diff_vs_previous` | object \| null | yes | `null` on first run. On re-run, summarizes what changed. Schema below. |
@@ -96,7 +96,7 @@ Each node is one function on the traced path. The node ID is `<file>:<function_n
 | `file` | string | yes | Path RELATIVE to `repo_root`. Forward slashes on all platforms. |
 | `depth` | int | yes | DFS depth from entry point. Entry node is `depth: 0`. |
 | `order` | int | yes | Visit order across the whole trace. Entry node is `order: 0`. Strictly increasing across `nodes[]`. |
-| `layer` | string | yes | One of `controller`, `service`, `repository`, `external`, `other`. Determines layer column on the Mermaid sequence diagram. |
+| `layer` | string | yes | One of `controller`, `service`, `repository`, `external`, `type`, `other`. Determines layer column on the Mermaid sequence diagram. **`type` is special**: see "Type-definition nodes" below. |
 | `language` | string | yes | Per-node language override. Same enum as top-level `language`. Lets a polyglot trace highlight each file correctly. |
 | `function_range` | `[int, int]` | yes | `[start_line, end_line]` of the full function declaration, 1-indexed, inclusive. |
 | `invoked_range` | `[int, int]` | yes | The narrowest contiguous line range that contains every line that fires on this path. May equal `function_range` if the whole body fires. |
@@ -133,6 +133,62 @@ Each node is one function on the traced path. The node ID is `<file>:<function_n
 ```
 
 `side_effects` is an array of zero or more of the fixed set: `db`, `queue`, `http`, `cache`, `auth`, `fs`. The viewer renders these as colored chips. Anything outside the set is silently dropped — keep classification consistent.
+
+## Type-definition nodes (`layer: "type"`)
+
+A type node represents a TypeScript `interface`, `type` alias, `class` (declaration only — not its method bodies), `enum`, Zod schema (`z.object({ ... })`), TypeORM entity, NestJS DTO, or equivalent named-shape declaration in other languages (Python `dataclass`, Pydantic model, Go `struct`, Rust `struct`/`enum`, Ruby `Struct`, Java `record`/`class`-as-DTO).
+
+Type nodes share the same JSON shape as function nodes, but with these specific values:
+
+```json
+{
+  "id": "src/search/search.dto.ts:SearchQuerySchema",
+  "name": "SearchQuerySchema",
+  "file": "src/search/search.dto.ts",
+  "depth": 1,
+  "order": 7,
+  "layer": "type",
+  "language": "typescript",
+  "function_range": [12, 34],
+  "invoked_range": [12, 34],
+  "source": "export const SearchQuerySchema = z.object({\n  q: z.string().min(1).max(200),\n  lat: z.coerce.number().min(-90).max(90),\n  lng: z.coerce.number().min(-180).max(180),\n  radius_km: z.coerce.number().min(0.1).max(50).default(5),\n  ...\n})",
+  "invoked_lines": [],
+  "call_sites": [],
+  "docblock": {
+    "purpose": "Zod schema validating the GET /api/search query string.",
+    "inputs": [],
+    "outputs": "SearchQuery (inferred via z.infer)",
+    "side_effects": [],
+    "ownership": "Lives next to the controller it validates. Inferred TypeScript type is exported alongside."
+  },
+  "data_in": "raw URL query record",
+  "data_out": "SearchQuery",
+  "risk": "none observed on this path",
+  "branches_not_taken": [],
+  "git_blame": { "last_author": "Jane Doe", "last_date": "2026-04-12", "last_pr": "#882" }
+}
+```
+
+Conventions:
+
+- `invoked_lines` is `[]`. Type declarations aren't "executed" — the viewer simply shows the body greyed (no green-highlight).
+- `call_sites` is `[]` in nearly all cases. A `class` whose own methods are traced has its methods captured as separate function nodes.
+- `branches_not_taken` is `[]`. Types have no runtime control flow.
+- `data_in` is the upstream raw payload that gets coerced INTO this shape; `data_out` is the validated/typed result. For pure type-aliases (`type X = Y & Z`), both equal the type itself.
+- `risk` is usually `"none observed on this path"`. Real risks belong on the function that USES the type.
+
+Type nodes are reached via `call_sites` entries on function nodes:
+
+```json
+// On the controller node:
+"call_sites": [
+  { "line": 80, "fragment": "ZodValidationPipe(SearchQuerySchema)", "callee_id": "src/search/search.dto.ts:SearchQuerySchema" }
+]
+```
+
+The viewer renders `SearchQuerySchema` in the controller source as a clickable cw-call span. Clicking it navigates to the type node — same as clicking any other callee — and the right rail shows the schema body.
+
+**Emit a type node for every named shape that appears on the path.** If `data_in: "AuthContext"` appears in any function node's docblock, `AuthContext` must exist as a node. Otherwise the trace claims a shape it can't show.
 
 ## Edges
 
@@ -172,7 +228,7 @@ Each node is one function on the traced path. The node ID is `<file>:<function_n
 
 All five sub-fields are required. Empty array allowed for `data_evolution`, `invariants`, `failure_modes` when the trace is too shallow to warrant them. Empty string allowed for the two Mermaid sources but discouraged — the viewer will render an empty diagram placeholder.
 
-Layer names in `sequence_mermaid` MUST be `Controller`, `Service`, `Repository`, `External`, or `Other` — matching `layers` keys, capitalized. This keeps the diagram architectural rather than class-named.
+Layer names in `sequence_mermaid` MUST be `Controller`, `Service`, `Repository`, `External`, `Type`, or `Other` — matching `layers` keys, capitalized. This keeps the diagram architectural rather than class-named. Type nodes generally do NOT appear as participants in the sequence diagram (they aren't actors); they're referenced inline via the message labels (e.g. `Controller->>Service: search(query: SearchQuery)`).
 
 ## deferred_branches
 

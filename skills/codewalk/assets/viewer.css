@@ -142,6 +142,19 @@ body.cw-light .border-amber-800\/50 { border-color: #b45309 !important; }
 body.cw-light .text-rose-300,
 body.cw-light .text-rose-400 { color: #be123c !important; }
 
+/* Layer-chip colors in light mode (since v0.3.2). The dark palette uses
+   `bg-<hue>-900/40 text-<hue>-200` from layerClass(). Mirror each pair to a
+   readable light value so the layer chip stays legible on white. */
+body.cw-light .bg-sky-900\/40 { background-color: rgba(2, 132, 199, 0.10) !important; }
+body.cw-light .text-sky-200 { color: #0369a1 !important; }
+body.cw-light .bg-violet-900\/40 { background-color: rgba(124, 58, 237, 0.10) !important; }
+body.cw-light .text-violet-200 { color: #6d28d9 !important; }
+body.cw-light .bg-fuchsia-900\/40 { background-color: rgba(192, 38, 211, 0.10) !important; }
+body.cw-light .text-fuchsia-200 { color: #a21caf !important; }
+body.cw-light .bg-amber-900\/40 { background-color: rgba(217, 119, 6, 0.10) !important; }
+body.cw-light .text-amber-200 { color: #b45309 !important; }
+/* emerald-900/40 + text-emerald-200 already covered above */
+
 body.cw-light .cw-source {
   background: #fbfbfd;
   border-color: #e5e7eb;

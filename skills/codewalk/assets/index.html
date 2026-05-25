@@ -14,12 +14,14 @@
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs'
     // Theme picked up from URL ?theme=light|dark or localStorage by viewer.js.
-    const wantsLight = (() => {
+    // Light is the default since v0.3.2; dark requires explicit ?theme=dark or
+    // a stored `codewalk-theme=dark` preference.
+    const wantsDark = (() => {
       const p = new URLSearchParams(location.search).get('theme')
-      if (p === 'light' || p === 'dark') return p === 'light'
-      try { return localStorage.getItem('codewalk-theme') === 'light' } catch { return false }
+      if (p === 'light' || p === 'dark') return p === 'dark'
+      try { return localStorage.getItem('codewalk-theme') === 'dark' } catch { return false }
     })()
-    mermaid.initialize({ startOnLoad: false, theme: wantsLight ? 'default' : 'dark', securityLevel: 'loose' })
+    mermaid.initialize({ startOnLoad: false, theme: wantsDark ? 'dark' : 'default', securityLevel: 'loose' })
     window.mermaid = mermaid
   </script>
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
@@ -27,7 +29,7 @@
     Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/'
   </script>
 </head>
-<body class="bg-neutral-950 text-neutral-200 antialiased" x-data="codewalk()" x-init="boot()" x-cloak>
+<body class="cw-light bg-neutral-950 text-neutral-200 antialiased" x-data="codewalk()" x-init="boot()" x-cloak>
 
   <!-- Top bar -->
   <header class="border-b border-neutral-800 bg-neutral-900 sticky top-0 z-20">
@@ -254,7 +256,7 @@
                 <div class="text-xs font-mono text-neutral-500" x-text="node.file + ':' + node.function_range[0]"></div>
                 <h3 class="font-mono text-lg text-neutral-100" x-text="node.name"></h3>
               </div>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 uppercase tracking-wider" x-text="node.layer"></span>
+              <span class="text-[10px] px-2 py-0.5 rounded uppercase tracking-wider" :class="layerClass(node.layer)" x-text="node.layer"></span>
             </header>
             <div class="cw-source" x-html="renderSource(node)"></div>
             <div class="mt-3 text-sm text-neutral-400" x-show="node.risk && node.risk !== 'none observed on this path'">
@@ -268,7 +270,10 @@
       <div x-show="tab==='code' && !storyMode && currentNode" class="p-6">
         <header class="mb-4">
           <div class="text-xs font-mono text-neutral-500" x-text="currentNode?.file + ':' + currentNode?.function_range[0]"></div>
-          <h3 class="font-mono text-xl text-neutral-100" x-text="currentNode?.name"></h3>
+          <div class="flex items-center gap-3 flex-wrap mt-1">
+            <h3 class="font-mono text-xl text-neutral-100" x-text="currentNode?.name"></h3>
+            <span class="text-[10px] px-2 py-0.5 rounded uppercase tracking-wider" :class="layerClass(currentNode?.layer)" x-text="currentNode?.layer"></span>
+          </div>
         </header>
         <div class="cw-source" x-html="currentNode ? renderSource(currentNode) : ''"></div>
       </div>

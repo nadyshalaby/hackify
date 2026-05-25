@@ -144,8 +144,13 @@ function buildOne(outDir, catalogEntry, traceMap) {
   fs.mkdirSync(slugDir, { recursive: true });
   copyAssets(slugDir, VIEWER_FILES);
   const traceEntry = traceMap.get(catalogEntry.slug);
+  const dataPath = path.join(slugDir, 'data.json');
+  if (!traceEntry && fs.existsSync(dataPath)) {
+    const existing = readJsonOrDie(dataPath);
+    if (Array.isArray(existing.nodes) && existing.nodes.length >= 2) return;
+  }
   const data = traceEntry ? rewriteRichEntry(catalogEntry, traceEntry) : buildStubEntry(catalogEntry);
-  fs.writeFileSync(path.join(slugDir, 'data.json'), JSON.stringify(data, null, 2));
+  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
 }
 
 function main() {

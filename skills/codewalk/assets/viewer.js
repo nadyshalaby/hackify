@@ -14,7 +14,7 @@ function codewalk() {
     _byId: {},
     _callers: {},
 
-    theme: 'dark',
+    theme: 'light',
 
     async boot() {
       this._applyInitialTheme()
@@ -40,12 +40,12 @@ function codewalk() {
     },
 
     _applyInitialTheme() {
-      // Precedence (since v0.3.1): URL ?theme=light|dark → localStorage codewalk-theme → default 'dark'.
+      // Precedence (since v0.3.2): URL ?theme=light|dark → localStorage codewalk-theme → default 'light'.
       const params = new URLSearchParams(location.search)
       const fromUrl = params.get('theme')
       const fromStorage = (() => { try { return localStorage.getItem('codewalk-theme') } catch { return null } })()
-      const next = fromUrl || fromStorage || 'dark'
-      this.theme = next === 'light' ? 'light' : 'dark'
+      const next = fromUrl || fromStorage || 'light'
+      this.theme = next === 'dark' ? 'dark' : 'light'
       this._applyThemeClass()
     },
 
@@ -187,6 +187,18 @@ function codewalk() {
       return palette[se] || 'bg-neutral-800 text-neutral-300'
     },
 
+    layerClass(layer) {
+      const palette = {
+        controller: 'bg-sky-900/40 text-sky-200',
+        service: 'bg-violet-900/40 text-violet-200',
+        repository: 'bg-fuchsia-900/40 text-fuchsia-200',
+        external: 'bg-amber-900/40 text-amber-200',
+        type: 'bg-emerald-900/40 text-emerald-200',
+        other: 'bg-neutral-800 text-neutral-300',
+      }
+      return palette[layer] || 'bg-neutral-800 text-neutral-300'
+    },
+
     renderSource(node) {
       const lang = this._prismLang(node.language || this.data.language)
       const grammar = Prism.languages[lang] || Prism.languages.javascript || Prism.languages.markup
@@ -263,12 +275,20 @@ function codewalk() {
       const callee = this._byId[id]
       if (!callee) return
       const rect = target.getBoundingClientRect()
+      // For type-layer nodes, show the first ~6 lines of the type body alongside
+      // the purpose — types ARE their declarations, so previewing them is the
+      // primary signal in the tooltip (since v0.3.2).
+      let body = callee.docblock?.purpose || '(no purpose recorded)'
+      if (callee.layer === 'type' && callee.source) {
+        const preview = String(callee.source).split('\n').slice(0, 6).join('\n')
+        body = `${body}\n\n${preview}`
+      }
       this.tooltip = {
         visible: true,
         x: Math.min(rect.left, window.innerWidth - 480),
         y: rect.bottom + 6,
         title: `${callee.name}  ·  ${callee.layer}`,
-        body: callee.docblock?.purpose || '(no purpose recorded)',
+        body,
       }
     },
 
