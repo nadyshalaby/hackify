@@ -77,7 +77,7 @@ MIRROR_SOURCES=(
   "skills/codewalk/SKILL.md"
   "skills/codewalk/references/data-schema.md"
   "skills/codewalk/references/trace-rubric.md"
-  "skills/codewalk/assets/index.html"
+  "skills/codewalk/assets/viewer.html"
   "skills/codewalk/assets/viewer.js"
   "skills/codewalk/assets/viewer.css"
   "skills/codewalk/assets/serve.js"

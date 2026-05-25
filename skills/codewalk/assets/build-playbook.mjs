@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS_DIR = __dirname;
 const PLAYBOOK_FILES = ['playbook.js', 'playbook.css', 'serve.js'];
-const VIEWER_FILES = ['index.html', 'viewer.js', 'viewer.css'];
+const VIEWER_FILES = ['viewer.html', 'viewer.js', 'viewer.css'];
 
 function parseArgs(argv) {
   const args = { out: '.codewalk' };
@@ -60,9 +60,13 @@ function readJsonOrDie(file) {
 }
 
 function copyAssets(outDir, files) {
+  // The per-trace viewer source is named `viewer.html` in the skill assets
+  // (since v0.3.2); each slug folder serves it as `index.html` so users hit
+  // the viewer at `/<slug>/`. This rename was introduced to break the
+  // `index.html` name collision with the playbook entrypoint.
   for (const f of files) {
     const src = path.join(ASSETS_DIR, f);
-    const dst = path.join(outDir, f);
+    const dst = path.join(outDir, f === 'viewer.html' ? 'index.html' : f);
     if (!fs.existsSync(src)) continue;
     fs.copyFileSync(src, dst);
   }

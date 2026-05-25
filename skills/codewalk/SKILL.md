@@ -161,7 +161,7 @@ Create `.codewalk/<slug>/` at the repo root. Copy the four asset files from this
 
 ```bash
 mkdir -p .codewalk/<slug>
-cp <skill-dir>/assets/index.html .codewalk/<slug>/index.html
+cp <skill-dir>/assets/viewer.html .codewalk/<slug>/index.html   # per-trace HTML — renamed on copy
 cp <skill-dir>/assets/viewer.js  .codewalk/<slug>/viewer.js
 cp <skill-dir>/assets/viewer.css .codewalk/<slug>/viewer.css
 cp <skill-dir>/assets/serve.js   .codewalk/<slug>/serve.js
@@ -291,7 +291,7 @@ When in doubt, ask. Playbook mode is heavier — it touches every entry, not one
 skills/codewalk/
 ├── SKILL.md                       ← this file
 ├── assets/
-│   ├── index.html                 ← per-trace viewer shell (Tailwind + Alpine + Prism + Mermaid + marked, all CDN)
+│   ├── viewer.html                ← per-trace viewer shell, copied to <slug>/index.html (Tailwind + Alpine + Prism + Mermaid + marked, all CDN)
 │   ├── viewer.js                  ← Alpine component (load/render/navigate/diagrams/theme)
 │   ├── viewer.css                 ← Prism overrides + invoked-line highlight + light-mode block
 │   ├── serve.js                   ← Node stdlib HTTP server (port pick + browser open)
@@ -308,7 +308,7 @@ The per-trace viewer (single-entry mode) lives at `.codewalk/<slug>/` in the tar
 
 ```
 <repo-root>/.codewalk/<slug>/
-├── index.html         ← copied from skills/codewalk/assets/
+├── index.html         ← copied from skills/codewalk/assets/viewer.html (renamed)
 ├── viewer.js          ← copied
 ├── viewer.css         ← copied
 ├── serve.js           ← copied
