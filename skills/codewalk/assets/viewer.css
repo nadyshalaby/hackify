@@ -110,13 +110,18 @@ body.cw-light .bg-neutral-900 { background-color: #ffffff !important; }
 body.cw-light .bg-neutral-800,
 body.cw-light .bg-neutral-800\/50 { background-color: #efeff2 !important; }
 
+/* Dark-mode text-neutral-* utilities translate to white-on-grey hues; on a
+   light background they need to flip to dark-on-white hues so the body copy
+   stays readable. Earlier (v0.3.1/v0.3.2-pre) versions mapped neutral-700 →
+   #d1d5db which is light-grey on white — effectively invisible. Tightened
+   here so every shade above 300 carries WCAG AA contrast vs #ffffff. */
 body.cw-light .text-neutral-100,
-body.cw-light .text-neutral-200 { color: #18181b !important; }
-body.cw-light .text-neutral-300 { color: #374151 !important; }
-body.cw-light .text-neutral-400,
-body.cw-light .text-neutral-500 { color: #6b7280 !important; }
-body.cw-light .text-neutral-600 { color: #9ca3af !important; }
-body.cw-light .text-neutral-700 { color: #d1d5db !important; }
+body.cw-light .text-neutral-200 { color: #0a0a0a !important; }
+body.cw-light .text-neutral-300 { color: #1f2937 !important; }
+body.cw-light .text-neutral-400 { color: #1f2937 !important; }
+body.cw-light .text-neutral-500 { color: #374151 !important; }
+body.cw-light .text-neutral-600 { color: #4b5563 !important; }
+body.cw-light .text-neutral-700 { color: #6b7280 !important; }
 
 body.cw-light .border-neutral-800 { border-color: #e5e7eb !important; }
 body.cw-light .border-neutral-700 { border-color: #d1d5db !important; }
@@ -169,6 +174,44 @@ body.cw-light .cw-line.cw-invoked { background: rgba(5, 150, 105, 0.08); }
 body.cw-light .cw-line.cw-invoked .cw-line__num { color: #047857; font-weight: 600; }
 body.cw-light .cw-call { color: #047857 !important; border-bottom-color: #059669; }
 body.cw-light .cw-call:hover { background: rgba(5, 150, 105, 0.10); }
+
+/* Prism syntax tokens — the default `prism.min.css` light theme uses pale hues
+   (slategray for comments, #999 for punctuation) that look washed on our
+   off-white code-pane background. Override with stronger values that hold
+   WCAG AA against #fbfbfd. Only applied in cw-light so dark mode keeps the
+   prism-tomorrow palette. */
+body.cw-light .token.comment,
+body.cw-light .token.prolog,
+body.cw-light .token.doctype,
+body.cw-light .token.cdata { color: #6b7280 !important; font-style: italic; }
+body.cw-light .token.punctuation { color: #475569 !important; }
+body.cw-light .token.namespace { opacity: 0.85; }
+body.cw-light .token.property,
+body.cw-light .token.tag,
+body.cw-light .token.boolean,
+body.cw-light .token.number,
+body.cw-light .token.constant,
+body.cw-light .token.symbol,
+body.cw-light .token.deleted { color: #b91c1c !important; }
+body.cw-light .token.selector,
+body.cw-light .token.attr-name,
+body.cw-light .token.string,
+body.cw-light .token.char,
+body.cw-light .token.builtin,
+body.cw-light .token.inserted { color: #047857 !important; }
+body.cw-light .token.operator,
+body.cw-light .token.entity,
+body.cw-light .token.url,
+body.cw-light .language-css .token.string,
+body.cw-light .style .token.string { color: #92400e !important; background: transparent !important; }
+body.cw-light .token.atrule,
+body.cw-light .token.attr-value,
+body.cw-light .token.keyword { color: #6d28d9 !important; }
+body.cw-light .token.function,
+body.cw-light .token.class-name { color: #1d4ed8 !important; }
+body.cw-light .token.regex,
+body.cw-light .token.important,
+body.cw-light .token.variable { color: #be185d !important; }
 
 body.cw-light ::-webkit-scrollbar-thumb { background: #d4d4d8; }
 body.cw-light ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
