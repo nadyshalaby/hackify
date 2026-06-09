@@ -10,6 +10,17 @@ else
   FAILED=$((FAILED + 1))
 fi
 
+yellow "[16b] README version badge matches plugin.json .version"
+# The shields.io badge is unstructured prose jq cannot reach, so it silently
+# drifted (badge stayed at 0.3.3 through the entire 0.4.0 release). Grep it.
+BADGE_VER=$(grep -oE 'badge/version-[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1 | sed 's#badge/version-##')
+if [ -n "$BADGE_VER" ] && [ "$BADGE_VER" = "$PLUGIN_VER" ]; then
+  green "  ok   README version badge and plugin.json both '$PLUGIN_VER'"
+else
+  red "  FAIL README badge version '$BADGE_VER' != plugin.json '$PLUGIN_VER' (update the shields.io badge in README.md)"
+  FAILED=$((FAILED + 1))
+fi
+
 yellow "[17] SKILL.md cross-refs to the two contracts"
 if grep -qF 'Template Contract' skills/hackify/SKILL.md; then
   green "  ok   SKILL.md references 'Template Contract'"

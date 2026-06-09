@@ -10,6 +10,7 @@
 #   30-version-and-summary.sh         — checks [16]-[20]
 #   40-quick-skill.sh                 — checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh     — checks [24]-[26], [28]
+#   55-mirror-completeness.sh         — check [55] — sync manifest covers every tracked canonical file
 #   60-primitives.sh                  — checks [29]-[32]
 #   70-invariants-and-new.sh          — checks [33]-[34]
 #   80-file-size-caps.sh              — check [80] — file-size ≤ 500 LOC across primitives
@@ -33,6 +34,7 @@ source "$DOD_MODULES_DIR/20-templates.sh"
 source "$DOD_MODULES_DIR/30-version-and-summary.sh"
 source "$DOD_MODULES_DIR/40-quick-skill.sh"
 source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
+source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"

@@ -1,0 +1,40 @@
+name: CI
+
+# The plugin preaches evidence-before-claims but had no automated gate — the
+# 0.4.0 release shipped a stale README badge because validate-dod.sh ran only
+# when a human remembered. This workflow runs every gate on push + PR so a
+# broken scanner, a DoD regression, or an incomplete mirror manifest fails
+# loudly before merge.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref to save minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: DoD + scanner tests + sync dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Lawkeeper scanner unit tests
+        run: python3 skills/lawkeeper/scripts/test_audit.py
+
+      - name: Definition-of-Done validator
+        run: bash scripts/validate-dod.sh
+
+      - name: Sync-runtimes dry-run (manifest + all 7 runtime targets)
+        run: bash scripts/sync-runtimes.sh --dry-run
