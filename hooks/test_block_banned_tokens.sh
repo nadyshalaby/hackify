@@ -21,7 +21,7 @@ printf '%s' "$EXISTING" >"$TMPD/existing.js"
 
 mkwrite() { jq -nc --arg fp "$1" --arg c "$2" '{tool_name:"Write", tool_input:{file_path:$fp, content:$c}}'; }
 mkedit() { jq -nc --arg fp "$1" --arg o "$2" --arg n "$3" '{tool_name:"Edit", tool_input:{file_path:$fp, old_string:$o, new_string:$n}}'; }
-mkmulti() { jq -nc --arg fp "$1" --arg o "$2" --arg n "$3" '{tool_name:"MultiEdit", tool_input:{file_path:$fp, edits:[{old_string:$o, new_string:$n}]}}'; }
+mkbash() { jq -nc --arg c "$1" '{tool_name:"Bash", tool_input:{command:$c}}'; }
 
 check() {
   # $1 name, $2 expected exit, $3 JSON payload.
@@ -64,9 +64,13 @@ check 'write introduces new blocked'     2 "$(mkwrite "$TMPD/existing.js" "$(pri
 check 'edit new_string blocked'          2 "$(mkedit /tmp/x/a.ts 'const z = 1' 'const y = obj!.prop')"
 check 'edit carryover allowed'           0 "$(mkedit /tmp/x/a.ts 'const y = obj!.prop' "$(printf 'const y = obj!.prop\nconst z = 1')")"
 
-# --- MultiEdit (#8): intercepted, with carryover grandfathering ---
-check 'multiedit introduces blocked'  2 "$(mkmulti /tmp/x/a.ts 'const z = 1' 'throw new Error("x")')"
-check 'multiedit carryover allowed'   0 "$(mkmulti /tmp/x/a.ts 'throw new Error("x")' 'throw new Error("x")')"
+# --- Bash (#10): source written via heredoc / echo / printf to a JS/TS file ---
+check 'bash heredoc to ts blocked'    2 "$(mkbash "$(printf 'cat > app.ts <<EOF\nthrow new Error("x")\nEOF')")"
+check 'bash heredoc clean allowed'    0 "$(mkbash "$(printf 'cat > app.ts <<EOF\nexport const a = 1\nEOF')")"
+check 'bash heredoc to non-js allowed' 0 "$(mkbash "$(printf 'cat > notes.md <<EOF\nthrow new Error("x")\nEOF')")"
+check 'bash echo redirect blocked'    2 "$(mkbash "echo 'const y = obj!.prop' > a.ts")"
+check 'bash heredoc to allowlisted ok' 0 "$(mkbash "$(printf 'cat > %s/skills/codewalk/assets/viewer.js <<EOF\nthrow new Error("x")\nEOF' "$ROOT")")"
+check 'bash non-write allowed'        0 "$(mkbash 'grep "throw new Error" app.ts')"
 
 printf '\n%s/%s passed\n' "$PASS" "$((PASS + FAIL))"
 [ "$FAIL" -eq 0 ]

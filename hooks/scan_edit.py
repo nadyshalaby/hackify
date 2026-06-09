@@ -8,9 +8,11 @@ are matched on lexer-MASKED text so a token inside a string or comment never
 false-fires.
 
 Net-new only: a finding whose offending line already exists verbatim in the
-baseline (the file's prior contents for a Write, or `old_string` for an
-Edit/MultiEdit) is grandfathered — the hook blocks tokens you INTRODUCE, not
-ones you merely carry past on an untouched line.
+baseline (the file's prior contents for a Write, or `old_string` for an Edit)
+is grandfathered — the hook blocks tokens you INTRODUCE, not ones you merely
+carry past on an untouched line.
+
+`load_detectors` and `detect` are the public API reused by scan_bash.py.
 
 Usage: `scan_edit.py <lawkeeper-scripts-dir> [baseline-file]` with candidate
 text on stdin. Prints one `<rule>\\t<line>` per net-new finding. Exit 0 always
@@ -27,7 +29,8 @@ SUPPRESSIONS = (
 )
 
 
-def _load(scripts_dir):
+def load_detectors(scripts_dir):
+    """Return (mask_source, semantic-rules) from lawkeeper's scripts dir."""
     sys.path.insert(0, scripts_dir)
     from lexer import mask_source
     from checks import EMPTY_CATCH_RE, BARE_ERROR_RE, NON_NULL_RE
@@ -57,6 +60,11 @@ def _scan_semantic(masked_lines, semantic):
     return out
 
 
+def detect(text, mask_source, semantic):
+    """All (rule, line) findings in `text` — suppressions raw, semantic masked."""
+    return _scan_suppressions(text.splitlines()) + _scan_semantic(mask_source(text), semantic)
+
+
 def _baseline_lines(baseline_path):
     if not baseline_path:
         return None
@@ -79,12 +87,10 @@ def main():
     text = sys.stdin.read()
     baseline_path = sys.argv[2] if len(sys.argv) > 2 else ''
     try:
-        mask_source, semantic = _load(sys.argv[1])
+        mask_source, semantic = load_detectors(sys.argv[1])
     except Exception:
         return 0  # lexer/checks unavailable -> detect nothing (fail open)
-    raw_lines = text.splitlines()
-    findings = _scan_suppressions(raw_lines) + _scan_semantic(mask_source(text), semantic)
-    findings = _net_new(findings, raw_lines, _baseline_lines(baseline_path))
+    findings = _net_new(detect(text, mask_source, semantic), text.splitlines(), _baseline_lines(baseline_path))
     for rule, num in findings:
         print(f'{rule}\t{num}')
     return 0

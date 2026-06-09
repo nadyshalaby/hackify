@@ -128,6 +128,7 @@ CLAUDE_CODE_EXTRA=(
   "hooks/inject-hard-caps.sh"
   "hooks/block-banned-tokens.sh"
   "hooks/scan_edit.py"
+  "hooks/scan_bash.py"
 )
 
 # Runtime list — these substrings MUST each appear at least once in --dry-run

@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.4.2) a `PreToolUse` hook blocks edits that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`) into JS/TS source, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -241,8 +241,9 @@ agents/                                formal sub-agent definitions (since v0.2.
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
   inject-hard-caps.sh                  injects rules/hard-caps.md into context every prompt
-  block-banned-tokens.sh               PreToolUse (Write|Edit|MultiEdit) — blocks banned tokens in JS/TS (since v0.4.2)
-  scan_edit.py                         detector reused by the hook (lawkeeper lexer + check regexes)
+  block-banned-tokens.sh               PreToolUse (Write|Edit|Bash) — blocks banned tokens in JS/TS (since v0.4.2)
+  scan_edit.py                         Write/Edit detector reused by the hook (lawkeeper lexer + check regexes)
+  scan_bash.py                         Bash detector — scans heredoc/echo writes to JS/TS files
 commands/
   summary.md                           /hackify:summary slash command
 scripts/
