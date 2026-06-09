@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Detect hackify-banned tokens in one edit's candidate text.
+"""Detect hackify-banned tokens introduced by one edit's candidate text.
 
 Single source of truth: reuses lawkeeper's tested lexer + check regexes rather
 than reimplementing them. Suppressions are matched on RAW text (they live in
@@ -7,10 +7,14 @@ comments by design); semantic bans (non-null `!`, empty catch, bare `Error`)
 are matched on lexer-MASKED text so a token inside a string or comment never
 false-fires.
 
-Usage: `scan_edit.py <lawkeeper-scripts-dir>` with candidate text on stdin.
-Prints one `<rule>\\t<line>` per finding. Exit 0 always — this is a detector;
-the calling hook decides whether to block (and applies test-file / allowlist
-carve-outs).
+Net-new only: a finding whose offending line already exists verbatim in the
+baseline (the file's prior contents for a Write, or `old_string` for an
+Edit/MultiEdit) is grandfathered — the hook blocks tokens you INTRODUCE, not
+ones you merely carry past on an untouched line.
+
+Usage: `scan_edit.py <lawkeeper-scripts-dir> [baseline-file]` with candidate
+text on stdin. Prints one `<rule>\\t<line>` per net-new finding. Exit 0 always
+— this is a detector; the calling hook decides whether to block.
 """
 import sys
 
@@ -53,16 +57,34 @@ def _scan_semantic(masked_lines, semantic):
     return out
 
 
+def _baseline_lines(baseline_path):
+    if not baseline_path:
+        return None
+    try:
+        with open(baseline_path, encoding='utf-8', errors='replace') as handle:
+            return set(handle.read().splitlines())
+    except OSError:
+        return None
+
+
+def _net_new(findings, raw_lines, baseline):
+    if baseline is None:
+        return findings
+    return [(rule, num) for rule, num in findings if raw_lines[num - 1] not in baseline]
+
+
 def main():
     if len(sys.argv) < 2:
         return 0
     text = sys.stdin.read()
+    baseline_path = sys.argv[2] if len(sys.argv) > 2 else ''
     try:
         mask_source, semantic = _load(sys.argv[1])
     except Exception:
         return 0  # lexer/checks unavailable -> detect nothing (fail open)
-    findings = _scan_suppressions(text.splitlines())
-    findings += _scan_semantic(mask_source(text), semantic)
+    raw_lines = text.splitlines()
+    findings = _scan_suppressions(raw_lines) + _scan_semantic(mask_source(text), semantic)
+    findings = _net_new(findings, raw_lines, _baseline_lines(baseline_path))
     for rule, num in findings:
         print(f'{rule}\t{num}')
     return 0
