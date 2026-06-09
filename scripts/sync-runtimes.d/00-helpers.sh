@@ -126,6 +126,8 @@ CLAUDE_CODE_EXTRA=(
   "agents/wave-task-implementer.md"
   "hooks/hooks.json"
   "hooks/inject-hard-caps.sh"
+  "hooks/block-banned-tokens.sh"
+  "hooks/scan_edit.py"
 )
 
 # Runtime list — these substrings MUST each appear at least once in --dry-run

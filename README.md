@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — `UserPromptSubmit` hook injects hard-caps into context every turn (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.5.0) a `PreToolUse` hook blocks edits that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`) into JS/TS source, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -123,6 +123,30 @@ Four skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends,
 - **`/hackify:review-triage`** — structures your response to multi-reviewer findings (Phase 5 output) as a per-finding accept / push-back / defer table, so nothing slips through and every reviewer concern gets an explicit disposition before the work-doc is archived.
 - **`/codewalk <entry-point>`** *(since v0.2.8)* — interactive call-stack viewer for code you didn't write. **Deep depth-first walk to leaves** from one entry point (route, handler, CLI command, queue job, UI action) — controller → service → repository → external SDK / SQL leaf, INCLUDING every TypeScript `interface` / `type` / `class` / `enum` / Zod schema / NestJS DTO / TypeORM entity referenced on the path (each emitted as its own `layer: "type"` node, hyperlinked from the function nodes that reference it). Stops cold on runtime ambiguity (env flags, feature gates, tenant guards, DI tokens, dynamic dispatch) — never guesses. Emits a `.codewalk/<slug>/` browser viewer — GitHub-PR-style three-pane layout with invoked-line highlights, clickable call-site anchors that resolve to type/function nodes alike, layered Mermaid sequence diagram, invariants per boundary, failure modes with blast radius, branches not taken listed by name, and an amber diff banner when you re-trace the same entry. Closes with 5 comprehension questions + a `safe to change` / `load-bearing` / `Chesterton's fence` decisions checklist. *(Since v0.3.1)* — a header **theme toggle** (light/dark, persisted via `localStorage`); and a **playbook mode** that fires on "all endpoints" / "every endpoint" / "index playbook" triggers, producing a top-level `.codewalk/index.html` light-mode index of every entry in the service (catalog-driven via `_catalog.json`, each row linkable into its own per-trace viewer). *(Since v0.3.2)* — **deep-by-default mandate** + first-class `layer: "type"` nodes + layer-colored chips in the viewer (controller / service / repository / external / type / other each in a distinct hue).
 - **`/lawkeeper`** *(since v0.4.0)* — full-codebase engineering-rules auditor: the detect-and-fix sweep that checks a repo against the laws it is supposed to obey. Resolves the effective rule set from the project's own harness (`.claude/rules`, `ban-patterns.txt`, `CLAUDE.md`/`AGENTS.md`) with stricter-wins fallback to global doctrine — never a duplicate copy. A bundled deterministic scanner does the exact, zero-false-positive checks (file-line cap; lint suppressions, non-null `!`, empty catch, bare `Error`, hardcoded secrets, inline types in scoped modules; `// removed:` markers and ownerless TODO/FIXME), and a semantic subagent pass covers the judgment rules (DRY, layering, SRP, naming, security, performance, testing, full SOLID + YAGNI, cross-file cleanup), reusing the project's installed `.claude/agents/` reviewers when present. Reports every finding with `file:line` grouped by category/severity, then fixes them one at a time with your approval. TS/JS core, `--text-only-ext` for any file, and an ephemeral on-demand scanner for deep non-JS audits. Full-codebase scope — NOT a per-PR diff review (use `/code-review`).
+
+## Skill routing
+
+Routing is by each skill's frontmatter `description` via the harness's native auto-discovery — there is no prompt-based classifier. As the skill surface grows, this table is the human-readable map of which skill owns which intent and how the overlaps resolve.
+
+| Your intent | Skill | Notes |
+|---|---|---|
+| Build / add / fix / refactor / redesign / migrate / debug — any substantive change | `hackify` | The default. When in doubt, this one. |
+| Small bug fix, one- to three-line edit, single-file polish, typo | `quick` | Compressed flow; promote with *"switch to full"*. |
+| Substantive task on full autopilot (no plan-gate / finish menu) | `yolo` | Same phases as hackify; two gates auto-pass. |
+| Fuzzy *"I'm thinking about X, not sure where to start"* | `groom` | Socratic pre-task refinement; graduates to hackify. |
+| Author or improve a hackify-conformant skill | `skillsmith` | 9-check self-validation loop. |
+| Respond to multi-reviewer findings (Phase 5 output) | `review-triage` | Per-finding accept / push-back / defer table. |
+| Understand code you didn't write (trace one entry point) | `codewalk` | Emits a `.codewalk/<slug>/` browser viewer. |
+| Audit a whole repo against its engineering laws + fix violations | `lawkeeper` | Full-codebase compliance sweep. |
+| Review just the diff on my branch / a PR before merge | `/code-review` | Built-in — **not** a hackify skill; a per-diff review, not a full-tree audit. |
+
+**Disambiguating "audit / review / check"** — these verbs overlap three ways:
+
+- *"Does this whole repo follow our CLAUDE.md / find every rule violation"* → **`lawkeeper`** (full-codebase, rule-by-rule, with fixes).
+- *"Review the changes on my branch / this PR"* → **`/code-review`** (the diff, not the tree).
+- *"Build / refactor X" with rigor* → **`hackify`** — it runs its own Phase 5 multi-reviewer on the diff it produces; you don't invoke a separate auditor mid-workflow.
+
+These boundaries are also encoded as non-trigger assertions in the skills' `evals/evals.json` (e.g. lawkeeper's "single-diff review routes to `/code-review`, not lawkeeper"); those evals are documentation-grade until run through an eval harness.
 
 ## Example
 
@@ -214,9 +238,11 @@ agents/                                formal sub-agent definitions (since v0.2.
   code-reviewer-quality.md             Phase 5 Reviewer B
   code-reviewer-plan-consistency.md    Phase 5 Reviewer C
   wave-task-implementer.md             Phase 3 wave-task implementer
-hooks/                                 prompt-time injection (since v0.2.2 — claude-code only)
-  hooks.json                           UserPromptSubmit hook declaration
+hooks/                                 prompt-time + edit-time enforcement (claude-code only)
+  hooks.json                           UserPromptSubmit + PreToolUse hook declarations
   inject-hard-caps.sh                  injects rules/hard-caps.md into context every prompt
+  block-banned-tokens.sh               PreToolUse (Write|Edit) — blocks banned tokens in JS/TS (since v0.5.0)
+  scan_edit.py                         detector reused by the hook (lawkeeper lexer + check regexes)
 commands/
   summary.md                           /hackify:summary slash command
 scripts/

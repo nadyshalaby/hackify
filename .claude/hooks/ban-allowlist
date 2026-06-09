@@ -1,0 +1,9 @@
+# hackify ban-blocker allowlist — paths exempt from the PreToolUse ban checks.
+# One path per line; literal or glob; repo-relative or absolute. '#' = comment.
+#
+# The codewalk browser viewers are standalone front-end assets, not domain
+# code — a bare `throw new Error(` is acceptable there (the hard-caps rule
+# scopes the bare-Error ban to *domain* code). Without this entry the hook
+# would block editing hackify's own viewer scripts.
+skills/codewalk/assets/*.js
+skills/codewalk/assets/*.mjs

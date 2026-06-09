@@ -33,6 +33,9 @@ jobs:
       - name: Lawkeeper scanner unit tests
         run: python3 skills/lawkeeper/scripts/test_audit.py
 
+      - name: Ban-blocker hook tests
+        run: bash hooks/test_block_banned_tokens.sh
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 

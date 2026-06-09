@@ -296,6 +296,8 @@ If any class finds defects, fix them inline before archiving; if a defect is too
 
 Whenever 2+ pieces of work are independent — **dispatch foreground subagents in parallel in a single message**. Never sequential when independent.
 
+**Runtime caveat (honest about degradation).** Parallel dispatch needs a subagent primitive. On the **native tier** (Claude Code, OpenCode) these phases fan out concurrently. On the **best-effort tier** (Codex CLI/App, Gemini CLI, Cursor — no subagent primitive, see `references/runtime-adapters.md`) the *same mandatory phases still run*, but **inline and sequentially** — you keep the rigor, you lose the wall-clock win. The workflow degrades concurrency, never coverage; it does not silently skip a phase on a runtime that can't parallelize.
+
 **Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents/template-contract.md` — the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
 
 **Use parallel agents for:**
