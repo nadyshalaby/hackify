@@ -5,6 +5,14 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-06-10
+
+> **Patch-level: edit-time secret blocking.** Extends the on-by-default `PreToolUse` ban-blocker to catch hardcoded secrets — `sec.hardcoded-secret`, lawkeeper's only critical-severity rule and the one deterministic check the edit-time hook did not enforce. Surfaced by auditing hackify's own principle/standards *evaluation* coverage (edit-time enforcement was a strict subset of audit-time).
+
+### Added
+
+- **Edit-time hardcoded-secret blocking** — the `PreToolUse` ban-blocker (`hooks/scan_edit.py` / `hooks/scan_bash.py`) now also blocks `Write`/`Edit`/`Bash` actions that introduce a hardcoded secret (AWS/GitHub/Slack/Google keys, PEM private keys, assigned `api-key`/`password`/`token` literals) into JS/TS source. `sec.hardcoded-secret` is lawkeeper's only **critical**-severity rule, yet it was the single deterministic check the edit-time hook did not enforce — so a credential could reach disk and wait for a full audit that might never run. Detection reuses `FileContext.check_secrets` (the same provider patterns, env-name carve-out, and redaction the scanner uses — single source of truth); the secret value is never echoed back in the block message. **Net-new only** for Write/Edit (a secret already on an untouched line is grandfathered) and honors the `.claude/hooks/ban-allowlist` escape hatch. Hook test suite grown 25 → 29 cases.
+
 ## [0.4.2] - 2026-06-09
 
 > **Patch-level: the plugin-hardening pass.** Bundles edit-time ban enforcement (a new `PreToolUse` hook), the first CI gate, and two new Definition-of-Done checks that close the holes which let a stale README badge and 5 unmirrored evals ship. Areas surfaced by auditing hackify against its own doctrine.

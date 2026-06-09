@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.2-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.4.3-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -53,7 +53,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`, hardcoded secrets) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 

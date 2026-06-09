@@ -5,6 +5,9 @@
 #   - lint/type suppressions (@ts-ignore, @ts-nocheck, eslint-disable,
 #     biome-ignore; @ts-expect-error outside test files)
 #   - non-null `!` assertions, empty `catch {}`, bare `throw new Error(`
+#   - hardcoded secrets/credentials (AWS/GitHub/Slack/Google keys, PEM private
+#     keys, assigned api-key/password/token literals) — the only critical-
+#     severity rule, so blocking it before it reaches disk matters most
 #
 # Write/Edit: net-new only — a banned line already present in the file (Write)
 # or the replaced old_string (Edit) is grandfathered.
@@ -73,6 +76,7 @@ message_for() {
     ban.empty-catch) printf 'empty catch block — handle or rethrow' ;;
     ban.non-null) printf 'non-null `!` assertion in production code' ;;
     ban.bare-error) printf 'bare `throw new Error(` — use a domain exception (or allowlist this path)' ;;
+    sec.hardcoded-secret) printf 'hardcoded secret/credential — move it to an env var or secret store' ;;
     *) printf 'banned token' ;;
   esac
 }

@@ -4,7 +4,8 @@
 The Write/Edit hook can't see source written through the shell (a `cat`
 heredoc, an `echo`/`printf` redirect). This closes that bypass for the two
 common patterns by extracting the written content and scanning it with the
-SAME detector as scan_edit (lexer-masked semantic bans, raw suppressions).
+SAME detector as scan_edit (lexer-masked semantic bans, raw suppressions and
+hardcoded secrets).
 
 Covered: a heredoc redirected to a JS/TS file (`cmd > file.ts <<TAG … TAG`)
 and `echo`/`printf` redirected to a JS/TS file. NOT covered: content produced
@@ -54,12 +55,12 @@ def main():
         return 0
     cmd = sys.stdin.read()
     try:
-        mask_source, semantic = scan_edit.load_detectors(sys.argv[1])
+        detectors = scan_edit.load_detectors(sys.argv[1])
     except Exception:
         return 0  # detector unavailable -> fail open
     seen = set()
     for target, content in _written_blocks(cmd):
-        for rule, _line in scan_edit.detect(content, mask_source, semantic):
+        for rule, _line in scan_edit.detect(content, detectors):
             key = (rule, target)
             if key not in seen:
                 seen.add(key)

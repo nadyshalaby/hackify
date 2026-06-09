@@ -53,6 +53,12 @@ check 'non-null blocked'              2 "$(mkwrite /tmp/x/a.ts 'const y = obj!.p
 check 'prefix negation allowed'       0 "$(mkwrite /tmp/x/a.js 'if (!res.ok) doThing()')"
 check 'empty catch blocked'           2 "$(mkwrite /tmp/x/a.ts 'try { f() } catch (e) {}')"
 
+# --- hardcoded secrets (#3): edit-time reuse of lawkeeper's check_secrets ---
+check 'secret in ts blocked'          2 "$(mkwrite /tmp/x/a.ts 'const k = "AKIA1234567890ABCDEF"')"
+check 'env-name not a secret allowed' 0 "$(mkwrite /tmp/x/a.ts 'const apiKey = "MY_PUBLIC_ENV_VAR"')"
+check 'secret via heredoc blocked'    2 "$(mkbash "$(printf 'cat > cfg.ts <<EOF\nconst k = "AKIA1234567890ABCDEF"\nEOF')")"
+check 'secret on allowlisted allowed' 0 "$(mkwrite "$ROOT/skills/codewalk/assets/viewer.js" 'const k = "AKIA1234567890ABCDEF"')"
+
 # --- scope + allowlist ---
 check 'py scope-skip allowed'         0 "$(mkwrite /tmp/x/a.py '# eslint-disable')"
 check 'md scope-skip allowed'         0 "$(mkwrite /tmp/x/a.md '@ts-ignore')"
