@@ -1,0 +1,42 @@
+{
+  "skill_name": "lawkeeper",
+  "evals": [
+    {
+      "id": 1,
+      "name": "happy-path-full-codebase-audit",
+      "prompt": "audit my whole backend against our engineering rules and show me every violation — we keep merging code that breaks our own CLAUDE.md",
+      "assertions": [
+        {"text": "lawkeeper skill is invoked (auto-discovery fires on full-codebase rule-audit intent)"},
+        {"text": "Phase 1 resolves the effective rule set from the project's own harness (.claude/rules, ban-patterns.txt, CLAUDE.md/AGENTS.md) with stricter-wins fallback to global doctrine — it does not hardcode a duplicate rule copy"},
+        {"text": "Runs the bundled deterministic scanner (scripts/audit_scan.py, referenced via the resolved <skill-dir>, not a hardcoded absolute path) for the exact checks"},
+        {"text": "Fans out semantic subagents for the judgment rules (DRY, layering, naming, SRP, security, performance, testing, SOLID, cleanup); reuses the project's installed .claude/agents/ review agents when present"},
+        {"text": "Produces a report grouped by category and severity with file:line for every finding before fixing anything"},
+        {"text": "Fixes are propose-confirm per finding — nothing is auto-rewritten without approval"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-conformance-check-claude-md",
+      "prompt": "does this project actually follow our CLAUDE.md? check the hard caps and the bans across the repo",
+      "assertions": [
+        {"text": "lawkeeper skill is invoked (auto-discovery fires on 'does this follow CLAUDE.md' / 'check the hard caps and bans' intent)"},
+        {"text": "Deterministic scanner reports the exact bans (lint suppressions, non-null !, empty catch, bare Error, secrets, inline types in scoped modules) and the file-line cap with file:line"},
+        {"text": "Carve-outs are applied before reporting (test-file waivers, generated/migration exemptions) so documented exceptions are not flagged"},
+        {"text": "Honest about coverage — if scoped to a subtree or the semantic pass is skipped, it says so in the report"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "non-trigger-single-diff-review",
+      "prompt": "review the diff on my current branch before I open the PR — just the changes, looking for bugs",
+      "assertions": [
+        {"text": "lawkeeper skill is NOT invoked — this is a single-diff review of changed code, not a full-codebase compliance sweep"},
+        {"text": "Routing goes to /code-review (or full hackify Phase 5), which review the diff rather than auditing the whole tree against the rule set"},
+        {"text": "Transcript notes lawkeeper's scope is a FULL-CODEBASE audit against documented engineering laws, not a per-PR diff review"}
+      ],
+      "files": []
+    }
+  ]
+}

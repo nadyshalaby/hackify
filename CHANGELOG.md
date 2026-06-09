@@ -5,6 +5,19 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-09
+
+> **Minor-level scope: new `lawkeeper` skill — full-codebase engineering-rules auditor.** The detect-and-fix counterpart to a setup harness: it reads the effective rule set from a project's own harness (`.claude/rules`, `ban-patterns.txt`, `CLAUDE.md`/`AGENTS.md`) with stricter-wins fallback to global doctrine, runs a bundled deterministic scanner plus a semantic subagent pass, reports every finding with `file:line` grouped by category/severity, then fixes them one at a time with approval. Mirrored to all full-mirror runtimes.
+
+### Added
+
+- **`skills/lawkeeper/`** — new skill. `SKILL.md` (6-phase workflow: resolve rule set → deterministic scan → semantic pass → report → propose-confirm remediation → verify), a bundled Python scanner under `scripts/` (`audit_scan.py` CLI + `lexer.py` string/comment masker + `checks.py` exact checks + `exemptions.py` carve-out matcher + `test_audit.py` with 23 unit tests), four `references/` (rule-catalog, carve-outs, semantic-pass, porting-scanner), `assets/report-template.md`, and `evals/evals.json` (happy-path + edge + non-trigger). Deterministic checks are exact and zero-false-positive: file-line cap; lint suppressions, non-null `!`, empty catch, bare `Error`, hardcoded secrets, inline types in scoped modules; `// removed:` markers and ownerless TODO/FIXME (comment-anchored so the word inside a string literal is not flagged). The semantic subagent pass covers DRY, layering, controller-purity, naming, SRP, folder-structure, security, performance, testing, full SOLID + YAGNI, and cross-file cleanup — reusing the project's installed `.claude/agents/` reviewers when present. TS/JS core with `--text-only-ext` for any file (file-cap + project bans on non-JS) and an ephemeral on-demand scanner for deep non-JS audits. Bundled-file references use the `<skill-dir>` convention (resolved from the `Base directory for this skill:` line), never a hardcoded user path; every bundled `*.md` is ≤ 500 LOC and the scripts hold to the same caps the skill enforces (≤ 500/file, ≤ 40/function, ≤ 3 params).
+- **`MIRROR_SOURCES` entries for `skills/lawkeeper/`** (`scripts/sync-runtimes.d/00-helpers.sh`) — all 12 canonical lawkeeper files explicitly enumerated so every full-mirror runtime carries the skill; `scripts/sync-runtimes.sh` mirrors them into `dist/{claude-code,codex-cli,codex-app,gemini-cli,opencode,cursor}/` (copilot-cli stays MANIFEST-only by design).
+
+### Changed
+
+- **`README.md`** — `lawkeeper` added to the plugin-primitives skill list, the per-skill blurb section, the command table, and the source-tree diagram.
+
 ## [0.3.3] - 2026-05-25
 
 > **Patch-level scope: codewalk viewer follow-up — type-token hyperlinks, light-mode skipped-line legibility, clickable header breadcrumb.** Three additive fixes surfaced when actually using the v0.3.2 playbook end-to-end on a real 53-endpoint NestJS service. User-visible polish only; no schema change, no trace re-walk required.
