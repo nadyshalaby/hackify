@@ -69,7 +69,7 @@ for token in Syanat SyanatBackend SyanatFrontend graphify corecave nadyshalaby; 
   check_no_token "$token" "skills/hackify/evals/evals.json"
 done
 # Absolute /Users/corecave/ paths in shipped content (not docs/work/)
-abs=$(grep -rc '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin/ 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+abs=$(grep -rcI '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin/ 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
 if [ "$abs" -eq 0 ]; then
   green "  ok   0 absolute /Users/corecave/ paths in shipped content"
 else

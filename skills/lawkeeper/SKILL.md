@@ -81,7 +81,10 @@ and canonical source.
 
 ## Phase 2 — Deterministic scan (mechanical, exact)
 
-Run the bundled scanner — do not hand-derive these. Pass the resolved config:
+Run the bundled scanner through the **shell primitive** — do not hand-derive these checks. The
+scanner is a Python program, so this is the one phase that assumes a `python3` interpreter on
+PATH (the only host dependency lawkeeper adds beyond the shell itself; see the host-interpreter
+note in `skills/hackify/references/runtime-adapters.md`). Pass the resolved config:
 
 ```bash
 python3 <skill-dir>/scripts/audit_scan.py <project_root> \
@@ -95,6 +98,11 @@ fixable`. It covers only what a regex matches WITHOUT false positives — file l
 the token bans (suppressions, empty catch, bare Error, non-null `!`, inline type in scoped
 modules, hardcoded secrets). Secrets are redacted in the snippet. The scanner already applies
 the path carve-outs; trust its output as exact.
+
+**If `python3` is absent** — rare on a dev machine, possible on a locked-down best-effort
+runtime — say so in the report and fall through to the semantic pass: the Phase 3 judgment
+rules are interpreter-free and still run. Never drop the deterministic checks silently; an
+audit that skips a whole engine without recording it reads as "clean" when it isn't.
 
 ### Match the engine to the stack
 
@@ -167,8 +175,8 @@ and stop — this is the natural review point (§5.3). Do not start fixing unpro
 Work findings in severity order. For each finding or tight cluster, follow §5.2: state the
 problem with `file:line`, present 2-3 concrete options (including "do nothing" where
 reasonable) with effort/risk/impact, recommend the first, and ask before writing. Batch the
-questions — group similar findings into one `AskUserQuestion` round (≤4), numbered by issue
-and lettered by option, recommended option first. Apply only approved fixes, using the
+questions — group similar findings into one **wizard tool** round (≤4 questions), numbered by
+issue and lettered by option, recommended option first. Apply only approved fixes, using the
 project's existing patterns (a fix must read as if the original author wrote it). After each
 batch, re-run the relevant test/lint/typecheck legs to prove the fix is clean.
 
@@ -176,6 +184,12 @@ Reality check on fixability: splitting a 500-line file, extracting a function, r
 or filling an empty catch are real changes that need judgment, not blind rewrites — they all
 go through propose-confirm. Only a tiny set (extract a magic literal, drop a dead import,
 delete a `// removed:` comment) is trivially safe, and even those are shown before applying.
+
+When a finding's fix is **substantive on its own** — splitting a 500-line file, unwinding an
+N+1, layering surgery — name that it deserves more than an inline propose-confirm: offer the
+maintainer a compressed clarify → implement → verify pass for it rather than folding a real
+structural change into the audit. lawkeeper never calls sibling skills, so this is a framing
+you offer (and a separate task the user opts into), not a handoff you perform.
 
 ## Phase 6 — Verify & summarize
 

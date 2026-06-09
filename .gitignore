@@ -9,6 +9,10 @@ node_modules/
 *.swo
 *~
 
+# Python build artifacts — bytecode embeds absolute source paths; never commit
+__pycache__/
+*.pyc
+
 # Credential / secret patterns — never commit these
 *.pem
 *.key

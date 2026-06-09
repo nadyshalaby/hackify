@@ -34,7 +34,9 @@ check_no_token() {
   local token="$1"
   local path="$2"
   local count
-  count=$(grep -rcFi -- "$token" "$path" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+  # -I skips binary files: Python bytecode (__pycache__/*.pyc) embeds absolute
+  # source paths that would otherwise be counted as personal-handle/leaked-path hits.
+  count=$(grep -rcFiI -- "$token" "$path" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
   if [ "$count" -eq 0 ]; then
     green "  ok   '$token' has 0 occurrences in $path"
   else

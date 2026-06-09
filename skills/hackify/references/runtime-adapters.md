@@ -48,6 +48,22 @@ hackify is authored against 7 abstract primitives (wizard, subagent, file-read, 
 - `dist/cursor/` — `.mdc` rule files inlining the workflow; subagent steps rewritten as inline prompts.
 - `dist/copilot-cli/` — single concatenated prompt-context file with manual-install instructions; no automatic discovery.
 
+## Host-interpreter dependencies (skills that ship an executable engine)
+
+The seven primitives are interpreter-free: the core hackify workflow is pure markdown and runs
+wherever the `shell` primitive runs. Two companion skills ship an executable engine that rides
+the `shell` primitive and therefore assumes a host interpreter on PATH — honest to state, since
+no runtime adapter can conjure one:
+
+| Skill | Engine | Interpreter assumed | If absent — degradation |
+|---|---|---|---|
+| `lawkeeper` | `scripts/audit_scan.py` deterministic scanner (Phase 2) | `python3` | Report the gap and fall through to the interpreter-free semantic subagent pass (Phase 3). |
+| `codewalk` | `assets/serve.js` viewer server + `build-playbook.mjs` | `node` | Fall back to the documented server chain (`python3`/`python`/`npx serve`/`php`/`ruby`) for serving the already-generated `.codewalk/<slug>/` artifact. |
+
+Neither interpreter is a hackify-core requirement — only those two skills' engines need them,
+and each degrades to a stated, non-silent fallback. Document any future skill that adds a host
+interpreter here so the multi-runtime story stays honest.
+
 ## When to update this file
 
 Update this file whenever a target runtime adds, renames, or removes a tool that maps to one of the 7 primitives, whenever a new runtime is added to the support set, or whenever a runtime's plugin model crosses a tier boundary (best-effort gains native subagent dispatch, for example). The `scripts/sync-runtimes.sh` script reads this table directly — drifting it from the script's expectations will break the per-runtime bundles in `dist/`.

@@ -5,6 +5,21 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-06-09
+
+> **Patch-level: `lawkeeper` ↔ hackify alignment polish + `validate-dod` hardening.** No workflow behavior change — voice/portability seams on the `lawkeeper` skill closed, the multi-runtime story made honest about its one host dependency, and a binary-artifact false-positive class removed from the DoD validator.
+
+### Changed
+
+- **`skills/lawkeeper/SKILL.md`** — documented the `python3` host dependency the Phase 2 deterministic scanner assumes (now framed as running "through the shell primitive"), with a graceful-degradation note: if `python3` is absent, report it and fall through to the interpreter-free semantic pass rather than silently skipping a whole engine. Neutral-primitive voice pass — `AskUserQuestion` → "wizard tool", matching `runtime-adapters.md`'s primitive vocabulary. Phase 5 now offers a compressed clarify→implement→verify framing for genuinely substantive fixes (file split, N+1, layering surgery) instead of folding a real structural change into an inline propose-confirm — without calling sibling skills.
+- **`skills/hackify/references/runtime-adapters.md`** — new **Host-interpreter dependencies** table documenting the two skills that ship an executable engine riding the `shell` primitive (`lawkeeper`'s `python3` scanner, `codewalk`'s `node` viewer/builder), each with its stated non-silent fallback. No runtime adapter can conjure a missing interpreter, so the dependency is named rather than papered over.
+- **`README.md`** — version badge corrected (was stale at `0.3.3`; the `0.4.0` release shipped without bumping it) → `0.4.1`.
+
+### Fixed
+
+- **`scripts/validate-dod.d/00-helpers.sh` + `10-required-files.sh`** — the token-scrub and absolute-path checks now pass `-I` to `grep` so binary files are skipped. Running `skills/lawkeeper/scripts/test_audit.py` writes `__pycache__/*.pyc` bytecode whose embedded absolute source paths were counted by `grep -c` as personal-handle / leaked-path matches — a false positive that failed an otherwise-clean tree. Binary artifacts can no longer trip these checks.
+- **`.gitignore`** — added `__pycache__/` and `*.pyc` so Python bytecode never enters the tracked working tree.
+
 ## [0.4.0] - 2026-06-09
 
 > **Minor-level scope: new `lawkeeper` skill — full-codebase engineering-rules auditor.** The detect-and-fix counterpart to a setup harness: it reads the effective rule set from a project's own harness (`.claude/rules`, `ban-patterns.txt`, `CLAUDE.md`/`AGENTS.md`) with stricter-wins fallback to global doctrine, runs a bundled deterministic scanner plus a semantic subagent pass, reports every finding with `file:line` grouped by category/severity, then fixes them one at a time with approval. Mirrored to all full-mirror runtimes.
