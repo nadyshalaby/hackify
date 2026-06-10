@@ -94,10 +94,12 @@ python3 <skill-dir>/scripts/audit_scan.py <project_root> \
 
 It emits one JSON object: `{schema_version, root, config, stats, findings[]}`. Each finding
 carries `rule_id, category, severity, confidence, file, line, end_line, message, snippet,
-fixable`. It covers only what a regex matches WITHOUT false positives — file line-count and
-the token bans (suppressions, empty catch, bare Error, non-null `!`, inline type in scoped
-modules, hardcoded secrets). Secrets are redacted in the snippet. The scanner already applies
-the path carve-outs; trust its output as exact.
+fixable`. It covers what a regex matches exactly — file line-count and the token bans
+(suppressions, empty catch, bare Error, non-null `!`, inline type in scoped modules, hardcoded
+secrets). Secrets are redacted in the snippet. The scanner already applies the path carve-outs.
+Most findings are `confidence: exact`; the two marked `confidence: syntactic` (`ban.bare-error`,
+`ban.inline-type`) are matched exactly but need a one-step check before you act — is the `throw`
+in domain code, does the type have 2+ props.
 
 **If `python3` is absent** — rare on a dev machine, possible on a locked-down best-effort
 runtime — say so in the report and fall through to the semantic pass: the Phase 3 judgment

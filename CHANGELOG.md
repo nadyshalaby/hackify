@@ -5,6 +5,16 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Honest confidence tiers for the deterministic scanner** — `ban.bare-error` and `ban.inline-type` were labelled `confidence: exact` and the rule-catalog claimed the deterministic tier is "zero false positives," but the scanner cannot tell domain from non-domain code (bare-error) or count props (inline-type, which the rule bans only at 2+). Both are now `confidence: syntactic` — matched exactly in syntax, but a true positive needs a one-step scope/threshold check. The other 8 rules stay `exact`. Catalog, SKILL.md, and the `checks.py` docstring corrected; pinned by a `test_audit.py` case so the honesty cannot silently regress. No detection behavior changes.
+
+### Added
+
+- **Semantic-tier recall is now a real multi-run measurement.** Broadened the recall corpus oracle from 5 to **8 `(file, rule)` pairs across 6 concerns** (added `style.srp`, `perf.n-plus-1`, `style.ternary` via a deterministically-clean `orders.service.ts` with neutral identifiers so the blind copy leaks nothing). `score_semantic.py` now aggregates **N rounds** into a hit-rate per pair + mean recall (one file = a single illustrative read; several = variance-aware). Observed baseline (2026-06-10, 3 rounds, sonnet): 18/24 pair-runs strict, 7/8 attribution-corrected, with one **consistent real gap** — the security pass flags missing-authz on a controller mutation but misses it on a service-layer mutation (recorded in `semantic-runner.md`). The runner now also mandates handing subagents the carve-out floors (else they flag exempt files like a migration).
+
 ## [0.4.4] - 2026-06-10
 
 > **Patch-level: measure the auditor, fix the flaky gate.** Adds the lawkeeper recall corpus — a known-oracle fixture set that converts the rulebook from *asserted* to *measured* (deterministic tier: 9/10 rules at 100% recall / 0 false positives, CI-gated; semantic tier scored on demand) — and fixes a SIGPIPE flake in DoD check `[50]` that had silently failed the first-ever CI run. Dev/CI internals only: nothing a plugin user loads or runs changes.

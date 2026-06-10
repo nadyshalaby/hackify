@@ -1,4 +1,9 @@
-"""The deterministic checks — only rules a regex matches WITHOUT false positives.
+"""The deterministic checks — rules a regex matches exactly.
+
+Most are zero-false-positive (`confidence: exact`); two (`ban.bare-error`,
+`ban.inline-type`) are `confidence: syntactic` — matched exactly in syntax, but a
+true positive needs a one-step scope/threshold check the regex cannot make (domain
+code? 2+ props?). See RULE_META for the tier definitions.
 
 Why this subset and not more: an auditor is only useful if its findings are trusted,
 so this scanner refuses to guess. File line-count is exact. The token bans live in
@@ -18,13 +23,24 @@ import re
 from lexer import mask_source
 
 # rule_id -> (category, severity, confidence, fixable)
+#
+# confidence tiers:
+#   'exact'     — the match IS the violation; no judgment needed (a suppression
+#                 token, an empty catch, a file over the line cap).
+#   'syntactic' — the construct is matched exactly, but whether it is a TRUE
+#                 violation needs a scope/threshold check the regex cannot make:
+#                 `ban.bare-error` matches every `throw new Error(`, yet the rule
+#                 bans it only in DOMAIN code; `ban.inline-type` matches every
+#                 type/interface decl in a scoped file, yet the rule bans only
+#                 those with 2+ props. Surfaced, but flagged for a one-step check
+#                 rather than claimed zero-false-positive.
 RULE_META = {
   'cap.file-lines': ('code-style', 'medium', 'exact', 'manual'),
   'ban.suppression': ('code-style', 'high', 'exact', 'manual'),
   'ban.empty-catch': ('code-style', 'high', 'exact', 'manual'),
-  'ban.bare-error': ('code-style', 'high', 'exact', 'manual'),
+  'ban.bare-error': ('code-style', 'high', 'syntactic', 'manual'),
   'ban.non-null': ('code-style', 'high', 'exact', 'manual'),
-  'ban.inline-type': ('file-scoping', 'high', 'exact', 'manual'),
+  'ban.inline-type': ('file-scoping', 'high', 'syntactic', 'manual'),
   'ban.custom': ('code-style', 'high', 'exact', 'manual'),
   'sec.hardcoded-secret': ('security', 'critical', 'exact', 'manual'),
   'clean.removed-comment': ('cleanup', 'low', 'exact', 'trivial'),
@@ -150,7 +166,8 @@ class FileContext:
     out = []
     for idx, line in enumerate(self.masked, 1):
       if TYPE_DECL_RE.match(line):
-        msg = 'Type/interface declared in a scoped module — move it to interfaces/ or dto/.'
+        msg = ('Type/interface declared in a scoped module — if it has 2+ props, '
+               'move it to interfaces/ or dto/.')
         out.append(self._finding('ban.inline-type', (idx, idx), msg))
     return out
 

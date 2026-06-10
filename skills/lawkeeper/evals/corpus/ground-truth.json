@@ -73,6 +73,21 @@
       "style.dry"
     ],
     [
+      "backend/orders/orders.service.ts",
+      10,
+      "perf.n-plus-1"
+    ],
+    [
+      "backend/orders/orders.service.ts",
+      16,
+      "style.srp"
+    ],
+    [
+      "backend/orders/orders.service.ts",
+      27,
+      "style.ternary"
+    ],
+    [
       "backend/users/users.controller.ts",
       8,
       "scope.layer"

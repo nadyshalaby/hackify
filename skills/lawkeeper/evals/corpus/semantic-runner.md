@@ -25,6 +25,9 @@ pass is expected to find. Today's oracle:
 | `auth.service.ts` | `style.dry` (re-implements `users.service` pageBounds) |
 | `users.controller.ts` | `scope.layer` (controller does direct DB access) |
 | `users.controller.ts` | `scope.controller-purity` (branching + multiple service calls) |
+| `orders.service.ts` | `perf.n-plus-1` (query issued per row inside a loop) |
+| `orders.service.ts` | `style.srp` (one unit validates, taxes, persists, emails) |
+| `orders.service.ts` | `style.ternary` (chained ternary) |
 
 ## Procedure
 
@@ -54,19 +57,47 @@ pass is expected to find. Today's oracle:
 
 1. **Dispatch the concerns.** For each concern that maps to an oracle rule, spawn
    one subagent in parallel, scoped to the **blind copy** from step 0, handing it
-   the concern block from `semantic-pass.md` plus the shared OUTPUT contract. The
-   oracle above is covered by three concerns:
+   the concern block from `semantic-pass.md`, the shared OUTPUT contract, **and the
+   carve-out floors** (`references/carve-outs.md`) — without them a subagent flags
+   exempt files (e.g. a non-idempotent migration), which the deterministic scanner
+   skips, producing measurement artifacts. The oracle above is covered by six
+   concerns:
    - `security` → `sec.injection`, `sec.authz`
    - `dry` → `style.dry`
    - `layering` → `scope.layer`, `scope.controller-purity`
-2. **Collect findings.** Merge every subagent's JSON (the shared shape:
-   `{"findings": [{rule_id, file, line, message, ...}]}`) into a single
-   `findings.json` — either one object with a combined `findings` array, or a
-   flat array of finding objects. `score_semantic.py` accepts both.
-3. **Score.** `python3 score_semantic.py findings.json` prints recall per
-   `(file, rule)` plus any EXTRA findings (possible false positives — confirm
-   before trusting; the semantic pass is told to prefer false negatives).
-4. **Repeat** a few times per concern for a stable number.
+   - `single-responsibility` → `style.srp`
+   - `performance` → `perf.n-plus-1`
+   - `naming-explicitness` → `style.ternary`
+2. **Collect findings per round.** A *round* dispatches all six concerns once.
+   Merge that round's subagent JSON (the shared shape: `{"findings": [{rule_id,
+   file, line, message, ...}]}`) into one `findings-round-N.json` — either an
+   object with a combined `findings` array, or a flat array of finding objects;
+   `score_semantic.py` accepts both. Run **3+ rounds** (the pass is
+   non-deterministic — one round is illustrative, not a metric).
+3. **Score across rounds.** `python3 score_semantic.py findings-round-*.json`
+   prints a **hit-rate per `(file, rule)`** (e.g. `2/3` rounds), a mean recall,
+   and any EXTRA findings (possible false positives — confirm before trusting;
+   the pass is told to prefer false negatives). Pass a single file for a one-off
+   illustrative read.
+
+## Observed baseline (illustrative — re-measure, don't trust the number blind)
+
+A snapshot, **2026-06-10, 3 rounds, sonnet subagents** (the number depends on the
+model and rounds — this records *what the harness surfaces*, not a guarantee):
+
+- **Strict recall 18/24 pair-runs (75%); 6/8 pairs at 3/3.** Attribution-corrected
+  **7/8** — see the DRY note below.
+- **Consistent real gap: `auth.service.ts: sec.authz` missed 0/3.** The security
+  pass flags missing-authz on the *controller/route* mutation (3/3) but not on the
+  service-layer `deleteUser` mutation — a location blind spot worth knowing. The
+  opus run missed it too.
+- **DRY file-attribution is ambiguous.** A symmetric duplication has no canonical
+  "violation file"; the pass pinned `style.dry` to `users.service.ts` (3/3) while
+  the oracle marks `auth.service.ts`. Counted as a strict miss but a true find — for
+  cross-file rules, read a finding on *either* duplicated file as a hit.
+- EXTRAs that are real (not oracle): a controller authz gap, `fail()` naming, sync
+  blocking-IO. The semantic pass surfaces more than the planted set; triage before
+  trusting.
 
 ## Why a separate tier
 

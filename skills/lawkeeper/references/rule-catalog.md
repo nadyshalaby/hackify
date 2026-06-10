@@ -6,7 +6,10 @@ ban tokens are read from those sources at audit time — never hardcoded here. I
 `CLAUDE.md` is silent on a rule, the global-doctrine floor applies (stricter wins).
 
 Engines:
-- **deterministic** — `scripts/audit_scan.py`, exact `file:line`, zero false positives.
+- **deterministic** — `scripts/audit_scan.py`, exact `file:line`. Eight rules are
+  zero-false-positive (`confidence: exact`); `ban.bare-error` and `ban.inline-type` are
+  `confidence: syntactic` — matched exactly in syntax, but a true positive needs a one-step
+  scope/threshold check (is this domain code? does the type have 2+ props?).
 - **linter** — the project's own ESLint/Biome with the cap rule configured; exact.
 - **semantic** — a Phase-3 subagent that reads the code and judges (see `semantic-pass.md`).
 
@@ -24,7 +27,7 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 | `cap.fn-nesting` | over the nesting cap | medium | linter → semantic | global §2.1 / hook (≤3) |
 | `ban.suppression` | lint/type suppression in prod | high | deterministic | global §2.3 / ban-patterns.txt |
 | `ban.empty-catch` | `catch {}` | high | deterministic | global §2.5 / ban-patterns.txt |
-| `ban.bare-error` | `throw new Error(...)` in domain code | high | deterministic | global §2.5 / ban-patterns.txt |
+| `ban.bare-error` | `throw new Error(...)` in domain code | high | deterministic (syntactic) | global §2.5 / ban-patterns.txt |
 | `ban.non-null` | non-null `!` in prod | high | deterministic | global §2.4 |
 | `ban.custom` | project-defined ban-patterns.txt line | high | deterministic | project `ban-patterns.txt` |
 | `sec.hardcoded-secret` | credential/secret in source | critical | deterministic | global §2.6 |
@@ -43,7 +46,7 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
-| `ban.inline-type` | `interface`/`type` declared in a scoped module | high | deterministic | global §3.1 (service/controller/routes/middleware/guard) |
+| `ban.inline-type` | `interface`/`type` declared in a scoped module | high | deterministic (syntactic) | global §3.1 (service/controller/routes/middleware/guard) |
 | `scope.layer` | layer leak (controller→DB, service→HTTP, etc.) | high | semantic | global §1.3 / workspace §5.1 |
 | `scope.controller-purity` | controller does more than one service call | medium | semantic | global §3.3 |
 | `scope.dead-code` | method/export/registration with zero callers | medium | semantic | global §3.2 |

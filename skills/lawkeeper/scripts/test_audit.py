@@ -92,6 +92,18 @@ def test_recall_corpus_exempt_from_self_audit():
   assert is_scannable('backend/config.ts')
 
 
+def test_confidence_tiers_are_honest():
+  from checks import RULE_META
+  # bare-error and inline-type cannot be confirmed by regex alone (domain scope /
+  # 2+ props), so they are flagged 'syntactic', not 'exact' — see RULE_META.
+  assert RULE_META['ban.bare-error'][2] == 'syntactic'
+  assert RULE_META['ban.inline-type'][2] == 'syntactic'
+  # the genuinely exact ones stay 'exact'.
+  assert RULE_META['ban.suppression'][2] == 'exact'
+  assert RULE_META['ban.empty-catch'][2] == 'exact'
+  assert RULE_META['sec.hardcoded-secret'][2] == 'exact'
+
+
 def test_rule_exempt_carve_outs():
   assert rule_exempt('ban.inline-type', 'src/users/users.repository.ts')
   assert not rule_exempt('ban.inline-type', 'src/users/users.service.ts')

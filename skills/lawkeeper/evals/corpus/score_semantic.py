@@ -8,9 +8,12 @@ into one JSON file in the shared shape, then run this. Matching is by
 (file basename, rule_id) — a subagent reliably names the file and rule, but not
 the exact line, so exact-line matching would be misleadingly strict.
 
-Usage: python3 score_semantic.py <findings.json>
+Pass ONE findings file for a single illustrative run, or SEVERAL (one per round)
+for a variance-aware number — each oracle pair reports a hit-rate (e.g. 2/3 runs).
+
+Usage: python3 score_semantic.py <findings.json> [findings2.json ...]
 Exit 0 always — this reports a recall measurement, it does not gate (the semantic
-pass is non-deterministic; one run is illustrative, not a threshold).
+pass is non-deterministic; treat a single run as illustrative, not a threshold).
 """
 import json
 import os
@@ -32,18 +35,30 @@ def _load_findings(path):
     return {(os.path.basename(f['file']), f['rule_id']) for f in items}
 
 
+def _mark(hits, total):
+    if hits == total:
+        return 'ok  '
+    return 'part' if hits else 'MISS'
+
+
 def main(argv):
     if len(argv) < 1:
-        print('usage: score_semantic.py <findings.json>')
+        print('usage: score_semantic.py <findings.json> [findings2.json ...]')
         return 2
     oracle = _oracle()
-    found = _load_findings(argv[0])
-    hit = oracle & found
-    print(f'semantic recall: {len(hit)}/{len(oracle)} (file, rule) pairs found')
+    runs = [_load_findings(path) for path in argv]
+    n = len(runs)
+    print(f'semantic recall over {n} run(s), {len(oracle)} oracle (file, rule) pairs:')
+    pair_runs_hit = 0
     for pair in sorted(oracle):
-        print(f'  {"ok  " if pair in found else "MISS"} {pair[0]}: {pair[1]}')
-    for pair in sorted(found - oracle):
-        print(f'  EXTRA {pair[0]}: {pair[1]} (not in oracle — confirm before trusting)')
+        hits = sum(1 for run in runs if pair in run)
+        pair_runs_hit += hits
+        print(f'  {_mark(hits, n)} {pair[0]}: {pair[1]} — {hits}/{n}')
+    denom = len(oracle) * n
+    print(f'mean recall: {pair_runs_hit}/{denom} pair-runs ({100 * pair_runs_hit // denom}%)')
+    for pair in sorted(set().union(*runs) - oracle):
+        seen = sum(1 for run in runs if pair in run)
+        print(f'  EXTRA {pair[0]}: {pair[1]} — {seen}/{n} (not in oracle; confirm before trusting)')
     return 0
 
 
