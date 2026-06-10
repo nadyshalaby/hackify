@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.3-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.4.4-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 

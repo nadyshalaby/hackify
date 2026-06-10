@@ -5,7 +5,9 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.4] - 2026-06-10
+
+> **Patch-level: measure the auditor, fix the flaky gate.** Adds the lawkeeper recall corpus — a known-oracle fixture set that converts the rulebook from *asserted* to *measured* (deterministic tier: 9/10 rules at 100% recall / 0 false positives, CI-gated; semantic tier scored on demand) — and fixes a SIGPIPE flake in DoD check `[50]` that had silently failed the first-ever CI run. Dev/CI internals only: nothing a plugin user loads or runs changes.
 
 ### Added
 
