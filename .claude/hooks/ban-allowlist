@@ -7,3 +7,10 @@
 # would block editing hackify's own viewer scripts.
 skills/codewalk/assets/*.js
 skills/codewalk/assets/*.mjs
+
+# The lawkeeper recall corpus is a synthetic project of DELIBERATELY-violating
+# fixtures (planted suppressions, secrets, bare Errors, etc.) used to measure
+# the scanner's precision/recall against a known oracle. Editing it must not be
+# blocked by the very rules it exercises. These fixtures are CI artifacts only —
+# never mirrored to dist/, never shipped.
+skills/lawkeeper/evals/corpus/*

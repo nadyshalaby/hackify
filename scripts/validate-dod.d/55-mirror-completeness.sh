@@ -21,7 +21,13 @@ MANIFEST_LIST=$(
 # The canonical source set IS the git-tracked set — using git ls-files (not
 # find) excludes dist/ and __pycache__/*.pyc for free, so build artifacts can
 # never masquerade as unmirrored canonical files.
-TRACKED_SORTED=$(git ls-files skills/ commands/ rules/ 2>/dev/null | sort -u)
+#
+# Exclusion: the lawkeeper recall corpus (*/evals/corpus/*) is a synthetic set of
+# DELIBERATELY-violating fixtures used only to score the scanner in CI. It is a
+# dev/CI artifact, never shipped — mirroring deliberately-broken code (incl. a
+# planted hardcoded secret) into every dist/<runtime>/ tree would be wrong. So
+# it is exempt from the must-be-mirrored invariant.
+TRACKED_SORTED=$(git ls-files skills/ commands/ rules/ 2>/dev/null | grep -v '/evals/corpus/' | sort -u)
 MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 
 UNMIRRORED=$(comm -23 <(printf '%s\n' "$TRACKED_SORTED") <(printf '%s\n' "$MANIFEST_SORTED"))

@@ -5,6 +5,16 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **lawkeeper recall corpus** (`skills/lawkeeper/evals/corpus/`) — a synthetic project of deliberately-violating fixtures that measures the auditor's precision/recall against a known oracle, closing the "rules asserted, not measured" gap surfaced in the evaluation-coverage audit. Every planted violation carries an inline `// EXPECT:` / `// EXPECT-CLEAN:` / `// EXPECT-SEMANTIC:` marker — the self-maintaining oracle (no separate line-numbered file to rot; markers carry the bare rule_id only, so they never trip the scanner they exercise).
+  - **Deterministic tier** (`run_corpus.py`, in CI): runs `audit_scan.py` and asserts findings equal the `EXPECT:` set **exactly** — today 9/10 deterministic rules at 100% recall with **0 false positives** across 7 carve-out traps (test-file waivers, non-scoped inline types, the env-name secret guard, owned/ticketed debt markers, generated/migration exemption). A `ground-truth.json` freshness check fails CI on marker drift. `ban.custom` stays covered by `test_audit.py` (needs a project `ban-patterns.txt`).
+  - **Semantic tier** (`score_semantic.py` + `semantic-runner.md`, on demand): dispatches the judgment-rule subagent pass over a **comment-stripped blind copy** (so headers/markers can't leak the answers) and scores recall by `(file, rule)`. First illustrative run scored **4/5** — the lone miss being a missing-authz on a service-layer mutation — proving the harness surfaces real judgment-tier gaps. Non-deterministic, so it is out of CI and explicitly labelled illustrative (run each concern a few times for a stable number).
+  - Fixtures are a CI artifact only — **never shipped**: `validate-dod [55]` excludes `*/evals/corpus/*` (mirroring deliberately-broken code, incl. a planted secret, into users' `dist/` trees would be wrong), and the path is allow-listed for the ban-blocker so the on-by-default hook does not block authoring them.
+- **CI step** running the corpus deterministic scorer (`.github/workflows/ci.yml`).
+
 ## [0.4.3] - 2026-06-10
 
 > **Patch-level: edit-time secret blocking.** Extends the on-by-default `PreToolUse` ban-blocker to catch hardcoded secrets — `sec.hardcoded-secret`, lawkeeper's only critical-severity rule and the one deterministic check the edit-time hook did not enforce. Surfaced by auditing hackify's own principle/standards *evaluation* coverage (edit-time enforcement was a strict subset of audit-time).
