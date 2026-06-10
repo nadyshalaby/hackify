@@ -5,7 +5,9 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.5] - 2026-06-10
+
+> **Patch-level: honesty + measurement follow-ups.** Re-tiers two deterministic rules whose "exact / zero-false-positive" label overclaimed (they need a one-step scope/threshold check), and turns the recall corpus's semantic tier into a real multi-round measurement that surfaces a standing judgment-tier gap. Output metadata + dev/eval tooling; no workflow behavior changes.
 
 ### Changed
 
