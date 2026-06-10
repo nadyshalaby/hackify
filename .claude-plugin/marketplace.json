@@ -12,10 +12,10 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nadyshalaby/hackify.git",
-        "ref": "v0.4.5"
+        "ref": "v0.4.6"
       },
       "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file. Latest tagged release — the stable channel.",
-      "version": "0.4.5",
+      "version": "0.4.6",
       "category": "workflow",
       "keywords": [
         "workflow",
@@ -35,7 +35,7 @@
         "ref": "main"
       },
       "description": "Bleeding-edge hackify — tracks the `main` branch directly. SUPPLY-CHAIN NOTE: unreleased commits (including any new executable code under `hooks/` and `scripts/`) land in your plugin tree on every plugin refresh, with no tag pinning or signature verification. A force-push or compromised maintainer commit reaches you the next time Claude Code refreshes the marketplace. Install ONLY if you accept that risk and read every diff. Production users MUST pin to the `hackify` channel (latest signed tag) instead.",
-      "version": "0.4.5",
+      "version": "0.4.6",
       "category": "workflow",
       "keywords": [
         "workflow",

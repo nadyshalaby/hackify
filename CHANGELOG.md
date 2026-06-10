@@ -5,6 +5,14 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-06-10
+
+> **Patch-level: close the authz blind spot the corpus found.** Strengthens lawkeeper's `security` semantic prompt to catch missing-authz on service/domain-layer mutations (not just route handlers) — the gap surfaced and then re-verified by the recall corpus.
+
+### Changed
+
+- **lawkeeper now catches service-layer authorization gaps.** The recall corpus surfaced a real blind spot: the `security` semantic-pass prompt led with "routes/handlers missing an authz check," so the pass flagged missing-authz on a controller mutation but consistently missed it on a service-layer `deleteUser` (0/3 rounds; the opus run missed it too). Rewrote the `sec.authz` clause in `references/semantic-pass.md` to cover any state-changing op — write/update/**delete** at the route, handler, OR service/domain layer — reachable with no guard, with destructive ops as the canonical case and an explicit "do not assume an upstream caller checks." Re-verified against the corpus: `auth.service.ts: sec.authz` now flags **3/3** rounds. The corpus working as designed — surfacing a prompt weakness and confirming the fix.
+
 ## [0.4.5] - 2026-06-10
 
 > **Patch-level: honesty + measurement follow-ups.** Re-tiers two deterministic rules whose "exact / zero-false-positive" label overclaimed (they need a one-step scope/threshold check), and turns the recall corpus's semantic tier into a real multi-round measurement that surfaces a standing judgment-tier gap. Output metadata + dev/eval tooling; no workflow behavior changes.

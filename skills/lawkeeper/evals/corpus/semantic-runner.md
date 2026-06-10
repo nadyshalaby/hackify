@@ -85,12 +85,17 @@ pass is expected to find. Today's oracle:
 A snapshot, **2026-06-10, 3 rounds, sonnet subagents** (the number depends on the
 model and rounds — this records *what the harness surfaces*, not a guarantee):
 
-- **Strict recall 18/24 pair-runs (75%); 6/8 pairs at 3/3.** Attribution-corrected
-  **7/8** — see the DRY note below.
-- **Consistent real gap: `auth.service.ts: sec.authz` missed 0/3.** The security
-  pass flags missing-authz on the *controller/route* mutation (3/3) but not on the
-  service-layer `deleteUser` mutation — a location blind spot worth knowing. The
-  opus run missed it too.
+- **Strict recall: 18/24 pair-runs at first; 21/24 (7/8 pairs) after the authz fix
+  below.** The only remaining "miss" is the DRY attribution artifact, so **true
+  recall is 8/8**.
+- **A real gap — found, then CLOSED (the corpus working as intended).** The original
+  `security` prompt led with "routes/handlers," so the pass flagged missing-authz on
+  the *controller* mutation (3/3) but missed the *service-layer* `deleteUser` (0/3 —
+  the opus run missed it too). The `sec.authz` clause in `references/semantic-pass.md`
+  was rewritten to cover state-changing ops at ANY layer, with destructive ops as the
+  canonical case and "do not assume an upstream caller checks." Re-running the security
+  concern then caught `auth.service.ts: sec.authz` **3/3**. The measurement surfaced a
+  prompt weakness and verified the fix.
 - **DRY file-attribution is ambiguous.** A symmetric duplication has no canonical
   "violation file"; the pass pinned `style.dry` to `users.service.ts` (3/3) while
   the oracle marks `auth.service.ts`. Counted as a strict miss but a true find — for

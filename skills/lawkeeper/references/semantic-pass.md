@@ -108,8 +108,13 @@ relevant carve-out floors, and the OUTPUT contract.
 
 ### security (fallback when no `security-auditor`)
 > Find: string-concatenated/interpolated SQL or shelled-out commands built from input
-> (`sec.injection`); routes/handlers/mutations missing an authz/permission check (`sec.authz`);
-> external input reaching logic without validation at the boundary (`sec.input-validation`);
+> (`sec.injection`); any state-changing operation — a write/update/**delete** at the route,
+> handler, OR service/domain layer — reachable with no authorization, permission, or
+> resource-ownership check on the path to it (`sec.authz`). A destructive data op
+> (`DELETE`, `db.delete(...)`, a service method that removes/overwrites a record) with no
+> visible guard is the canonical case — do NOT assume an upstream caller checks; flag it and
+> name where the guard belongs. Also: external input reaching logic without validation at the
+> boundary (`sec.input-validation`);
 > deserialization of untrusted data or SSRF on outbound requests (`sec.unsafe-op`); migrations
 > that are not idempotent / not guarded by existence checks (`sec.migration`); PII or secrets
 > written to logs (`sec.pii-log`). Cite the standard (OWASP/CWE) where one applies. Critical for
