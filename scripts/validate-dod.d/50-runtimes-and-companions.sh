@@ -10,7 +10,12 @@ else
   FAILED=$((FAILED + 1))
 fi
 for target in 'dist/claude-code/' 'dist/codex-cli/' 'dist/codex-app/' 'dist/gemini-cli/' 'dist/opencode/' 'dist/cursor/' 'dist/copilot-cli/'; do
-  if printf '%s\n' "$DRY_OUT" | grep -qF -- "$target"; then
+  # Here-string, NOT `printf "$DRY_OUT" | grep -q`: $DRY_OUT is ~40KB and grep -q
+  # short-circuits on first match, closing the pipe → printf takes SIGPIPE →
+  # under `set -o pipefail` the pipeline reports non-zero even though grep
+  # matched, a spurious "missing" FAIL. It flaked CI on 0.4.2. A here-string has
+  # no upstream producer to receive SIGPIPE.
+  if grep -qF -- "$target" <<<"$DRY_OUT"; then
     green "  ok   sync-runtimes --dry-run includes $target"
   else
     red "  FAIL sync-runtimes --dry-run missing $target"

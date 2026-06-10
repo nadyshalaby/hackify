@@ -84,6 +84,14 @@ def test_exemptions_paths():
   assert is_scannable('src/users/users.service.ts')
 
 
+def test_recall_corpus_exempt_from_self_audit():
+  # A repo-root audit sees the corpus under skills/...; it must be exempt so a
+  # `/lawkeeper` run on this repo does not flag its own planted fixtures.
+  assert is_generated('skills/lawkeeper/evals/corpus/project/backend/config.ts')
+  # run_corpus.py roots its scan inside project/, so that rel-path stays scannable.
+  assert is_scannable('backend/config.ts')
+
+
 def test_rule_exempt_carve_outs():
   assert rule_exempt('ban.inline-type', 'src/users/users.repository.ts')
   assert not rule_exempt('ban.inline-type', 'src/users/users.service.ts')
