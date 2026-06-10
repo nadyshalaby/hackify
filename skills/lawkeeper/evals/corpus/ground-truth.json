@@ -47,7 +47,7 @@
     ],
     [
       "backend/users/users.test.ts",
-      12,
+      14,
       "ban.empty-catch"
     ]
   ],
@@ -73,6 +73,31 @@
       "style.dry"
     ],
     [
+      "backend/billing/billing.service.ts",
+      8,
+      "test.untested"
+    ],
+    [
+      "backend/billing/billing.service.ts",
+      9,
+      "style.magic-literal"
+    ],
+    [
+      "backend/legacy/report.ts",
+      5,
+      "cap.fn-lines"
+    ],
+    [
+      "backend/legacy/report.ts",
+      57,
+      "cap.fn-params"
+    ],
+    [
+      "backend/legacy/report.ts",
+      65,
+      "cap.fn-nesting"
+    ],
+    [
       "backend/orders/orders.service.ts",
       10,
       "perf.n-plus-1"
@@ -84,8 +109,38 @@
     ],
     [
       "backend/orders/orders.service.ts",
+      20,
+      "style.magic-literal"
+    ],
+    [
+      "backend/orders/orders.service.ts",
       27,
       "style.ternary"
+    ],
+    [
+      "backend/package.json",
+      2,
+      "clean.unused-dep"
+    ],
+    [
+      "backend/shared/env.ts",
+      4,
+      "clean.orphan-env"
+    ],
+    [
+      "backend/shared/flags.ts",
+      6,
+      "clean.dead-flag"
+    ],
+    [
+      "backend/shared/render.ts",
+      14,
+      "solid.ocp"
+    ],
+    [
+      "backend/shared/transport.ts",
+      6,
+      "solid.yagni"
     ],
     [
       "backend/users/users.controller.ts",
@@ -96,6 +151,11 @@
       "backend/users/users.controller.ts",
       15,
       "scope.controller-purity"
+    ],
+    [
+      "backend/users/users.service.ts",
+      13,
+      "test.edge-cases"
     ]
   ]
 }

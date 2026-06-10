@@ -17,7 +17,7 @@ export function processOrder(db, mailer, order) { // EXPECT-SEMANTIC: style.srp
   if (order.amount < 0) {
     return null
   }
-  const taxed = { ...order, total: order.amount * 1.1 }
+  const taxed = { ...order, total: order.amount * 1.1 } // EXPECT-SEMANTIC: style.magic-literal
   db.insert('orders', taxed)
   return mailer.send(order.email, 'receipt')
 }

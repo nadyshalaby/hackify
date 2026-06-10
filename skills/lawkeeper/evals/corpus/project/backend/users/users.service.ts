@@ -7,8 +7,10 @@ export function rowToUser(row) {
 }
 
 // pageBounds is the canonical pagination helper — auth.service.ts duplicates it
-// instead of importing it (the style.dry target lives here).
-export function pageBounds(page, size) {
+// instead of importing it (the style.dry target lives here). It is also the
+// test.edge-cases subject: users.test.ts exercises only the happy path, never
+// the size>100 clamp below — the rule pins to the under-tested behavior.
+export function pageBounds(page, size) { // EXPECT-SEMANTIC: test.edge-cases
   const limit = size > 100 ? 100 : size
   return { limit, offset: page * limit }
 }

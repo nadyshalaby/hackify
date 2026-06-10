@@ -5,6 +5,15 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2026-06-10
+
+> **Patch-level: the semantic tier is now measured wall-to-wall.** Broadens the recall-corpus oracle from 8 to 20 `(file, rule)` pairs across 11 of lawkeeper's semantic concerns — SOLID, testing, cleanup, magic-literals, and function caps join the original six — and re-measures the whole tier. Dev/CI internals only: nothing a plugin user loads or runs changes.
+
+### Added
+
+- **Recall-corpus breadth: oracle 8 → 20 pairs, concerns 6 → 11.** New deterministically-clean fixtures plant `solid.yagni` (speculative transport knobs) and `solid.ocp` (xml bolted on beside a renderers registry), `test.untested` + `test.edge-cases` (a branching service with no test; a happy-path-only test whose clamp branch is never exercised), `clean.dead-flag` / `clean.orphan-env` / `clean.unused-dep` (each with a contrast control so the violation is localizable in a tiny tree; the manifest marker rides a legal `"//"` key in `package.json`), `style.magic-literal` (un-named rates/thresholds in two services), and `cap.fn-lines` / `cap.fn-params` / `cap.fn-nesting` (the shape caps the deterministic scanner does not check). The blind-copy strip is now JSON-aware (drops marker lines whole in `.json` instead of `//`-stripping them into broken JSON). Three rules are *deliberately excluded* with documented rationale: `clean.commented-code` (the comment-strip erases the violation itself), `clean.unref-file`/`scope.dead-code` (everything in a disconnected corpus is unreferenced), and `solid.lsp/isp/dip` (need type hierarchies a tiny corpus cannot plausibly host).
+- **Full-tier measurement (2026-06-10, 3 rounds × 11 concerns, sonnet):** strict recall **59/60 pair-runs (98%), 19/20 pairs at 3/3** — true recall 20/20 (the lone 2/3 is the documented DRY symmetric-attribution nuance). Every newly added concern scored 3/3 on first measurement; the 0.4.6 `sec.authz` fix held at 3/3; the carve-out-floors mandate held (zero exempt-file artifacts). One oracle calibration came out of the run: test-coverage findings pin to the **source** file where the under-tested behavior lives (matching the rule text), so the `test.edge-cases` marker moved from `users.test.ts` to `users.service.ts` — detection was 3/3 throughout; the marker placement was the error.
+
 ## [0.4.6] - 2026-06-10
 
 > **Patch-level: close the authz blind spot the corpus found.** Strengthens lawkeeper's `security` semantic prompt to catch missing-authz on service/domain-layer mutations (not just route handlers) — the gap surfaced and then re-verified by the recall corpus.

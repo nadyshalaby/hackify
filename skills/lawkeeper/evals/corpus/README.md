@@ -50,14 +50,15 @@ env-name secret guard, owned/ticketed debt markers, generated/migration files).
 ## Semantic tier — on demand
 
 The judgment rules (DRY, layering, controller-purity, SRP, performance, naming,
-security beyond secrets) cannot be scored deterministically — they run in
-subagents. `EXPECT-SEMANTIC:` markers are their oracle (8 `(file, rule)` pairs
-across 6 concerns); `semantic-runner.md` documents how to dispatch the pass over a
-comment-stripped blind copy and score recall with `score_semantic.py`, which
-aggregates a **hit-rate per pair across N rounds** (the pass is non-deterministic —
-one round is illustrative). Kept out of CI because it needs a model. The latest
-observed baseline and the standing gaps it surfaced (notably: missing-authz on a
-service-layer mutation is consistently missed) live in `semantic-runner.md`.
+security beyond secrets, function caps, magic literals, testing, SOLID, cleanup)
+cannot be scored deterministically — they run in subagents. `EXPECT-SEMANTIC:`
+markers are their oracle (20 `(file, rule)` pairs across 11 concerns);
+`semantic-runner.md` documents how to dispatch the pass over a comment-stripped
+blind copy and score recall with `score_semantic.py`, which aggregates a
+**hit-rate per pair across N rounds** (the pass is non-deterministic — one round
+is illustrative). Kept out of CI because it needs a model. The latest observed
+baseline — and the gap-found-then-closed history it records (e.g. the 0.4.6
+service-layer `sec.authz` fix) — lives in `semantic-runner.md`.
 
 ## Why this is never shipped
 
