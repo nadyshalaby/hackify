@@ -19,6 +19,19 @@ The *principles* — DRY, no inline types, strict layering, edge-case discipline
 
 ---
 
+## Reusable, generic, shareable — the prime directive
+
+This is the rule every other rule serves. Code exists to be reused; copy-paste is debt.
+
+- Write every unit to be REUSED, not duplicated. Assume a second caller will need it — build so they can import it as-is.
+- Default GENERIC over specific: parameterize behavior, depend on abstractions, never bake one caller's assumptions into shared code.
+- SHAREABLE means zero hidden coupling — an extracted unit carries its dependencies explicitly and works at a second call site with no edits.
+- TESTABLE follows from the above: pure functions, injected dependencies, no import-time singletons, no side effect a test cannot observe.
+- Litmus test before merge: *could a second feature import this as-is, and is there a test that proves it works?* If no — refactor until yes.
+- Reuse never justifies speculation: prefer the simpler concrete solution and extract on the SECOND use — never the third, never the hypothetical. Simplicity First and DRY are the two guardrails of this principle.
+
+---
+
 ## DRY — Don't Repeat Yourself
 
 DRY is not a guideline. It is a hard requirement.
@@ -54,7 +67,7 @@ Inline object shapes are BANNED.
 - **Frontend feature-level:** the feature's own `types` file
 - **Frontend cross-feature:** a shared lib-types folder (rare; prefer feature-local)
 
-**Forbidden:** defining an `interface` or `type` (≥2 props) inside any router, service, middleware, guard, or controller module. Extract to the right folder.
+**Forbidden:** defining an `interface` or `type` (≥2 props) inside any implementation file — router, service, middleware, guard, controller, component, page, or route. Extract to a dedicated `*.types` file (see *One construct per file & dedicated-file separation* below).
 
 ---
 
@@ -162,7 +175,27 @@ Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps
 
 ## Type & interface placement (recap)
 
-BANNED: defining `interface` or `type` inside any service, controller, guard, router, or middleware module. Extract.
+BANNED: defining `interface` or `type` inside any implementation file (service, controller, guard, router, middleware, component, page, route). Extract — see *One construct per file & dedicated-file separation*.
+
+---
+
+## One construct per file & dedicated-file separation
+
+A file holds ONE thing; every other concern moves to its own dedicated file.
+
+- **One component per file** — a component file defines and exports exactly ONE component. No second component, public OR private. A sub-component used only by its parent gets its own file, co-located in a `<component>/` folder with an index that re-exports only the public component.
+- **One class per file** — named for the file. Its private methods/helpers stay with it; implementation cohesion is preserved — this is NOT one-function-per-file.
+- **No complex type in any implementation file** — the inline-type ban extends beyond service/controller/guard/router/middleware to components, pages, and routes. Any `interface`/`type` (≥2 props) or domain `enum` lives in a sibling `*.types` file.
+- **A dedicated file per concern** — constants → a constants file, config → a config file, validation schemas → a schema(s) file, style tokens / variant maps / class-name maps → a styles file. Implementation files import these; they never declare them.
+- **Consistent folder structure** — every module/feature follows the SAME documented skeleton. A new file goes where the convention says; "just this once, elsewhere" is a violation. Wrong convention? Change it in one place — never deviate locally.
+
+### Extraction floors — leave these inline (extracting is worse, or breaks the build)
+
+- **Single-use, read-in-place values** — a one-off utility/CSS class string, an identity value (`0`, `1`, `-1`, `''`, `true`, `false`). A name adds indirection, not reuse.
+- **Correctness floors** — schema-builder arguments (`z.literal`, `z.enum`), object keys, SQL fragments, template literals containing `${…}`, import specifiers, regex literals, union-type members, ORM schema defaults. Extracting changes behavior or types. Schema files and migration files are off-limits to extraction entirely.
+- **Lint-ban tokens** (`biome-ignore`, `@ts-ignore`, …) stay literal — they ARE the strings the bans grep for.
+- **Framework typed-path floors** — strings a typed router checks against a generated route/search union (route definitions, typed `<Link>` / navigate / redirect targets, route `validateSearch` schemas) stay inline; extracting them breaks route type-inference. A component's own inline form schema may move out cleanly by relocating BOTH the runtime schema and its inferred type — the component then exports no runtime value, so framework hot-reload stays happy; it stays inline only when a project deliberately keeps it in-file for locality.
+- **Technical exceptions** must cite the concrete compiler/linter error they prevent — an undocumented inline exception is itself a finding.
 
 ---
 

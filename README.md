@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.7-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -356,7 +356,7 @@ Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`r
 
 The reference rules are written in language-agnostic voice: package manager, linter, formatter, type system, test runner — never a brand. That voice is documented in [`rules/code-quality.md`](rules/code-quality.md) and is explicitly **substitute your own toolchain** — swap in whatever package manager, linter, formatter, indent width, or quote style your project already uses; the workflow does not care.
 
-What does carry across toolchains are the principles: DRY enforced by searching before writing, named types for any object shape with 2+ properties, strict layer separation, zero lint suppressions, zero non-null assertions in production code, functions ≤40 LOC, files ≤500 LOC, edge cases handled rather than hoped away.
+What does carry across toolchains are the principles: reusable/generic/shareable code as the prime directive, DRY enforced by searching before writing, named types for any object shape with 2+ properties, one component and one construct per file with types/constants/config/schemas/styles in dedicated files, strict layer separation, zero lint suppressions, zero non-null assertions in production code, functions ≤40 LOC, files ≤500 LOC, edge cases handled rather than hoped away.
 
 ### Editing the workflow
 

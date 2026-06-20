@@ -323,9 +323,9 @@ For tasks touching **UI / styling / theming / layout / components / typography /
 
 ## Code quality (always-on)
 
-Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable: ≤40 LOC per function, ≤3 params, ≤3 nesting levels, ≤500 LOC per file, 0 lint suppressions, 0 non-null `!`, 0 empty catches, 0 inline `interface`/`type` blocks ≥2 props in route/service/middleware modules, 0 bare `Error` throws in domain code. The plugin-root `rules/hard-caps.md` is injected into every prompt by the `UserPromptSubmit` hook so the hard caps are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from Phase 2.5 Reviewer B and Phase 5 Reviewer B.
+Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable: ≤40 LOC per function, ≤3 params, ≤3 nesting levels, ≤500 LOC per file, 0 lint suppressions, 0 non-null `!`, 0 empty catches, 0 inline `interface`/`type` blocks ≥2 props in any implementation file (route/service/middleware/component/page), 0 bare `Error` throws in domain code, 1 component per file (no second component, public or private), and every type/constant/config/schema/style map in its own dedicated file. The plugin-root `rules/hard-caps.md` is injected into every prompt by the `UserPromptSubmit` hook so the hard caps are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from Phase 2.5 Reviewer B and Phase 5 Reviewer B.
 
-Patterns: DRY, named types for any 2+ prop shape, explicit over clever, single responsibility, every code path tested, edge cases handled. Depth: `rules/code-quality.md`.
+Patterns: reusable/generic/shareable by default (the prime directive), DRY, named types for any 2+ prop shape, one construct + one component per file, consistent folder structure, explicit over clever, single responsibility, every code path tested, edge cases handled. Depth: `rules/code-quality.md`.
 
 ---
 

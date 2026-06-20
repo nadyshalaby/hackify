@@ -32,6 +32,7 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 | `ban.custom` | project-defined ban-patterns.txt line | high | deterministic | project `ban-patterns.txt` |
 | `sec.hardcoded-secret` | credential/secret in source | critical | deterministic | global §2.6 |
 | `style.dry` | duplicated logic; existing helper exists | high | semantic | global §1.1 |
+| `style.reuse` | near-duplicate that should be generalized into a shared, parameterized helper | medium | semantic | global §1.8 (reusable/generic/shareable) |
 | `style.naming` | name describes what-not-why; needs a comment | low | semantic | global §1.4 |
 | `style.ternary` | nested/chained ternary | low | semantic | global §1.4 |
 | `style.srp` | unit does more than one thing | medium | semantic | global §1.5 |
@@ -47,6 +48,8 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
 | `ban.inline-type` | `interface`/`type` declared in a scoped module | high | deterministic (syntactic) | global §3.1 (service/controller/routes/middleware/guard) |
+| `scope.one-construct` | impl file declares a type/enum/constant/config/schema/style not in its dedicated file (broader than the deterministic `ban.inline-type` scope — covers components/pages/routes) | medium | semantic | global §3.5 |
+| `scope.one-component` | 2+ components (public or private) declared in one file | medium | semantic | global §3.5 |
 | `scope.layer` | layer leak (controller→DB, service→HTTP, etc.) | high | semantic | global §1.3 / workspace §5.1 |
 | `scope.controller-purity` | controller does more than one service call | medium | semantic | global §3.3 |
 | `scope.dead-code` | method/export/registration with zero callers | medium | semantic | global §3.2 |
@@ -60,7 +63,8 @@ layout, skip this category and say so in the report — do not invent a structur
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
 | `folder.placement` | file in the wrong tier/dir vs documented topology | medium | semantic | project `CLAUDE.md` / `architecture.md` |
-| `folder.type-home` | type/enum/constant not in its dedicated dir | low | semantic | project topology / global §3.1 |
+| `folder.type-home` | type/enum/constant/config/schema/style not in its dedicated file/dir | low | semantic | project topology / global §3.5 |
+| `folder.one-component` | multi-part component not split into a `<component>/` folder | low | semantic | project topology / global §3.5 |
 | `folder.entity-uniqueness` | duplicate entity/model class name | high | semantic | global §3.4 |
 
 ## Security

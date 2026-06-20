@@ -14,11 +14,20 @@ Injected into every prompt by hackify's `UserPromptSubmit` hook. Zero-tolerance,
 - **0 lint suppressions** — no `biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error` in production. Sole exception: `@ts-expect-error` in test files for deliberately invalid input, with a comment explaining WHY. (These specific tokens stay literal because they ARE the strings linters and reviewers grep for; abstracting them would defeat the rule.)
 - **0 non-null `!`** assertions in production code.
 - **0 empty catches** — `catch (e) {}` is unconditionally banned.
-- **0 inline `interface`/`type` blocks ≥ 2 props** in router / service / middleware / guard / controller modules.
+- **0 inline `interface`/`type` blocks ≥ 2 props** in any router / service / middleware / guard / controller / component / page / route module — extract to a dedicated `*.types` file.
 - **0 bare `Error` throws** in domain code — use a domain-specific exception subclass.
+
+## File separation — one thing per file
+
+- **One component per file** — exactly ONE component, public OR private. A sub-component used only by its parent gets its OWN file inside a `<component>/` folder; never a second component beside it.
+- **One class per file** — its private helpers stay with it; one public class per file.
+- **Dedicated file per concern** — types → `*.types`, constants → `*.constants`, config → `*.config`, schemas → `*.schema(s)`, style tokens / variant maps / class-name maps → `*.styles`. Implementation files IMPORT these; they never declare them. (Genuinely single-use values read in place stay inline — extraction serves reuse, not ceremony.)
+- **Consistent folder structure** — every module/feature follows the SAME documented skeleton. "Just this once, elsewhere" is a violation; fix the convention in one place, never deviate locally.
+- **Technical exceptions** (where extraction breaks the compiler or a linter) MUST cite the concrete tool error they prevent — an undocumented inline exception is a finding.
 
 ## Always-on principles
 
+- **Reusable / generic / shareable (the prime directive)** — write every unit to be imported as-is by a second caller: parameterize over hard-coding, carry dependencies explicitly, keep it independently testable. Extract on the SECOND use, never speculatively.
 - **DRY** — search before writing. Same 3+ lines twice → extract.
 - **Named types** — any object shape with 2+ properties is a named `interface`/`type`.
 - **Single responsibility** — one function does one thing; one service owns one domain; one command owns one job.

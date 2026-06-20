@@ -48,10 +48,14 @@ flags one of these is producing noise. Pass this list into every relevant subage
 - **TanStack Router typed paths** consumed by `createFileRoute`, `<Link to>`, `navigate`,
   `redirect`, `validateSearch` stay inline — extracting breaks route type-inference. (Axios
   endpoint paths ARE extractable.)
-- **react-refresh carve-out** — a component that declares its own inline
+- **react-refresh carve-out (narrowed)** — a component that declares its own inline
   `const FormSchema = z.object({…})` may keep that schema's `z.infer` value type and field-prop
-  interfaces referencing `FormValues`/`Control<FormValues>` in-file; relocating them trips
-  `react-refresh/only-export-components`. Every OTHER type still leaves the impl file.
+  interfaces referencing `FormValues`/`Control<FormValues>` in-file; relocating ONLY the type trips
+  `react-refresh/only-export-components`. The clean resolution that satisfies the one-construct rule
+  (§3.5) is to relocate BOTH the runtime schema and its inferred type to dedicated files — the
+  component then exports no runtime value, so react-refresh stays green. So the inline carve-out
+  applies ONLY when a project deliberately keeps the runtime schema in-file for locality; otherwise an
+  inline component schema IS a finding (`scope.one-construct`). Every OTHER type still leaves the impl file.
 - `routeTree.gen.ts` is generated — never hand-edit, never flag.
 
 ### Bare-error nuance

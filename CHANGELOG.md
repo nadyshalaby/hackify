@@ -5,6 +5,21 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-20
+
+> **Minor: file-separation doctrine + the reusable-by-default prime directive.** Adds a new always-on rule cluster — one component per file, one construct per file, a dedicated file per concern (types / constants / config / schemas / styles), and a consistent documented folder structure — plus a "reusable, generic, shareable" prime directive that frames DRY and Simplicity First as its guardrails. Injected every prompt via `rules/hard-caps.md`, detailed in `rules/code-quality.md`, and made auditable by lawkeeper (`scope.one-construct`, `scope.one-component`, `folder.one-component`, `style.reuse`).
+
+### Added
+
+- **`rules/hard-caps.md` — "File separation (one thing per file)" + the reusable-by-default prime directive.** The always-on injected caps now mandate one component per file (no second component, public or private — sub-components move to a `<component>/` folder), one class per file, a dedicated file per concern (types/constants/config/schemas/style maps), and a consistent documented folder skeleton; technical exceptions MUST cite the concrete compiler/linter error they prevent. A new lead principle — write every unit reusable / generic / shareable / testable, extract on the second use, never speculatively — heads the always-on principles.
+- **`rules/code-quality.md` — two new doctrine sections.** "Reusable, generic, shareable — the prime directive" (the rule every other rule serves) and "One construct per file & dedicated-file separation" (single component/class per file, a dedicated file per concern, consistent folders), plus an **extraction-floors** subsection mashed in from lawkeeper's carve-outs — single-use read-in-place values, correctness floors (schema-builder args, object keys, SQL, `${…}` templates, imports, regex, union members, ORM defaults), lint-ban tokens, and framework typed-path floors — each with the documented-exception requirement. The existing inline-type ban broadens from service/controller/guard/router/middleware to ALL implementation files (components, pages, routes included).
+- **lawkeeper audits the new rules.** `references/rule-catalog.md` gains `scope.one-construct` (impl file declares a type/const/config/schema/style not in its dedicated file), `scope.one-component` (2+ components in a file), `folder.one-component` (multi-part component not foldered), and `style.reuse` (near-duplicate that should be generalized into a shared parameterized helper); `folder.type-home` widens to config/schema/style homes.
+
+### Changed
+
+- **lawkeeper carve-outs — react-refresh floor narrowed.** `references/carve-outs.md` records the clean resolution that satisfies the new one-construct rule: relocate BOTH the runtime schema and its inferred type to dedicated files (the component then exports no runtime value, so hot-reload stays green). The inline carve-out now applies ONLY when a project deliberately keeps the runtime schema in-file for locality; otherwise an inline component schema is a `scope.one-construct` finding.
+- **`skills/hackify/SKILL.md` "Code quality (always-on)"** recaps the new file-separation caps (one component per file, dedicated file per concern) and the reusable-by-default prime directive so the main workflow stays consistent with the injected rules.
+
 ## [0.4.7] - 2026-06-10
 
 > **Patch-level: the semantic tier is now measured wall-to-wall.** Broadens the recall-corpus oracle from 8 to 20 `(file, rule)` pairs across 11 of lawkeeper's semantic concerns — SOLID, testing, cleanup, magic-literals, and function caps join the original six — and re-measures the whole tier. Dev/CI internals only: nothing a plugin user loads or runs changes.
