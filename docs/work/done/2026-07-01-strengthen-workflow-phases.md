@@ -1,11 +1,13 @@
 ---
 slug: strengthen-workflow-phases
 title: Strengthen four workflow phases across all entry skills (0.6.0)
-status: implementing
+status: done
+shipped: 2026-07-01
+shipped_via: merge
 type: revamp
 created: 2026-07-01
 project: hackify
-current_task: W4:T18 (verify)
+current_task: done
 worktree: none (in-place)
 branch: feat/strengthen-workflow-phases
 sprint_goal: Make clarify, summary, review, and cleanup materially more thorough across hackify/quick/yolo/groom, shipped as 0.6.0 with every DoD check green.
@@ -156,4 +158,24 @@ DRY ✓ · named-types n/a (no code) · layering n/a · no lint suppressions ✓
 
 ## 8. Retrospective
 
-_(filled at Phase 6; record the deliberate demo-GIF deferral rationale here)_
+- **The DoD harness was the real design driver.** `validate-dod.d`'s 500-LOC cap plus the `[22]`/`[34]`/`[26]` token checks forced all substantial new prose into 3 dedicated files (`goal-anchor.md`, `html-report.md`, `report-template.html`) — which happily matched the project's own 0.5.0 file-separation doctrine — and dictated a careful quick-parity reconciliation.
+- **Classifier outage → inline degradation.** The subagent-dispatch classifier was intermittently unavailable, so Waves 1–2 were authored inline (the workflow's documented best-effort fallback: coverage kept, concurrency lost). Phase 2.5 and Phase 5 reviewers fanned out in parallel once it recovered — 0 Critical / 0 Important both rounds.
+- **#5C collided with DoD [22].** "quick full-parity" fought the harness requirement that quick document skipping Phase 5. Resolved by giving quick a *single-lens* (not 3-lens) address-all review — it gains the rigor while keeping its "Skipped phases" identity intact.
+- **Two tight files shaped the edits.** README (413→420 / 450) capped the "New in 0.6.0" blurb; `phase-5-multi-review.md` (455→463 / 500) capped the Reviewer-C drift-check to ≤10 lines and forced the anchor-safety discipline (byte-identical headings, no stray bold before the OUTPUT word-cap).
+- **Deliberate deferral — demo GIF NOT regenerated.** `docs/assets/hackify-demo.gif` shows the six phase *names* (unchanged) — only their sub-behavior deepened, so the tiles stay accurate. Follow-up (optional, cheap): if you want the tile sub-labels ("batched wizard", "summary table") to reflect the deeper phases, edit the `PHASES` tuples in `scripts/gen-demo-gif.py` and re-run it.
+- **Follow-up (optional):** the HTML report's entity-encoding is documented in `html-report.md` but relies on the Phase 6 filler honoring it — a future eval could assert the generated report escapes a `<`-bearing commit subject.
+
+## Summary of changes shipped
+
+| Area | Change |
+|---|---|
+| Goal anchor | new `references/goal-anchor.md` + work-doc `## Primary Goal & Guardrails` section + `universal-preamble.md` Q5; Phase 1 grooming coverage checklist, cap is now a floor |
+| Drift-check | Phase 2.5 Reviewer A + Phase 5 Reviewer C trace every task/hunk to the anchor (added to both mirror-pairs) |
+| HTML report | new self-contained `assets/report-template.html` + `references/html-report.md`; emitted at Phase 6 Step F beside the work-doc |
+| Address-all review | Phase 5 fixes EVERY severity incl. Minor + re-scans to zero (`SKILL.md`, `review-and-verify.md` decision-table loop) |
+| Cleanup sweep | Step C.5 class (g) flips `defer`→`offer-to-fix` for pre-existing errors in touched files (`finish.md`) |
+| Quick parity | `quick` gains clarify+goal, single-lens address-all review, cleanup, HTML report; keeps "Skipped phases" identity |
+| Yolo autopilot | `yolo` auto-fixes every severity + re-scans, auto-fixes pre-existing errors, emits the report |
+| Groom handoff | graduation seeds the `## Primary Goal & Guardrails` section from its distillation |
+| Summary command | `commands/summary.md` emits the HTML report at finish; stale `Post-mortem`→`Retrospective` append target fixed |
+| Release | version `0.6.0` (both manifests, README badge, `source.ref` `v0.6.0`); CHANGELOG entry; 3 files in `MIRROR_SOURCES` |

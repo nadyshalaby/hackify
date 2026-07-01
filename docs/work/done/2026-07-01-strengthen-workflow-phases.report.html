@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strengthen four workflow phases — hackify report</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #1a1c22;
+    --ink-dim: #5b6270;
+    --line: #e4e7ec;
+    --brand: #7c3aed;
+    --brand-soft: #efe8fe;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --crit: #dc2626;
+    --imp: #d97706;
+    --min: #64748b;
+    --add: #16a34a;
+    --del: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+      --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header.report { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--brand); background: var(--brand-soft);
+    padding: 3px 10px; border-radius: 999px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 12px 0 6px; }
+  .meta { color: var(--ink-dim); font-size: 13px; }
+  .meta code { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  .goal { margin-top: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--brand); border-radius: 10px; color: var(--ink-dim); }
+  .goal strong { color: var(--ink); }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-dim);
+    margin: 34px 0 14px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); }
+  .card .n { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .card .k { font-size: 12px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .card .add { color: var(--add); } .card .del { color: var(--del); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .timeline { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--ink-dim); background: var(--bg); }
+  .pill.done { color: #fff; background: var(--brand); border-color: var(--brand); }
+  .pill.skipped { opacity: .55; text-decoration: line-through; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-dim); }
+  tr:last-child td { border-bottom: 0; }
+  td code, .area { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .sev { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  .sev.critical { color: var(--crit); } .sev.important { color: var(--imp); } .sev.minor { color: var(--min); }
+  ul.items { list-style: none; padding: 0; margin: 0; }
+  ul.items li { padding: 10px 0 10px 26px; border-bottom: 1px solid var(--line); position: relative; }
+  ul.items li:last-child { border-bottom: 0; }
+  ul.items li::before { content: "→"; position: absolute; left: 4px; color: var(--brand); font-weight: 700; }
+  .empty { color: var(--ink-dim); font-style: italic; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--ink-dim); font-size: 12px; }
+  footer a { color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report">
+    <span class="eyebrow">Sprint report</span>
+    <h1>Strengthen four workflow phases</h1>
+    <p class="meta"><code>2026-07-01-strengthen-workflow-phases</code> · generated 2026-07-01</p>
+    <div class="goal"><strong>Sprint goal.</strong> Make clarify, summary, review, and cleanup materially more thorough across hackify/quick/yolo/groom, shipped as 0.6.0 with every DoD check green.</div>
+  </header>
+
+  <h2>At a glance</h2>
+  <div class="cards">
+    <div class="card"><div class="n">18/18</div><div class="k">Tasks done</div></div>
+    <div class="card"><div class="n">22</div><div class="k">Files changed</div></div>
+    <div class="card"><div class="n"><span class="add">+585</span> <span class="del">−45</span></div><div class="k">Lines</div></div>
+    <div class="card"><div class="n">5</div><div class="k">Commits</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="panel">
+      <h2 style="margin-top:0">Review findings</h2>
+      <!-- <svg viewBox="0 0 320 116" width="100%" style="max-width:340px" role="img" aria-label="Findings by severity">
+  <g font-size="12" font-family="inherit">
+    <text x="0" y="21" fill="var(--ink-dim)">Critical</text>
+    <rect x="82" y="11" width="4" height="14" rx="3" fill="var(--crit)"></rect>
+    <text x="94" y="21" fill="var(--ink-dim)">0</text>
+    <text x="0" y="53" fill="var(--ink-dim)">Important</text>
+    <rect x="82" y="43" width="4" height="14" rx="3" fill="var(--imp)"></rect>
+    <text x="94" y="53" fill="var(--ink-dim)">0</text>
+    <text x="0" y="85" fill="var(--ink-dim)">Minor</text>
+    <rect x="82" y="75" width="70" height="14" rx="3" fill="var(--min)"></rect>
+    <text x="160" y="85" fill="var(--ink-dim)">2 &#183; all fixed</text>
+  </g>
+</svg> — inline <svg> donut/bar of Critical/Important/Minor (fixed vs open) -->
+      <svg viewBox="0 0 320 116" width="100%" style="max-width:340px" role="img" aria-label="Findings by severity">
+  <g font-size="12" font-family="inherit">
+    <text x="0" y="21" fill="var(--ink-dim)">Critical</text>
+    <rect x="82" y="11" width="4" height="14" rx="3" fill="var(--crit)"></rect>
+    <text x="94" y="21" fill="var(--ink-dim)">0</text>
+    <text x="0" y="53" fill="var(--ink-dim)">Important</text>
+    <rect x="82" y="43" width="4" height="14" rx="3" fill="var(--imp)"></rect>
+    <text x="94" y="53" fill="var(--ink-dim)">0</text>
+    <text x="0" y="85" fill="var(--ink-dim)">Minor</text>
+    <rect x="82" y="75" width="70" height="14" rx="3" fill="var(--min)"></rect>
+    <text x="160" y="85" fill="var(--ink-dim)">2 &#183; all fixed</text>
+  </g>
+</svg>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0">Phases</h2>
+      <!-- <span class="pill done">1 Clarify</span><span class="pill done">2 Plan</span><span class="pill done">2.5 Spec</span><span class="pill done">3 Implement</span><span class="pill done">4 Verify</span><span class="pill done">5 Review</span><span class="pill done">6 Finish</span> — six <span class="pill done|skipped">N Name</span> for Clarify→Finish -->
+      <div class="timeline"><span class="pill done">1 Clarify</span><span class="pill done">2 Plan</span><span class="pill done">2.5 Spec</span><span class="pill done">3 Implement</span><span class="pill done">4 Verify</span><span class="pill done">5 Review</span><span class="pill done">6 Finish</span></div>
+    </div>
+  </div>
+
+  <h2>Findings detail</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Finding</th><th>Severity</th><th>Decision</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <!-- <tr><td>Reviewer A &#8212; HTML report token map lacked an entity-encode step</td><td><span class="sev minor">Minor</span></td><td>accept &#183; fixed</td><td><code>html-report.md</code> filling step 3</td></tr><tr><td>Reviewer B &#8212; quick 5-lite pointer could imply a 3-lens re-dispatch</td><td><span class="sev minor">Minor</span></td><td>accept &#183; fixed</td><td><code>quick/SKILL.md</code> 5-lite row</td></tr> — <tr><td>…</td><td><span class="sev critical|important|minor">…</span></td><td>…</td><td>…</td></tr>; render one empty row with class="empty" if none -->
+        <tr><td>Reviewer A &#8212; HTML report token map lacked an entity-encode step</td><td><span class="sev minor">Minor</span></td><td>accept &#183; fixed</td><td><code>html-report.md</code> filling step 3</td></tr><tr><td>Reviewer B &#8212; quick 5-lite pointer could imply a 3-lens re-dispatch</td><td><span class="sev minor">Minor</span></td><td>accept &#183; fixed</td><td><code>quick/SKILL.md</code> 5-lite row</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Action items &amp; follow-ups</h2>
+  <div class="panel">
+    <ul class="items">
+      <!-- <li>Optional: refresh the <code>PHASES</code> tile sub-labels in <code>scripts/gen-demo-gif.py</code> and re-run it if you want the demo GIF to reflect the deeper phases (deferred &#8212; phase set/names unchanged).</li><li>Release step you drive: <code>git tag v0.6.0</code> + push so the <code>hackify</code> marketplace channel (pinned to <code>ref: v0.6.0</code>) resolves.</li> — <li>…</li> per item, or <li class="empty">None — nothing outstanding.</li> -->
+      <li>Optional: refresh the <code>PHASES</code> tile sub-labels in <code>scripts/gen-demo-gif.py</code> and re-run it if you want the demo GIF to reflect the deeper phases (deferred &#8212; phase set/names unchanged).</li><li>Release step you drive: <code>git tag v0.6.0</code> + push so the <code>hackify</code> marketplace channel (pinned to <code>ref: v0.6.0</code>) resolves.</li>
+    </ul>
+  </div>
+
+  <h2>What changed</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Area</th><th>Change</th></tr></thead>
+      <tbody>
+        <!-- <tr><td class="area">Goal anchor</td><td>persisted <code>Primary Goal &amp; Guardrails</code> captured in Phase 1; drift-check in 2.5 + 5</td></tr><tr><td class="area">HTML report</td><td>self-contained <code>report-template.html</code> + <code>html-report.md</code> at Phase 6 Step F</td></tr><tr><td class="area">Address-all review</td><td>Phase 5 fixes every severity incl. Minor, re-scans to zero</td></tr><tr><td class="area">Cleanup</td><td>Step C.5 class (g) offers to fix pre-existing errors in touched files</td></tr><tr><td class="area">Companion parity</td><td><code>quick</code> / <code>yolo</code> / <code>groom</code> inherit anchor, review, cleanup, report</td></tr><tr><td class="area">Release</td><td><code>0.6.0</code> across manifests + README + CHANGELOG; 3 files in <code>MIRROR_SOURCES</code></td></tr> — <tr><td class="area">…</td><td>…</td></tr> mirroring the chat Area/Change table -->
+        <tr><td class="area">Goal anchor</td><td>persisted <code>Primary Goal &amp; Guardrails</code> captured in Phase 1; drift-check in 2.5 + 5</td></tr><tr><td class="area">HTML report</td><td>self-contained <code>report-template.html</code> + <code>html-report.md</code> at Phase 6 Step F</td></tr><tr><td class="area">Address-all review</td><td>Phase 5 fixes every severity incl. Minor, re-scans to zero</td></tr><tr><td class="area">Cleanup</td><td>Step C.5 class (g) offers to fix pre-existing errors in touched files</td></tr><tr><td class="area">Companion parity</td><td><code>quick</code> / <code>yolo</code> / <code>groom</code> inherit anchor, review, cleanup, report</td></tr><tr><td class="area">Release</td><td><code>0.6.0</code> across manifests + README + CHANGELOG; 3 files in <code>MIRROR_SOURCES</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Next steps &amp; instructions</h2>
+  <div class="panel">
+    <ul class="items">
+      <!-- <li>No migrations, env vars, or manual steps &#8212; docs/prose + one HTML asset only.</li><li>Verify anytime with <code>bash scripts/validate-dod.sh</code> (currently ALL CHECKS PASSED).</li><li>Not pushed/tagged &#8212; land the release on your own cadence.</li> — <li>…</li> the developer must act on, or <li class="empty">None — ready as-is.</li> -->
+      <li>No migrations, env vars, or manual steps &#8212; docs/prose + one HTML asset only.</li><li>Verify anytime with <code>bash scripts/validate-dod.sh</code> (currently ALL CHECKS PASSED).</li><li>Not pushed/tagged &#8212; land the release on your own cadence.</li>
+    </ul>
+  </div>
+
+  <footer>Generated by hackify · Phase 6 summary report · self-contained, works offline.</footer>
+
+</div>
+</body>
+</html>
