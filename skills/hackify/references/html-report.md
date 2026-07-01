@@ -50,7 +50,8 @@ Charts are hand-emitted **inline SVG** so the file stays self-contained. No char
    - `{{ACTION_ITEMS}}` — `<li>` items (or an empty-state line)
    - `{{AREA_CHANGE_TABLE}}` — the same rows as the chat Area/Change table
    - `{{NEXT_STEPS}}` — instructions the developer must act on (or an empty-state line)
-3. Write the filled file to the path above.
+3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens — `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{AREA_CHANGE_TABLE}}` / `{{NEXT_STEPS}}` cells (a commit subject or a type like `Promise<User>` can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
+4. Write the filled file to the path above.
 
 ## Hard rules
 

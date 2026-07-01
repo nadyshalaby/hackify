@@ -118,7 +118,7 @@ Answered via wizard (two batches). Locked decisions:
 - [x] **T17** `CHANGELOG.md` — `## [0.6.0] - 2026-07-01` entry (Keep-a-Changelog: summary blockquote + Added/Changed) covering all four enhancements. *Files: CHANGELOG.md. Test: manual read.*
 
 ### Wave 4 — Verify
-- [ ] **T18** Run `validate-dod.sh` + `check-collisions.sh` + `sync-runtimes.sh --dry-run`; render `report-template.html` with sample data + screenshot; fix every red. *Files: as needed. Test: full harness green.*
+- [x] **T18** Run `validate-dod.sh` + `check-collisions.sh` + `sync-runtimes.sh --dry-run`; render `report-template.html` with sample data + screenshot; fix every red. *Files: as needed. Test: full harness green.*
 
 ## 6. Daily Updates
 
@@ -132,7 +132,27 @@ Answered via wizard (two batches). Locked decisions:
 
 ## 7. Sprint Review
 
-_(filled at Phase 4/6)_
+### Phase 4 — Verify (2026-07-01, fresh evidence)
+
+- **`bash scripts/validate-dod.sh` → `ALL CHECKS PASSED` (exit 0).** Every check [1]–[90] green, incl. [80] file-size cap "102 files scanned; all ≤ 500 LOC", [16]/[16b] version 0.6.0 consistent, [34] yolo tokens, [22]/[23]/[35] quick tokens, [26] template headings, [55] mirror-completeness.
+- **`bash scripts/check-collisions.sh` → 7 OK | 0 collisions.**
+- **`bash scripts/sync-runtimes.sh --dry-run` → 7 runtimes, 465 files.** The 3 new files (`goal-anchor.md`, `html-report.md`, `assets/report-template.html`) mirror to the same 6 runtimes as existing `finish.md` / `codewalk/assets/viewer.html` (copilot-cli takes a MANIFEST only, by design).
+- **HTML report render** — filled `report-template.html` with real task data (22 files, +564/−45, 4 commits, 18/18 tasks) via `.replace()` on the real template: 0 leftover tokens, 0 external network refs; screenshot confirms stat cards, severity SVG chart, phase-timeline pills, findings table, action items, Area/Change table, and next-steps all render cleanly (light/dark responsive).
+- **Line-cap headroom after edits:** SKILL.md 372, finish.md 400, review-and-verify.md 375, phase-5-multi-review.md 463 — all ≤500.
+
+### Phase 5 — Multi-reviewer + address-all loop (2026-07-01)
+
+Three parallel reviewers (security / quality / plan-consistency+drift) over `5c7c604..2ad58ee`. **Zero Critical, zero Important across all three.**
+
+- **A (security):** no exploitable findings; HTML asset confirmed self-contained (0 external refs, 0 inline JS), token scrub clean, version 0.6.0 correct.
+- **B (quality):** DRY/terminology consistent across all 11 touched surfaces; mirror-pairs byte-identical; all caps ≤500; 7-section contract + canonical severity + word caps intact; all 12 new cross-ref links resolve.
+- **C (plan-consistency+drift):** all 22 files map to tasks (0 scope creep); all 9 AC bullets + all 4 Original-Ask bullets delivered; goal-drift clean (guardrails honored); Q&A fidelity confirmed (#5C quick keeps "Skipped phases" identity; #2A augments not replaces); CHANGELOG matches.
+
+**Address-all loop (decision table → empty):** A1 `html-report.md` entity-encode step — accept, fixed. B2 quick 5-lite pointer single-reviewer clarity — accept, fixed. B1 goal-anchor casing — push-back (reviewer confirmed non-defect). C1 T18 checkbox — already fixed. C2 CHANGELOG shorthand — push-back (deliberate, reviewer said no fix required). **Re-scan after fixes: `validate-dod.sh` EXIT 0 / ALL CHECKS PASSED.**
+
+### Self-review (parent, against the 14-item checklist)
+
+DRY ✓ · named-types n/a (no code) · layering n/a · no lint suppressions ✓ · file caps ≤500 ✓ · function caps n/a · dead code none ✓ · edge cases (empty-state HTML rows, entity-encode) ✓ · naming-for-intent ✓ · error handling n/a · no security regressions ✓ · no new `!` ✓ · no empty catches ✓ · no bare Error ✓.
 
 ## 8. Retrospective
 
