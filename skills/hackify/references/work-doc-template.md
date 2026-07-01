@@ -28,6 +28,16 @@ sprint_goal: |
 
 > [paste the user's request VERBATIM, in a blockquote]
 
+## Primary Goal & Guardrails
+
+The north-star this task is measured against. Captured in Phase 1, enforced by the drift-check in Phase 2.5 (Reviewer A) and Phase 5 (Reviewer C). See [goal-anchor.md](goal-anchor.md).
+
+- **North-Star Goal.** [one sentence — the single outcome this task commits to]
+- **In-Scope.** [bullets of work this task WILL do — the boundary]
+- **Out-of-Scope / Non-Goals.** [bullets this task will explicitly NOT do]
+- **Guardrails / Invariants.** [properties the solution must never violate — a Critical if broken]
+- **Success Signals.** [the observable proofs Phase 4 will paste]
+
 ## 2. Clarifying Q&A
 
 ### Q1 — [topic]
