@@ -5,7 +5,7 @@ status: implementing
 type: revamp
 created: 2026-07-01
 project: hackify
-current_task: W2a:T6+T7+T8+T9
+current_task: W2b:T10+T11+T12+T13+T14
 worktree: none (in-place)
 branch: feat/strengthen-workflow-phases
 sprint_goal: Make clarify, summary, review, and cleanup materially more thorough across hackify/quick/yolo/groom, shipped as 0.6.0 with every DoD check green.
@@ -101,10 +101,10 @@ Answered via wizard (two batches). Locked decisions:
 - [x] **T5** Add goal-anchor capture question to `skills/hackify/references/clarify-questions/universal-preamble.md` (keep 4-section contract). *Files: universal-preamble.md. Test: DoD [14].*
 
 ### Wave 2a — Core hackify surface
-- [ ] **T6** `skills/hackify/SKILL.md` — Phase 1 (anchor + grooming coverage + raise cap), Phase 2.5 & Phase 5 drift-check pointers, Phase 5 address-all loop + severity-table change, Phase 6 Step F HTML pointer, Step C.5 offer-to-fix. Concise pointers; keep Template/Wizard Contract cross-refs ([17]) + Phase-6 `Summary table`/`/hackify:summary` ([19]) + pause-keyword block ([28]). *Files: SKILL.md. Test: DoD [17][19][28][80].*
-- [ ] **T7** `skills/hackify/references/finish.md` — Step F HTML pointer + Step C.5 baseline & offer-to-fix. Keep `Summary table` + `| Area |` ([20]). *Files: finish.md. Test: DoD [20][80].*
-- [ ] **T8** `skills/hackify/references/review-and-verify.md` — address-all loop (decision table, fix incl. Minor, re-run to zero) + severity-table update. Preserve escalation Template-Contract anchors + canonical severity + word cap ([10][11][15]). *Files: review-and-verify.md. Test: DoD [10][11][15][80].*
-- [ ] **T9** `commands/summary.md` — emit the HTML report; keep `Area`/`Change` + description frontmatter ([18]). *Files: summary.md. Test: DoD [18].*
+- [x] **T6** `skills/hackify/SKILL.md` — Phase 1 (anchor + grooming coverage + raise cap), Phase 2.5 & Phase 5 drift-check pointers, Phase 5 address-all loop + severity-table change, Phase 6 Step F HTML pointer, Step C.5 offer-to-fix. Concise pointers; keep Template/Wizard Contract cross-refs ([17]) + Phase-6 `Summary table`/`/hackify:summary` ([19]) + pause-keyword block ([28]). *Files: SKILL.md. Test: DoD [17][19][28][80].*
+- [x] **T7** `skills/hackify/references/finish.md` — Step F HTML pointer + Step C.5 baseline & offer-to-fix. Keep `Summary table` + `| Area |` ([20]). *Files: finish.md. Test: DoD [20][80].*
+- [x] **T8** `skills/hackify/references/review-and-verify.md` — address-all loop (decision table, fix incl. Minor, re-run to zero) + severity-table update. Preserve escalation Template-Contract anchors + canonical severity + word cap ([10][11][15]). *Files: review-and-verify.md. Test: DoD [10][11][15][80].*
+- [x] **T9** `commands/summary.md` — emit the HTML report; keep `Area`/`Change` + description frontmatter ([18]). *Files: summary.md. Test: DoD [18].*
 ### Wave 2b — Companions + reviewers (after 2a lands + commits)
 - [ ] **T10** `skills/quick/SKILL.md` — trimmed clarify (goal restatement), single-lens address-all review, offer-to-fix cleanup, HTML report. PRESERVE "Skipped phases" list + `Phase 2`/`Phase 2.5`/`Phase 5`/`four-options` + `Summary table` + exploration-nudge sentence ([22][23][35]). *Files: quick/SKILL.md. Test: DoD [21][22][23][35].*
 - [ ] **T11** `skills/yolo/SKILL.md` — inherit deep clarify + in-chat anchor; auto-fix all-severity review + re-scan; auto-fix pre-existing cleanup; emit HTML report. PRESERVE tokens ([34]). *Files: yolo/SKILL.md. Test: DoD [34].*
@@ -125,6 +125,8 @@ Answered via wizard (two batches). Locked decisions:
 **2026-07-01 — Phase 2.5 Spec self-review (3 parallel reviewers).** No Critical. Applied: (A-2) §3 note resolving bracketed DoD `[n]` to `validate-dod.d/*.sh`; (C-1) split Wave 2 → 2a/2b; (B-1) T15 verbatim 3-path enumeration; (B-2) T14 anchor-safety (byte-identical Multi-reviewer headings, drift text inside METHOD/SEVERITY, no stray bold); mirror-pair atomicity noted on T13/T14. Confirmed non-issue: `plugins[1].source.ref` stays `main`. Wave plan confirmed collision-free.
 
 **2026-07-01 — Wave 1 (Foundations) done.** Authored inline (dispatch classifier was transiently down; foundation files are consistency-critical so parent-authored for an exact Design-Spec match). T1 `goal-anchor.md` (55L), T2 `html-report.md` (64L), T3 `assets/report-template.html` (156L, self-contained, 0 external refs), T4 `work-doc-template.md` +`## Primary Goal & Guardrails` (188L, numbered headings intact), T5 `universal-preamble.md` +Q5 Goal (65L, 4 wizard headers intact). Targeted checks green: all ≤500 LOC; token scrub clean; contract headers preserved.
+
+**2026-07-01 — Wave 2a (Core hackify surface) done.** Authored inline (classifier still flaky; these are the tightest DoD-guarded core files). T6 `SKILL.md` (372L) — Phase 1 grooming+anchor, Phase 2.5 Reviewer A drift-check, Phase 5 Reviewer C drift-check + address-all loop + Minor-no-longer-deferred, Step C.5 class (g) offer-to-fix, Step F HTML report. T7 `finish.md` (400L) — class (g) baseline+offer-to-fix rewrite, Step F HTML pointer. T8 `review-and-verify.md` (375L) — address-all loop + decision table + Minor change; escalation template contract untouched. T9 `commands/summary.md` (61L) — HTML-report step 7b + Retrospective append fix. Verified: [17][18][19][20] tokens intact; [10][11][15] escalation anchors + canonical severity + word cap intact; token scrub 0.
 
 ## 7. Sprint Review
 

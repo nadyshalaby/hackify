@@ -184,11 +184,17 @@ git diff main..HEAD --name-only | sort -u
 
 Compare the list against the union of every task's declared file allowlist in the Sprint Backlog. Any path in the diff but not in any allowlist → scope creep. Evidence record example: *"Class (f) scope creep: 0 unrelated paths in diff (27 paths, all in Sprint Backlog allowlists)"*. If findings appear → either justify the path inline (it served a load-bearing task discovered mid-sprint and should be added to the Sprint Backlog retroactively), or revert the path-specific changes before archiving.
 
-### Class (g) — Pre-existing dead code surfaced but not touched
+### Class (g) — Pre-existing errors + dead code in touched files (offer to fix)
 
-Catches dead code (unused exports, unreferenced helpers, orphan modules) the sprint *discovered* but deliberately did not delete to keep scope small.
+The touched-scope quality gate. The goal is the **best version**: files this sprint changed end with nothing a reviewer would flag — no lint error, no type error, no failing test, no dead code — whether the issue was introduced this sprint OR pre-dates it.
 
-Review Daily Updates entries for any "noticed X is unused but out of scope" mentions. Evidence record example: *"Class (g) surfaced dead code: 1 instance (`oldHelper` in `lib/utils.ts`); filed as Retrospective follow-up #3"*. If findings appear → move each instance to a numbered Retrospective follow-up entry with file:line and a one-sentence rationale. Do NOT silently leave undocumented — the surfaced-but-not-deleted pattern is how dead code compounds.
+**Baseline + detect.** Run the project's lint / typecheck / test and a dead-code scan **scoped to the touched files** (`git diff --name-only <base>..HEAD`). To attribute honestly, diff against the sprint-start state (a `<base>`-checkout run, or `git stash` before re-running) so each issue is labelled *introduced* vs *pre-existing*. Introduced issues are fixed unconditionally (Phase 4 already requires it). Pre-existing issues in touched files are **surfaced and offered**:
+
+- **Full hackify / quick** — present the list (file:line + one-line description) and OFFER to fix via a batched wizard: *"N pre-existing issues in files you touched — fix them now so the change lands clean?"* Apply approved fixes using the project's existing patterns (a fix must read as if the original author wrote it).
+- **yolo** — auto-fix all pre-existing issues in the touched files, no prompt.
+- **Too large for this sprint** — defer to a numbered Retrospective follow-up (file:line + rationale) ONLY with explicit user sign-off. Never silently leave.
+
+Whole-repo pre-existing issues OUTSIDE the touched files stay out of scope — that is a full-codebase audit (`/hackify:lawkeeper`), not the cleanup sweep. Evidence record example: *"Class (g) touched-scope: 2 pre-existing lint errors in `lib/utils.ts` (fixed, approved); 0 dead code; touched files now clean."*
 
 ### Class (h) — Work-doc references to file paths that just changed
 
@@ -354,6 +360,8 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 ## Summary table — authoring guidance
 
 Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task — the user reads it to verify alignment before the work-doc archive moves to `done/`.
+
+**Step F also emits a styled HTML report** — a self-contained `<slug>.report.html` beside the archived work-doc with stats, inline-SVG charts, the findings table, action items, and next steps. The Area/Change table below is embedded in it AND printed to chat. Authoring + placeholder-token map: [html-report.md](html-report.md).
 
 ### Area-label rules (left column)
 

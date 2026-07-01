@@ -56,15 +56,15 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 
 ## Phase 1 — Clarify
 
-**Goal.** Understand the ask precisely enough that no question survives into Phase 3.
+**Goal.** Groom the ask into a locked **Primary Goal & Guardrails** anchor — maximum understanding before any code. Phase 1 is a grooming session that drives every downstream plan and implementation decision and is enforced by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal. See [references/goal-anchor.md](references/goal-anchor.md).
 
 1. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions/README.md`).
 2. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
-3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`.
+3. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`. The ~16-question target is a floor, not a ceiling — keep asking (across back-to-back wizard calls) until the anchor's five parts are all pinned: North-Star Goal, In-Scope, Out-of-Scope/Non-Goals, Guardrails/Invariants, Success Signals. Every question must fork a real decision; never pad with vanity questions.
 4. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool — plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1–4 questions per call, 2–4 options per question — split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided — never add one yourself.
 5. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
 
-**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a list of clear, locked answers. See `references/clarify-questions/README.md`.
+**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a locked answer set **and** a complete Primary Goal & Guardrails anchor recorded in the work-doc (in-chat block for quick/yolo). See [references/goal-anchor.md](references/goal-anchor.md) and `references/clarify-questions/README.md`.
 
 ---
 
@@ -88,7 +88,7 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 **Goal.** Catch inconsistent or conflicting logic in the work-doc *before* code is written. Cheap on paper; expensive after 200 LOC against a flawed spec.
 
 1. **Dispatch 3 foreground reviewers in parallel in ONE message.** Each gets a self-contained prompt + absolute work-doc path:
-   - **Reviewer A — Internal consistency.** Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach.
+   - **Reviewer A — Internal consistency + goal drift.** Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach. **Drift-check:** trace every Sprint Backlog task + DoD bullet to the Primary Goal & Guardrails anchor — a task serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** ([references/goal-anchor.md](references/goal-anchor.md)).
    - **Reviewer B — Architectural / cross-cutting risks.** Match plan against project code-quality rules — if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation.
    - **Reviewer C — Dependency / ordering / parallelism risks.** Build a quick dependency graph from Sprint Backlog. Flag tasks sharing a file (parallel conflict), missing prerequisites, ordering bugs (consuming a helper before its task), tasks too coarse to be 5–30 min.
 2. **Aggregate findings.** Critical (plan bug forcing rework) / Important (fixable gap) / Minor (nit).
@@ -208,21 +208,21 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 
 - **Reviewer A — Security & correctness.** Auth, permissions, injection, CORS, cookies, secrets, PII, migrations, crypto, race conditions. Adversarial intent.
 - **Reviewer B — Quality & layering.** DRY, named types, layering (routes pure / services own DB), file/function caps, lint suppressions, `!` non-null, empty catches, bare `Error` throws, dead code.
-- **Reviewer C — Plan consistency & scope.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach.
+- **Reviewer C — Plan consistency, scope & goal drift.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach. **Drift-check:** trace every changed hunk to the Primary Goal & Guardrails anchor — a hunk serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** ([references/goal-anchor.md](references/goal-anchor.md)).
 
 Multi-concern diffs (UI + backend migration): add a 4th reviewer on the second concern. Cap at 4. **Self-review still happens** by you, against `references/review-and-verify.md`'s 14-item checklist — reviewers are *additive* defense, not replacement.
 
 **Carve-out (skill optional).** A diff that is *purely* a one-line typo / comment / config-only change can skip multi-reviewer. When in doubt, dispatch.
 
-**Acting on feedback.**
+**Acting on feedback — address ALL findings (lawkeeper-style loop).** Build a decision table (Finding / Severity / Decision / Evidence) covering EVERY finding, work them in severity order, and **re-run review + verify to prove zero remaining**. No finding is left un-addressed.
 
 | Severity | Action |
 |---|---|
 | Critical | Fix immediately, before merging. |
 | Important | Fix before claiming Phase 6 done. |
-| Minor | Fix now if cheap, else add a "follow-up" entry to Retrospective. |
+| Minor | Fix too — defer to Retrospective ONLY with explicit user sign-off, never by default. |
 
-Push back only with **technical evidence** — never performative agreement. If the reviewer is wrong for this codebase (YAGNI, missing context, bad pattern fit), say so with reasoning. Response pattern: `references/review-and-verify.md`.
+Non-trivial fixes go through a batched approval wizard (propose 2–3 options, ask before writing); trivial fixes applied directly. After each batch, re-dispatch the reviewers (or re-run the verify triad) until the decision table is empty. Push back only with **technical evidence** — never performative agreement. Full loop + response pattern: [references/review-and-verify.md](references/review-and-verify.md).
 
 ---
 
@@ -253,10 +253,10 @@ Push back only with **technical evidence** — never performative agreement. If 
 | d | Empty directories left after file moves | `find` for empty dirs under primitives. |
 | e | Dead branches | local + remote branches created during the sprint that won't be merged. |
 | f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD` cross-checked against work-doc Sprint Backlog file allowlists. |
-| g | Pre-existing dead code surfaced but deliberately not touched | move to a Retrospective follow-up entry (do NOT silently leave). |
+| g | Pre-existing errors + dead code in touched files (lint/type/test failures, dead code) | detect against the sprint-start baseline; surface and **offer to fix** so touched files end with nothing a reviewer would flag (auto-fix in yolo). Defer only if too large, with explicit user sign-off. |
 | h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
 
-If any class finds defects, fix them inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. Detailed audit commands per class: `references/finish.md`.
+If any class finds defects, fix them inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. The touched-scope goal is the **best version** — zero outstanding lint/type/test/dead-code issues in files this sprint changed; whole-repo pre-existing issues stay out of scope (that is `/hackify:lawkeeper`'s job). Detailed audit + baseline commands per class: `references/finish.md`.
 
 **Step D — archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory — 3–8 bullets on what surprised, what to remember.
 
@@ -264,7 +264,7 @@ If any class finds defects, fix them inline before archiving; if a defect is too
 
 **Step E — worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.
 
-**Step F — Summary table** (1 or 2 only): Generate a concise 2-column Area/Change markdown table covering every change shipped. Print to chat. Append the same table to the archived work-doc inside Retrospective under a new `## Summary of changes shipped` subheading. Area labels are 1–4 word concept/theme tokens; Change cells ≤25 words with `backticks` for technical terms. See `references/finish.md` "Summary table — authoring guidance".
+**Step F — Summary table + HTML report** (1 or 2 only): Generate a concise 2-column Area/Change markdown table covering every change shipped. Print to chat. Append the same table to the archived work-doc inside Retrospective under a new `## Summary of changes shipped` subheading. Area labels are 1–4 word concept/theme tokens; Change cells ≤25 words with `backticks` for technical terms. **Then emit a styled, self-contained HTML report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc at `<slug>.report.html` — see [references/html-report.md](references/html-report.md). See `references/finish.md` "Summary table — authoring guidance".
 
 **Invoking the summary on demand.** The Area/Change table runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
 

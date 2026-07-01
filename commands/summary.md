@@ -20,7 +20,7 @@ Bias against: editorial commentary outside the table.
 1. `{{work_doc_path}}` — absolute filesystem path to the active or most-recent hackify work-doc. The dispatching agent MUST resolve this by globbing `docs/work/*.md` first, then `docs/work/done/*.md`, and selecting the file with the most recent `mtime`. If no work-doc exists at either location, the dispatcher MUST substitute the literal string `NONE` so the sub-agent can emit the "no changes yet" fallback row.
 2. `{{invocation_phase}}` — one of two literal string values: `mid-flight` (invoked on-demand during Phases 1–5, chat-only) or `phase-6-finish` (invoked at Phase 6 Step F, append to work-doc Post-mortem).
 
-**OBJECTIVE**. Produce a 2-column Area/Change markdown table covering every change shipped or about-to-ship in the active work-doc.
+**OBJECTIVE**. Produce a 2-column Area/Change markdown table covering every change shipped or about-to-ship in the active work-doc — and, at Phase 6 finish, emit the self-contained styled HTML report that embeds it.
 
 **METHOD**.
 
@@ -30,7 +30,8 @@ Bias against: editorial commentary outside the table.
 4. For each theme, author the Area cell: 1–4 words, present-tense concept/theme noun phrase, Title-Case-or-Sentence-case as the work-doc uses. Reject any Area cell exceeding 4 words — re-group or re-label.
 5. For each theme, author the Change cell: ≤25 words, present-tense action verb leading, with `backticks` around every filename, identifier, version string, and command token. Reject any Change cell exceeding 25 words — split into two themes or trim.
 6. Emit a single markdown table with the literal header row `| Area | Change |` followed by the separator row `|---|---|` and one row per theme.
-7. If `{{invocation_phase}}` equals the literal string `phase-6-finish`, append the SAME table verbatim to `{{work_doc_path}}` inside the `## Post-mortem` section under a new `## Summary of changes shipped` heading (create the heading if missing). If `{{invocation_phase}}` equals `mid-flight`, skip this append step.
+7. If `{{invocation_phase}}` equals the literal string `phase-6-finish`, append the SAME table verbatim to `{{work_doc_path}}` inside the `## Retrospective` section (legacy work-docs: `## Post-mortem`) under a new `## Summary of changes shipped` heading (create the heading if missing). If `{{invocation_phase}}` equals `mid-flight`, skip this append step.
+7b. If `{{invocation_phase}}` equals `phase-6-finish`, ALSO emit the styled HTML report: read `skills/hackify/references/html-report.md`, fill `skills/hackify/assets/report-template.html` (this table becomes `{{AREA_CHANGE_TABLE}}`), and write the self-contained file to the report path named there. The report MUST have zero external network references. Skip for `mid-flight`.
 8. Print the table to chat as the first content of the OUTPUT — no prose preamble, no headings, no editorial wrap.
 9. Print exactly ONE follow-up line immediately after the table: `Happy to walk through any of these in more detail — happy to elaborate.`
 
@@ -43,6 +44,7 @@ Bias against: editorial commentary outside the table.
 5. Did I append the table to `{{work_doc_path}}` if and only if `{{invocation_phase}}` equals `phase-6-finish`? (yes / no)
 6. Did I print the follow-up line `Happy to walk through any of these in more detail — happy to elaborate.` exactly once, immediately after the table? (yes / no)
 7. Did I avoid inventing rows the work-doc does not support? (yes / no)
+8. At `phase-6-finish` only, did I emit the self-contained HTML report per `html-report.md` with zero external network references? (yes / no / n-a if mid-flight)
 
 **OUTPUT**. ≤500 words (rationale: a 12-row table at ~30 words per Change cell totals ~360 words; the follow-up line and table syntax overhead fit comfortably under 500). Format:
 

@@ -339,13 +339,24 @@ When pushing back, lead with the technical reason, not the disagreement:
 
 > *"The reviewer suggests adding `retry` with backoff. But this is a request-scoped service inside a tenant route — retries would re-acquire the pool client, breaking `SET LOCAL search_path`. The right fix is at the caller, not in the service. Skipping."*
 
-### Severity → action
+### Severity → action (address ALL findings)
+
+Phase 5 addresses **every** finding — the address-all loop below drives the decision table to empty. No severity is silently deferred.
 
 | Severity | Action |
 |---|---|
 | Critical | Fix now. Do NOT advance to Phase 6 until resolved. Re-run verification. |
 | Important | Fix before claiming done. May extend the work-doc Sprint Backlog list (mark added tasks "review-driven"). |
-| Minor | Either fix now if cheap (≤5 min) OR add a Retrospective entry as a follow-up. Do not silently drop. |
+| Minor | Fix too. Defer to a Retrospective follow-up ONLY with explicit user sign-off — never by default. |
+
+### Address-all loop (drive the decision table to empty)
+
+Modeled on the lawkeeper fix-loop. The exit condition is a clean re-scan, not "the important ones are done." (`/hackify:review-triage` runs this table on demand.)
+
+1. **Tabulate.** Build a decision table with columns **Finding / Severity / Decision / Evidence** — one row per finding from every reviewer plus the self-review. Decision is one of `accept` (fix) / `push-back` (needs file:line evidence) / `defer` (Minor only, with explicit user sign-off). A Critical may never be `push-back` without escalating to the adjudication reviewer.
+2. **Fix in severity order.** Critical → Important → Minor. Non-trivial fixes go through a batched approval wizard (propose 2–3 options per finding or tight cluster, ask before writing); trivial fixes applied directly. One coherent fix or cluster at a time — test each.
+3. **Re-scan to prove zero.** After each batch, re-run the verify triad on the touched scope AND re-dispatch the reviewers (or the escalation reviewer) over the new diff. Repeat until the table has no open `accept` rows and no new findings surface.
+4. **Record.** The final table (every Decision + Evidence) goes into the work-doc Sprint Review; any deferred row carries its sign-off note.
 
 ---
 
