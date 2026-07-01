@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.5.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.6.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -26,6 +26,13 @@ Hackify replaces multi-skill ceremony (separate spec, plan, groom, execute, veri
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
+
+### New in 0.6.0
+
+- **Grooming-grade Clarify.** Phase 1 captures a persisted **Primary Goal & Guardrails** anchor (goal / scope / non-goals / guardrails / success signals) that drives every plan and implementation decision. A **drift-check** in Phase 2.5 and Phase 5 flags any task or diff hunk that wanders off it.
+- **Styled HTML summary report.** Phase 6 emits a self-contained `<slug>.report.html` — stats, inline-SVG charts, findings, action items, next steps — alongside the Area/Change chat table.
+- **Review addresses every finding.** Phase 5 runs a lawkeeper-style address-all loop: tabulate all findings, fix every severity (Minor included), re-scan to zero.
+- **Cleanup fixes pre-existing errors.** The Step C.5 sweep surfaces and offers to fix pre-existing lint/type/test/dead-code in the files you touched — the change lands as the best version, not just a passing one.
 
 ## Install
 

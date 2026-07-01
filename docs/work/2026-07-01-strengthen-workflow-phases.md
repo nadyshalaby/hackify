@@ -5,7 +5,7 @@ status: implementing
 type: revamp
 created: 2026-07-01
 project: hackify
-current_task: W3:T15+T16+T17
+current_task: W4:T18 (verify)
 worktree: none (in-place)
 branch: feat/strengthen-workflow-phases
 sprint_goal: Make clarify, summary, review, and cleanup materially more thorough across hackify/quick/yolo/groom, shipped as 0.6.0 with every DoD check green.
@@ -113,9 +113,9 @@ Answered via wizard (two batches). Locked decisions:
 - [x] **T14** Drift-check → Phase 5 Reviewer C pair: `skills/hackify/references/parallel-agents/phase-5-multi-review.md` (Reviewer C section only; TIGHT 455/500 → ≤10 added lines) + `agents/code-reviewer-plan-consistency.md`. HARD anchor-safety (DoD [9]/[15] slice on these): keep all three `## Phase 5 — Multi-reviewer …` headings byte-identical; add drift text INSIDE Reviewer C's METHOD or SEVERITY prose only; never between `**OUTPUT**` and its `≤… words` cap line; introduce NO new `**bold**` header. Edit BOTH files consistently (mirror pair — land together). *Files: those 2. Test: DoD [9][10][11][12][15][80].*
 
 ### Wave 3 — Release plumbing
-- [ ] **T15** Register these 3 verbatim paths in `scripts/sync-runtimes.d/00-helpers.sh` `MIRROR_SOURCES` (append near the other `references/` + `assets/` entries): `skills/hackify/references/goal-anchor.md`, `skills/hackify/references/html-report.md`, `skills/hackify/assets/report-template.html`. Every `git ls-files skills/` path MUST appear or [55] fails. *Files: 00-helpers.sh. Test: DoD [24][55].*
-- [ ] **T16** Version → `0.6.0`: `.claude-plugin/plugin.json` `.version`; `.claude-plugin/marketplace.json` `.plugins[0].version` + `.plugins[0].source.ref=v0.6.0` + `.plugins[1].version`; `README.md` badge + ≤15-line "What's new in 0.6.0" blurb (stay ≤450 LOC). *Files: those 3. Test: DoD [7][16][16b].*
-- [ ] **T17** `CHANGELOG.md` — `## [0.6.0] - 2026-07-01` entry (Keep-a-Changelog: summary blockquote + Added/Changed) covering all four enhancements. *Files: CHANGELOG.md. Test: manual read.*
+- [x] **T15** Register these 3 verbatim paths in `scripts/sync-runtimes.d/00-helpers.sh` `MIRROR_SOURCES` (append near the other `references/` + `assets/` entries): `skills/hackify/references/goal-anchor.md`, `skills/hackify/references/html-report.md`, `skills/hackify/assets/report-template.html`. Every `git ls-files skills/` path MUST appear or [55] fails. *Files: 00-helpers.sh. Test: DoD [24][55].*
+- [x] **T16** Version → `0.6.0`: `.claude-plugin/plugin.json` `.version`; `.claude-plugin/marketplace.json` `.plugins[0].version` + `.plugins[0].source.ref=v0.6.0` + `.plugins[1].version`; `README.md` badge + ≤15-line "What's new in 0.6.0" blurb (stay ≤450 LOC). *Files: those 3. Test: DoD [7][16][16b].*
+- [x] **T17** `CHANGELOG.md` — `## [0.6.0] - 2026-07-01` entry (Keep-a-Changelog: summary blockquote + Added/Changed) covering all four enhancements. *Files: CHANGELOG.md. Test: manual read.*
 
 ### Wave 4 — Verify
 - [ ] **T18** Run `validate-dod.sh` + `check-collisions.sh` + `sync-runtimes.sh --dry-run`; render `report-template.html` with sample data + screenshot; fix every red. *Files: as needed. Test: full harness green.*
