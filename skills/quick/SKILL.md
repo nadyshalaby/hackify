@@ -1,6 +1,6 @@
 ---
 name: quick
-description: Compressed-flow companion to the hackify workflow for genuinely small tasks where full ceremony (Plan+Gate, Spec review, Multi-reviewer, 4-options finish) would burn more wall-clock and tokens than the change is worth. Auto-discovery triggers — invoke this skill when the user says any of "quick fix", "small change", "just fix the", "one-line fix", "tiny edit", "small fix", "small bug", "quick patch", "minor tweak", "just rename", "fix typo", or the explicit slash form /hackify:quick. Workflow shape — Phase 1 (clarify ONLY if ambiguous; zero questions otherwise) → Phase 3 (implement; single foreground agent OR inline edit; file allowlist still applies) → Phase 4 (verify; full test + lint + typecheck triad still mandatory) → Phase 6 Step F (mandatory 2-column Area/Change summary table, printed to chat). Do NOT auto-fire on cross-file refactors, redesigns, debug investigations of unknown root causes, or anything touching auth/crypto/migration/secret/token/password — those route to full hackify via its own description. User-locked mode — once invoked, quick mode stays in quick mode for the entire task. It only promotes to full hackify when the user explicitly says so (e.g., "switch to full", "promote to full", "/hackify:hackify"). No work-doc is created, so progress cannot be paused or resumed across sessions — invoke full hackify if you need pause/resume.
+description: Compressed-flow companion to the hackify workflow for genuinely small tasks where full ceremony (Plan+Gate, Spec review, the 3-lens parallel Multi-reviewer, 4-options finish) would burn more wall-clock and tokens than the change is worth. Auto-discovery triggers — invoke this skill when the user says any of "quick fix", "small change", "just fix the", "one-line fix", "tiny edit", "small fix", "small bug", "quick patch", "minor tweak", "just rename", "fix typo", or the explicit slash form /hackify:quick. Workflow shape — Phase 1 (clarify ONLY if ambiguous + restate the north-star goal; zero questions otherwise) → Phase 3 (implement; single foreground agent OR inline edit; file allowlist still applies) → Phase 4 (verify; full test + lint + typecheck triad still mandatory) → Phase 5-lite (single-lens address-all review) → Phase 6 (Step C.5 touched-scope cleanup + Step F 2-column Area/Change summary table + styled HTML report). Do NOT auto-fire on cross-file refactors, redesigns, debug investigations of unknown root causes, or anything touching auth/crypto/migration/secret/token/password — those route to full hackify via its own description. User-locked mode — once invoked, quick mode stays in quick mode for the entire task. It only promotes to full hackify when the user explicitly says so (e.g., "switch to full", "promote to full", "/hackify:hackify"). No work-doc is created, so progress cannot be paused or resumed across sessions — invoke full hackify if you need pause/resume.
 ---
 
 # Hackify Quick — Compressed Flow For Small Tasks
@@ -10,19 +10,21 @@ Sibling to the main hackify skill. Same end-to-end discipline (clarify → imple
 ## Workflow shape
 
 ```
-Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify) → Phase 6F (summary table)
+Phase 1 (clarify + goal anchor) → Phase 3 (implement) → Phase 4 (verify) → Phase 5-lite (single-lens review) → Phase 6 (Step C.5 cleanup + Step F summary table + HTML report)
 ```
 
-No Plan+Gate. No Spec self-review. No Multi-reviewer. No four-options finish menu. The summary table is the only mandatory artifact; print to chat.
+No Plan+Gate. No Spec self-review. No 3-lens parallel Multi-reviewer (a single-lens address-all review runs instead). No four-options finish menu. The summary table + styled HTML report are the mandatory artifacts.
 
 ## Kept phases
 
 | Phase | Action | Rationale |
 |---|---|---|
-| **1 — Clarify** | Run the wizard at `../hackify/references/clarify-questions/README.md` if the ask has any ambiguity. **If the ask names a file or symbol but not a fix, read it end-to-end before judging ambiguity.** Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. | A misread ask costs more than a one-question wizard. |
+| **1 — Clarify + goal** | Run the wizard at `../hackify/references/clarify-questions/README.md` if the ask has any ambiguity. **If the ask names a file or symbol but not a fix, read it end-to-end before judging ambiguity.** Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. Either way, restate the north-star goal in one line — the in-chat Primary Goal & Guardrails anchor (no work-doc). | A misread ask costs more than a one-question wizard; the anchor keeps the fix on target. |
 | **3 — Implement** | Dispatch at most ONE foreground subagent with a file allowlist, or write inline for 1–3-line single-file edits. File-allowlist constraint applies — agent touches declared files only. | Scope discipline keeps quick mode quick. Spread is your call — promote to full hackify if the task outgrows the carve-out. |
 | **4 — Verify** | Run the project's full triad (test + lint + typecheck) fresh. Paste output. Zero failures, zero errors. | Skipping verify is how typo fixes ship broken. |
-| **6F — Summary table** | Generate the 2-column Area/Change table per `skills/hackify/references/finish.md` and print to chat. | The user opted into speed, not opacity. |
+| **5-lite — Single-lens review** | Dispatch ONE foreground reviewer over the diff (quality + correctness + goal drift), then run the address-all loop: tabulate findings, fix EVERY severity incl. Minor, re-scan to zero. See `skills/hackify/references/review-and-verify.md`. | Small diffs still ship bugs; one reviewer + address-all is the light-but-real safety net. |
+| **6 C.5 — Cleanup** | Offer-to-fix pre-existing lint/type/test/dead-code in the touched files so they end clean (per `finish.md` class (g)). | The best version is what lands — no leftover issues in files you touched. |
+| **6F — Summary + HTML report** | Generate the 2-column Area/Change table per `skills/hackify/references/finish.md` and print to chat; then emit the self-contained HTML report per `skills/hackify/references/html-report.md`. | The user opted into speed, not opacity. |
 
 ## Skipped phases — exactly these four, no others
 
@@ -30,8 +32,8 @@ No Plan+Gate. No Spec self-review. No Multi-reviewer. No four-options finish men
 |---|---|
 | **Phase 2 — Plan+Gate** | The ask itself is the plan. Tasks needing a written plan are too large for quick mode. |
 | **Phase 2.5 — Spec self-review** | No spec was written in Phase 2 — nothing to scrutinize. |
-| **Phase 5 — Multi-reviewer code review** | Single-file diffs do not justify three parallel review lenses. User can promote to full hackify explicitly to get multi-reviewer. |
-| **Phase 6 — four-options finish menu** | Quick mode does in-place edits. The user lands via their normal git workflow. Step F is the only Phase 6 piece kept. |
+| **Phase 5 — 3-lens parallel Multi-reviewer** | The three-parallel-lens panel is overkill for quick's small diffs — a single-lens address-all review runs instead (see Kept phases). Promote to full hackify for the full 3-reviewer pass. |
+| **Phase 6 — four-options finish menu** | Quick mode does in-place edits. The user lands via their normal git workflow. Steps C.5 (cleanup) + F (summary + HTML report) are the Phase 6 pieces kept. |
 
 ## Note — Debug-when-stuck is not skipped
 
@@ -76,6 +78,8 @@ End every task with a 2-column markdown table (`Area` | `Change`). Authoring rul
 
 Print to chat. If the user promoted to full hackify mid-task, append the table to the new work-doc's Retrospective under `## Summary of changes shipped`. For on-demand invocation, see `commands/summary.md` (`/hackify:summary`).
 
+**Then emit the styled HTML report** — a self-contained `<slug>.report.html` at `docs/work/reports/<YYYY-MM-DD>-<slug>.report.html` (quick has no archived work-doc). Authoring + token map: `skills/hackify/references/html-report.md`.
+
 ## Anti-rationalizations — STOP and apply the listed reality
 
 | Thought | Reality |
@@ -87,4 +91,4 @@ Print to chat. If the user promoted to full hackify mid-task, append the table t
 
 ## One-line summary
 
-Clarify-if-ambiguous → implement (one agent, file allowlist) → verify fresh → print the Area/Change summary table. Stays in quick mode until the user explicitly promotes to full hackify.
+Clarify-if-ambiguous + goal anchor → implement (one agent, file allowlist) → verify fresh → single-lens address-all review → touched-scope cleanup + Area/Change summary table + styled HTML report. Stays in quick mode until the user explicitly promotes to full hackify.

@@ -1,6 +1,6 @@
 ---
 name: yolo
-description: Full-discipline-zero-waiting companion to hackify. Same phases as full hackify (Clarify with exploration, in-chat Plan, Spec-review, parallel Implement, Verify, Multi-reviewer, Finish) but Phase 2 plan sign-off and Phase 6 4-options menu are auto-passed — YOLO never blocks waiting on you. Auto-discovery triggers (case-insensitive, scanned in the most recent user message only) — /hackify:yolo, /yolo, "yolo", "yolo it", "go yolo", "just do it", "don't ask me", "no questions", "fully autonomous", "auto mode", "go full auto". Does NOT trigger on "just fix it" (could mean quick mode) or "do it" (too ambiguous). Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical AND Important); Minor findings logged to chat — inspect via `git diff HEAD~1` after the commit lands. No work-doc on disk → no pause and no resume across sessions; close the chat mid-task and progress is gone. Invoke full hackify if you need persistence or want to sign off on the plan first.
+description: Full-discipline-zero-waiting companion to hackify. Same phases as full hackify (Clarify with exploration, in-chat Plan, Spec-review, parallel Implement, Verify, Multi-reviewer, Finish) but Phase 2 plan sign-off and Phase 6 4-options menu are auto-passed — YOLO never blocks waiting on you. Auto-discovery triggers (case-insensitive, scanned in the most recent user message only) — /hackify:yolo, /yolo, "yolo", "yolo it", "go yolo", "just do it", "don't ask me", "no questions", "fully autonomous", "auto mode", "go full auto". Does NOT trigger on "just fix it" (could mean quick mode) or "do it" (too ambiguous). Phase 5 multi-reviewer runs the address-all loop — findings auto-fixed in-place at EVERY severity (Critical, Important, AND Minor), then re-scanned to zero — inspect via `git diff HEAD~1` after the commit lands. No work-doc on disk → no pause and no resume across sessions; close the chat mid-task and progress is gone. Invoke full hackify if you need persistence or want to sign off on the plan first.
 ---
 
 # Hackify YOLO — Full Discipline, Zero Waiting
@@ -10,14 +10,14 @@ Sibling to full hackify. Same workflow phases, zero gates that wait on you. No w
 ## Workflow shape
 
 ```
-Phase 1  (clarify + exploration + wizard if ambiguous)
+Phase 1  (clarify + exploration + wizard if ambiguous + in-chat goal anchor)
   → Phase 2  (in-chat plan block — NO doc, NO gate, immediate proceed)
   → Phase 2.5 (3 parallel reviewers audit the in-chat plan block)
   → Phase 3  (parallel implementation waves, same discipline as full hackify)
   → Phase 3b (debug-when-stuck — only if a wave gets stuck)
   → Phase 4  (verify with fresh test + lint + typecheck evidence)
-  → Phase 5  (3 parallel reviewers; auto-fix Critical AND Important in-place; log Minor to chat)
-  → Phase 6  (auto-pick Option 1: commit to current branch locally, no push; print summary table)
+  → Phase 5  (3 parallel reviewers; address-all: auto-fix EVERY severity in-place incl. Minor; re-scan to zero)
+  → Phase 6  (Step C.5 auto-fix pre-existing in touched files; auto-pick Option 1: commit to current branch locally, no push; print summary table + HTML report)
 ```
 
 The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous). Phase 2 plan-gate and Phase 6 4-options menu are auto-passed — that is the YOLO contract.
@@ -29,17 +29,17 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 | **Phase 2 — Plan sign-off** | Hard gate; waits for explicit `go` / `approved` / `yes` | No gate; the in-chat plan block is posted and Phase 2.5 begins immediately |
 | **Phase 6 — 4-options finish menu** | User picks 1 / 2 / 3 / 4 | Auto-picks Option 1: commit to current branch locally, no push. User inspects with `git log -1` / `git diff HEAD~1` afterward. |
 
-*Phase 6 Step C.5 cleanup sweep also applies here — see `../hackify/references/finish.md` Step C.5.*
+*Phase 6 Step C.5 cleanup sweep also applies — YOLO auto-fixes pre-existing lint/type/test/dead-code in the touched files (no prompt) so they end clean. See `../hackify/references/finish.md` Step C.5.*
 
 ## Kept phases — identical to full hackify
 
 | Phase | Action | Why kept |
 |---|---|---|
-| **1 — Clarify** | Classify task type → exploration step (read just enough context) → batched wizard if any ambiguity remains. Same as full hackify Phase 1. | A misread ask is more expensive than a wizard call, even in autopilot. |
+| **1 — Clarify + goal** | Classify task type → exploration step (read just enough context) → batched wizard if any ambiguity remains → capture the Primary Goal & Guardrails as an in-chat anchor. Same as full hackify Phase 1. | A misread ask is more expensive than a wizard call, even in autopilot; the anchor drives the drift-check. |
 | **2.5 — Spec self-review** | Dispatch 3 parallel reviewers against the in-chat plan block (Original Ask + AC + Sprint Backlog). Audit text is the assistant message, not a work-doc on disk. | Spec defects are cheap to catch on paper; expensive after 200 LOC. |
 | **3 — Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3. | Wave discipline is what makes parallel safe. |
 | **4 — Verify** | Fresh test + lint + typecheck output. Same as full hackify Phase 4. | Skipping verify ships broken work — autopilot makes that worse, not better. |
-| **5 — Multi-reviewer** | 3 parallel reviewers (security + quality + plan-consistency). Plan-consistency reviewer audits diff against the in-chat plan block. Findings auto-handled (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
+| **5 — Multi-reviewer** | 3 parallel reviewers (security + quality + plan-consistency + goal drift). Plan-consistency reviewer audits diff against the in-chat plan block. Address-all: auto-fix EVERY severity, then re-scan to zero (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
 
 ## What's different from full hackify
 
@@ -49,7 +49,7 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 | Phase 2 plan-gate | Hard gate, waits for `go` | No gate, immediate proceed |
 | Phase 5 Critical | Surface to user; ask | Auto-fix in-place, no surface |
 | Phase 5 Important | Auto-fix in-place | Auto-fix in-place (same) |
-| Phase 5 Minor | Log to Retrospective | Log to chat (no Retrospective doc exists) |
+| Phase 5 Minor | Fix (defer only with sign-off) | Auto-fix in-place too (address-all); logged to chat (no Retrospective doc exists) |
 | Phase 6 finish menu | User picks 1 / 2 / 3 / 4 | Auto-picks Option 1: commit to current branch locally |
 | Pause / resume across sessions | Yes — work-doc holds state | NO — close the chat and progress is gone |
 | Reviewer audit subject | Work-doc Sprint Backlog + AC list | In-chat plan block (assistant message) |
@@ -74,10 +74,10 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 |---|---|
 | "The user said yolo, skip Phase 1 wizard too" | YOLO skips GATES (Phase 2, Phase 6), not CLARIFY. Run the wizard if the ask has any ambiguity — a misread ask in autopilot costs more, not less. |
 | "Phase 2.5 has no work-doc, skip it" | The in-chat plan block IS the audit subject. Dispatch the 3 reviewers against the assistant message text. Same rigor, different surface. |
-| "Critical finding came back, ask the user" | YOLO contract: auto-fix Critical AND Important in-place; log Minor to chat. The user inspects via `git diff HEAD~1` after commit — that is the inspection point. |
+| "Critical finding came back, ask the user" | YOLO contract: address-all — auto-fix EVERY severity in-place (Critical, Important, AND Minor), then re-scan to zero. The user inspects via `git diff HEAD~1` after commit — that is the inspection point. |
 | "Push the commit too — they'll want it on remote" | No. Phase 6 default is commit to current branch locally, no push. Pushing is user-initiated (`git push` themselves). |
 | "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer C audits diff against that list. No skip. |
 
 ## One-line summary
 
-Full hackify pipeline, no gates that wait on you, no work-doc on disk — clarify-with-exploration → in-chat plan → spec-review → parallel impl → verify → multi-reviewer (auto-fix Critical AND Important) → commit to current branch locally.
+Full hackify pipeline, no gates that wait on you, no work-doc on disk — clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl → verify → multi-reviewer (address-all, auto-fix every severity) → touched-scope cleanup + commit to current branch locally + HTML report.

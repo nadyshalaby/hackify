@@ -75,6 +75,11 @@ the diff `{{base_sha}}..{{head_sha}}` and the plan in
    listed bullets match the user-visible behavior in the diff. Flag
    missing CHANGELOG bullets and CHANGELOG bullets not backed by
    the diff.
+8. Drift-check. Trace every changed hunk to the work-doc's `## Primary
+   Goal & Guardrails` anchor. A hunk that serves no In-Scope bullet and
+   is not required by one is a drift finding (Important). A hunk that
+   violates a Guardrail/Invariant or does something an Out-of-Scope/
+   Non-Goal excludes is Critical. Cite the anchor line and the hunk.
 
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report.
@@ -93,6 +98,8 @@ If ANY answer is "no", loop back to METHOD.
    answer number) for every finding? (yes / no)
 7. Did the dispatching agent provide `{{task_file_index}}`? (yes / no)
    — if no, refuse to proceed.
+8. Did you trace every changed hunk to the Primary Goal & Guardrails
+   anchor and flag drift? (yes / no)
 
 **SEVERITY**.
 - **Critical** — Plan-vs-diff defects that block release. Anchored
@@ -142,6 +149,7 @@ skeleton:
 5. <yes|no>
 6. <yes|no>
 7. <yes|no>
+8. <yes|no>
 ````
 
 If a findings section has no entries, write `None.` on its own line

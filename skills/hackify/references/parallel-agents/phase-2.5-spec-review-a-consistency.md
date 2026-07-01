@@ -57,6 +57,12 @@ at `{{work_doc_path}}`.
 6. For each Original Ask sentence the user wrote, confirm it is
    addressed by at least one DoD bullet OR explicitly carved out in
    the Q&A. Record any unaddressed ask sentence as a finding.
+7. Drift-check. Trace every Sprint Backlog task and every DoD bullet to
+   the work-doc's `## Primary Goal & Guardrails` anchor. A task or bullet
+   that serves no In-Scope bullet and is not required by one is a drift
+   finding (Important). A task or bullet that violates a Guardrail/Invariant
+   or does something an Out-of-Scope/Non-Goal excludes is Critical. Quote
+   the anchor line and the offending task/bullet.
 
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report and
@@ -74,6 +80,8 @@ before producing OUTPUT.
    contradictions? (yes / no)
 6. Are all Critical findings ones you can quote evidence for from the
    work-doc itself, with no assumption about external code? (yes / no)
+7. Did you trace every task and DoD bullet to the Primary Goal &
+   Guardrails anchor and flag drift? (yes / no)
 
 **SEVERITY**.
 - **Critical** — A defect that will produce shipped-broken work if not
@@ -120,6 +128,7 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 4. <yes|no>
 5. <yes|no>
 6. <yes|no>
+7. <yes|no>
 ````
 
 If a section has no findings, write `None.` on its own line under the
