@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence-Ledger verify + B2 voice — hackify report</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #1a1c22;
+    --ink-dim: #5b6270;
+    --line: #e4e7ec;
+    --brand: #7c3aed;
+    --brand-soft: #efe8fe;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --crit: #dc2626;
+    --imp: #d97706;
+    --min: #64748b;
+    --add: #16a34a;
+    --del: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+      --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header.report { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--brand); background: var(--brand-soft);
+    padding: 3px 10px; border-radius: 999px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 12px 0 6px; }
+  .meta { color: var(--ink-dim); font-size: 13px; }
+  .meta code { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  .goal { margin-top: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--brand); border-radius: 10px; color: var(--ink-dim); }
+  .goal strong { color: var(--ink); }
+  .summary { margin: 0 0 8px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--ok); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .summary h2 { margin: 0 0 8px; color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 17px; }
+  .summary p { margin: 0; font-size: 16px; line-height: 1.6; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-dim);
+    margin: 34px 0 14px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); }
+  .card .n { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .card .k { font-size: 12px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .card .add { color: var(--add); } .card .del { color: var(--del); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .timeline { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--ink-dim); background: var(--bg); }
+  .pill.done { color: #fff; background: var(--brand); border-color: var(--brand); }
+  .pill.skipped { opacity: .55; text-decoration: line-through; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-dim); }
+  tr:last-child td { border-bottom: 0; }
+  td code, .area { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .sev { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  .sev.critical { color: var(--crit); } .sev.important { color: var(--imp); } .sev.minor { color: var(--min); }
+  .bars { display: flex; flex-direction: column; gap: 10px; }
+  .barrow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .barrow .lbl { width: 78px; color: var(--ink-dim); }
+  .track { flex: 1; height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; }
+  ul.items { list-style: none; padding: 0; margin: 0; }
+  ul.items li { padding: 10px 0 10px 26px; border-bottom: 1px solid var(--line); position: relative; }
+  ul.items li:last-child { border-bottom: 0; }
+  ul.items li::before { content: "→"; position: absolute; left: 4px; color: var(--brand); font-weight: 700; }
+  .ok-line { color: var(--ok); font-weight: 600; }
+  .empty { color: var(--ink-dim); font-style: italic; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--ink-dim); font-size: 12px; }
+  footer a { color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report">
+    <span class="eyebrow">Sprint report</span>
+    <h1>Evidence-Ledger verify + 3-layer re-verify + plain report + B2 voice (0.6.1)</h1>
+    <p class="meta"><code>2026-07-02-verify-evidence-and-b2-voice</code> · generated 2026-07-02</p>
+    <div class="goal"><strong>Sprint goal.</strong> Make Phase 4 prove every task/requirement with a real trimmed evidence sample, add a three-layer re-verify that traces proofs to the goal anchor, make the final report readable by non-technical people, and set a B2 &ldquo;communication voice&rdquo; for chat &mdash; shipped as 0.6.1.</div>
+  </header>
+
+  <section class="summary">
+    <h2>What changed &amp; why it matters</h2>
+    <p>This release makes hackify prove its work better and talk more simply. Phase 4 now shows real proof for every task and requirement &mdash; not just a checkmark &mdash; in a per-item Evidence Ledger. A three-layer re-verify re-earns that proof and checks it never drifts from the goal. The final HTML report opens with a plain-language summary anyone can read and closes with a full evidence list. A new voice rule keeps the chat in simple B2 English that explains what is happening and why.</p>
+  </section>
+
+  <h2>At a glance</h2>
+  <div class="cards">
+    <div class="card"><div class="n">5 / 5</div><div class="k">Tasks done</div></div>
+    <div class="card"><div class="n">16</div><div class="k">Files changed</div></div>
+    <div class="card"><div class="n"><span class="add">+337</span> <span class="del">&minus;31</span></div><div class="k">Lines</div></div>
+    <div class="card"><div class="n">1</div><div class="k">Commits</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="panel">
+      <h2 style="margin-top:0">Review findings</h2>
+      <svg viewBox="0 0 320 96" width="100%" height="96" role="img" aria-label="Zero review findings">
+        <text x="0" y="16" font-family="sans-serif" font-size="12" fill="#5b6270">Critical 0 · Important 0 · Minor 0</text>
+        <rect x="0" y="30" rx="5" ry="5" width="320" height="10" fill="none" stroke="#e4e7ec"/>
+        <rect x="0" y="52" rx="5" ry="5" width="320" height="10" fill="none" stroke="#e4e7ec"/>
+        <rect x="0" y="74" rx="5" ry="5" width="320" height="10" fill="none" stroke="#e4e7ec"/>
+        <text x="0" y="94" font-family="sans-serif" font-size="12" fill="#16a34a" font-weight="600">0 external findings — self-review clean</text>
+      </svg>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0">Phases</h2>
+      <div class="timeline">
+        <span class="pill done">1 Clarify</span>
+        <span class="pill done">2 Plan</span>
+        <span class="pill done">2.5 Spec-review</span>
+        <span class="pill done">3 Implement</span>
+        <span class="pill done">4 Verify</span>
+        <span class="pill done">5 Review</span>
+        <span class="pill done">6 Finish</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Findings detail</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Finding</th><th>Severity</th><th>Decision</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td class="empty" colspan="4">No external review findings — docs/plugin change, self-review + <code>validate-dod.sh</code> only. Self-review table is in the work-doc Sprint Review.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Action items &amp; follow-ups</h2>
+  <div class="panel">
+    <ul class="items">
+      <li><span class="sev minor">Minor</span> · Consider a future <code>validate-dod</code> check asserting the Phase 4 section still names the Evidence Ledger + three layers, so the doctrine cannot silently regress.</li>
+    </ul>
+  </div>
+
+  <h2>What changed</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Area</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td class="area">Evidence Ledger</td><td>Phase 4 requires one proof row per task + acceptance bullet (claim / what ran / proof sample / result) in <code>review-and-verify.md</code> + <code>SKILL.md</code></td></tr>
+        <tr><td class="area">Re-verify layers</td><td>Three named layers (<code>fresh triad</code> / <code>goal-drift re-check</code> / <code>independent re-prove</code>); <code>quick</code> runs 1&ndash;2, <code>hackify</code>+<code>yolo</code> run all three</td></tr>
+        <tr><td class="area">Plain report</td><td>HTML report gains top <code>{{PLAIN_SUMMARY}}</code> + cumulative <code>{{EVIDENCE_APPENDIX}}</code>; stays self-contained (0 external refs)</td></tr>
+        <tr><td class="area">Communication voice</td><td>New <code>references/communication-voice.md</code> (B2 + self-explanatory), wired into <code>SKILL.md</code> as always-on</td></tr>
+        <tr><td class="area">Goal anchor</td><td><code>goal-anchor.md</code> adds Phase 4 Layer 2 as a third drift-trace point</td></tr>
+        <tr><td class="area">Work-doc + finish</td><td><code>work-doc-template.md</code> gains the ledger table; <code>finish.md</code> Step F documents summary + appendix</td></tr>
+        <tr><td class="area">Release</td><td>Version &rarr; <code>0.6.1</code> (<code>plugin.json</code>, <code>marketplace.json</code> &times;2 + <code>source.ref</code>, README badge + &ldquo;New in 0.6.1&rdquo;); <code>CHANGELOG</code> entry</td></tr>
+        <tr><td class="area">Build + memory</td><td><code>communication-voice.md</code> registered in <code>MIRROR_SOURCES</code>; <code>dist/</code> re-synced (471 files, 7 runtimes); B2 voice saved as a memory</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Next steps &amp; instructions</h2>
+  <div class="panel">
+    <ul class="items">
+      <li>On release/publish, create the git tag <code>v0.6.1</code> — the <code>hackify</code> marketplace channel <code>source.ref</code> points at it.</li>
+      <li><code>dist/</code> is generated build output (git-ignored). Do not commit it; regenerate with <code>bash scripts/sync-runtimes.sh</code>.</li>
+    </ul>
+  </div>
+
+  <h2>Evidence appendix</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Item</th><th>Claim</th><th>What ran</th><th>Proof sample</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>W5</td><td>DoD gate passes</td><td><code>bash scripts/validate-dod.sh; echo $?</code></td><td><code>ALL CHECKS PASSED</code> · <code>EXIT=0</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>AC6</td><td>Version 0.6.1 consistent</td><td>validate-dod <code>[16]</code>/<code>[16b]</code></td><td><code>plugin.json and marketplace.json … both '0.6.1'</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>AC4</td><td>New file registered + mirrored</td><td>validate-dod <code>[55]</code> + <code>find dist</code></td><td><code>every tracked … file is in MIRROR_SOURCES</code>; <code>6</code> dist copies</td><td class="ok-line">✅</td></tr>
+        <tr><td>AC1</td><td>Evidence Ledger in Phase 4</td><td><code>grep -c "Evidence Ledger"</code></td><td><code>SKILL.md:2</code>, <code>review-and-verify.md:2</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>AC2</td><td>Three named layers present</td><td><code>grep -oE "Layer [123] — …"</code></td><td><code>Fresh triad</code> / <code>Goal-drift re-check</code> / <code>Independent re-prove</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>AC3</td><td>HTML tokens + self-contained</td><td><code>grep</code> tokens + external-ref scan</td><td>both tokens present; external refs <code>0</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>W2</td><td>quick=Layers 1&ndash;2, yolo=all 3</td><td><code>grep</code> both skills</td><td><code>Layers 1–2</code> (quick); <code>all three re-verify layers</code> (yolo)</td><td class="ok-line">✅</td></tr>
+        <tr><td>W1</td><td>Files stay ≤500 LOC</td><td><code>wc -l</code> + validate-dod <code>[80]</code></td><td><code>103 files scanned; all ≤ 500 LOC</code></td><td class="ok-line">✅</td></tr>
+        <tr><td>AC5</td><td>B2 memory recorded</td><td>file + index write</td><td><code>feedback-b2-communication-voice.md</code> + <code>MEMORY.md</code></td><td class="ok-line">✅</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Generated by hackify · Phase 6 summary report · self-contained, works offline.</footer>
+
+</div>
+</body>
+</html>

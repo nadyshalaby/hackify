@@ -5,6 +5,23 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-07-02
+
+> **Minor: Phase 4 proves every item, re-proves it in layers, and reports it in plain words.** Verify gains a per-item **Evidence Ledger** — one row per Sprint Backlog task AND per acceptance bullet, each carrying a real, trimmed proof sample instead of a bare checkmark. A named **three-layer re-verify** (fresh triad → goal-drift re-check against the Primary Goal & Guardrails anchor → independent re-prove) lets you re-earn the proof on demand without wandering off the goal. The Phase 6 HTML report now opens with a plain-language **"What changed & why it matters"** summary and closes with a cumulative **Evidence appendix**, so a non-technical reader can follow it end to end. A new always-on **communication voice** doctrine keeps chat in B2 (upper-intermediate) English and self-explanatory. Applied to `hackify` (full ledger + 3 layers), `yolo` (same), and `quick` (lite ledger + Layers 1–2).
+
+### Added
+
+- **`references/communication-voice.md` — the B2 + self-explanatory chat doctrine.** Short sentences, common words, define jargon once, active voice, lists over walls of text, and a lead-with-intent narration rule (say WHAT then WHY before each phase/tool batch). Governs chat prose ONLY — code, commands, file paths, identifiers, and commit messages stay exact. Wired into `SKILL.md` as an always-on section + file-map entry, registered in `MIRROR_SOURCES`, and mirrored to every runtime under `dist/`.
+- **Evidence Ledger (Phase 4).** `references/review-and-verify.md` + `SKILL.md` Phase 4 define a per-item ledger (`Item | Type | Claim | What I ran | Proof sample | Result`) covering every task and acceptance bullet; a missing or ❌ row blocks Phase 5. `references/work-doc-template.md` gains the ledger table in Sprint Review so it persists in the work-doc.
+- **Three-layer re-verify.** Layer 1 fresh triad, Layer 2 goal-drift re-check (trace every proof to the North-Star Goal + Success Signals — `goal-anchor.md` now lists Phase 4 Layer 2 as a third drift-trace point), Layer 3 independent re-prove. `hackify`/`yolo` run all three; `quick` runs Layers 1–2.
+- **Plain-language report + evidence appendix.** `assets/report-template.html` + `references/html-report.md` add a `{{PLAIN_SUMMARY}}` block at the top and a `{{EVIDENCE_APPENDIX}}` (the cumulative ledger) at the bottom; both entity-encoded, report stays self-contained (inline CSS + SVG, zero network deps).
+
+### Changed
+
+- **`skills/hackify/SKILL.md` — Phase 4 rewired** from a flat DoD checklist to the Evidence Ledger + three-layer re-verify (phase table row + body); a new **Communication voice (always-on)** section and file-map entry added. `references/finish.md` Step F now describes the plain summary + evidence appendix.
+- **Companion skills reconciled.** `quick` Phase 4 row documents the lite ledger + Layers 1–2 (skips the heavy Layer 3); `yolo` Phase 4 row + flow line document the full ledger + all three layers. Both inherit the deep spec by pointer to `review-and-verify.md` (DRY).
+- **Release plumbing.** Version → `0.6.1` (`plugin.json`, both `marketplace.json` plugins, README badge; hackify channel `source.ref` → `v0.6.1`); a "New in 0.6.1" README blurb; `communication-voice.md` registered in `MIRROR_SOURCES`.
+
 ## [0.6.0] - 2026-07-01
 
 > **Minor: the four workflow phases get materially stronger — across every entry skill.** Clarify becomes a grooming session that captures a persisted **Primary Goal & Guardrails** anchor and enforces it with a drift-check in Phase 2.5 and Phase 5. Phase 6 emits a styled, self-contained **HTML summary report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc. Phase 5 now **addresses ALL findings** — a lawkeeper-style address-all loop that tabulates every finding, fixes every severity (Minor included), and re-scans to zero, instead of deferring Minor to the Retrospective. The Step C.5 cleanup sweep flips from *defer* to *offer-to-fix* on **pre-existing errors** in touched files, so the change lands as the best version, not just a passing one. Applied consistently across `hackify`, `quick`, `yolo`, and `groom`.

@@ -4,23 +4,63 @@ Phase 4 proves the **original ask** is met. Phase 5 ensures the **code is good**
 
 ---
 
-## Phase 4 — Verify (DoD with fresh evidence)
+## Phase 4 — Verify (evidence ledger + three-layer re-verify)
 
-**Rule.** Evidence before claims. Every "passes" / "done" / "works" must be backed by output you ran in this turn — not earlier.
+**Rule.** Evidence before claims. Every "passes" / "done" / "works" must be backed by output you ran in THIS turn — not earlier, not remembered.
 
-### The DoD checklist (every task type)
+Phase 4 has two parts: an **Evidence Ledger** (prove every item landed) and a **three-layer re-verify** (re-earn the proof and confirm you did not drift from the goal).
+
+### Part 1 — The Evidence Ledger (per-item proof)
+
+One row per Sprint Backlog task AND per Acceptance-Criteria bullet. No item ships on a bare checkmark — each carries a real, trimmed proof sample.
+
+| Column | Meaning |
+|---|---|
+| Item | Task ID (`T3`) or acceptance bullet (`AC2`). |
+| Type | `task` or `acceptance`. |
+| Claim | One line: what this item asserts is true now. |
+| What I ran | The exact command, test, grep, or manual step that proves it. |
+| Proof sample | A REAL, trimmed slice of the output — the few lines that show the pass. Never a summary, never invented. |
+| Result | ✅ pass / ❌ fail. |
+
+Worked rows:
+
+| Item | Type | Claim | What I ran | Proof sample | Result |
+|---|---|---|---|---|---|
+| T3 | task | Expired tokens are rejected with 403 | `bun test invitations` | `✓ rejects expired token → 403 (4 pass)` | ✅ |
+| AC2 | acceptance | Lint clean | `biome check src/` | `Checked 142 files. No fixes needed.` | ✅ |
+
+**Ledger rules.**
+
+- Cover EVERY task and EVERY acceptance bullet. A missing row is an unproven item — treat it as ❌.
+- The proof sample is trimmed but real: copy the true lines that show the result, then cut the noise. Do not paraphrase output into prose.
+- A ❌ row blocks Phase 5. Loop back to Phase 3 (or 3b if stuck).
+- The full ledger is saved in the work-doc Sprint Review, and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
+
+The top-level triad still runs and appears as acceptance rows in the ledger:
 
 ```
 - [ ] All tests pass — fresh test-command output, exit 0, 0 failures, 0 errors
 - [ ] Linter clean — fresh lint output, 0 errors (warnings only if pre-existing)
 - [ ] Typecheck clean — fresh typecheck output, 0 errors
 - [ ] All Sprint Backlog checkboxes ticked
-- [ ] Every Definition-of-Done bullet from Phase 2 verified — paste evidence per bullet
 - [ ] No placeholders, no orphan TODOs, no debug logging left behind
 - [ ] No new lint suppressions (zero tolerance)
 - [ ] No new `!` non-null assertions in production code
 - [ ] Manual smoke (if user opted in) — steps + outcome logged
 ```
+
+### Part 2 — Three-layer re-verify (prove it without drifting)
+
+Run the layers in order. Each layer can be re-run on demand — the point is that the proof survives a second, independent look, and never wanders off the goal.
+
+**Layer 1 — Fresh triad.** Re-run test + lint + typecheck from a CLEAN state (no warm cache, all packages). This is the ledger's mechanical backbone. See "Common verification failures" below for the traps.
+
+**Layer 2 — Goal-drift re-check.** Trace every ledger proof back to the goal anchor. For the **North-Star Goal** and each **Success Signal** in `## Primary Goal & Guardrails`, name the ledger row that proves it. A Success Signal with no proving row → the goal is NOT met yet. A proof that serves no In-Scope bullet → possible drift: justify it against the anchor or cut it ([goal-anchor.md](goal-anchor.md)).
+
+**Layer 3 — Independent re-prove.** Re-earn the proof WITHOUT trusting Layer 1's output. Either re-run from a clean checkout / fresh state, or dispatch a fresh foreground subagent that re-runs the ledger's commands and reports what it actually saw. If Layer 3 disagrees with Layer 1, Layer 1 was stale — investigate before advancing.
+
+**How much to run.** Full hackify + yolo run all three layers. quick runs Layers 1–2 (skips the heavier independent pass). Re-run any layer whenever the user asks "prove it again" — that is why the layers are named.
 
 ### How "evidence" looks
 
@@ -60,9 +100,9 @@ If you can't show the output, you don't know it's true. Re-run.
 | Linter exits 0 with warnings | Confirm warnings are pre-existing; if new, fix |
 | Typecheck "skipped" or "incremental" | Force fresh: delete the incremental typecheck cache if needed |
 
-### Regression-test red-green cycle
+### Regression-test red-green cycle (a Layer 3 proof)
 
-For bug fixes, prove the regression test actually catches the bug:
+For bug fixes, prove the regression test actually catches the bug — this is an independent re-prove of the fix:
 
 ```
 1. Apply your fix.        ← test passes

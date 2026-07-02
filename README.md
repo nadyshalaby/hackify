@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.6.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.6.1-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -27,12 +27,14 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
-### New in 0.6.0
+### New in 0.6.1
 
-- **Grooming-grade Clarify.** Phase 1 captures a persisted **Primary Goal & Guardrails** anchor (goal / scope / non-goals / guardrails / success signals) that drives every plan and implementation decision. A **drift-check** in Phase 2.5 and Phase 5 flags any task or diff hunk that wanders off it.
-- **Styled HTML summary report.** Phase 6 emits a self-contained `<slug>.report.html` — stats, inline-SVG charts, findings, action items, next steps — alongside the Area/Change chat table.
-- **Review addresses every finding.** Phase 5 runs a lawkeeper-style address-all loop: tabulate all findings, fix every severity (Minor included), re-scan to zero.
-- **Cleanup fixes pre-existing errors.** The Step C.5 sweep surfaces and offers to fix pre-existing lint/type/test/dead-code in the files you touched — the change lands as the best version, not just a passing one.
+- **Evidence Ledger.** Phase 4 now proves *every* task and acceptance bullet with a real, trimmed proof sample — one ledger row each (claim / what ran / proof / result), not a bare checkmark.
+- **Three-layer re-verify.** Prove it without drifting: Layer 1 fresh triad, Layer 2 goal-drift re-check (trace each proof to the North-Star Goal + Success Signals), Layer 3 independent re-prove. Re-run any layer on demand.
+- **Report anyone can read.** The Phase 6 HTML report opens with a plain-language *"What changed & why it matters"* summary and closes with a cumulative **Evidence appendix** — technical detail kept in between.
+- **B2 communication voice.** A new always-on doctrine keeps chat in upper-intermediate English and self-explanatory (what + why at each step) for non-native readers; code, commands, and identifiers stay exact.
+
+_Built on 0.6.0's Primary Goal & Guardrails anchor, styled HTML report, address-all review loop, and offer-to-fix cleanup — see the [CHANGELOG](CHANGELOG.md)._
 
 ## Install
 

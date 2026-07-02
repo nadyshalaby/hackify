@@ -37,7 +37,7 @@ Four principles frame every phase. Read [rules/four-principles.md](../../rules/f
 | 2.5 Spec review | Parallel agents scrutinize work-doc for conflicting / inconsistent logic |
 | 3 Implement | Order tasks by dependency, dispatch each wave to PARALLEL foreground agents |
 | 3b Debug | Only if stuck after 2+ failed attempts |
-| 4 Verify | Run DoD checklist, paste fresh evidence |
+| 4 Verify | Evidence Ledger (real proof per item) + three-layer re-verify |
 | 5 Review | PARALLEL multi-reviewer (security + quality + consistency) — always |
 | 6 Finish | Present 4 options, execute, archive work-doc, cleanup |
 
@@ -182,21 +182,29 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 
 ## Phase 4 — Verify
 
-**Goal.** Prove the original ask is met. Evidence before claims.
+**Goal.** Prove every task and requirement landed, with real proof. Evidence before claims. Two parts — full spec in `references/review-and-verify.md`.
 
-**Acceptance Criteria (top-level — every task type):**
+**Part 1 — Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output — never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
-- [ ] All tests pass — paste fresh test output (exit 0, 0 failures, 0 errors)
-- [ ] Linter clean — paste fresh lint output (0 errors)
-- [ ] Typecheck clean — paste fresh typecheck output (0 errors)
+**Part 2 — Three-layer re-verify (prove it without drifting).** Run in order; re-run any layer on demand when the user says "prove it again".
+
+| Layer | What | Runs in |
+|---|---|---|
+| 1 Fresh triad | test + lint + typecheck from a clean state (all packages, no warm cache) | all |
+| 2 Goal-drift re-check | trace every proof to the North-Star Goal + Success Signals in the anchor; a signal with no proving row = not done | all |
+| 3 Independent re-prove | re-earn the proof without trusting Layer 1 — clean re-run or a fresh subagent | hackify + yolo |
+
+**Top-level acceptance rows (each appears in the ledger):**
+
+- [ ] All tests pass — fresh test output (exit 0, 0 failures, 0 errors)
+- [ ] Linter clean — fresh lint output (0 errors)
+- [ ] Typecheck clean — fresh typecheck output (0 errors)
 - [ ] All `Sprint Backlog` checkboxes ticked
-- [ ] Every Phase 2 DoD bullet verified — paste evidence per bullet (output, screenshot ref, or verifying script)
+- [ ] Every Phase 2 acceptance bullet has a ledger row with a proof sample
 - [ ] No placeholders, no `TODO` without owners, no `console.log`/`println!`, no commented-out code
 - [ ] No new lint or type-checker suppressions (inline ignore directives, file-level disables, expect-error pragmas outside test files) — zero tolerance
 - [ ] No new `!` non-null assertions in production code
 - [ ] Manual smoke check (if user opted in) — list steps and outcomes
-
-**Run commands fresh.** Re-run before claiming. Per-stack quick reference: `references/review-and-verify.md`.
 
 **On any red, do NOT advance to Phase 5.** Loop back to Phase 3 (or 3b if stuck).
 
@@ -329,11 +337,18 @@ Patterns: reusable/generic/shareable by default (the prime directive), DRY, name
 
 ---
 
+## Communication voice (always-on)
+
+Hackify talks in **B2 (upper-intermediate) English** so non-native readers can follow, and every message is **self-explanatory** — it says WHAT you are doing and WHY. Before each phase or tool batch, lead with one short line of intent; at the end of a phase, state in plain words what changed, whether it passed, and what is next. Short sentences, common words, define jargon once, active voice, lists over walls of text. This governs chat prose ONLY — code, commands, file paths, identifiers, and commit messages stay exact. Load `references/communication-voice.md` from Phase 1; it applies to every phase.
+
+---
+
 ## File map
 
 | Path | Purpose |
 |---|---|
 | `SKILL.md` | this file (the workflow) |
+| `references/communication-voice.md` | B2 + self-explanatory chat voice (load Phase 1; always-on) |
 | `references/work-doc-template.md` | markdown skeleton for every task |
 | `references/clarify-questions/` | per-task-type question banks for Phase 1 (subdir index: `README.md`; canonical wizard contract: `wizard-contract.md`) |
 | `references/implement-and-test.md` | TDD walkthrough, per-stack test commands |

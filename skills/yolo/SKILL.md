@@ -15,7 +15,7 @@ Phase 1  (clarify + exploration + wizard if ambiguous + in-chat goal anchor)
   → Phase 2.5 (3 parallel reviewers audit the in-chat plan block)
   → Phase 3  (parallel implementation waves, same discipline as full hackify)
   → Phase 3b (debug-when-stuck — only if a wave gets stuck)
-  → Phase 4  (verify with fresh test + lint + typecheck evidence)
+  → Phase 4  (verify: Evidence Ledger + three-layer re-verify, fresh evidence)
   → Phase 5  (3 parallel reviewers; address-all: auto-fix EVERY severity in-place incl. Minor; re-scan to zero)
   → Phase 6  (Step C.5 auto-fix pre-existing in touched files; auto-pick Option 1: commit to current branch locally, no push; print summary table + HTML report)
 ```
@@ -38,7 +38,7 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 | **1 — Clarify + goal** | Classify task type → exploration step (read just enough context) → batched wizard if any ambiguity remains → capture the Primary Goal & Guardrails as an in-chat anchor. Same as full hackify Phase 1. | A misread ask is more expensive than a wizard call, even in autopilot; the anchor drives the drift-check. |
 | **2.5 — Spec self-review** | Dispatch 3 parallel reviewers against the in-chat plan block (Original Ask + AC + Sprint Backlog). Audit text is the assistant message, not a work-doc on disk. | Spec defects are cheap to catch on paper; expensive after 200 LOC. |
 | **3 — Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3. | Wave discipline is what makes parallel safe. |
-| **4 — Verify** | Fresh test + lint + typecheck output. Same as full hackify Phase 4. | Skipping verify ships broken work — autopilot makes that worse, not better. |
+| **4 — Verify** | Full hackify Phase 4: an **Evidence Ledger** (proof row per task + acceptance bullet) plus all three re-verify layers (fresh triad, goal-drift re-check, independent re-prove). Fresh output, no warm cache. | Skipping verify ships broken work — autopilot makes that worse, not better. |
 | **5 — Multi-reviewer** | 3 parallel reviewers (security + quality + plan-consistency + goal drift). Plan-consistency reviewer audits diff against the in-chat plan block. Address-all: auto-fix EVERY severity, then re-scan to zero (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
 
 ## What's different from full hackify

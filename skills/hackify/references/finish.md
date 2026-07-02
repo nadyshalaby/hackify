@@ -361,7 +361,7 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 
 Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task — the user reads it to verify alignment before the work-doc archive moves to `done/`.
 
-**Step F also emits a styled HTML report** — a self-contained `<slug>.report.html` beside the archived work-doc with stats, inline-SVG charts, the findings table, action items, and next steps. The Area/Change table below is embedded in it AND printed to chat. Authoring + placeholder-token map: [html-report.md](html-report.md).
+**Step F also emits a styled HTML report** — a self-contained `<slug>.report.html` beside the archived work-doc. It opens with a plain-language **"What changed & why it matters"** summary (B2, for a non-technical reader), then stats, inline-SVG charts, the findings table, action items, and next steps, and **closes with a cumulative Evidence appendix** (the Phase 4 Evidence Ledger — every task/acceptance item with its trimmed proof). The Area/Change table is embedded in it AND printed to chat. Authoring + placeholder-token map: [html-report.md](html-report.md).
 
 ### Area-label rules (left column)
 

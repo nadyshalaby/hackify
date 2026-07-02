@@ -38,19 +38,30 @@ Charts are hand-emitted **inline SVG** so the file stays self-contained. No char
 - **Files + LOC bar** — added (green) vs removed (red) magnitude.
 - **Phase timeline strip** — six pills (Clarify → Finish), each marked done / skipped.
 
+## Plain-language summary + evidence appendix
+
+Two blocks make the report readable by a non-technical person and cumulative — every claim has visible proof in one place. Both follow the B2 voice ([communication-voice.md](communication-voice.md)).
+
+- **Top: "What changed & why it matters" (`{{PLAIN_SUMMARY}}`).** 3–6 short sentences, no jargon (define any term you must keep). State what the work delivers and why a reader should care — not how it was built. This sits directly under the header, above the stat cards, so it is the first thing anyone reads.
+- **Bottom: Evidence appendix (`{{EVIDENCE_APPENDIX}}`).** The full Phase 4 Evidence Ledger rendered as table rows — every task and acceptance bullet with its claim, what was run, a trimmed proof sample, and the result. This is the cumulative proof: one place where a reader confirms each item truly landed.
+
+Keep all existing technical blocks (stats, charts, findings, Area/Change) between the two. Plain summary leads; technical detail follows; evidence appendix closes.
+
 ## Filling the template
 
 1. Copy [../assets/report-template.html](../assets/report-template.html).
 2. Replace every `{{TOKEN}}` with computed content. Token map:
    - `{{TITLE}}`, `{{SLUG}}`, `{{GENERATED_AT}}` (ISO date-time), `{{SPRINT_GOAL}}`
+   - `{{PLAIN_SUMMARY}}` — 3–6 plain-language (B2) sentences: what changed and why it matters, for a non-technical reader
    - `{{STAT_TASKS}}`, `{{STAT_FILES}}`, `{{STAT_LOC_ADD}}`, `{{STAT_LOC_DEL}}`, `{{STAT_COMMITS}}`
    - `{{SEVERITY_CHART_SVG}}` — the inline `<svg>…</svg>` markup
    - `{{PHASE_TIMELINE}}` — the six phase pills
    - `{{FINDINGS_TABLE}}` — `<tr>` rows: finding / severity / decision / evidence
    - `{{ACTION_ITEMS}}` — `<li>` items (or an empty-state line)
    - `{{AREA_CHANGE_TABLE}}` — the same rows as the chat Area/Change table
+   - `{{EVIDENCE_APPENDIX}}` — `<tr>` rows of the cumulative Evidence Ledger: item / claim / what ran / proof sample / result
    - `{{NEXT_STEPS}}` — instructions the developer must act on (or an empty-state line)
-3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens — `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{AREA_CHANGE_TABLE}}` / `{{NEXT_STEPS}}` cells (a commit subject or a type like `Promise<User>` can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
+3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens — `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, `{{PLAIN_SUMMARY}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{AREA_CHANGE_TABLE}}` / `{{EVIDENCE_APPENDIX}}` / `{{NEXT_STEPS}}` cells (a commit subject, a type like `Promise<User>`, or a proof sample can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
 4. Write the filled file to the path above.
 
 ## Hard rules
