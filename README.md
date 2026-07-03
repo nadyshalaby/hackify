@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.6.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.7.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -25,16 +25,18 @@ Hackify replaces multi-skill ceremony (separate spec, plan, groom, execute, veri
 
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
-For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed four-phase flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
+For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
-### New in 0.6.1
+### New in 0.7.0
 
-- **Evidence Ledger.** Phase 4 now proves *every* task and acceptance bullet with a real, trimmed proof sample — one ledger row each (claim / what ran / proof / result), not a bare checkmark.
-- **Three-layer re-verify.** Prove it without drifting: Layer 1 fresh triad, Layer 2 goal-drift re-check (trace each proof to the North-Star Goal + Success Signals), Layer 3 independent re-prove. Re-run any layer on demand.
-- **Report anyone can read.** The Phase 6 HTML report opens with a plain-language *"What changed & why it matters"* summary and closes with a cumulative **Evidence appendix** — technical detail kept in between.
-- **B2 communication voice.** A new always-on doctrine keeps chat in upper-intermediate English and self-explanatory (what + why at each step) for non-native readers; code, commands, and identifiers stay exact.
+- **Phase ledger — ordered, trackable, un-skippable.** Every task runs against a visible to-do list (one item per phase) with an ordering law: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. Skipping or reordering a phase becomes blocked, not silent.
+- **Archiving can't be forgotten.** Phase 6 splits into sub-items so archiving the work-doc to `done/` is its own tracked step that **gates the summary** — the recap is unreachable until the doc is filed. The old "finished, forgot to archive" miss is closed by construction.
+- **Expert mindset — always-on.** A new doctrine casts the model as a senior, multi-disciplinary engineer (problem-solver, security, performance, architect, advisor, verifier) and stresses the stakes. A tight version is injected on every prompt beside the hard caps; the fuller hat-by-hat doctrine loads from Phase 1.
+- **8th runtime primitive.** The `todo tracker` joins the seven abstract primitives, so the phase ledger maps to a native to-do tool where a runtime has one and degrades to an in-chat checklist where it does not.
+- **Performance law — always-on and enforced.** A canonical violation catalog (`rules/performance.md`, 95 stable IDs across 10 domains) distilled into a tight `rules/perf-guardrails.md` that is injected on every prompt as the third rules file. A deterministic **perf-scout** greps every diff at each implementation wave-end and again at review start; surviving findings enter the address-all decision table.
+- **Reviewer D — performance.** Phase 5's default grows to **four parallel reviewers** (security, quality, plan-consistency, performance) in full hackify and yolo; quick's single-lens review adds the performance lens. Reviewer D consumes the scout report and cites `perf.<domain>.<slug>` catalog IDs in every finding.
 
-_Built on 0.6.0's Primary Goal & Guardrails anchor, styled HTML report, address-all review loop, and offer-to-fix cleanup — see the [CHANGELOG](CHANGELOG.md)._
+_Built on 0.6.1's Evidence Ledger, three-layer re-verify, and B2 communication voice — see the [CHANGELOG](CHANGELOG.md)._
 
 ## Install
 
@@ -58,11 +60,11 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 |---|---|---|
 | **Full hackify** | `/hackify:hackify` | Any substantive task: features, refactors, redesigns, debug investigations, migrations, multi-file changes, security-sensitive work. **The default.** |
 | **Hackify YOLO** | `/hackify:yolo` | Substantive task where you trust the pipeline and don't want to gate on plan sign-off or finish menu. Full discipline; auto-passes Phase 2 + Phase 6. No work-doc → no pause/resume. |
-| **Quick hackify** | `/hackify:quick` | Small bug fixes, one- to three-line edits, single-file polish, typo work, direct quick-effort requests. Compressed four-phase flow. |
+| **Quick hackify** | `/hackify:quick` | Small bug fixes, one- to three-line edits, single-file polish, typo work, direct quick-effort requests. Compressed flow. |
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md` injected every prompt via hook; `code-quality.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects hard-caps into context every turn, and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`, hardcoded secrets) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md`, `expert-mindset.md`, and `perf-guardrails.md` injected every prompt via hook; `code-quality.md` and `performance.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects the hard caps, the expert mindset, and the performance guardrails into context every turn (via `inject-context.sh`, one entry per file), and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`, hardcoded secrets) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -74,33 +76,35 @@ All three skills auto-trigger from natural-language prompts — no need to invok
 │ Phase 3   Implement   parallel waves of foreground subagents         │
 │   └─ 3b   Debug       4-phase root-cause hunt (only if stuck)        │
 │ Phase 4   Verify      DoD checklist + fresh evidence                 │
-│ Phase 5   Review      parallel multi-reviewer (security/quality/scope)│
+│ Phase 5   Review      4 parallel reviewers (sec/quality/scope/perf)  │
 │ Phase 6   Finish      4 options → archive work-doc → summary table   │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
 The **only** mandatory user gate is between Plan and Spec review. After sign-off, Phases 2.5 through 6 run continuously with progress reports — not gates — at each transition. Interrupt any time; the work-doc holds state.
 
+A **phase ledger** (a trackable to-do list, one item per phase) enforces the order: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. Phase 6 splits into sub-items so archiving the work-doc is its own tracked step that gates the summary — see `references/phase-ledger.md`.
+
 ### Phase notes
 
 - **Phase 1 — Clarify.** Task is classified as `feature`, `fix`, `refactor`, `revamp`, `redesign`, `debug`, or `research`; the classification picks the right question bank. Questions ship through the `AskUserQuestion` wizard, never as plain markdown lists.
 - **Phase 2 — Plan + gate.** Work-doc fills out: Original Ask (verbatim), Clarifying Q&A, Definition of Done (3–7 verifiable bullets), Approach (≤200 words), and a flat task list where each task is 5–30 minutes of work. No `TBD`, no `similar to T2`, no placeholders.
-- **Phase 2.5 — Spec self-review.** Three parallel reviewers (internal consistency, architectural risk, dependency/parallelism risk) patch contradictions before any code is written. Non-skippable — small docs are exactly where contradictions hide.
-- **Phase 3 — Implement.** Tasks group into dependency-ordered **waves**; every task in a wave has no file overlap and no intra-wave dependency, so the wave dispatches as one parallel batch of foreground subagents. Each agent carries a strict file allowlist.
+- **Phase 2.5 — Spec self-review.** Three spec reviewers in parallel (internal consistency, architectural risk, dependency/parallelism risk) patch contradictions before any code is written. Non-skippable — small docs are exactly where contradictions hide.
+- **Phase 3 — Implement.** Tasks group into dependency-ordered **waves**; every task in a wave has no file overlap and no intra-wave dependency, so the wave dispatches as one parallel batch of foreground subagents. Each agent carries a strict file allowlist. At each wave-end the parent runs the deterministic **perf-scout** (`references/perf-scout.md`) over the wave-touched files; surviving findings are staged for Phase 5.
 - **Phase 3b — Debug.** Triggered by ≥2 failed fix attempts or a regression. Four-phase root-cause hunt (gather evidence → find analogue → form hypothesis → reproduce in a failing test). Circuit-breaker after 3 failed hypotheses.
 - **Phase 4 — Verify.** Tests, lint, and typecheck re-run fresh; output pasted into the work-doc. Zero tolerance for new lint suppressions, new non-null `!` assertions, stray debug prints, or commented-out code.
-- **Phase 5 — Review.** Three parallel reviewers (security/correctness, quality/layering, plan-consistency/scope) dispatched in one message. Mandatory for any non-trivial diff. Self-review against the 14-item checklist is additive, not replacement.
-- **Phase 6 — Finish.** Re-verify, present four explicit options (merge / push & PR / keep as-is / discard), archive the work-doc to `docs/work/done/`, and print the **Step F summary table** — a 2-column Area/Change recap of everything shipped.
+- **Phase 5 — Review.** Four parallel reviewers (security/correctness, quality/layering, plan-consistency/scope, performance) dispatched in one message; the performance reviewer (Reviewer D) consumes the perf-scout report and cites `rules/performance.md` catalog IDs. Mandatory for any non-trivial diff. Self-review against the 16-item checklist is additive, not replacement.
+- **Phase 6 — Finish.** Re-verify, present four explicit options (merge / push & PR / keep as-is / discard), archive the work-doc to `docs/work/done/`, then print the **Step F summary table** — a 2-column Area/Change recap of everything shipped. Archiving is its own phase-ledger item (`6c`) and **gates the summary** (`6d`): the recap never prints while the work-doc still sits in `docs/work/`.
 
 ## Quick mode
 
-`/hackify:quick` is the compressed-flow sibling. It runs four phases:
+`/hackify:quick` is the compressed-flow sibling. It runs a compressed flow:
 
 ```
-Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify) → Phase 6F (summary table)
+Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify + perf-scout) → Phase 5-lite (single-lens review) → Phase 6F (summary table)
 ```
 
-Plan + Gate, Spec self-review, Multi-reviewer, and the four-options finish menu are skipped. Step F (the summary table) is the only Phase 6 piece kept. At most **one** implementation subagent is dispatched.
+Plan + Gate, Spec self-review, the 4-lens Multi-reviewer, and the four-options finish menu are skipped — a **single-lens address-all review** (quality, correctness, goal drift, performance) runs instead. Step C.5 (touched-scope cleanup) and Step F (the summary table + HTML report) are the Phase 6 pieces kept. At most **one** implementation subagent is dispatched.
 
 ### User-initiated promotion to full hackify
 
@@ -119,13 +123,13 @@ On promotion, quick mode writes a work-doc from accumulated context (intent, cla
 - **Phase 2 plan-gate** — no sign-off; the in-chat plan block is posted and Phase 2.5 begins immediately
 - **Phase 6 finish menu** — auto-picks Option 1: commit to current branch locally, no push
 
-Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical AND Important); Minor findings logged to chat. You inspect with `git log -1` / `git diff HEAD~1` after the commit lands.
+Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical, Important, AND Minor), then re-scanned to zero. You inspect with `git log -1` / `git diff HEAD~1` after the commit lands.
 
 **No work-doc on disk.** YOLO never writes to `docs/work/` — the plan exists only in chat. Close the chat mid-task and progress is gone. Invoke `/hackify:hackify` if you need pause/resume or want to sign off on the plan first.
 
 ## Companion skills
 
-Four skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends, the meta-loop, and onboarding to unfamiliar code:
+Five skills ship alongside `hackify`, `quick`, and `yolo` to cover the bookends, the meta-loop, onboarding to unfamiliar code, and whole-repo rule audits:
 
 - **`/hackify:groom <topic>`** — a Socratic pre-task refinement loop for fuzzy, exploratory prompts ("I'm thinking about X, not sure where to start"). It clarifies one question at a time, surfaces tradeoffs, and graduates to full hackify Phase 1 when you signal you're ready to build. Use it instead of jumping straight into `/hackify:hackify` when the ask is still ambiguous.
 - **`/hackify:skillsmith`** — authors new hackify-conformant skills (your own or contributions back to the plugin). Runs a 9-check self-validation loop covering frontmatter, trigger phrasing, template-contract conformance, no-leaked-paths, and OUTPUT word caps — the same shape the validator enforces on shipped skills.
@@ -238,7 +242,10 @@ The safety property that makes this work is a **strict file allowlist** baked in
   marketplace.json                     self-hosted marketplace entry
 rules/                                 always-on engineering law (since v0.2.2)
   hard-caps.md                         short doctrine injected every prompt via hook
+  expert-mindset.md                    senior multi-hat mindset + stakes, injected every prompt (since v0.7.0)
   code-quality.md                      DRY, named types, layering deep dive (canonical)
+  performance.md                       canonical perf-violation catalog — 95 stable IDs, 10 domains (since v0.7.0)
+  perf-guardrails.md                   tight always-on perf stub, injected every prompt (since v0.7.0)
 agents/                                formal sub-agent definitions (since v0.2.2 — claude-code only)
   spec-reviewer-consistency.md         Phase 2.5 Reviewer A
   spec-reviewer-rules.md               Phase 2.5 Reviewer B
@@ -246,10 +253,11 @@ agents/                                formal sub-agent definitions (since v0.2.
   code-reviewer-security.md            Phase 5 Reviewer A
   code-reviewer-quality.md             Phase 5 Reviewer B
   code-reviewer-plan-consistency.md    Phase 5 Reviewer C
+  code-reviewer-performance.md         Phase 5 Reviewer D — performance (since v0.7.0)
   wave-task-implementer.md             Phase 3 wave-task implementer
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
-  inject-hard-caps.sh                  injects rules/hard-caps.md into context every prompt
+  inject-context.sh                    injects the 3 always-on rules files (hard-caps, expert-mindset, perf-guardrails) every prompt
   block-banned-tokens.sh               PreToolUse (Write|Edit|Bash) — blocks banned tokens in JS/TS (since v0.4.2)
   scan_edit.py                         Write/Edit detector reused by the hook (lawkeeper lexer + check regexes)
   scan_bash.py                         Bash detector — scans heredoc/echo writes to JS/TS files
@@ -266,7 +274,10 @@ skills/
       clarify-questions/               per-task-type question banks (Phase 1) — subdir index in README.md; canonical wizard contract in wizard-contract.md; one bank per task type (feature/fix/refactor/revamp-redesign/debug/research) + universal-preamble + picking-and-combining
       implement-and-test.md            TDD walkthrough, per-stack test commands
       debug-when-stuck.md              4-phase root-cause hunt (Phase 3b)
-      review-and-verify.md             DoD + 14-item self-review + escalation
+      review-and-verify.md             DoD + 16-item self-review + escalation
+      perf-scout.md                    deterministic perf-scout — grep tables keyed to catalog IDs (since v0.7.0)
+      phase-ledger.md                  trackable ordered phase ledger — order-enforcer + archive gate (always-on, since v0.7.0)
+      expert-mindset.md                senior multi-hat mindset + stakes framing (always-on, since v0.7.0)
       finish.md                        Phase 6 — options, archive, summary table
       frontend-design.md               visual law (loaded on FE / UI tasks)
       code-rules.md                    forwarding stub → rules/code-quality.md
@@ -352,14 +363,14 @@ See [`rules/four-principles.md`](rules/four-principles.md) for the canonical wri
 - **One hard gate, not many.** Between Plan and Implement. Everything else runs continuously with progress reports.
 - **Parallel by default.** Wave-based dependency ordering plus file allowlists make parallel implementation safe.
 - **Evidence before claims.** No Definition-of-Done bullet is checked without fresh command output or a verifying script in the work-doc.
-- **Multi-reviewer is the floor.** A single lens always misses something. Three reviewers in parallel — security, quality, scope — are the default.
+- **Multi-reviewer is the floor.** A single lens always misses something. Four reviewers in parallel — security, quality, scope, performance — are the default.
 - **The plan is the contract.** No scope creep, no cleanup of adjacent code on the side, no abstractions for hypothetical futures.
 
 ## Customization
 
 ### Project-level rules
 
-Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the (since v0.2.2) `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded.
+Hackify honors a `CLAUDE.md` at workspace or project root first. The bundled [`rules/code-quality.md`](rules/code-quality.md) is the fallback when no project rules exist. The shorter [`rules/hard-caps.md`](rules/hard-caps.md) is injected into context on every prompt by the (since v0.2.2) `UserPromptSubmit` hook so the function/file/param caps and zero-tolerance bans are always loaded. Alongside it, [`rules/expert-mindset.md`](rules/expert-mindset.md) is injected every prompt too (since v0.7.0), casting the model as a senior, multi-disciplinary engineer and stressing the stakes of the work. The third always-on file, [`rules/perf-guardrails.md`](rules/perf-guardrails.md), injects the performance guardrails the same way (since v0.7.0); the deep catalog lives in [`rules/performance.md`](rules/performance.md) and loads on demand.
 
 ### Voice — abstract principles, concrete adaptation
 
@@ -374,7 +385,7 @@ The workflow is plain markdown — no compiled logic to subclass. Edit `SKILL.md
 ## FAQ
 
 **Does hackify work for tiny tasks like fixing a typo?**
-For one-line typo fixes with no behavioral impact, use the carve-out (no skill needed). For anything with even modest ambiguity, prefer `/hackify:quick`. The four-phase compressed flow is exactly right for small-and-direct work.
+For one-line typo fixes with no behavioral impact, use the carve-out (no skill needed). For anything with even modest ambiguity, prefer `/hackify:quick`. The compressed flow is exactly right for small-and-direct work.
 
 **Does hackify lock me into a specific language or toolchain?**
 No. The reference rules are written in language-agnostic voice — package manager, linter, formatter, type system, test runner — and you supply the concrete commands for your own stack. The phases, the gate, the parallel-agent dispatch, the verification rigor, the multi-reviewer pass — none of that is tied to a language or toolchain.

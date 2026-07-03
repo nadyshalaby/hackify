@@ -35,6 +35,7 @@ Worked rows:
 - Cover EVERY task and EVERY acceptance bullet. A missing row is an unproven item — treat it as ❌.
 - The proof sample is trimmed but real: copy the true lines that show the result, then cut the noise. Do not paraphrase output into prose.
 - A ❌ row blocks Phase 5. Loop back to Phase 3 (or 3b if stuck).
+- The perf-scout staging table (or its explicit "no candidates" result) is itself a ledger row — Item `scout`, Type `protocol`, proof sample the trimmed table or `none` ([perf-scout.md](perf-scout.md)).
 - The full ledger is saved in the work-doc Sprint Review, and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
 The top-level triad still runs and appears as acceptance rows in the ledger:
@@ -118,7 +119,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches THREE foreground reviewers in parallel — security/correctness, quality/layering, plan-consistency — in a single message. The dispatch templates live in `parallel-agents/phase-5-multi-review.md`. Add a 4th reviewer for diffs with a 4th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 4.
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FOUR foreground reviewers in parallel — A security/correctness, B quality/layering, C plan-consistency, D performance — in a single message. Reviewer D is the performance lens: it consumes the perf-scout staging table ([perf-scout.md](perf-scout.md)) as input and cites `rules/performance.md` catalog IDs in every finding. The dispatch templates live in `parallel-agents/phase-5-multi-review.md`. Add a 5th reviewer for diffs with a 5th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 5.
 
 The self-review still happens — the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
@@ -132,8 +133,7 @@ The self-review still happens — the parent walks the diff (`git diff <BASE_SHA
         Client-side: <feature>/types or shared lib types
 - [ ] No lint suppressions — no linter or type-checker suppression directives
         Sole carve-out: a type-checker expect-error pragma in test files for deliberately invalid input, with WHY
-- [ ] File-size caps — no file >500 LOC; split by responsibility
-- [ ] Function caps — ≤40 LOC, ≤3 params, ≤3 nesting levels
+- [ ] Size caps — headline: ≤40 LOC/function, ≤3 params, ≤3 nesting, ≤500 LOC/file; `rules/hard-caps.md` is canonical
 - [ ] Dead code removed — no unused exports, methods, imports; no commented-out code
 - [ ] Edge cases covered — null/undefined, empty arrays/strings, concurrent access, partial failures
 - [ ] Naming for intent — variables/functions describe WHAT they DO, not HOW
@@ -144,6 +144,9 @@ The self-review still happens — the parent walks the diff (`git diff <BASE_SHA
 - [ ] No new `!` non-null assertions in production code
 - [ ] No empty catches — every catch either logs, rethrows, or transforms; bare `catch (e) {}` is banned
 - [ ] No bare `Error` throws in domain code — domain code throws named, domain-specific error subclasses
+- [ ] No query/remote call inside a loop (perf.data.*, perf.network.chatty-calls) — batch or index instead
+- [ ] Independent I/O parallelized; result sets, caches, and fan-out bounded (LIMIT/pagination, TTL/LRU, pool)
+- [ ] No sync blocking I/O on a server path; large payloads streamed, not buffered
 ```
 
 ### When to escalate to a reviewer subagent
@@ -154,13 +157,14 @@ Spawn a **foreground** general-purpose reviewer subagent when ANY of:
 - Diff touches > 8 files
 - Cross-module refactor (touches multiple bounded contexts)
 - Touches **any** of: auth/permissions, cryptography, database migrations, payment/billing, public API contracts, security headers, cross-origin and request-forgery defenses, delegated-identity flows, session management
+- Performance surface in dispute — a perf-scout candidate with catalog-default Critical that the implementer wants dismissed, or contested Reviewer D findings (`rules/performance.md`)
 - User explicitly asked for deeper review
 
 When you escalate, **also** complete the self-review — escalation is *additive* defense, not replacement.
 
 ### Reviewer subagent prompt template
 
-This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
+This template is the **escalation reviewer** — the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency + performance) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
 
 ```
 Subagent type: general-purpose
@@ -211,26 +215,30 @@ Bias against: paraphrasing a prior reviewer's claim without quoting it.
     (quality & layering) report.
 11. `{{reviewer_c_report}}` — verbatim text of the Phase 5 Reviewer C
     (plan consistency & scope) report.
-12. `{{user_claude_md_path}}` — absolute filesystem path to the
+12. `{{reviewer_d_report}}` — verbatim text of the Phase 5 Reviewer D
+    (performance) report, including the perf-scout staging table it
+    consumed.
+13. `{{user_claude_md_path}}` — absolute filesystem path to the
     user-global CLAUDE.md (typically `~/.claude/CLAUDE.md`), or the
     string `none` if absent.
-13. `{{project_claude_md_path}}` — absolute filesystem path to the
+14. `{{project_claude_md_path}}` — absolute filesystem path to the
     project CLAUDE.md (typically `<project>/CLAUDE.md`), or `none`.
 
 **OBJECTIVE**
 
 A severity-tagged adjudication report that concurs or rebuts every finding
-raised by Reviewer A, B, and C — with a file:line citation per item — and
-adds any net-new findings the prior reviewers missed.
+raised by Reviewer A, B, C, and D — with a file:line citation per item —
+and adds any net-new findings the prior reviewers missed.
 
 **METHOD**
 
 1. Read `{{work_doc_path}}` end-to-end. Build a mental index of every
    Definition-of-Done bullet (D1, D2, …) and every Task ID (T1, T2, …).
-2. Read `{{reviewer_a_report}}`, `{{reviewer_b_report}}`, and
-   `{{reviewer_c_report}}` in full. List every finding (Critical /
-   Important / Minor) each reviewer raised. Do not summarise — keep the
-   original wording so you can quote it later.
+2. Read `{{reviewer_a_report}}`, `{{reviewer_b_report}}`,
+   `{{reviewer_c_report}}`, and `{{reviewer_d_report}}` in full. List
+   every finding (Critical / Important / Minor) each reviewer raised.
+   Do not summarise — keep the original wording so you can quote it
+   later.
 3. Run `git diff {{base_sha}}..{{head_sha}}` inside `{{project_path}}` to
    load the diff. Cross-reference every finding from step 2 against the
    actual diff hunks.
@@ -243,12 +251,15 @@ adds any net-new findings the prior reviewers missed.
    (the line that makes the prior reviewer's claim wrong) AND a one-line
    technical reason. Bare "I agree" or "I disagree" is forbidden — every
    verdict carries a citation.
-6. Apply your specialist lenses to the diff to catch what the three prior
+6. Apply your specialist lenses to the diff to catch what the four prior
    reviewers may have missed: SOLID violations, Clean Code (Martin)
-   smells, and — when `{{sensitive_surfaces}}` mentions auth, sessions,
+   smells, when `{{sensitive_surfaces}}` mentions auth, sessions,
    tokens, crypto, or migrations — the relevant categories from the
-   prevailing top-ten web application security risk catalogue. Record
-   any net-new finding with a file:line citation.
+   prevailing top-ten web application security risk catalogue, and when
+   the diff touches data access, loops, hot paths, or caching — the
+   performance catalog (`rules/performance.md`; cite
+   `perf.<domain>.<slug>` IDs). Record any net-new finding with a
+   file:line citation.
 7. For every Definition-of-Done bullet in the work-doc, confirm the diff
    delivers it. Any DoD bullet not delivered by the diff is a Critical
    finding under "plan consistency."
@@ -259,7 +270,7 @@ Paste this checklist under a `## Verification` heading in your report and
 answer every item yes or no. If ANY answer is "no", loop back to METHOD
 before producing OUTPUT.
 
-1. Did you read all three prior reviewer reports end-to-end before
+1. Did you read all four prior reviewer reports end-to-end before
    writing any verdict? (yes / no)
 2. Does every CONCUR or REBUT verdict carry a file:line citation in the
    diff? (yes / no)
@@ -323,6 +334,10 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 - ...
 
 ### Reviewer C findings
+- <finding wording, verbatim> — CONCUR | REBUT — <file:line> — <one-line reason>
+- ...
+
+### Reviewer D findings
 - <finding wording, verbatim> — CONCUR | REBUT — <file:line> — <one-line reason>
 - ...
 
@@ -393,7 +408,7 @@ Phase 5 addresses **every** finding — the address-all loop below drives the de
 
 Modeled on the lawkeeper fix-loop. The exit condition is a clean re-scan, not "the important ones are done." (`/hackify:review-triage` runs this table on demand.)
 
-1. **Tabulate.** Build a decision table with columns **Finding / Severity / Decision / Evidence** — one row per finding from every reviewer plus the self-review. Decision is one of `accept` (fix) / `push-back` (needs file:line evidence) / `defer` (Minor only, with explicit user sign-off). A Critical may never be `push-back` without escalating to the adjudication reviewer.
+1. **Tabulate.** Build a decision table with columns **Finding / Severity / Decision / Evidence** — one row per finding from every reviewer plus the self-review, plus every `staged` row from the perf-scout table ([perf-scout.md](perf-scout.md)) at its catalog-default severity. Decision is one of `accept` (fix) / `push-back` (needs file:line evidence) / `defer` (Minor only, with explicit user sign-off). A Critical may never be `push-back` without escalating to the adjudication reviewer.
 2. **Fix in severity order.** Critical → Important → Minor. Non-trivial fixes go through a batched approval wizard (propose 2–3 options per finding or tight cluster, ask before writing); trivial fixes applied directly. One coherent fix or cluster at a time — test each.
 3. **Re-scan to prove zero.** After each batch, re-run the verify triad on the touched scope AND re-dispatch the reviewers (or the escalation reviewer) over the new diff. Repeat until the table has no open `accept` rows and no new findings surface.
 4. **Record.** The final table (every Decision + Evidence) goes into the work-doc Sprint Review; any deferred row carries its sign-off note.

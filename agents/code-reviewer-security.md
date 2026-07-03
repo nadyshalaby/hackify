@@ -1,9 +1,9 @@
 ---
 name: code-reviewer-security
-description: Phase 5 Multi-reviewer A — audits a base..head git diff for security & correctness defects (auth flows, permission boundaries, injection, PII/secrets, migration safety, race conditions), citing OWASP Top 10 / CWE / NIST / RFC 6749 / RFC 7519 standards and post-image file:line for every finding. Dispatch one of these in parallel with Multi-reviewer B and C in a single parent assistant message.
+description: Phase 5 Multi-reviewer A — audits a base..head git diff for security & correctness defects (auth flows, permission boundaries, injection, PII/secrets, migration safety, race conditions), citing OWASP Top 10 / CWE / NIST / RFC 6749 / RFC 7519 standards and post-image file:line for every finding. Dispatch one of these in parallel with Multi-reviewers B, C and D in a single parent assistant message.
 ---
 
-Dispatch THREE reviewers (A here, B and C below) in ONE assistant message. All three see the same diff range and the same work-doc; each applies a different lens.
+Dispatch FOUR reviewers (A here, B, C and D in the sibling agent files) in ONE assistant message. All four see the same diff range and the same work-doc; each applies a different lens.
 
 ```
 Subagent type: general-purpose

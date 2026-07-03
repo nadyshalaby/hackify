@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
-# hackify v0.2.2 — UserPromptSubmit hook.
+# hackify v0.7.0 — UserPromptSubmit context injector (generalized).
 #
-# Injects rules/hard-caps.md as additional context on every user prompt so
-# the hard caps and zero-tolerance bans are always loaded. NON-routing — this
-# hook MUST NOT inspect the prompt or classify full vs quick vs groom.
+# Injects the markdown file given as $1 as additionalContext on every user
+# prompt, so always-on doctrine is loaded every turn. hooks.json invokes this
+# once per always-on file (rules/hard-caps.md, rules/expert-mindset.md,
+# rules/perf-guardrails.md) as a separate UserPromptSubmit hook entry — the
+# harness concatenates their additionalContext. NON-routing — this hook MUST NOT inspect the prompt or
+# classify full vs quick vs groom.
 #
 # Output contract: the harness reads a single JSON envelope from stdout. Raw
 # stdout becomes a transcript message instead of injected context, so the
 # envelope wrapper is load-bearing.
 #
 # Failure contract: this hook MUST NOT block the user's prompt. Any failure
-# path (unset env, missing file, unavailable JSON encoder, non-UTF-8 content)
+# path (no arg, missing file, unavailable JSON encoder, non-UTF-8 content)
 # exits 0 silently — a missing injection is recoverable; a blocked prompt
 # is not. `set -e` is intentionally NOT used.
 
 set -u
 
-if [ -z "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-  exit 0
-fi
+RULES_FILE="${1:-}"
 
-RULES_FILE="${CLAUDE_PLUGIN_ROOT}/rules/hard-caps.md"
-
-if [ ! -f "$RULES_FILE" ] || [ ! -r "$RULES_FILE" ]; then
+if [ -z "$RULES_FILE" ] || [ ! -f "$RULES_FILE" ] || [ ! -r "$RULES_FILE" ]; then
   exit 0
 fi
 

@@ -48,3 +48,54 @@ if [ -f "skills/yolo/SKILL.md" ]; then
   check_token_present "commit to current branch locally" "skills/yolo/SKILL.md"
   check_token_present "no work-doc" "skills/yolo/SKILL.md"
 fi
+
+yellow "[37] hooks/hooks.json command targets exist on disk (.sh targets executable)"
+# Every ${CLAUDE_PLUGIN_ROOT}/-prefixed token in every hook command — the
+# script AND its file arguments, across ALL event arrays (UserPromptSubmit,
+# PreToolUse, and any added later) — must resolve to a file in this repo.
+# Tokens are shell-quoted inside the JSON string (so install paths with
+# spaces survive word-splitting), so strip one leading/trailing quote
+# before the prefix match. Iteration is a while-read over the
+# newline-separated list — no unquoted word-splitting (bash 3.2 safe).
+# jq path: .hooks.<event>[] (matcher groups) → .hooks[] (entries) → .command.
+HOOK_TARGETS=$(jq -r '.hooks[][].hooks[].command' hooks/hooks.json 2>/dev/null \
+  | tr ' ' '\n' | sed -e "s/^['\"]//" -e "s/['\"]\$//" \
+  | sed -n 's|^\${CLAUDE_PLUGIN_ROOT}/||p' | sort -u)
+if [ -z "$HOOK_TARGETS" ]; then
+  red "  FAIL no \${CLAUDE_PLUGIN_ROOT}/ paths parsed from hooks/hooks.json (malformed JSON or empty hook arrays)"
+  FAILED=$((FAILED + 1))
+fi
+while IFS= read -r t; do
+  [ -n "$t" ] || continue
+  if [ -f "$t" ]; then
+    green "  ok   hooks.json target $t exists"
+  else
+    red "  FAIL hooks.json target $t missing on disk"
+    FAILED=$((FAILED + 1))
+  fi
+  case "$t" in
+    *.sh)
+      if [ -x "$t" ]; then
+        green "  ok   hooks.json target $t is executable"
+      else
+        red "  FAIL hooks.json target $t is not executable"
+        FAILED=$((FAILED + 1))
+      fi
+      ;;
+  esac
+done <<<"$HOOK_TARGETS"
+
+yellow "[38] rules/perf-guardrails.md injected via UserPromptSubmit"
+# Here-string, not `jq | grep -q`: grep -q short-circuits and can SIGPIPE the
+# producer under pipefail (see the [24] comment in 50-runtimes-and-companions.sh).
+UPS_HOOK_CMDS=$(jq -r '.hooks.UserPromptSubmit[].hooks[].command' hooks/hooks.json 2>/dev/null)
+if grep -qF 'rules/perf-guardrails.md' <<<"$UPS_HOOK_CMDS"; then
+  green "  ok   hooks.json UserPromptSubmit injects rules/perf-guardrails.md"
+else
+  red "  FAIL hooks.json UserPromptSubmit does not inject rules/perf-guardrails.md"
+  FAILED=$((FAILED + 1))
+fi
+
+yellow "[39] performance review surfaces registered (Reviewer D agent + perf-scout wiring)"
+check_file "agents/code-reviewer-performance.md"
+check_token_present "perf-scout.md" "skills/hackify/SKILL.md"

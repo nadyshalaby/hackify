@@ -1,11 +1,11 @@
 ---
 name: skillsmith
-description: Authors NEW skills that conform to hackify's binding contracts — NOT a generic Claude Code skill creator. Produces SKILL.md files under skills/<slug>/ that pass every check the v0.2.0 validate-dod.sh harness runs against hackify-conformant skills. Enforces the 7-section sub-agent contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), the 4-section Wizard contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA), the SKILL.md frontmatter schema, the name regex `^[a-z0-9-]{1,64}$`, the mandatory OUTPUT word-cap on every embedded sub-agent prompt, and Haiku-portability via zero soft-language tolerance in the body. Auto-discovery triggers — invoke when the user says `/hackify:skillsmith`, `author a hackify skill`, `create a new skill for hackify`, `make a hackify-style skill`, or `new hackify skill`. Self-validates every authored skill against the same 9-check checklist before declaring done; the meta-skill eats its own dog food. Explicit non-goal — does NOT author arbitrary Claude Code skills and does NOT replace the skill-creator plugin.
+description: Authors NEW skills that conform to hackify's binding contracts — NOT a generic Claude Code skill creator. Produces SKILL.md files under skills/<slug>/ that pass every check the validate-dod.sh harness runs against hackify-conformant skills. Enforces the 7-section sub-agent contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT — SEVERITY on review/audit templates only, omitted from build/research templates), the 4-section Wizard contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA), the SKILL.md frontmatter schema, the name regex `^[a-z0-9-]{1,64}$`, the mandatory OUTPUT word-cap on every embedded sub-agent prompt, and Haiku-portability via zero soft-language tolerance in the body. Auto-discovery triggers — invoke when the user says `/hackify:skillsmith`, `author a hackify skill`, `create a new skill for hackify`, `make a hackify-style skill`, or `new hackify skill`. Self-validates every authored skill against the same 9-check checklist before declaring done; the meta-skill eats its own dog food. Explicit non-goal — does NOT author arbitrary Claude Code skills and does NOT replace the skill-creator plugin.
 ---
 
 # Skillsmith — author hackify-conformant skills
 
-This is a META-SKILL — a skill that authors skills. Scope is narrow on purpose: every output is a NEW skill that lives under `skills/<slug>/SKILL.md` inside the hackify plugin tree and passes every structural check the v0.2.0 enforcement layer (`scripts/validate-dod.sh`) runs against hackify-conformant skills.
+This is a META-SKILL — a skill that authors skills. Scope is narrow on purpose: every output is a NEW skill that lives under `skills/<slug>/SKILL.md` inside the hackify plugin tree and passes every structural check the enforcement layer (`scripts/validate-dod.sh`) runs against hackify-conformant skills.
 
 This skill is self-contained. It never calls other skills. The 9-check self-validation checklist below is the core deliverable behind every skill it produces — the checklist is what makes a freshly-authored skill safe to ship without a human structural pass.
 
@@ -83,7 +83,7 @@ This is the core deliverable behind every produced skill. Run every check agains
    often
    ```
 8. **File size cap.** The SKILL.md file is ≤500 lines.
-9. **Path conventions.** Cross-references inside the body use repo-rooted paths (`skills/<slug>/...`, `scripts/...`) or absolute paths injected via `{{placeholder}}`. Zero `~/.claude/...` references — hackify is self-contained and ships across multiple runtimes per v0.2.0.
+9. **Path conventions.** Cross-references inside the body use repo-rooted paths (`skills/<slug>/...`, `scripts/...`) or absolute paths injected via `{{placeholder}}`. Zero `~/.claude/...` references — hackify is self-contained and ships across multiple runtimes.
 
 If any check returns NO, the skill loops back to Step 2 and revises BEFORE attempting Step 4.
 
@@ -102,10 +102,10 @@ These thoughts mean STOP and apply the listed reality. Every row below contains 
 |---|---|
 | "It's faster to skip the self-validation just this once" | The 9-check list IS the deliverable. Skipping it ships a skill that fails the validate-dod.sh harness — that is a guaranteed re-roll, not a shortcut. |
 | "The user said 'quick skill', so the checklist is optional" | The checklist is NEVER optional. `/hackify:quick` keeps Phase 4 verify for the same reason: cheap insurance the user did not ask for and would regret losing. |
-| "9 checks is a lot, 4 is enough" | Each of the 9 checks catches a distinct failure mode documented in the v0.1.0 / v0.1.3 / v0.2.0 post-mortems. Removing checks reopens documented bugs. |
+| "9 checks is a lot, 4 is enough" | Each of the 9 checks catches a distinct failure mode documented in earlier release post-mortems. Removing checks reopens documented bugs. |
 | "Self-validation isn't a real test, I can vibe it" | Self-validation is exactly the test the structural harness runs. Vibing it means shipping a skill that fails the harness — the harness does not vibe back. |
 | "I'll write the file first and validate after, save a step" | The no-partial-write rule exists because a half-written SKILL.md on disk gets committed, indexed, and routed to. Validate in memory, write once. |
-| "The skill is small, the 7-section contract is overkill" | The 7-section contract applies to every embedded sub-agent prompt regardless of skill size. A small skill with one sub-agent dispatch still needs all 7 sections in that dispatch. |
+| "The skill is small, the 7-section contract is overkill" | The 7-section contract applies to every embedded sub-agent prompt regardless of skill size — 7 sections, with SEVERITY required only for review/audit-role prompts (build/research prompts omit it entirely). A small skill with one sub-agent dispatch still owes that dispatch its full section set. |
 
 ## File map
 
@@ -121,7 +121,7 @@ skills/hackify/SKILL.md                                          <- the full wor
 skills/hackify/references/parallel-agents/template-contract.md   <- 7-section sub-agent contract (binding)
 skills/hackify/references/clarify-questions/wizard-contract.md   <- 4-section Wizard contract (binding)
 skills/quick/SKILL.md                                            <- structural exemplar for a workflow-variant skill
-scripts/validate-dod.sh                                          <- v0.2.0 enforcement harness the 9 checks mirror
+scripts/validate-dod.sh                                          <- the enforcement harness the 9 checks mirror
 ```
 
 Read these at dispatch time. Do not inline-copy them into the produced skill — produced skills reference them by path, the same way `skills/quick/SKILL.md` does.

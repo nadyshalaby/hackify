@@ -84,15 +84,22 @@ installed; these are the built-in fallback concerns.
 
 ## Performance
 
-Delegated to the `performance-auditor` agent when installed; diff/hot-path scoped by nature.
+The CANONICAL performance catalog is `rules/performance.md` (stable IDs `perf.<domain>.<slug>`,
+severity model, detection hints). The five rule ids below are lawkeeper's coarse groupings —
+they predate the catalog; the canonical-source column maps each to its catalog equivalents.
+Judgment stays delegated to the semantic `performance-auditor` agent when installed —
+diff/hot-path scoped by nature. Deterministic candidate patterns now exist in
+`skills/hackify/references/perf-scout.md` (grep tables keyed to catalog IDs); the semantic
+performance-auditor may seed its pass from them. The mechanical scanner
+(`scripts/audit_scan.py`) stays caps+bans — performance is never scanned deterministically here.
 
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
-| `perf.n-plus-1` | query inside a loop / missing index | high | semantic / `performance-auditor` | data-layer practice |
-| `perf.algorithmic` | O(n²) nesting / unhoisted repeated work | medium | semantic / `performance-auditor` | — |
-| `perf.blocking-io` | sync I/O on request/render path | high | semantic / `performance-auditor` | — |
-| `perf.memory` | unbounded cache/buffer | medium | semantic / `performance-auditor` | — |
-| `perf.render` | FE re-render thrash | low | semantic / `performance-auditor` | — |
+| `perf.n-plus-1` | query inside a loop / missing index | high | semantic / `performance-auditor` | `rules/performance.md`: perf.data.n-plus-one, perf.data.missing-index |
+| `perf.algorithmic` | O(n²) nesting / unhoisted repeated work | medium | semantic / `performance-auditor` | `rules/performance.md`: perf.algorithmic.nested-loop-join, perf.algorithmic.scan-in-loop, perf.algorithmic.loop-invariant |
+| `perf.blocking-io` | sync I/O on request/render path | high | semantic / `performance-auditor` | `rules/performance.md`: perf.async.sync-blocking, perf.io.sync-fs |
+| `perf.memory` | unbounded cache/buffer | medium | semantic / `performance-auditor` | `rules/performance.md`: perf.memory.unbounded-cache, perf.memory.global-accumulator, perf.caching.no-eviction |
+| `perf.render` | FE re-render thrash | low | semantic / `performance-auditor` | `rules/performance.md`: perf.frontend.unstable-props, perf.frontend.heavy-render, perf.frontend.effect-chains |
 
 ## Testing
 

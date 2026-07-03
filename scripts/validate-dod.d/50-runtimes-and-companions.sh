@@ -23,9 +23,9 @@ for target in 'dist/claude-code/' 'dist/codex-cli/' 'dist/codex-app/' 'dist/gemi
   fi
 done
 
-yellow "[25] v0.2.0 new skill SKILL.md presence + frontmatter + name regex"
-NEW_SKILL_FILES="skills/groom/SKILL.md skills/skillsmith/SKILL.md skills/review-triage/SKILL.md"
-NEW_SKILL_SLUGS="groom skillsmith review-triage"
+yellow "[25] companion skill SKILL.md presence + frontmatter + name regex"
+NEW_SKILL_FILES="skills/groom/SKILL.md skills/skillsmith/SKILL.md skills/review-triage/SKILL.md skills/codewalk/SKILL.md skills/lawkeeper/SKILL.md"
+NEW_SKILL_SLUGS="groom skillsmith review-triage codewalk lawkeeper"
 # Bash 3.2-safe parallel iteration via positional split
 set -- $NEW_SKILL_FILES
 NEW_FILES_LIST="$*"
@@ -62,13 +62,6 @@ yellow "[26] sprint vocabulary in references/work-doc-template.md"
 WDT_FILE="skills/hackify/references/work-doc-template.md"
 SPRINT_HEADINGS_NUM="## 3. Acceptance Criteria|## 5. Sprint Backlog|## 6. Daily Updates|## 7. Sprint Review|## 8. Retrospective"
 SPRINT_HEADINGS_BARE="## Acceptance Criteria|## Sprint Backlog|## Daily Updates|## Sprint Review|## Retrospective"
-old_ifs="$IFS"
-IFS='|'
-set -- $SPRINT_HEADINGS_NUM
-nums="$@"
-set -- $SPRINT_HEADINGS_BARE
-bares="$@"
-IFS="$old_ifs"
 # Iterate by index via awk on a delimited string (Bash 3.2-safe).
 idx=1
 while [ "$idx" -le 5 ]; do

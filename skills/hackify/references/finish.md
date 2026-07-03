@@ -210,6 +210,8 @@ Substitute with the actual paths this sprint changed. Evidence record example: *
 
 ## Step D — archive the work-doc (Options 1 + 2 only)
 
+**This is phase-ledger item `6c`, and it gates the Step F summary.** The move below is the exit artifact: the work-doc physically in `done/` with `status: done`. **Do not print the summary table or emit the HTML report (Step F) until this move is complete** — the summary is the reward for archiving, not a substitute. This ordering is why "finished the work, forgot to archive" cannot happen: the summary item stays unreachable while the archive item is open.
+
 Move the work-doc from `<project>/docs/work/<slug>.md` to `<project>/docs/work/done/<slug>.md`. Update frontmatter:
 
 ```yaml
@@ -354,12 +356,14 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 | Worktree removal with uncommitted changes (`--force`) | User's work could vanish. Stop, ask. |
 | Picking the option for the user | They pick. Always present 4. |
 | Open-ended "what next?" question | Drift. Stick to the 4-options structure. |
+| Printing the summary while the work-doc still sits in `docs/work/` | Archive first (Step D). The summary (Step F) is gated on the doc being in `done/`. |
+| Ticking a phase-ledger item with no exit artifact | Untrusted tick. The item stays open until its exit artifact exists (`phase-ledger.md`). |
 
 ---
 
-## Summary table — authoring guidance
+## Step F — Summary table + HTML report
 
-Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task — the user reads it to verify alignment before the work-doc archive moves to `done/`.
+Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task — the user reads it to verify alignment **after** the work-doc has been archived to `done/`. Step D runs first: the summary is gated on the archive (see the Step D gate above). The one exception is a mid-flight `/hackify:summary` invocation, which just prints to chat and archives nothing.
 
 **Step F also emits a styled HTML report** — a self-contained `<slug>.report.html` beside the archived work-doc. It opens with a plain-language **"What changed & why it matters"** summary (B2, for a non-technical reader), then stats, inline-SVG charts, the findings table, action items, and next steps, and **closes with a cumulative Evidence appendix** (the Phase 4 Evidence Ledger — every task/acceptance item with its trimmed proof). The Area/Change table is embedded in it AND printed to chat. Authoring + placeholder-token map: [html-report.md](html-report.md).
 

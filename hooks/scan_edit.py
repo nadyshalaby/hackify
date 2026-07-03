@@ -18,7 +18,9 @@ carry past on an untouched line.
 
 Usage: `scan_edit.py <lawkeeper-scripts-dir> [baseline-file]` with candidate
 text on stdin. Prints one `<rule>\\t<line>` per net-new finding. Exit 0 always
-— this is a detector; the calling hook decides whether to block.
+— this is a detector; the calling hook decides whether to block. ANY internal
+failure (detectors unavailable, undecodable stdin, a detector bug) exits 0
+with no findings: fail open, a hook bug must never wedge editing.
 """
 import sys
 from collections import namedtuple
@@ -99,19 +101,32 @@ def _net_new(findings, raw_lines, baseline):
     return [(rule, num) for rule, num in findings if raw_lines[num - 1] not in baseline]
 
 
-def main():
+def _run():
+    """Read candidate text from stdin, print one net-new finding per line."""
     if len(sys.argv) < 2:
         return 0
     text = sys.stdin.read()
     baseline_path = sys.argv[2] if len(sys.argv) > 2 else ''
-    try:
-        detectors = load_detectors(sys.argv[1])
-    except Exception:
-        return 0  # lexer/checks unavailable -> detect nothing (fail open)
+    detectors = load_detectors(sys.argv[1])
     findings = _net_new(detect(text, detectors), text.splitlines(), _baseline_lines(baseline_path))
     for rule, num in findings:
         print(f'{rule}\t{num}')
     return 0
+
+
+def main():
+    # Fail-open contract (module docstring: "Exit 0 always"): ANY internal
+    # failure — detectors unavailable, undecodable stdin, a detector bug —
+    # must end in exit 0 with a finding-free stdout so a hook bug never
+    # wedges editing. Exiting 0 with no findings IS the documented handling,
+    # not a swallow. One stderr line names the error class so manual runs and
+    # future callers can observe the failure (the calling hook currently
+    # discards stderr).
+    try:
+        return _run()
+    except Exception as exc:
+        print(f'scan_edit: internal error, failing open: {type(exc).__name__}', file=sys.stderr)
+        return 0
 
 
 if __name__ == '__main__':

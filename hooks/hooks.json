@@ -6,7 +6,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/inject-hard-caps.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.sh\" \"${CLAUDE_PLUGIN_ROOT}/rules/hard-caps.md\""
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.sh\" \"${CLAUDE_PLUGIN_ROOT}/rules/expert-mindset.md\""
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.sh\" \"${CLAUDE_PLUGIN_ROOT}/rules/perf-guardrails.md\""
           }
         ]
       }
@@ -17,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/block-banned-tokens.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/block-banned-tokens.sh\""
           }
         ]
       }

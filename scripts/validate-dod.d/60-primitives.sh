@@ -13,7 +13,6 @@ for f in "rules/hard-caps.md" "rules/code-quality.md"; do
   fi
 done
 
-yellow "[30] agents/ directory contains the 7 hackify v0.2.2 agent definitions"
 AGENTS_EXPECTED=(
   "spec-reviewer-consistency"
   "spec-reviewer-rules"
@@ -21,8 +20,10 @@ AGENTS_EXPECTED=(
   "code-reviewer-security"
   "code-reviewer-quality"
   "code-reviewer-plan-consistency"
+  "code-reviewer-performance"
   "wave-task-implementer"
 )
+yellow "[30] agents/ directory contains all ${#AGENTS_EXPECTED[@]} expected hackify agent definitions"
 for name in "${AGENTS_EXPECTED[@]}"; do
   f="agents/${name}.md"
   if [ ! -f "$f" ]; then
@@ -38,11 +39,11 @@ for name in "${AGENTS_EXPECTED[@]}"; do
   fi
 done
 agent_count=$(find agents -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
-if [ "$agent_count" -ne 7 ]; then
-  red "  FAIL agents/ contains $agent_count *.md files; expected 7"
+if [ "$agent_count" -ne "${#AGENTS_EXPECTED[@]}" ]; then
+  red "  FAIL agents/ contains $agent_count *.md files; expected ${#AGENTS_EXPECTED[@]}"
   FAILED=$((FAILED + 1))
 else
-  green "  ok   agents/ contains exactly 7 *.md files"
+  green "  ok   agents/ contains exactly ${#AGENTS_EXPECTED[@]} *.md files"
 fi
 
 yellow "[31] hooks/hooks.json is valid JSON and declares UserPromptSubmit"
@@ -65,8 +66,8 @@ else
   fi
 fi
 
-yellow "[32] hooks/inject-hard-caps.sh exists and is executable"
-HOOK_SH="hooks/inject-hard-caps.sh"
+yellow "[32] hooks/inject-context.sh exists and is executable"
+HOOK_SH="hooks/inject-context.sh"
 if [ ! -f "$HOOK_SH" ]; then
   red "  FAIL $HOOK_SH missing"
   FAILED=$((FAILED + 1))

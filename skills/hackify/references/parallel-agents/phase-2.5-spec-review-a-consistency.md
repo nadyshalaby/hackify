@@ -62,7 +62,9 @@ at `{{work_doc_path}}`.
    that serves no In-Scope bullet and is not required by one is a drift
    finding (Important). A task or bullet that violates a Guardrail/Invariant
    or does something an Out-of-Scope/Non-Goal excludes is Critical. Quote
-   the anchor line and the offending task/bullet.
+   the anchor line and the offending task/bullet. Verdict wording
+   canonical source: `references/goal-anchor.md` — the copies are
+   identical by design; keep them in sync.
 
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report and

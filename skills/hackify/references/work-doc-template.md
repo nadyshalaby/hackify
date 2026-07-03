@@ -104,12 +104,13 @@ Append one entry per task as you complete (or get stuck on) it.
 
 ### Evidence Ledger (Phase 4)
 
-One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output — never a summary. See [review-and-verify.md](review-and-verify.md).
+One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output — never a summary. The perf-scout staging table (or its "no candidates" result) is itself a row ([perf-scout.md](perf-scout.md)). See [review-and-verify.md](review-and-verify.md).
 
 | Item | Type | Claim | What I ran | Proof sample | Result |
 |---|---|---|---|---|---|
 | T1 | task | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
 | AC1 | acceptance | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
+| scout | protocol | no Critical/Important candidates | perf-scout tables over the diff | `<trimmed table / none>` | ✅ |
 
 **Three-layer re-verify:** Layer 1 fresh triad ✅ · Layer 2 goal-drift re-check (every Success Signal has a proving row) ✅ · Layer 3 independent re-prove ✅.
 
@@ -151,6 +152,8 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 | No new `!` non-null assertions | ✓ | … |
 | No empty catches | ✓ | … |
 | No bare `Error` throws in domain code | ✓ | … |
+| No perf violations (`rules/performance.md`) | ✓ | … |
+| Perf-scout candidates dispositioned | ✓ | … |
 
 ### Reviewer subagent feedback (if escalated)
 

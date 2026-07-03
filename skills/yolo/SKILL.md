@@ -16,11 +16,23 @@ Phase 1  (clarify + exploration + wizard if ambiguous + in-chat goal anchor)
   → Phase 3  (parallel implementation waves, same discipline as full hackify)
   → Phase 3b (debug-when-stuck — only if a wave gets stuck)
   → Phase 4  (verify: Evidence Ledger + three-layer re-verify, fresh evidence)
-  → Phase 5  (3 parallel reviewers; address-all: auto-fix EVERY severity in-place incl. Minor; re-scan to zero)
+  → Phase 5  (perf-scout re-run, then 4 parallel reviewers A/B/C/D; address-all: auto-fix EVERY severity in-place incl. Minor; re-scan to zero)
   → Phase 6  (Step C.5 auto-fix pre-existing in touched files; auto-pick Option 1: commit to current branch locally, no push; print summary table + HTML report)
 ```
 
 The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous). Phase 2 plan-gate and Phase 6 4-options menu are auto-passed — that is the YOLO contract.
+
+## Phase ledger — trackable, ordered (always-on)
+
+Open a **phase ledger** at task start: a trackable to-do list (the runtime's **todo tracker**) with one item per phase — Clarify → Plan → Spec-review → Implement → Verify → Multi-reviewer → Finish. Rules (full contract: `../hackify/references/phase-ledger.md`):
+
+- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`. No phase skipped — mark a carve-out `completed` with a one-line reason.
+- **Reflect after each item** — one line: what changed, did it pass, what is next — then advance.
+- **Auto-pass removes the WAIT, not the STEP.** YOLO auto-passes the Phase 2 gate and the Phase 6 menu, but still ticks every ledger item in order. No work-doc → the ledger is session-local.
+
+## Expert mindset (always-on)
+
+Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-disciplinary engineer** — problem-solver, security, performance, architect, advisor, verifier — and prove every claim with fresh evidence. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md` and `rules/perf-guardrails.md` — the caps and performance laws bind in YOLO too).
 
 ## Auto-pass behavior — the two gates YOLO skips
 
@@ -28,6 +40,8 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 |---|---|---|
 | **Phase 2 — Plan sign-off** | Hard gate; waits for explicit `go` / `approved` / `yes` | No gate; the in-chat plan block is posted and Phase 2.5 begins immediately |
 | **Phase 6 — 4-options finish menu** | User picks 1 / 2 / 3 / 4 | Auto-picks Option 1: commit to current branch locally, no push. User inspects with `git log -1` / `git diff HEAD~1` afterward. |
+
+*Naming note — YOLO redefines Option 1. In full hackify's Phase 6 menu, Option 1 means "Merge to base branch locally"; YOLO's auto-picked Option 1 means commit to current branch locally, no push — no merge, no branch switch.*
 
 *Phase 6 Step C.5 cleanup sweep also applies — YOLO auto-fixes pre-existing lint/type/test/dead-code in the touched files (no prompt) so they end clean. See `../hackify/references/finish.md` Step C.5.*
 
@@ -37,9 +51,9 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 |---|---|---|
 | **1 — Clarify + goal** | Classify task type → exploration step (read just enough context) → batched wizard if any ambiguity remains → capture the Primary Goal & Guardrails as an in-chat anchor. Same as full hackify Phase 1. | A misread ask is more expensive than a wizard call, even in autopilot; the anchor drives the drift-check. |
 | **2.5 — Spec self-review** | Dispatch 3 parallel reviewers against the in-chat plan block (Original Ask + AC + Sprint Backlog). Audit text is the assistant message, not a work-doc on disk. | Spec defects are cheap to catch on paper; expensive after 200 LOC. |
-| **3 — Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3. | Wave discipline is what makes parallel safe. |
+| **3 — Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3, including the wave-end perf-scout (`../hackify/references/perf-scout.md`) over the wave-touched files — trivial in-allowlist candidates fixed in-wave, everything else staged for Phase 5. | Wave discipline is what makes parallel safe. |
 | **4 — Verify** | Full hackify Phase 4: an **Evidence Ledger** (proof row per task + acceptance bullet) plus all three re-verify layers (fresh triad, goal-drift re-check, independent re-prove). Fresh output, no warm cache. | Skipping verify ships broken work — autopilot makes that worse, not better. |
-| **5 — Multi-reviewer** | 3 parallel reviewers (security + quality + plan-consistency + goal drift). Plan-consistency reviewer audits diff against the in-chat plan block. Address-all: auto-fix EVERY severity, then re-scan to zero (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
+| **5 — Multi-reviewer** | At Phase 5 start, re-run the perf-scout on the whole diff; staged candidates join the address-all loop. Then 4 parallel reviewers A/B/C/D (security + quality + plan-consistency/goal-drift + performance). Reviewer D consumes the scout report and cites `perf.<domain>.<slug>` catalog IDs from `rules/performance.md`. Plan-consistency audits diff against the in-chat plan block. Address-all: auto-fix EVERY severity, then re-scan to zero (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
 
 ## What's different from full hackify
 
@@ -77,6 +91,7 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 | "Critical finding came back, ask the user" | YOLO contract: address-all — auto-fix EVERY severity in-place (Critical, Important, AND Minor), then re-scan to zero. The user inspects via `git diff HEAD~1` after commit — that is the inspection point. |
 | "Push the commit too — they'll want it on remote" | No. Phase 6 default is commit to current branch locally, no push. Pushing is user-initiated (`git push` themselves). |
 | "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer C audits diff against that list. No skip. |
+| "Auto-pass means I can skip the phase too" | Auto-pass removes the WAIT at a gate, not the phase. Every ledger item still runs in order and gets ticked `completed`. |
 
 ## One-line summary
 

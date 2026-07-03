@@ -55,6 +55,11 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 3. Read `{{user_global_rules_path}}` if it exists. For every rule that
    appears in both files, apply the STRICTER rule on conflict (the
    work-doc protocol). Quote the stricter rule verbatim for citations.
+   Then load the plugin's `rules/code-quality.md` — the deep doctrine
+   behind the always-on `rules/hard-caps.md`. Where no `CLAUDE.md`
+   rule from this step or step 2 overrides it, treat its rule
+   sentences as binding, and quote + cite them in findings the same
+   way.
 4. For each {task → file → planned change}, walk through whether the
    change can be implemented without SUPPRESSING A LINT RULE (inline
    ignore directives, file-level disables, or expect-error pragmas
@@ -83,8 +88,8 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 Paste this checklist under a `## Verification` heading in your report.
 If ANY answer is "no", loop back to METHOD.
 1. Did you quote a rule sentence verbatim from
-   `{{project_root}}/CLAUDE.md` or `{{user_global_rules_path}}` for
-   every finding? (yes / no)
+   `{{project_root}}/CLAUDE.md`, `{{user_global_rules_path}}`, or the
+   plugin's `rules/code-quality.md` for every finding? (yes / no)
 2. Did you cite the specific task ID and the file path for every
    finding? (yes / no)
 3. Did you check every task in the Sprint Backlog list, not just the ones that
@@ -127,7 +132,8 @@ skeleton:
 ````
 ## Critical
 - <finding> — rule: "<verbatim rule sentence>" (source:
-  `{{project_root}}/CLAUDE.md` | `{{user_global_rules_path}}`);
+  `{{project_root}}/CLAUDE.md` | `{{user_global_rules_path}}` |
+  plugin `rules/code-quality.md`);
   task: T<n>; file: <path>; remediation: <one sentence>.
 
 ## Important

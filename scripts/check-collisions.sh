@@ -11,7 +11,7 @@ set -uo pipefail
 
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/colors.sh"
 
-HACKIFY_SLUGS=(hackify quick yolo groom skillsmith review-triage codewalk)
+HACKIFY_SLUGS=(hackify quick yolo groom skillsmith review-triage codewalk lawkeeper)
 PLUGINS_ROOT="${CLAUDE_PLUGINS_ROOT:-$HOME/.claude/plugins}"
 
 # --- empty-state handling ---------------------------------------------------

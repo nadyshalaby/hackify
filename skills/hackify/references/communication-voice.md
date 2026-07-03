@@ -41,7 +41,7 @@ B2 means simpler **language**, not weaker **content**. Never drop a technical de
 
 | Before (dense) | After (B2, self-explanatory) |
 |---|---|
-| "Subsequently, I'll orchestrate a parallel dispatch to reconcile the divergent reviewer verdicts." | "Next, I run 3 reviewers at the same time. Then I compare what they found and fix the real problems." |
+| "Subsequently, I'll orchestrate a parallel dispatch to reconcile the divergent reviewer verdicts." | "Next, I run 4 reviewers at the same time. Then I compare what they found and fix the real problems." |
 | "Verification is nominal." | "I ran the checks. All pass. Here is the proof:" |
 | "This leverages an idempotent migration." | "This uses an idempotent migration (safe to run twice). Running it again does no harm." |
 

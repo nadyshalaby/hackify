@@ -6,13 +6,13 @@
 # scripts/validate-dod.d/*.sh and are sourced in order:
 #   00-helpers.sh                     — color printers + check_* helpers
 #   10-required-files.sh              — checks [1]-[6]
-#   20-templates.sh                   — checks [7]-[15] (template contracts)
+#   20-templates.sh                   — checks [7]-[15], [36] (template contracts incl. agents/)
 #   30-version-and-summary.sh         — checks [16]-[20]
 #   40-quick-skill.sh                 — checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh     — checks [24]-[26], [28]
 #   55-mirror-completeness.sh         — check [55] — sync manifest covers every tracked canonical file
 #   60-primitives.sh                  — checks [29]-[32]
-#   70-invariants-and-new.sh          — checks [33]-[34]
+#   70-invariants-and-new.sh          — checks [33]-[34], [37]-[39] (hook targets, perf invariants)
 #   80-file-size-caps.sh              — check [80] — file-size ≤ 500 LOC across primitives
 #   90-collisions.sh                  — check [90] — sibling-plugin slug collision (soft)
 #

@@ -35,12 +35,13 @@ PA_REVIEW_SINGLE_FILES=(
   "$PA_DIR/phase-5-escalation.md"
 )
 
-# Multi-template file: holds 3 sub-agent templates under h2 headings.
+# Multi-template file: holds 4 sub-agent templates under h2 headings.
 PA_MULTI_REVIEW="$PA_DIR/phase-5-multi-review.md"
 PA_MULTI_REVIEW_HEADINGS=(
   "## Phase 5 — Multi-reviewer A (security & correctness)"
   "## Phase 5 — Multi-reviewer B (quality & layering)"
   "## Phase 5 — Multi-reviewer C (plan consistency & scope)"
+  "## Phase 5 — Multi-reviewer D (performance)"
 )
 
 # Wizard bank files in CQ_DIR (exclude README + contract + picking guide).
@@ -248,3 +249,36 @@ for f in "${CQ_BANK_FILES[@]}"; do
   done
   [ "$ok" = "1" ] && green "  ok   $(basename "$f") wizard structure conforms"
 done
+
+# === Agent-catalog contract conformance (agents/*.md) ===
+
+yellow "[36] agents/*.md template contract (anchors + ROLE substance + OUTPUT word cap; SEVERITY on code-reviewer-*)"
+# Agent files carry YAML frontmatter before **ROLE** — the anchor checks grep
+# the whole body, so frontmatter passes through harmlessly. The file list is
+# the live glob: a new agent is contract-checked the moment it lands, and an
+# empty glob is itself a FAIL (never a silent pass).
+AGENT_FILES_FOUND=0
+for f in agents/*.md; do
+  [ -f "$f" ] || continue
+  AGENT_FILES_FOUND=$((AGENT_FILES_FOUND + 1))
+  agent_body=$(cat "$f")
+  agent_label="agents/$(basename "$f")"
+  check_template_anchors "$agent_body" "$agent_label"
+  check_role "$agent_body" "$agent_label"
+  # SEVERITY is required on reviewer-role agents only; spec-reviewer-* and
+  # wave-task-implementer are governed by their own template files' [10] modes.
+  case "$(basename "$f")" in
+    code-reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
+  esac
+  out=$(output_subsection "$agent_body")
+  if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
+    green "  ok   $agent_label OUTPUT has word cap"
+  else
+    red "  FAIL $agent_label OUTPUT missing word cap"
+    FAILED=$((FAILED + 1))
+  fi
+done
+if [ "$AGENT_FILES_FOUND" -eq 0 ]; then
+  red "  FAIL agents/*.md glob matched no files"
+  FAILED=$((FAILED + 1))
+fi

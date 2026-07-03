@@ -1,6 +1,6 @@
 ---
 name: quick
-description: Compressed-flow companion to the hackify workflow for genuinely small tasks where full ceremony (Plan+Gate, Spec review, the 3-lens parallel Multi-reviewer, 4-options finish) would burn more wall-clock and tokens than the change is worth. Auto-discovery triggers — invoke this skill when the user says any of "quick fix", "small change", "just fix the", "one-line fix", "tiny edit", "small fix", "small bug", "quick patch", "minor tweak", "just rename", "fix typo", or the explicit slash form /hackify:quick. Workflow shape — Phase 1 (clarify ONLY if ambiguous + restate the north-star goal; zero questions otherwise) → Phase 3 (implement; single foreground agent OR inline edit; file allowlist still applies) → Phase 4 (verify; full test + lint + typecheck triad still mandatory) → Phase 5-lite (single-lens address-all review) → Phase 6 (Step C.5 touched-scope cleanup + Step F 2-column Area/Change summary table + styled HTML report). Do NOT auto-fire on cross-file refactors, redesigns, debug investigations of unknown root causes, or anything touching auth/crypto/migration/secret/token/password — those route to full hackify via its own description. User-locked mode — once invoked, quick mode stays in quick mode for the entire task. It only promotes to full hackify when the user explicitly says so (e.g., "switch to full", "promote to full", "/hackify:hackify"). No work-doc is created, so progress cannot be paused or resumed across sessions — invoke full hackify if you need pause/resume.
+description: Compressed-flow companion to the hackify workflow for genuinely small tasks where full ceremony (Plan+Gate, Spec review, the 4-lens parallel Multi-reviewer, 4-options finish) would burn more wall-clock and tokens than the change is worth. Auto-discovery triggers — invoke this skill when the user says any of "quick fix", "small change", "just fix the", "one-line fix", "tiny edit", "small fix", "small bug", "quick patch", "minor tweak", "just rename", "fix typo", or the explicit slash form /hackify:quick. Workflow shape — Phase 1 (clarify ONLY if ambiguous + restate the north-star goal; zero questions otherwise) → Phase 3 (implement; single foreground agent OR inline edit; file allowlist still applies) → Phase 4 (verify; full test + lint + typecheck triad still mandatory) → Phase 5-lite (single-lens address-all review) → Phase 6 (Step C.5 touched-scope cleanup + Step F 2-column Area/Change summary table + styled HTML report). Do NOT auto-fire on cross-file refactors, redesigns, debug investigations of unknown root causes, or anything touching auth/crypto/migration/secret/token/password — those route to full hackify via its own description. User-locked mode — once invoked, quick mode stays in quick mode for the entire task. It only promotes to full hackify when the user explicitly says so (e.g., "switch to full", "promote to full", "/hackify:hackify"). No work-doc is created, so progress cannot be paused or resumed across sessions — invoke full hackify if you need pause/resume.
 ---
 
 # Hackify Quick — Compressed Flow For Small Tasks
@@ -13,7 +13,19 @@ Sibling to the main hackify skill. Same end-to-end discipline (clarify → imple
 Phase 1 (clarify + goal anchor) → Phase 3 (implement) → Phase 4 (verify) → Phase 5-lite (single-lens review) → Phase 6 (Step C.5 cleanup + Step F summary table + HTML report)
 ```
 
-No Plan+Gate. No Spec self-review. No 3-lens parallel Multi-reviewer (a single-lens address-all review runs instead). No four-options finish menu. The summary table + styled HTML report are the mandatory artifacts.
+No Plan+Gate. No Spec self-review. No 4-lens parallel Multi-reviewer (a single-lens address-all review runs instead). No four-options finish menu. The summary table + styled HTML report are the mandatory artifacts.
+
+## Phase ledger — trackable, ordered (always-on)
+
+Open a **phase ledger** at task start: a trackable to-do list (the runtime's **todo tracker**) with one item per kept phase — Clarify → Implement → Verify → Review-lite → Cleanup → Summary. Rules (full contract: `../hackify/references/phase-ledger.md`):
+
+- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`. No phase skipped — mark a carve-out `completed` with a one-line reason.
+- **Reflect after each item** — one line: what changed, did it pass, what is next — then advance.
+- Quick keeps no work-doc and no archive item, so the ledger is session-local. It exists to force order and reflection, not to survive a restart.
+
+## Expert mindset (always-on)
+
+Even in quick mode, think as a **senior, multi-disciplinary engineer** — problem-solver, security, performance, architect, advisor, verifier. Small tasks are where broken work hides. Prove instead of claim; when unsure, ask. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md` and `rules/perf-guardrails.md` — the caps and performance laws bind in quick mode too).
 
 ## Kept phases
 
@@ -21,8 +33,8 @@ No Plan+Gate. No Spec self-review. No 3-lens parallel Multi-reviewer (a single-l
 |---|---|---|
 | **1 — Clarify + goal** | Run the wizard at `../hackify/references/clarify-questions/README.md` if the ask has any ambiguity. **If the ask names a file or symbol but not a fix, read it end-to-end before judging ambiguity.** Zero ambiguity ("fix typo on line 42 of README.md") → zero questions, go to Phase 3. Either way, restate the north-star goal in one line — the in-chat Primary Goal & Guardrails anchor (no work-doc). | A misread ask costs more than a one-question wizard; the anchor keeps the fix on target. |
 | **3 — Implement** | Dispatch at most ONE foreground subagent with a file allowlist, or write inline for 1–3-line single-file edits. File-allowlist constraint applies — agent touches declared files only. | Scope discipline keeps quick mode quick. Spread is your call — promote to full hackify if the task outgrows the carve-out. |
-| **4 — Verify** | Full triad (test + lint + typecheck) fresh, plus a **lite Evidence Ledger** (one proof row per task) and re-verify Layers 1–2 (fresh triad + goal-drift re-check). Skips the heavy Layer 3 independent re-prove. Spec: `skills/hackify/references/review-and-verify.md`. | Skipping verify is how typo fixes ship broken. |
-| **5-lite — Single-lens review** | Dispatch ONE foreground reviewer over the diff (quality + correctness + goal drift), then run the address-all loop: tabulate findings, fix EVERY severity incl. Minor, re-scan to zero. See `skills/hackify/references/review-and-verify.md` (re-scan with the single reviewer, not the 3-lens panel). | Small diffs still ship bugs; one reviewer + address-all is the light-but-real safety net. |
+| **4 — Verify** | Full triad (test + lint + typecheck) fresh, plus a **lite Evidence Ledger** (one proof row per task) and re-verify Layers 1–2 (fresh triad + goal-drift re-check). Skips the heavy Layer 3 independent re-prove. Then run the deterministic perf-scout (`skills/hackify/references/perf-scout.md`) over the diff and disposition every candidate — fixed, or false-positive with a one-line reason — before the review starts, EXCEPT dismissals of Critical-default candidates: those carry over to the 5-lite reviewer (its lens includes performance) for co-sign during its review. Spec: `skills/hackify/references/review-and-verify.md`. | Skipping verify is how typo fixes ship broken. |
+| **5-lite — Single-lens review** | Dispatch ONE foreground reviewer over the diff (quality + correctness + goal drift + performance), then run the address-all loop: tabulate findings, fix EVERY severity incl. Minor, re-scan to zero. Performance findings cite `perf.<domain>.<slug>` catalog IDs from `rules/performance.md`. See `skills/hackify/references/review-and-verify.md` (re-scan with the single reviewer, not the 4-lens panel). | Small diffs still ship bugs; one reviewer + address-all is the light-but-real safety net. |
 | **6 C.5 — Cleanup** | Offer-to-fix pre-existing lint/type/test/dead-code in the touched files so they end clean (per `finish.md` class (g)). | The best version is what lands — no leftover issues in files you touched. |
 | **6F — Summary + HTML report** | Generate the 2-column Area/Change table per `skills/hackify/references/finish.md` and print to chat; then emit the self-contained HTML report per `skills/hackify/references/html-report.md`. | The user opted into speed, not opacity. |
 
@@ -32,7 +44,7 @@ No Plan+Gate. No Spec self-review. No 3-lens parallel Multi-reviewer (a single-l
 |---|---|
 | **Phase 2 — Plan+Gate** | The ask itself is the plan. Tasks needing a written plan are too large for quick mode. |
 | **Phase 2.5 — Spec self-review** | No spec was written in Phase 2 — nothing to scrutinize. |
-| **Phase 5 — 3-lens parallel Multi-reviewer** | The three-parallel-lens panel is overkill for quick's small diffs — a single-lens address-all review runs instead (see Kept phases). Promote to full hackify for the full 3-reviewer pass. |
+| **Phase 5 — 4-lens parallel Multi-reviewer** | The four-parallel-lens panel is overkill for quick's small diffs — a single-lens address-all review runs instead (see Kept phases). Promote to full hackify for the full 4-reviewer pass. |
 | **Phase 6 — four-options finish menu** | Quick mode does in-place edits. The user lands via their normal git workflow. Steps C.5 (cleanup) + F (summary + HTML report) are the Phase 6 pieces kept. |
 
 ## Note — Debug-when-stuck is not skipped
@@ -87,6 +99,7 @@ Print to chat. If the user promoted to full hackify mid-task, append the table t
 | "I can skip Phase 4 verify, it is just a typo" | Phase 4 stays. Typo fixes still need lint + typecheck to pass. The verification triad is the cheapest insurance in the workflow. |
 | "User said 'quick' so we skip Phase 1 clarify" | Only skip clarify if there is zero ambiguity in the ask. If even one detail is unclear, run the wizard — one batched question is cheaper than a wrong implementation. |
 | "Summary table is overkill for a one-line fix" | The summary table is mandatory. One row is fine. The user always knows what landed. |
+| "I'll fold verify and review into one step" | The ledger keeps them separate and ordered. Tick Verify `completed` before Review-lite starts. |
 | "This task is getting bigger than I thought — let me silently switch to full mode for the user" | Quick mode never auto-promotes. The user explicitly opted into quick mode. Stay in quick mode until the user says "switch to full" or one of the documented promotion phrases. |
 
 ## One-line summary
