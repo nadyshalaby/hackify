@@ -5,6 +5,14 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-07-03
+
+> **Patch: version-only alignment release — no functional changes since 0.7.0.** Cut so the marketplace channels serve a fresh tag; every feature listed under 0.7.0 is unchanged.
+
+### Changed
+
+- **Release plumbing only.** Version → `0.7.1` (`plugin.json`, both `marketplace.json` plugins, README badge; hackify channel `source.ref` → `v0.7.1`). No code, doctrine, or behavior changes.
+
 ## [0.7.0] - 2026-07-03
 
 > **Minor: a trackable phase ledger forces the phases in order and closes the "forgot to archive" gap, and an always-on expert mindset raises how the model approaches every task.** Every task now runs against a **phase ledger** — a to-do list (the runtime's todo tracker) with one item per phase and an ordering law: one item `in_progress` at a time, and no later phase starts until the current phase's exit artifact exists. Phase 6 splits into sub-items so archiving the work-doc to `done/` is its own tracked step that **gates the summary** — the recap is unreachable until the doc is filed, so "finished the work, forgot to archive" cannot happen by construction. A new always-on **expert mindset** doctrine casts the model as a senior, multi-disciplinary engineer (problem-solver, security, performance, architect, advisor, verifier) and stresses that the work ships to real users; a tight version is injected on every prompt beside the hard caps, and the fuller hat-by-hat doctrine loads from Phase 1. Applied across `hackify`, `quick`, and `yolo`. **This release also makes performance a first-class, enforced concern on every scanning surface**: a canonical violation catalog (`rules/performance.md` — 95 stable `perf.<domain>.<slug>` IDs across 10 domains) is distilled into an always-on `rules/perf-guardrails.md` (the third every-prompt injection); a deterministic **perf-scout** greps every diff at each Phase 3 wave-end and again at Phase 5 start; and a dedicated **Reviewer D (performance)** joins Phase 5, growing the multi-reviewer default to four parallel lenses (A/B/C/D). A whole-plugin audit fixed ~25 findings at every severity, and the DoD validator gained checks that enforce the new surfaces.
