@@ -53,6 +53,8 @@ description: >
 
 `direction` MUST be one of the twelve slugs in [direction-library.md](direction-library.md), or `custom` with a `direction_rationale` key explaining why none fit.
 
+**Optional: `accentIsFill: true`.** Set this when the direction uses its accent and semantic colors as **fill** colors carrying dark text, never as text colors on the canvas (`playful-pop` is the catalog example). It changes how contrast is judged: those roles are measured against the text that sits on them rather than against `canvas`, because scoring them against the canvas would be scoring a usage the spec forbids. Defaults to `false`. The conformance checker reads this key, so declaring it is what keeps an intentional design decision from reading as an accessibility failure.
+
 ### colors
 
 A flat map of **role name → hex**. Role names describe the job, never the hue.

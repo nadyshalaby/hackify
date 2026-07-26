@@ -3,6 +3,7 @@ version: 1
 name: Playful Pop — design spec
 direction: playful-pop
 platforms: [web, native]
+accentIsFill: true
 description: >
   Tactile, saturated, and unafraid to be fun. Three saturated hues used at full
   strength across large blocks, chunky geometry with thick dark borders, and hard

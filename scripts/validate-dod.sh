@@ -39,6 +39,7 @@ source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
+source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 
 if [ "$FAILED" -eq 0 ]; then
