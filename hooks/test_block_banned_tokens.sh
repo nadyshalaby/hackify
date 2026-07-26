@@ -103,7 +103,7 @@ SCANNER_DIR="$ROOT/skills/lawkeeper/scripts"
 # give stdin surrogateescape and hide the undecodable-stdin case).
 export PYTHONIOENCODING=utf-8:strict
 
-# The finding must cite the second target — the one whose heredoc carries the token.
+# The finding must cite the second target, the one whose heredoc carries the token.
 MULTI_CMD="$(printf 'cat > two-a.ts <<EOF\nexport const ok = 1\nEOF\ncat > two-b.ts <<TAG\nthrow new Error("x")\nTAG')"
 MULTI_OUT="$(printf '%s' "$MULTI_CMD" | python3 "$ROOT/hooks/scan_bash.py" "$SCANNER_DIR" 2>/dev/null)"
 if printf '%s\n' "$MULTI_OUT" | grep -q 'two-b\.ts$' && ! printf '%s\n' "$MULTI_OUT" | grep -q 'two-a\.ts'; then
@@ -137,7 +137,7 @@ PY
 
 expect_silent_zero() {
   # $1 name, $2 scanner basename, $3 scanner-dir arg. Feed scanner stdin via
-  # redirection (`< <(printf …)`), NOT a pipe — a pipe would run this function
+  # redirection (`< <(printf …)`), NOT a pipe, a pipe would run this function
   # in a subshell and lose the PASS/FAIL counters.
   # Fail-open contract: exit 0 AND empty stdout.
   local out rc

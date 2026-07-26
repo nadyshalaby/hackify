@@ -7,16 +7,16 @@ common patterns by extracting the written content and scanning it with the
 SAME detector as scan_edit (lexer-masked semantic bans, raw suppressions and
 hardcoded secrets).
 
-Covered: a heredoc redirected to a JS/TS file — the redirect may sit on the
+Covered: a heredoc redirected to a JS/TS file, the redirect may sit on the
 opening line (`cmd > file.ts <<TAG … TAG`) or after the body (`{ … } > f.ts`,
 `( … ) > f.ts`, `while …; done > f.ts`; superset pairing, see
-_heredoc_blocks) — and `echo`/`printf` redirected to a JS/TS file. NOT
-covered: content produced by `cp`/`mv`/`sed`/`awk` or any other program — not
+_heredoc_blocks), and `echo`/`printf` redirected to a JS/TS file. NOT
+covered: content produced by `cp`/`mv`/`sed`/`awk` or any other program, not
 statically knowable, so it falls through (fail-open). The hook documents this
 scope.
 
 Usage: `scan_bash.py <lawkeeper-scripts-dir>` with the command on stdin.
-Prints one `<rule>\\t<target-path>` per finding. Exit 0 always — ANY internal
+Prints one `<rule>\\t<target-path>` per finding. Exit 0 always. ANY internal
 failure (detectors unavailable, undecodable stdin, a detector bug) exits 0
 with no findings: fail open, a hook bug must never wedge editing.
 """
@@ -43,12 +43,12 @@ def _unquote(text):
 
 def _heredoc_blocks(cmd):
     """(target, body) pairs under superset pairing: when the heredoc-body
-    count equals the JS/TS redirect-target count, pair them positionally —
+    count equals the JS/TS redirect-target count, pair them positionally
     each `cmd > file.ts <<TAG` keeps per-heredoc attribution. On ANY
     mismatch (e.g. the redirect follows the body: `{ … } > f.ts`,
     `( … ) > f.ts`, `while …; done > f.ts`) every body is checked against
     EVERY candidate target, so no arrangement bypasses. Zero JS/TS targets
-    means nothing is written to a JS/TS file — no pairs."""
+    means nothing is written to a JS/TS file, no pairs."""
     bodies = [heredoc.group(2) for heredoc in HEREDOC.finditer(cmd)]
     targets = [target.group(1) for target in REDIR_TARGET.finditer(cmd)]
     if len(bodies) == len(targets):
@@ -66,7 +66,7 @@ def _written_blocks(cmd):
 
 def _run():
     """Read the command from stdin, print one finding per line."""
-    import scan_edit  # sibling module — reuse the detector (single source of truth)
+    import scan_edit  # sibling module, reuse the detector (single source of truth)
     if len(sys.argv) < 2:
         return 0
     cmd = sys.stdin.read()
@@ -83,7 +83,7 @@ def _run():
 
 def main():
     # Fail-open contract (module docstring: "Exit 0 always"): ANY internal
-    # failure must end in exit 0 with a finding-free stdout — same wrapper as
+    # failure must end in exit 0 with a finding-free stdout, same wrapper as
     # scan_edit.main; exiting 0 with no findings IS the documented handling.
     # One stderr line names the error class so manual runs and future callers
     # can observe the failure (the calling hook currently discards stderr).

@@ -1,14 +1,14 @@
-# Anti-Patterns — Worked Examples
+# Anti-Patterns (Worked Examples)
 
-This doc collects concrete wrong/right diffs for the four working principles. **Load it in Phase 3** while implementing — when an approach feels grand, search here for the matching anti-pattern before committing the diff. **Phase 5 reviewers cite specific section numbers from this file** when flagging over-abstraction, drive-by edits, hidden assumptions, vague goals, suppression rationalizations, and scope creep.
+This doc collects concrete wrong/right diffs for the four working principles. **Load it in Phase 3** while implementing, when an approach feels grand, search here for the matching anti-pattern before committing the diff. **Phase 5 reviewers cite specific section numbers from this file** when flagging over-abstraction, drive-by edits, hidden assumptions, vague goals, suppression rationalizations, and scope creep.
 
 Principle text lives in [`rules/four-principles.md`](../../../rules/four-principles.md) and is not restated here. The examples below show what the principles look like when they bind, in several languages, so the patterns travel.
 
-> **How to read these.** Each example begins with the literal user ask, then shows the over-engineered or careless response, names what went wrong, and ends with the surgical alternative. Code is polyglot pseudocode by design — the principle is what matters, not the syntax.
+> **How to read these.** Each example begins with the literal user ask, then shows the over-engineered or careless response, names what went wrong, and ends with the surgical alternative. Code is polyglot pseudocode by design, the principle is what matters, not the syntax.
 
 ---
 
-### Example 1 — Strategy pattern for a single discount
+### Example 1 (Strategy pattern for a single discount)
 
 **The ask:** "Apply a 10% discount to the cart total."
 
@@ -39,10 +39,10 @@ total = discount.apply(cart_total)
 ```
 
 **Problems:**
-- Three classes and a factory to multiply by `0.9` — the abstraction has exactly one concrete shape.
+- Three classes and a factory to multiply by `0.9`, the abstraction has exactly one concrete shape.
 - The factory's `if/raise` branch is a guard against subclasses that do not exist and may never exist.
 - A reader has to chase three indirections to discover the actual math.
-- Speculative generality — built for an extension story the ask did not include.
+- Speculative generality, built for an extension story the ask did not include.
 
 **✓ What should happen**
 
@@ -55,11 +55,11 @@ def apply_discount(amount: float) -> float:
 total = apply_discount(cart_total)
 ```
 
-**Why this is better:** The ask is one rule, the implementation is one rule. The named constant makes the policy visible; the helper is the smallest unit a test can pin behavior to. If a second discount type ever arrives, the abstraction can be introduced *then* — when it has two concrete shapes to compare and the right interface can be read off the duplication.
+**Why this is better:** The ask is one rule, the implementation is one rule. The named constant makes the policy visible; the helper is the smallest unit a test can pin behavior to. If a second discount type ever arrives, the abstraction can be introduced *then*, when it has two concrete shapes to compare and the right interface can be read off the duplication.
 
 ---
 
-### Example 2 — Drive-by reformat while fixing one bug
+### Example 2 (Drive-by reformat while fixing one bug)
 
 **The ask:** "Reject sign-up when the email field is empty."
 
@@ -84,7 +84,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
     writeJSON(w, 201, user)
 }
 
-// validator.go — rewritten "while I was in there"
+// validator.go, rewritten "while I was in there"
 func validate(p SignUpPayload) error {
     var fails []string
     if p.Email == ""   { fails = append(fails, "email") }
@@ -96,15 +96,15 @@ func validate(p SignUpPayload) error {
 ```
 
 **Problems:**
-- The ask was one rule about empty email — the diff also rewrites the validator, renames a helper, and reshapes the response envelope.
+- The ask was one rule about empty email, the diff also rewrites the validator, renames a helper, and reshapes the response envelope.
 - Password-length and name-required rules were added uninstructed; they change request semantics for callers who never asked.
-- Renames in the same diff make the bug fix unreviewable — the reviewer cannot see the real change through the noise.
+- Renames in the same diff make the bug fix unreviewable, the reviewer cannot see the real change through the noise.
 - The blast radius is now four files instead of one; rollback becomes a negotiation.
 
 **✓ What should happen**
 
 ```go
-// validator.go — one targeted addition.
+// validator.go, one targeted addition.
 func validate(p SignUpPayload) error {
     if p.Email == "" {
         return errors.New("email is required")
@@ -113,11 +113,11 @@ func validate(p SignUpPayload) error {
 }
 ```
 
-**Why this is better:** A surgical diff says one thing. The reviewer can read it in ten seconds and the rollback is one revert. Cleanups, renames, and unrelated validation are valid work — they belong in their own diff, with their own ask and their own tests, not smuggled in alongside a bug fix.
+**Why this is better:** A surgical diff says one thing. The reviewer can read it in ten seconds and the rollback is one revert. Cleanups, renames, and unrelated validation are valid work, they belong in their own diff, with their own ask and their own tests, not smuggled in alongside a bug fix.
 
 ---
 
-### Example 3 — Silent "export all" when "export" was ambiguous
+### Example 3 (Silent "export all" when "export" was ambiguous)
 
 **The ask:** "Add an export button to the users page."
 
@@ -140,7 +140,7 @@ end
 ```
 
 **Problems:**
-- The ask did not say *which* users — current page, current filter, the caller's tenant, or every user in the database.
+- The ask did not say *which* users, current page, current filter, the caller's tenant, or every user in the database.
 - The chosen answer (`User.all`) is the broadest possible reading; on a multi-tenant system this leaks data across tenants.
 - Phone and address were exported without being asked for; a sensitive-data review never happened.
 - The implementer guessed the schema instead of asking; the silent guess shows up later as an incident.
@@ -163,7 +163,7 @@ end
 
 ---
 
-### Example 4 — Vague goal with no testable success
+### Example 4 (Vague goal with no testable success)
 
 **The ask:** "Fix the auth system."
 
@@ -178,9 +178,9 @@ notes: also clean up anything that looks off
 ```
 
 **Problems:**
-- "Auth system" is three subsystems — session issuance, session verification, and authorization checks. Nothing says which one is broken.
+- "Auth system" is three subsystems, session issuance, session verification, and authorization checks. Nothing says which one is broken.
 - "It works" is unfalsifiable; no test, no log query, no user report can resolve it.
-- "Wherever needed" is an unbounded file allowlist — the diff can swallow the codebase.
+- "Wherever needed" is an unbounded file allowlist, the diff can swallow the codebase.
 - "Clean up anything that looks off" invites drive-by refactors (see Example 2) and scope creep (see Example 7).
 
 **✓ What should happen**
@@ -195,16 +195,16 @@ done_when:
   - new test reproduces the rejection given a token signed by the previous key
   - the same test passes after the fix
   - existing session-verify tests still pass
-notes: out of scope — issuance flow, role checks, password reset
+notes: out of scope, issuance flow, role checks, password reset
 ```
 
-**Why this is better:** A goal is testable when a third party can read the brief, run a single check, and tell whether the work landed. Scoping the file list and naming what is *out* of scope tells the implementer when to stop — which is the only signal that prevents a one-line bug fix from becoming a weeklong refactor.
+**Why this is better:** A goal is testable when a third party can read the brief, run a single check, and tell whether the work landed. Scoping the file list and naming what is *out* of scope tells the implementer when to stop, which is the only signal that prevents a one-line bug fix from becoming a weeklong refactor.
 
 ---
 
-### Example 5 — Rationalizing a type-system suppression
+### Example 5 (Rationalizing a type-system suppression)
 
-**The ask:** "The new payment provider returns a webhook payload — handle it."
+**The ask:** "The new payment provider returns a webhook payload, handle it."
 
 **❌ Anti-pattern**
 
@@ -214,7 +214,7 @@ fun handle(raw: String) {
     @Suppress("UNCHECKED_CAST")
     val payload = parseJson(raw) as Map<String, Any>          // shape is "complex"
 
-    // (`@Suppress` extended here in real code — silence the checker, lose the schema)
+    // (`@Suppress` extended here in real code, silence the checker, lose the schema)
     val amount = payload["data"]!!["amount"] as Double         // forced non-null
     val currency = payload["data"]!!["currency"] as String
 
@@ -223,10 +223,10 @@ fun handle(raw: String) {
 ```
 
 **Problems:**
-- The suppression hides the question the type system was trying to ask — *what is the actual shape of this payload?*
+- The suppression hides the question the type system was trying to ask, *what is the actual shape of this payload?*
 - Force-unwrap (`!!`) replaces a real null check with a runtime crash later, in production, with no stack trace pointing at intent.
 - "Complex" is the rationalization; the payload has a documented schema and a parser can be written against it.
-- The subsequent reader inherits a black box — the suppression travels with the code forever.
+- The subsequent reader inherits a black box, the suppression travels with the code forever.
 
 **✓ What should happen**
 
@@ -241,11 +241,11 @@ fun handle(raw: String) {
 }
 ```
 
-**Why this is better:** Naming the type once moves the question from runtime to compile time. The parser fails loudly at the boundary instead of corrupting the books silently three layers in. Suppressions are tools for emergencies — every one added without a stack-trace-shaped justification is a future incident bought on credit.
+**Why this is better:** Naming the type once moves the question from runtime to compile time. The parser fails loudly at the boundary instead of corrupting the books silently three layers in. Suppressions are tools for emergencies, every one added without a stack-trace-shaped justification is a future incident bought on credit.
 
 ---
 
-### Example 6 — Scope creep into a config file "while I'm at it"
+### Example 6 (Scope creep into a config file "while I'm at it")
 
 **The ask:** "Add a `--dry-run` flag to the migration command."
 
@@ -258,10 +258,10 @@ fun handle(raw: String) {
 struct MigrateArgs {
     dry_run: bool,
     target: String,
-    verbose: bool,         // new — "logging was confusing"
+    verbose: bool,         // new, "logging was confusing"
 }
 
-// config.rs — opportunistic overhaul
+// config.rs, opportunistic overhaul
 impl Config {
     fn load() -> Self {
         // switched format from TOML to YAML "since I was here"
@@ -270,13 +270,13 @@ impl Config {
     }
 }
 
-// logger.rs — log format changed to JSON to "match the new config style"
+// logger.rs, log format changed to JSON to "match the new config style"
 // defaults.toml deleted; defaults.yaml added
 // README.md updated to describe the new config format
 ```
 
 **Problems:**
-- The ask was one flag in one command — the diff replaces the config format, deletes a defaults file, rewrites the logger, and changes the docs.
+- The ask was one flag in one command, the diff replaces the config format, deletes a defaults file, rewrites the logger, and changes the docs.
 - Each opportunistic change is its own decision; bundling them denies every one of them a proper review.
 - Every operator using the previous config file now has to migrate; no one signed off on that break.
 - If `--dry-run` ships and the YAML rollout fails, the rollback drags `--dry-run` with it.
@@ -284,7 +284,7 @@ impl Config {
 **✓ What should happen**
 
 ```rust
-// cli.rs — one field, one branch, one allowlisted file.
+// cli.rs, one field, one branch, one allowlisted file.
 struct MigrateArgs {
     dry_run: bool,
     target: String,
@@ -300,18 +300,18 @@ fn run(args: MigrateArgs) -> Result<(), MigrateError> {
 }
 ```
 
-**Why this is better:** The file allowlist is a contract — the diff lives or dies inside it. Config-format changes, logger rewrites, and doc overhauls are real work, but each one is its own ask with its own review and its own rollback path. Stacking them onto an unrelated bug fix or feature flag burns the reviewer's trust and makes whoever comes after scared to touch the code.
+**Why this is better:** The file allowlist is a contract, the diff lives or dies inside it. Config-format changes, logger rewrites, and doc overhauls are real work, but each one is its own ask with its own review and its own rollback path. Stacking them onto an unrelated bug fix or feature flag burns the reviewer's trust and makes whoever comes after scared to touch the code.
 
 ---
 
-### Example 7 — Big-bang rewrite when one parser branch was wrong
+### Example 7 (Big-bang rewrite when one parser branch was wrong)
 
 **The ask:** "ISO date strings without a timezone are being parsed as UTC; treat them as local time."
 
 **❌ Anti-pattern**
 
 ```ts
-// Wholesale rewrite of the date module — 600 lines, new exports, new types.
+// Wholesale rewrite of the date module, 600 lines, new exports, new types.
 type DateLike = string | number | DateTime | Instant | ZonedDateTime
 
 interface DateOptions {
@@ -333,10 +333,10 @@ export const parse = (input: DateLike, opts?: DateOptions) => new DateTime(input
 ```
 
 **Problems:**
-- The bug was one branch in one parser — the response is a new module with a new type hierarchy and 30 new methods.
+- The bug was one branch in one parser, the response is a new module with a new type hierarchy and 30 new methods.
 - Every caller of the old parser now has to migrate; the blast radius is the entire codebase instead of one file.
 - The new types invent extension points the ask did not request and the team has not agreed to maintain.
-- The test surface explodes — instead of pinning one branch, the implementer now owes coverage for a whole new API.
+- The test surface explodes, instead of pinning one branch, the implementer now owes coverage for a whole new API.
 
 **✓ What should happen**
 
@@ -351,11 +351,11 @@ function parseIsoDate(input: string): Date {
 }
 ```
 
-**Why this is better:** Surgical changes target the smallest unit that owns the bug. One branch grew; one branch shipped; one test pins it. The rewrite would have been a yearlong project disguised as a bug fix — and the original parser branch would still have been wrong on day one of the rewrite.
+**Why this is better:** Surgical changes target the smallest unit that owns the bug. One branch grew; one branch shipped; one test pins it. The rewrite would have been a yearlong project disguised as a bug fix, and the original parser branch would still have been wrong on day one of the rewrite.
 
 ---
 
-## Summary — anti-pattern → principle violated
+## Summary (anti-pattern → principle violated)
 
 The four working principles live in [`rules/four-principles.md`](../../../rules/four-principles.md). The mapping below points each example at the principle it most directly breaks.
 

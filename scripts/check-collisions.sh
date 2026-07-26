@@ -4,7 +4,7 @@
 # Reports per-hackify-slug status: EXACT MATCH (same name), SUBSTRING OVERLAP
 # (one is contained in the other), or OK (no conflict).
 #
-# Always exits 0 — soft warning only. A hostile sibling plugin should never
+# Always exits 0, soft warning only. A hostile sibling plugin should never
 # break our CI.
 
 set -uo pipefail
@@ -16,13 +16,13 @@ PLUGINS_ROOT="${CLAUDE_PLUGINS_ROOT:-$HOME/.claude/plugins}"
 
 # --- empty-state handling ---------------------------------------------------
 if [ ! -d "$PLUGINS_ROOT" ]; then
-  yellow "INFO: $PLUGINS_ROOT does not exist — no installed plugins to scan."
+  yellow "INFO: $PLUGINS_ROOT does not exist, no installed plugins to scan."
   exit 0
 fi
 
 CACHE_ROOT="$PLUGINS_ROOT/cache"
 if [ ! -d "$CACHE_ROOT" ] || [ -z "$(find "$CACHE_ROOT" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null)" ]; then
-  yellow "INFO: $CACHE_ROOT is empty — no installed plugins to scan."
+  yellow "INFO: $CACHE_ROOT is empty, no installed plugins to scan."
   exit 0
 fi
 
@@ -74,7 +74,7 @@ for slug in "${HACKIFY_SLUGS[@]}"; do
   done < "$SIBLING_NAMES_FILE"
 
   if [ -z "$matches" ]; then
-    green "  OK $slug — no collisions"
+    green "  OK $slug, no collisions"
     ok_count=$((ok_count + 1))
   else
     yellow "  WARN $slug:"

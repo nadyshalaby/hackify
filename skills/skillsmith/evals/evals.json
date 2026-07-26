@@ -9,7 +9,7 @@
         {"text": "skillsmith skill is invoked (auto-discovery fires on 'author a hackify skill' substring)"},
         {"text": "Output creates a new SKILL.md under skills/<slug>/ with valid frontmatter (name, description) and kebab-case slug matching `^[a-z0-9-]{1,64}$`"},
         {"text": "SKILL.md description is detailed enough for harness auto-discovery (≥3 trigger phrases, explicit non-trigger guidance, scope statement)"},
-        {"text": "Skill self-validates against the 9-check checklist before declaring done — checklist results pasted into the response"},
+        {"text": "Skill self-validates against the 9-check checklist before declaring done, checklist results pasted into the response"},
         {"text": "Any embedded sub-agent prompt has the mandatory 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) with OUTPUT word-cap"}
       ],
       "files": []
@@ -31,7 +31,7 @@
       "name": "non-trigger-generic-script-request",
       "prompt": "write a Python script that parses our CI logs and counts flaky tests",
       "assertions": [
-        {"text": "skillsmith skill is NOT invoked — the request is a generic script, not a hackify skill (no 'hackify skill' / 'SKILL.md' / 'skills/' framing)"},
+        {"text": "skillsmith skill is NOT invoked, the request is a generic script, not a hackify skill (no 'hackify skill' / 'SKILL.md' / 'skills/' framing)"},
         {"text": "Routing goes to full hackify or quick instead, depending on scope cues"},
         {"text": "Transcript explicitly notes that skillsmith's scope is hackify-conformant skill authoring only, not arbitrary script writing"}
       ],

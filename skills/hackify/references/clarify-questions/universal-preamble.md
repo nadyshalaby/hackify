@@ -12,20 +12,20 @@ Runs before any task-type bank, on every Phase 1. Sets the four cross-cutting lo
 - If the user is already on a branch named for the task, skip Q2 (Worktree) and confirm in the preamble. Also skip if the user prompt contains the literal substring `this branch`, `in place`, or `just push`.
 - If `CLAUDE.md` or the task-type bank pins a test discipline (e.g. TDD mandatory), skip Q3 (Tests).
 - Always ask Q4 (Done state) unless the user has explicitly stated PR vs merge intent in the prompt.
-- Always ask Q5 (Goal & guardrails) FIRST — it seeds the Primary Goal & Guardrails anchor. Skip only when the north-star goal AND any non-goals are already unambiguous from the prompt; then restate them in the preamble for a one-line confirmation instead of asking.
+- Always ask Q5 (Goal & guardrails) FIRST, it seeds the Primary Goal & Guardrails anchor. Skip only when the north-star goal AND any non-goals are already unambiguous from the prompt; then restate them in the preamble for a one-line confirmation instead of asking.
 
 **QUESTIONS**
 
-Q1 — Scope check
+Q1. Scope check
 - Text: Is this a one-off task or part of a larger initiative I should align with?
 - Header: Scope
 - Options:
   - A. One-off task (Recommended)
-  - B. Part of a larger initiative — align with it
-  - C. Start of a larger initiative — set up scaffolding
+  - B. Part of a larger initiative, align with it
+  - C. Start of a larger initiative, set up scaffolding
 - Why-this-matters: Determines whether the work-doc is standalone or links to a parent plan, and whether Phase 2 surveys neighboring work before drafting.
 
-Q2 — Worktree
+Q2. Worktree
 - Text: Work in an isolated git worktree or in-place on the current branch?
 - Header: Worktree
 - Options:
@@ -33,7 +33,7 @@ Q2 — Worktree
   - B. In-place on the current branch (task <30 min, already on right branch)
 - Why-this-matters: Triggers (or skips) the worktree-creation step in Phase 2 and changes how Phase 6 finishes (merge vs. push-and-PR).
 
-Q3 — Tests
+Q3. Tests
 - Text: Which test discipline applies for this task?
 - Header: Tests
 - Options:
@@ -42,7 +42,7 @@ Q3 — Tests
   - C. Manual smoke acceptable (visual-only)
 - Why-this-matters: Decides whether Phase 3 fans out a RED→GREEN sub-agent or a build-then-verify sub-agent.
 
-Q4 — Done state
+Q4. Done state
 - Text: What does "done" mean for this task?
 - Header: Done state
 - Options:
@@ -51,15 +51,15 @@ Q4 — Done state
   - C. Merged to main directly
 - Why-this-matters: Sets Phase 6's exit action (push only / open PR / merge) and whether release artifacts (CHANGELOG, tag) are generated. Recommended option A (Branch left for your review) applies when diff is ≤3 files OR ≤200 added lines; recommend B (PR opened) for larger diffs or cross-team changes; recommend C (Merged to main directly) only when the user prompt contains the literal substring `ship it`, `merge it`, `commit and push`, or `merge directly`.
 
-Q5 — Goal & guardrails
+Q5. Goal & guardrails
 - Text: I read the north-star goal as "[restate the goal in one sentence]". Is that the outcome to commit to, and is there anything I must NOT touch?
 - Header: Goal
 - Options:
-  - A. Yes — that's the goal; no special exclusions (Recommended)
+  - A. Yes, that's the goal; no special exclusions (Recommended)
   - B. That's the goal, but keep some things off-limits (I'll name the non-goals)
-  - C. Not quite — the real goal is different (I'll restate it)
+  - C. Not quite, the real goal is different (I'll restate it)
 - Why-this-matters: Seeds the Primary Goal & Guardrails anchor ([../goal-anchor.md](../goal-anchor.md)) that drives every plan and implementation decision and is enforced by the Phase 2.5 + Phase 5 drift-check. A misread goal is the most expensive miss.
 
 **EXIT CRITERIA**
 
-Q1–Q5 each answered or explicitly skipped per COMPOSITION rules; scope sentence, worktree decision, test mode, and done-state recorded in the work-doc preamble; the Primary Goal & Guardrails anchor (north-star goal + any non-goals) seeded from Q5; no answer left as free-text without being reduced to one of A/B/C/D semantics.
+Q1, Q5 each answered or explicitly skipped per COMPOSITION rules; scope sentence, worktree decision, test mode, and done-state recorded in the work-doc preamble; the Primary Goal & Guardrails anchor (north-star goal + any non-goals) seeded from Q5; no answer left as free-text without being reduced to one of A/B/C/D semantics.

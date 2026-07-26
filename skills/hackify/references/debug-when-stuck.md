@@ -1,4 +1,4 @@
-# Debug When Stuck — Phase 3b
+# Debug When Stuck (Phase 3b)
 
 Triggered when the implement phase fails to make progress after **2 honest attempts** at a fix on the same task. Random fixes waste time and create new bugs. **Always find root cause before attempting fixes. Symptom fixes are failure.**
 
@@ -16,32 +16,32 @@ Switch into debug mode when ANY of the following:
 - Reproducing the bug requires steps that are not deterministic (intermittent)
 - A user reports the feature doesn't work after you marked it done (post-Phase 6 regression)
 
-When you enter debug mode, **update work-doc frontmatter**: `status: debugging`. Open a new section in the Implementation Log titled `### T<n> — debugging`.
+When you enter debug mode, **update work-doc frontmatter**: `status: debugging`. Open a new section in the Implementation Log titled `### T<n>, debugging`.
 
 ---
 
-## Phase D1 — Root cause investigation (BEFORE any fix)
+## Phase D1, Root cause investigation (BEFORE any fix)
 
-### Step 1 — read the error carefully
+### Step 1 (read the error carefully)
 
 - Full stack trace, not just the top line.
 - Exact error code, file path, line number.
 - Did anything change recently? Run `git log --oneline -20` and `git diff HEAD~5..HEAD <touched files>`.
 
-### Step 2 — reproduce reliably
+### Step 2 (reproduce reliably)
 
 - What are the exact steps that produce it?
 - Does it fail every time? Sometimes? Once?
-- If intermittent — do not proceed to Phase D3 until you've made it deterministic. Intermittent reproductions hide race conditions, ordering issues, leaked state. Add logging at component boundaries until you can predict the failure.
+- If intermittent, do not proceed to Phase D3 until you've made it deterministic. Intermittent reproductions hide race conditions, ordering issues, leaked state. Add logging at component boundaries until you can predict the failure.
 
-### Step 3 — gather evidence at component boundaries
+### Step 3 (gather evidence at component boundaries)
 
 For multi-component systems (request → service → repo → DB; client → axios → server → HTTP framework → service → DB):
 
 - For EACH boundary, log what data enters and what data exits.
 - Run the failing scenario once.
 - Note which boundary the data goes wrong at.
-- Now you know **which component fails** — analyze just that one. Don't guess upstream.
+- Now you know **which component fails**, analyze just that one. Don't guess upstream.
 
 Example boundaries in a typical layered backend:
 
@@ -60,9 +60,9 @@ Example boundaries in a typical layered backend:
 [Framework returns response]
 ```
 
-Log entry/exit at each — find the layer.
+Log entry/exit at each, find the layer.
 
-### Step 4 — trace the bad value backward
+### Step 4 (trace the bad value backward)
 
 If a value is wrong, trace it back through the call chain to its source. Don't fix the symptom; fix the source.
 
@@ -78,16 +78,16 @@ Then fix at the origin, not at the place the bad value was observed.
 
 ---
 
-## Phase D2 — Pattern analysis
+## Phase D2 (Pattern analysis)
 
 If the codebase has a working analogue, this phase is gold. If not, skip to D3.
 
-### Step 1 — find a working similar example
+### Step 1 (find a working similar example)
 
 - Same module: is there another endpoint / service / form that does something analogous and works?
 - Other modules: is there a different feature that uses the same library / pattern correctly?
 
-### Step 2 — read the working example COMPLETELY
+### Step 2 (read the working example COMPLETELY)
 
 Don't skim. Read the file end-to-end. Note:
 
@@ -98,9 +98,9 @@ Don't skim. Read the file end-to-end. Note:
 - Type signatures
 - Any subtle differences in how it's wired up
 
-### Step 3 — list every difference between working and broken
+### Step 3 (list every difference between working and broken)
 
-Bullet list. Be exhaustive — including things that "shouldn't matter":
+Bullet list. Be exhaustive, including things that "shouldn't matter":
 
 - Different env var?
 - Different config option?
@@ -112,27 +112,27 @@ A difference you dismiss as "shouldn't matter" is often the cause.
 
 ---
 
-## Phase D3 — Hypothesis & test (scientific method)
+## Phase D3, Hypothesis & test (scientific method)
 
-### Step 1 — write down ONE hypothesis
+### Step 1 (write down ONE hypothesis)
 
 Verbatim, in the work-doc:
 
 > **Hypothesis 1.** I think `<X>` is the root cause because `<Y>` (evidence: `<Z>`).
 
-If you can't articulate it cleanly, you don't have a hypothesis yet — go back to D1.
+If you can't articulate it cleanly, you don't have a hypothesis yet, go back to D1.
 
-### Step 2 — make the smallest possible change
+### Step 2 (make the smallest possible change)
 
 ONE change, ONE variable. Do not bundle "fix X and also clean up Y."
 
-### Step 3 — run, observe
+### Step 3 (run, observe)
 
 - Did the failing test pass?
 - Did all other tests stay green?
 - Did the manual reproduction now work?
 
-### Step 4 — outcome
+### Step 4 (outcome)
 
 - **Yes** → Phase D4. Implement properly with a test.
 - **No** → revert your change. Form **a new hypothesis**. Do NOT pile on more fixes. Update the work-doc:
@@ -140,9 +140,9 @@ ONE change, ONE variable. Do not bundle "fix X and also clean up Y."
   > **Hypothesis 1.** Disproved. The change to `<X>` had no effect on the failure.
   > **Hypothesis 2.** ...
 
-### Circuit breaker — STOP after 3 hypotheses
+### Circuit breaker (STOP after 3 hypotheses)
 
-If 3 hypotheses fail, **stop and surface to the user**. This is no longer a failed hypothesis — it's an architectural problem. Each fix revealing a new problem in a different place is the strongest possible signal.
+If 3 hypotheses fail, **stop and surface to the user**. This is no longer a failed hypothesis, it's an architectural problem. Each fix revealing a new problem in a different place is the strongest possible signal.
 
 In the work-doc:
 
@@ -152,11 +152,11 @@ Then write a 1-paragraph summary of what you tried, what you learned, what you s
 
 ---
 
-## Phase D4 — Implement the fix properly
+## Phase D4 (Implement the fix properly)
 
 The hypothesis is confirmed. Don't ship the experimental change as-is. Do this:
 
-### Step 1 — write a failing regression test
+### Step 1 (write a failing regression test)
 
 The test should:
 
@@ -167,19 +167,19 @@ The test should:
 
 Run it. Watch it fail. (Same RED gate as TDD.)
 
-### Step 2 — apply the fix at the source
+### Step 2 (apply the fix at the source)
 
 ONE change. Address the root cause, not the symptom.
 
 If you patched at the symptom site during D3 to confirm the hypothesis, **revert that** and apply the real fix at the source.
 
-### Step 3 — verify
+### Step 3 (verify)
 
 - The new failing test passes.
 - All existing tests still pass.
 - The manual reproduction no longer reproduces.
 
-### Step 4 — return to Phase 3 / 4
+### Step 4 (return to Phase 3 / 4)
 
 Update work-doc:
 
@@ -209,9 +209,9 @@ These are the rationalizations that turn a 30-minute bug into a 3-hour bug. Catc
 
 > **Bug.** `<test runner command> test/integration/invitations.test.<ext>` fails with `expected 200 to equal 401`. The first attempt added `await` to the auth header parsing. Didn't help.
 >
-> **D1.** Stack trace points to the auth middleware. Added log at boundary: middleware sees a `Cookie: better-auth.session=…` header, returns 200. But test expects 401. Oh — the test calls a route that **does not** require auth. So the actual issue is the route handler itself returning 200 with no body, but the test asserts a specific JSON shape and the assertion library reports it as 401.
+> **D1.** Stack trace points to the auth middleware. Added log at boundary: middleware sees a `Cookie: better-auth.session=…` header, returns 200. But test expects 401. Oh, the test calls a route that **does not** require auth. So the actual issue is the route handler itself returning 200 with no body, but the test asserts a specific JSON shape and the assertion library reports it as 401.
 >
-> **D2.** Compared with another integration test that works. Difference: that test sets `Accept: application/json`. Hmm — the HTTP framework's default response is plain text without it.
+> **D2.** Compared with another integration test that works. Difference: that test sets `Accept: application/json`. Hmm, the HTTP framework's default response is plain text without it.
 >
 > **D3.** Hypothesis: missing `Accept: application/json` causes the framework to return non-JSON, which the test's `.body` parser then misinterprets as auth-required. Set the header. Test passes.
 >

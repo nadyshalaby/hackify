@@ -1,6 +1,6 @@
-# Frontend Design — Visual Law
+# Frontend Design (Visual Law)
 
-Load this file at Phase 1 (Clarify) for any task that touches **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / buttons / cards / modals / motion / brand / RTL / responsive / accessibility / visual polish** — on web **or** native.
+Load this file at Phase 1 (Clarify) for any task that touches **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / buttons / cards / modals / motion / brand / RTL / responsive / accessibility / visual polish**, on web **or** native.
 
 These rules are binding. They preserve the soul of a strict frontend-design discipline so visual work doesn't drift into generic AI aesthetics.
 
@@ -21,7 +21,7 @@ Design work produces a **spec before it produces components**. Building componen
 
 **Output contract.** The spec lives in the user's project at `<project>/docs/design/DESIGN.md`, with its visual catalog at `<project>/docs/design/preview.html`. This mirrors the existing `<project>/docs/work/` convention: committed to git, visible to humans and other tools.
 
-**One spec per product.** Never author a second beside an existing one — refresh it ([`extract-protocol.md`](design-spec/extract-protocol.md), REFRESH mode).
+**One spec per product.** Never author a second beside an existing one, refresh it ([`extract-protocol.md`](design-spec/extract-protocol.md), REFRESH mode).
 
 Standalone entry point: `/hackify:designify` authors, extracts, refreshes, or validates a spec without running a full task.
 
@@ -29,7 +29,7 @@ Standalone entry point: `/hackify:designify` authors, extracts, refreshes, or va
 
 ## The core directive
 
-> **Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work — the key is intentionality, not intensity.**
+> **Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work, the key is intentionality, not intensity.**
 
 Pick ONE direction. Commit. Don't mix.
 
@@ -37,7 +37,7 @@ Pick ONE direction. Commit. Don't mix.
 
 The point is not to be flashy. The point is to have a point of view.
 
-**The twelve directions live in [`design-spec/direction-library.md`](design-spec/direction-library.md)** — the single canonical list for the plugin, each entry carrying palette logic, type pairing, motion character, signature move, and anti-tells. Do not maintain a second list anywhere; a spec's `direction:` key names one of those slugs or `custom` with a written rationale.
+**The twelve directions live in [`design-spec/direction-library.md`](design-spec/direction-library.md)**, the single canonical list for the plugin, each entry carrying palette logic, type pairing, motion character, signature move, and anti-tells. Do not maintain a second list anywhere; a spec's `direction:` key names one of those slugs or `custom` with a written rationale.
 
 ---
 
@@ -53,13 +53,13 @@ Concretely, NEVER ship:
 - Flat, empty backgrounds
 - Random accent colors with no system
 - Motion scattered as decoration (hover effects on every element)
-- Space Grotesk (it has converged into a cliché — was strong, now overused)
+- Space Grotesk (it has converged into a cliché, was strong, now overused)
 - Interchangeable SaaS hero sections
 - Backdrop blur reached for by default (expensive, degrades text behind it, and now a generic signal)
 
 > **Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.**
 
-Each direction in the library carries its own **anti-tells** — the specific ways *that* direction gets built wrong. Those are project-specific bans and they matter more than this global list, because every direction has a lazy version that reads as generic output.
+Each direction in the library carries its own **anti-tells**, the specific ways *that* direction gets built wrong. Those are project-specific bans and they matter more than this global list, because every direction has a lazy version that reads as generic output.
 
 ---
 
@@ -79,21 +79,21 @@ Each direction in the library carries its own **anti-tells** — the specific wa
 
 > **Keep accessibility and responsiveness intact; frontends should feel deliberate on desktop and mobile.**
 
-**Fonts must be reachable.** Every face named in a spec ships with a freely-licensed substitute and a fallback stack ending in a generic family. No webfont URL appears in a spec or a preview — they render offline by contract.
+**Fonts must be reachable.** Every face named in a spec ships with a freely-licensed substitute and a fallback stack ending in a generic family. No webfont URL appears in a spec or a preview, they render offline by contract.
 
 ---
 
-## The design process — 4 phases (apply within hackify Phase 2 + 3)
+## The design process, 4 phases (apply within hackify Phase 2 + 3)
 
 ### Frame the interface
 
 Before writing CSS, settle:
 
-- **Purpose** — what is this screen for, in one sentence?
-- **Audience** — who will see it, in what context (mood, urgency, environment)?
-- **Emotional tone** — calm / energetic / serious / playful / formal / industrial / luxurious?
-- **Visual direction** — pick ONE from [`direction-library.md`](design-spec/direction-library.md); do not mix casually.
-- **One thing the user remembers** — if they look away after 3 seconds, what stays?
+- **Purpose**, what is this screen for, in one sentence?
+- **Audience**, who will see it, in what context (mood, urgency, environment)?
+- **Emotional tone**, calm / energetic / serious / playful / formal / industrial / luxurious?
+- **Visual direction**, pick ONE from [`direction-library.md`](design-spec/direction-library.md); do not mix casually.
+- **One thing the user remembers**, if they look away after 3 seconds, what stays?
 
 > **Do not mix directions casually. Choose one and execute it cleanly.**
 
@@ -101,12 +101,12 @@ Before writing CSS, settle:
 
 Lock these as tokens **in the spec** before painting any component. The full schema, including the native platform layer and the web-to-native mapping table, is [`design-spec/spec-contract.md`](design-spec/spec-contract.md).
 
-- **Type hierarchy** — twelve named roles, each with family, weight, size, line-height, letter-spacing. Pair a distinctive display with a refined body.
-- **Color** — semantic role names (`canvas`, `surface`, `text-primary`, `accent`, `on-accent`), never hue names. One dominant field, one accent with a stated budget, semantic colors kept separate from the accent.
-- **Spacing rhythm** — one base unit (4px or 8px), a stated scale.
-- **Layout logic** — grid, container, and logical properties (`margin-inline-start`, `padding-block-end`) for RTL.
-- **Motion rules** — a duration scale, one curve for entry and one for exit, what animates and what must not, and the reduced-motion behavior.
-- **Surface treatment** — name the depth *medium*: hairline, shadow, border, texture, glow, or color field. Apply one vocabulary consistently.
+- **Type hierarchy**, twelve named roles, each with family, weight, size, line-height, letter-spacing. Pair a distinctive display with a refined body.
+- **Color**, semantic role names (`canvas`, `surface`, `text-primary`, `accent`, `on-accent`), never hue names. One dominant field, one accent with a stated budget, semantic colors kept separate from the accent.
+- **Spacing rhythm**, one base unit (4px or 8px), a stated scale.
+- **Layout logic**, grid, container, and logical properties (`margin-inline-start`, `padding-block-end`) for RTL.
+- **Motion rules**, a duration scale, one curve for entry and one for exit, what animates and what must not, and the reduced-motion behavior.
+- **Surface treatment**, name the depth *medium*: hairline, shadow, border, texture, glow, or color field. Apply one vocabulary consistently.
 
 If working inside an existing product, **inherit from the spec**. Don't invent a parallel token system.
 
@@ -141,14 +141,14 @@ When the project ships `docs/design/DESIGN.md`, it is the **committed direction*
 
 Read the spec and extract its binding constraints before touching anything:
 
-- **Direction** — the `direction:` slug, and its anti-tells from the library.
-- **Typography** — the named faces and the twelve roles. Sizes outside the ramp are defects, not choices.
-- **Color system** — the role names and the accent's stated budget per screen.
-- **Numerics** — where the spec calls for tabular figures (`font-feature-settings: 'tnum'`), apply them wherever numbers are compared or aligned.
-- **Direction-awareness** — when `platform.web.logicalProperties: required`, use logical properties everywhere and never `margin-left` / `right`. Test the non-default direction first on bilingual products.
-- **Do's and Don'ts** — the spec's own list. Each Don't is a literal, enforceable rule.
+- **Direction**, the `direction:` slug, and its anti-tells from the library.
+- **Typography**, the named faces and the twelve roles. Sizes outside the ramp are defects, not choices.
+- **Color system**, the role names and the accent's stated budget per screen.
+- **Numerics**, where the spec calls for tabular figures (`font-feature-settings: 'tnum'`), apply them wherever numbers are compared or aligned.
+- **Direction-awareness**, when `platform.web.logicalProperties: required`, use logical properties everywhere and never `margin-left` / `right`. Test the non-default direction first on bilingual products.
+- **Do's and Don'ts**, the spec's own list. Each Don't is a literal, enforceable rule.
 
-If a task asks for "softer", "more colorful", or "more friendly" in a way the spec's direction forbids, **flag it back to the user** before complying — that is a brand direction shift, not a styling tweak, and it needs sign-off.
+If a task asks for "softer", "more colorful", or "more friendly" in a way the spec's direction forbids, **flag it back to the user** before complying, that is a brand direction shift, not a styling tweak, and it needs sign-off.
 
 ---
 
@@ -167,13 +167,13 @@ In Phase 2 (Plan), the Approach section explicitly names:
 - **The committed direction** (the `direction:` slug and what tightening it means here)
 - **What stays** (token system, type family, accent budget, RTL behavior)
 - **What changes** (specific component-level shifts)
-- **The quality gate** (the seven questions above) — ticked at the end
+- **The quality gate** (the seven questions above), ticked at the end
 
 For a UI redesign, the work-doc's DoD includes:
 
 - Visual point of view sharpened (before/after screenshot or description)
 - No new generic-AI signals introduced (purple gradients on white, Inter, Space Grotesk, default backdrop blur)
-- Token system honored — zero inline colors, zero inline font families, zero off-ramp sizes
+- Token system honored, zero inline colors, zero inline font families, zero off-ramp sizes
 - Contrast ratios recomputed for any changed color pair
 - Mobile + RTL (if bilingual) + the non-canonical theme tested manually
 - Existing components in the path don't visually regress
@@ -185,13 +185,13 @@ For a UI redesign, the work-doc's DoD includes:
 
 Every direction in the catalog specifies its own treatment for these, and the catalog file is the authority for a project on that direction. The cross-direction rules:
 
-- **Page-load reveal** — ONE orchestrated moment per view. Staggered `animation-delay`, 6–12 elements maximum. Scattering reveals across a page makes it feel unstable.
-- **Empty state** — one illustrative element, one sentence, ONE primary action. Never three options.
-- **Error state** — inline, beside or below the field, never a modal. Never color alone: pair with an icon or a label.
-- **Loading state** — skeletons that match the real layout structure. Spinners only in place, inside a button.
-- **Modal** — the overlay is a solid color at high opacity. Blur it only when the project's spec explicitly calls for blur.
-- **Form** — labels above inputs, errors inline below, submit at the block end. Logical properties handle RTL placement.
-- **Data table** — tabular numerics right-aligned, sticky header, zebra striping OFF by default, row hover shifts *surface value* rather than adding a color tint.
+- **Page-load reveal**. ONE orchestrated moment per view. Staggered `animation-delay`, 6-12 elements maximum. Scattering reveals across a page makes it feel unstable.
+- **Empty state**, one illustrative element, one sentence, ONE primary action. Never three options.
+- **Error state**, inline, beside or below the field, never a modal. Never color alone: pair with an icon or a label.
+- **Loading state**, skeletons that match the real layout structure. Spinners only in place, inside a button.
+- **Modal**, the overlay is a solid color at high opacity. Blur it only when the project's spec explicitly calls for blur.
+- **Form**, labels above inputs, errors inline below, submit at the block end. Logical properties handle RTL placement.
+- **Data table**, tabular numerics right-aligned, sticky header, zebra striping OFF by default, row hover shifts *surface value* rather than adding a color tint.
 
 For twelve worked treatments, read [`design-spec/catalog/`](design-spec/catalog/README.md). Each spec's Components section states its own answers.
 
@@ -211,13 +211,13 @@ Design conformance is reviewed, not trusted:
 
 > **Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.**
 
-"Extraordinary" is direction-specific. For Industrial Precision it means tabular discipline, surgical typography, signal-only color, motion as punctuation. For Editorial Print it means a four-fold type jump and whitespace doing the structural work. For Brutalist Mono it means type large enough to become the layout. Not flashy — *committed*. Execute whichever direction the project chose with conviction.
+"Extraordinary" is direction-specific. For Industrial Precision it means tabular discipline, surgical typography, signal-only color, motion as punctuation. For Editorial Print it means a four-fold type jump and whitespace doing the structural work. For Brutalist Mono it means type large enough to become the layout. Not flashy, *committed*. Execute whichever direction the project chose with conviction.
 
 ---
 
 ## What's safe to drop (covered by hackify core rules)
 
-These items are enforced elsewhere — don't repeat:
+These items are enforced elsewhere, don't repeat:
 
 - File-size caps and function caps (covered by `rules/hard-caps.md`)
 - Static-type strict mode (covered by `rules/code-quality.md`)

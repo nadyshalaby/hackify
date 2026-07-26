@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# hackify v0.7.0 — UserPromptSubmit context injector (generalized).
+# hackify v0.7.0. UserPromptSubmit context injector (generalized).
 #
 # Injects the markdown file given as $1 as additionalContext on every user
 # prompt, so always-on doctrine is loaded every turn. hooks.json invokes this
 # once per always-on file (rules/hard-caps.md, rules/expert-mindset.md,
-# rules/perf-guardrails.md) as a separate UserPromptSubmit hook entry — the
-# harness concatenates their additionalContext. NON-routing — this hook MUST NOT inspect the prompt or
+# rules/perf-guardrails.md) as a separate UserPromptSubmit hook entry, the
+# harness concatenates their additionalContext. NON-routing, this hook MUST NOT inspect the prompt or
 # classify full vs quick vs groom.
 #
 # Output contract: the harness reads a single JSON envelope from stdout. Raw
@@ -14,7 +14,7 @@
 #
 # Failure contract: this hook MUST NOT block the user's prompt. Any failure
 # path (no arg, missing file, unavailable JSON encoder, non-UTF-8 content)
-# exits 0 silently — a missing injection is recoverable; a blocked prompt
+# exits 0 silently, a missing injection is recoverable; a blocked prompt
 # is not. `set -e` is intentionally NOT used.
 
 set -u

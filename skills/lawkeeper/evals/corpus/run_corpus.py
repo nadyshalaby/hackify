@@ -4,13 +4,13 @@
 `project/` is a synthetic codebase whose every planted violation carries an
 inline EXPECT-marker naming the rule_id it must trigger. This script turns the
 markers into an oracle, runs `audit_scan.py` over the project, and asserts the
-scanner's findings match the oracle EXACTLY — every `EXPECT:` line caught
+scanner's findings match the oracle EXACTLY, every `EXPECT:` line caught
 (recall) and nothing extra (precision; `EXPECT-CLEAN:` carve-out lines must stay
 silent, which exact-match enforces for free).
 
 `EXPECT-SEMANTIC:` markers name the judgment-tier oracle; they are written to
 ground-truth.json for the on-demand semantic runner and are NOT scored here
-(scoring them needs a model — see semantic-runner.md).
+(scoring them needs a model, see semantic-runner.md).
 
 Exit 0 on exact match, 1 on any miss/extra. Run: `python3 run_corpus.py [--emit]`.
 """
@@ -104,7 +104,7 @@ def main(argv):
     if '--emit' in argv:
         print(f'wrote {emit_ground_truth(expected, semantic)}')
     elif not ground_truth_fresh(expected, semantic):
-        print('  FAIL ground-truth.json is stale — regenerate with: python3 run_corpus.py --emit')
+        print('  FAIL ground-truth.json is stale, regenerate with: python3 run_corpus.py --emit')
         failed = True
     for tag, items in (('MISSED', missed), ('EXTRA', extra)):
         for rel, line, rule in sorted(items):

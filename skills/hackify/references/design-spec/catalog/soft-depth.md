@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Soft Depth — design spec
+name: Soft Depth, design spec
 direction: soft-depth
 platforms: [web, native]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.2, 0.8, 0.25, 1)"
     exit: "cubic-bezier(0.4, 0, 0.8, 0.3)"
     move: "cubic-bezier(0.2, 0.8, 0.25, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, remove the 4px rise and stagger"
+  reduced: "respect prefers-reduced-motion, opacity only, remove the 4px rise and stagger"
 
 components:
   button-primary:
@@ -269,24 +269,24 @@ Indigo `{colors.accent}` carries action confidently. Unlike the restrained accen
 ## Colors
 
 ### Brand & Accent
-- **Indigo** (`{colors.accent}` — `#3355e0`): primary buttons, active navigation, links, focus rings, selected states. Contrast against white is 5.97:1. Confident and frequent, unlike the restrained accents elsewhere in this catalog.
-- **Indigo Hover / Press** (`{colors.accent-hover}` — `#4463e8`, `{colors.accent-press}` — `#2843c2`).
+- **Indigo** (`{colors.accent}`, `#3355e0`): primary buttons, active navigation, links, focus rings, selected states. Contrast against white is 5.97:1. Confident and frequent, unlike the restrained accents elsewhere in this catalog.
+- **Indigo Hover / Press** (`{colors.accent-hover}`, `#4463e8`, `{colors.accent-press}`, `#2843c2`).
 - **Indigo tints** at 8% and 12% opacity carry hover fills, selected rows, and active tabs. These are computed from the accent rather than being separate tokens, so a brand color change propagates correctly.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#f6f7fa`): the base layer, faintly cool.
-- **Surface** (`{colors.surface}` — `#ffffff`): cards, inputs, nav, modals. The second layer.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#eef0f6`): hover fills, badges, wells, disabled states.
-- **Hairline** (`{colors.hairline}` — `#e3e6ef`): card borders and row rules, working alongside the shadow rather than instead of it.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#cdd2e0`): input and secondary-button borders.
+- **Canvas** (`{colors.canvas}`, `#f6f7fa`): the base layer, faintly cool.
+- **Surface** (`{colors.surface}`, `#ffffff`): cards, inputs, nav, modals. The second layer.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#eef0f6`): hover fills, badges, wells, disabled states.
+- **Hairline** (`{colors.hairline}`, `#e3e6ef`): card borders and row rules, working alongside the shadow rather than instead of it.
+- **Hairline Strong** (`{colors.hairline-strong}`, `#cdd2e0`): input and secondary-button borders.
 
 ### Text
-- **Ink** (`{colors.text-primary}` — `#15181f`): headings and body. Contrast on canvas 16.58:1.
-- **Ink Secondary** (`{colors.text-secondary}` — `#5a6172`): supporting copy, labels, navigation. Contrast 5.79:1.
-- **Ink Muted** (`{colors.text-muted}` — `#8b92a5`): placeholders, disabled, timestamps.
+- **Ink** (`{colors.text-primary}`, `#15181f`): headings and body. Contrast on canvas 16.58:1.
+- **Ink Secondary** (`{colors.text-secondary}`, `#5a6172`): supporting copy, labels, navigation. Contrast 5.79:1.
+- **Ink Muted** (`{colors.text-muted}`, `#8b92a5`): placeholders, disabled, timestamps.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#157a4c`, 5.00:1), **Caution** (`{colors.caution}` — `#8a5f10`, 5.26:1), **Negative** (`{colors.negative}` — `#bf3225`, 5.30:1). Each follows the accent's pattern: a solid color for text and icons, an 8 to 12 percent tint for banner and badge backgrounds. Never a fully saturated background panel.
+**Positive** (`{colors.positive}`, `#157a4c`, 5.00:1), **Caution** (`{colors.caution}`, `#8a5f10`, 5.26:1), **Negative** (`{colors.negative}`, `#bf3225`, 5.30:1). Each follows the accent's pattern: a solid color for text and icons, an 8 to 12 percent tint for banner and badge backgrounds. Never a fully saturated background panel.
 
 ## Typography
 
@@ -403,8 +403,8 @@ Radii are moderate and scale gently with element size. Nested elements use a rad
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | 3+9 app shell; sidebar persistent; cards 3-up |
-| `lg` | 1024–1439px | Sidebar persistent but narrower; cards 2-up |
-| `md` | 768–1023px | Sidebar collapses to a drawer; cards 2-up |
+| `lg` | 1024-1439px | Sidebar persistent but narrower; cards 2-up |
+| `md` | 768-1023px | Sidebar collapses to a drawer; cards 2-up |
 | `sm` | < 768px | Single column; bottom tab bar; display-xl to 32px |
 
 **Type ramp on small screens:** display-xl 50 → 32px, display-lg 36 → 26px, heading-lg 26 → 21px. Body stays at 15px.

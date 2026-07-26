@@ -1,8 +1,8 @@
 # Work-Doc Template
 
-Drop this skeleton into `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` at the start of Phase 2. Fill it as you go through phases. Keep frontmatter accurate — it is the resume contract.
+Drop this skeleton into `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` at the start of Phase 2. Fill it as you go through phases. Keep frontmatter accurate, it is the resume contract.
 
-> **Back-compat for older work-docs.** Archived work-docs using the prior section names (`Definition of Done`, `Tasks`, `Implementation Log`, `Verification`, `Post-mortem`) remain readable — `skills/hackify/SKILL.md`'s resume-mode rule (authored by T1.4a) accepts either label set. New work-docs use the sprint vocabulary above.
+> **Back-compat for older work-docs.** Archived work-docs using the prior section names (`Definition of Done`, `Tasks`, `Implementation Log`, `Verification`, `Post-mortem`) remain readable, `skills/hackify/SKILL.md`'s resume-mode rule (authored by T1.4a) accepts either label set. New work-docs use the sprint vocabulary above.
 
 ---
 
@@ -19,7 +19,7 @@ current_task: null
 worktree: null
 branch: null
 sprint_goal: |
-  One- to two-sentence sprint goal — the headline outcome the work-doc commits to.
+  One- to two-sentence sprint goal, the headline outcome the work-doc commits to.
 ---
 
 # Add invitation expiry to closed sign-up
@@ -32,19 +32,19 @@ sprint_goal: |
 
 The north-star this task is measured against. Captured in Phase 1, enforced by the drift-check in Phase 2.5 (Reviewer A) and Phase 5 (Reviewer C). See [goal-anchor.md](goal-anchor.md).
 
-- **North-Star Goal.** [one sentence — the single outcome this task commits to]
-- **In-Scope.** [bullets of work this task WILL do — the boundary]
+- **North-Star Goal.** [one sentence, the single outcome this task commits to]
+- **In-Scope.** [bullets of work this task WILL do, the boundary]
 - **Out-of-Scope / Non-Goals.** [bullets this task will explicitly NOT do]
-- **Guardrails / Invariants.** [properties the solution must never violate — a Critical if broken]
+- **Guardrails / Invariants.** [properties the solution must never violate, a Critical if broken]
 - **Success Signals.** [the observable proofs Phase 4 will paste]
 
 ## 2. Clarifying Q&A
 
-### Q1 — [topic]
+### Q1 ([topic])
 **Question:** [what you asked]
 **Answer:** [exact user reply, summarised only if it was very long]
 
-### Q2 — [topic]
+### Q2 ([topic])
 ...
 
 ## 3. Acceptance Criteria
@@ -62,29 +62,29 @@ A short, verifiable checklist. Each item must be testable or observable.
 
 ≤200 words. Lead with the chosen path, then the 1-2 alternatives considered, then the rationale.
 
-**Chosen.** [Approach A — one paragraph]
+**Chosen.** [Approach A, one paragraph]
 
 **Considered & rejected.**
-- [Approach B] — rejected because [reason]
-- [Approach C] — rejected because [reason]
+- [Approach B], rejected because [reason]
+- [Approach C], rejected because [reason]
 
 **Architectural touchpoints.** [files/modules this will modify]
 
 ## 5. Sprint Backlog
 
-Flat checklist. One commit per task. Each task is 5–30 minutes of focused work.
+Flat checklist. One commit per task. Each task is 5-30 minutes of focused work.
 
 Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed. The verify line is the per-task analogue of the top-level Acceptance Criteria checklist; it lets the implementer agent ship and self-confirm without waiting on the parent for cross-task confirmation.
 
-- [ ] **T1** — [task name]: [1-line description]. Files: `<path/a>`, `<path/a.test>`. → verify: `<one-line check>` (test command, grep, file existence, etc.).
-- [ ] **T2** — [task name]: ...
-- [ ] **T3** — ...
+- [ ] **T1**, [task name]: [1-line description]. Files: `<path/a>`, `<path/a.test>`. → verify: `<one-line check>` (test command, grep, file existence, etc.).
+- [ ] **T2**, [task name]: ...
+- [ ] **T3**, ...
 
 ## 6. Daily Updates
 
 Append one entry per task as you complete (or get stuck on) it.
 
-### T1 — [task name] — done 2026-05-03 14:22
+### T1 ([task name], done 2026-05-03 14:22)
 
 - **Test mode:** test-first (business logic) | test-after | manual smoke | none (rationale: ...)
 - **Notes:** [any decisions made, deviations from the plan, surprises]
@@ -95,16 +95,16 @@ Append one entry per task as you complete (or get stuck on) it.
   [paste the fresh test/lint/typecheck output for this task]
   ```
 
-- **Commit:** `<sha>` — `<commit message>`
+- **Commit:** `<sha>`, `<commit message>`
 
-### T2 — [task name] — in progress
+### T2 ([task name], in progress)
 - ...
 
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
 
-One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output — never a summary. The perf-scout staging table (or its "no candidates" result) is itself a row ([perf-scout.md](perf-scout.md)). See [review-and-verify.md](review-and-verify.md).
+One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output, never a summary. The perf-scout staging table (or its "no candidates" result) is itself a row ([perf-scout.md](perf-scout.md)). See [review-and-verify.md](review-and-verify.md).
 
 | Item | Type | Claim | What I ran | Proof sample | Result |
 |---|---|---|---|---|---|
@@ -116,23 +116,23 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 
 ### DoD checklist with evidence
 
-- [ ] **All tests pass** —
+- [ ] **All tests pass**
   ```
   $ <test runner command>
   [paste output]
   ```
-- [ ] **Lint clean** —
+- [ ] **Lint clean**
   ```
   $ <linter command>
   [paste output]
   ```
-- [ ] **Typecheck clean** —
+- [ ] **Typecheck clean**
   ```
   $ <typecheck command>
   [paste output]
   ```
-- [ ] **[DoD bullet 1]** — [evidence: command, output, screenshot reference, or short script]
-- [ ] **[DoD bullet 2]** — [evidence]
+- [ ] **[DoD bullet 1]**, [evidence: command, output, screenshot reference, or short script]
+- [ ] **[DoD bullet 2]**, [evidence]
 
 ### Self-review (Phase 5)
 
@@ -159,11 +159,11 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 
 - **Critical:** none / [list]
 - **Important:** none / [list]
-- **Minor:** none / [list — fix now if cheap, else add to Retrospective]
+- **Minor:** none / [list, fix now if cheap, else add to Retrospective]
 
 ## 8. Retrospective
 
-3–8 bullets. What surprised. What to remember for future sprints. Pointers to follow-up work.
+3-8 bullets. What surprised. What to remember for future sprints. Pointers to follow-up work.
 
 - …
 - …
@@ -186,17 +186,17 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 | `current_task` | `T<n>` or `null` | Where to resume |
 | `worktree` | absolute path or `null` | If using git worktree |
 | `branch` | branch name or `null` | Git branch the work lives on |
-| `sprint_goal` | YAML block scalar (`|`) or `null` | One- to two-sentence sprint goal — the headline outcome the work-doc commits to |
+| `sprint_goal` | YAML block scalar (`|`) or `null` | One- to two-sentence sprint goal, the headline outcome the work-doc commits to |
 
 ## Naming conventions
 
 - **Slug.** Date prefix only when the doc is *created* (yyyy-mm-dd). Slug body is concise: `2026-05-03-add-invitation-expiry`, not `2026-05-03-feature-to-add-invitation-expiry-to-the-closed-signup`.
-- **Cross-project tasks.** Create one doc per project; mirror the Sprint Backlog across them; link via `related` frontmatter. Don't try to make one doc span repos — each project has its own commit/PR cadence.
-- **Branch name.** `<type>/<slug>` — e.g. `feature/add-invitation-expiry`, `fix/oauth-state-leak`.
+- **Cross-project tasks.** Create one doc per project; mirror the Sprint Backlog across them; link via `related` frontmatter. Don't try to make one doc span repos, each project has its own commit/PR cadence.
+- **Branch name.** `<type>/<slug>`, e.g. `feature/add-invitation-expiry`, `fix/oauth-state-leak`.
 
 ## What NOT to put in the work-doc
 
 - Conversation transcripts.
-- Long architectural essays — keep the Approach section ≤200 words. If you need depth, link to a `<project>/docs/architecture/<topic>.md` file.
+- Long architectural essays, keep the Approach section ≤200 words. If you need depth, link to a `<project>/docs/architecture/<topic>.md` file.
 - Output dumps unrelated to the DoD evidence.
 - Speculation about future features (those go in the Retrospective as follow-ups, with explicit ownership).

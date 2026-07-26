@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Retro Terminal — design spec
+name: Retro Terminal, design spec
 direction: retro-terminal
 platforms: [web]
 description: >
@@ -137,7 +137,7 @@ motion:
     enter: "steps(1, end)"
     exit: "steps(1, end)"
     move: "linear"
-  reduced: "respect prefers-reduced-motion — disable cursor blink and typewriter reveal"
+  reduced: "respect prefers-reduced-motion, disable cursor blink and typewriter reveal"
 
 components:
   button-primary:
@@ -262,23 +262,23 @@ Color is a signal and never a surface. Amber `{colors.accent}` means a decision 
 ## Colors
 
 ### Brand & Accent
-- **Amber** (`{colors.accent}` — `#ffb454`): decisions. Primary buttons, focused input borders, unsaved-state markers, confirmation prompts. Contrast against `{colors.on-accent}` is 11.13:1.
+- **Amber** (`{colors.accent}`, `#ffb454`): decisions. Primary buttons, focused input borders, unsaved-state markers, confirmation prompts. Contrast against `{colors.on-accent}` is 11.13:1.
 - **Amber Hover / Press** (`{colors.accent-hover}`, `{colors.accent-press}`): interactive states.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#0a0c0b`): the terminal field.
-- **Surface** (`{colors.surface}` — `#101413`): panels and row hover, one step lighter.
-- **Surface Raised** (`{colors.surface-raised}` — `#161b19`): toasts and inline popovers.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#060807`): input wells and output blocks.
-- **Hairline** (`{colors.hairline}` — `#1e2622`) and **Hairline Strong** (`{colors.hairline-strong}` — `#2e3a34`): box-drawing borders on panels and inputs.
+- **Canvas** (`{colors.canvas}`, `#0a0c0b`): the terminal field.
+- **Surface** (`{colors.surface}`, `#101413`): panels and row hover, one step lighter.
+- **Surface Raised** (`{colors.surface-raised}`, `#161b19`): toasts and inline popovers.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#060807`): input wells and output blocks.
+- **Hairline** (`{colors.hairline}`, `#1e2622`) and **Hairline Strong** (`{colors.hairline-strong}`, `#2e3a34`): box-drawing borders on panels and inputs.
 
 ### Text
-- **Phosphor** (`{colors.text-primary}` — `#c8f2c0`): the standard foreground. Contrast on canvas 15.81:1.
-- **Phosphor Dim** (`{colors.text-secondary}` — `#6f9e6a`): labels, chrome, inactive rows. Contrast 6.33:1.
-- **Phosphor Faint** (`{colors.text-muted}` — `#4a6b47`): disabled, timestamps, decorative rules. Never carries information a user must read.
+- **Phosphor** (`{colors.text-primary}`, `#c8f2c0`): the standard foreground. Contrast on canvas 15.81:1.
+- **Phosphor Dim** (`{colors.text-secondary}`, `#6f9e6a`): labels, chrome, inactive rows. Contrast 6.33:1.
+- **Phosphor Faint** (`{colors.text-muted}`, `#4a6b47`): disabled, timestamps, decorative rules. Never carries information a user must read.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#6fe06a`) is a brighter green than the foreground, so success reads as intensity rather than hue change. **Caution** is the same value as `{colors.accent}` by design: in a terminal, a warning and a required decision are the same event. **Negative** (`{colors.negative}` — `#ff5f56`) is the only non-green, non-amber color in the system and appears only on failure.
+**Positive** (`{colors.positive}`, `#6fe06a`) is a brighter green than the foreground, so success reads as intensity rather than hue change. **Caution** is the same value as `{colors.accent}` by design: in a terminal, a warning and a required decision are the same event. **Negative** (`{colors.negative}`, `#ff5f56`) is the only non-green, non-amber color in the system and appears only on failure.
 
 ## Typography
 
@@ -331,7 +331,7 @@ The depth medium is **dimming**. Every elevation token is `none` and this is int
 | Level | Treatment | Use |
 |---|---|---|
 | 0 | Flat, `{colors.hairline-strong}` border | Every panel, card, modal, and toast |
-| 1–3 | Not used | Layering is expressed by dimming what is behind |
+| 1-3 | Not used | Layering is expressed by dimming what is behind |
 
 When a modal opens, the content behind it drops from `{colors.text-primary}` to `{colors.text-muted}` and the modal keeps full brightness. That brightness differential is the entire z-axis. No overlay wash, no blur, no shadow.
 
@@ -386,8 +386,8 @@ A single row pinned to the bottom edge of the viewport, on `{colors.surface}` wi
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Multi-panel layout; status line shows all keys |
-| `lg` | 1024–1439px | Panels reduce to two columns |
-| `md` | 768–1023px | Single panel column; status line drops secondary keys |
+| `lg` | 1024-1439px | Panels reduce to two columns |
+| `md` | 768-1023px | Single panel column; status line drops secondary keys |
 | `sm` | < 768px | Single column; display-xl drops 44 → 26px; status line shows 2 keys |
 
 **Type ramp on small screens:** display-xl 44 → 26px, display-lg 32 → 22px. Body stays at 14px and never shrinks; the whole aesthetic depends on the character grid staying legible.

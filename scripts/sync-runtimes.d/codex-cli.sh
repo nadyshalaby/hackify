@@ -7,7 +7,7 @@ emit_codex_cli() {
   prune_runtime_dist "codex-cli"
   mirror_canonical_files "codex-cli"
   write_or_announce_heredoc "dist/codex-cli/MANIFEST.md" <<'EOF'
-# hackify — Codex CLI package
+# hackify. Codex CLI package
 
 Codex CLI loads prompts from `~/.codex/prompts/`. Hackify is shipped as a
 collection of skill markdown files plus a slash-command body.
@@ -22,12 +22,12 @@ collection of skill markdown files plus a slash-command body.
 
 ## Contents
 
-- `skills/hackify/SKILL.md` — the universal end-to-end dev workflow.
-- `skills/hackify/references/` — sub-agent and wizard prompt templates.
-- `skills/hackify/evals/evals.json` — eval cases.
+- `skills/hackify/SKILL.md`, the universal end-to-end dev workflow.
+- `skills/hackify/references/`, sub-agent and wizard prompt templates.
+- `skills/hackify/evals/evals.json`, eval cases.
 - `skills/groom/SKILL.md`, `skills/skillsmith/SKILL.md`,
-  `skills/review-triage/SKILL.md`, `skills/quick/SKILL.md` — companions.
-- `commands/summary.md` — body for the `/hackify:summary` shortcut (Codex CLI
+  `skills/review-triage/SKILL.md`, `skills/quick/SKILL.md`, companions.
+- `commands/summary.md`, body for the `/hackify:summary` shortcut (Codex CLI
   has no native slash-command registry; paste the body when needed).
 
 ## Source of truth

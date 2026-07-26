@@ -4,7 +4,7 @@
     {
       "id": 1,
       "name": "backend-feature-invitation-expiry",
-      "prompt": "I need to add expiry to closed sign-up invitations in our backend. Right now invitations live forever in the `invitations` table — once an admin creates one, it stays valid until consumed. We want admins to be able to set a TTL when creating an invitation (default 7 days, max 30, configurable per-row), and the auth pre-create hook should reject expired invitations with a clear error. Also: a daily background job that purges invitations expired more than 30 days ago. Backend only — frontend changes are a separate task. Use the workflow.",
+      "prompt": "I need to add expiry to closed sign-up invitations in our backend. Right now invitations live forever in the `invitations` table, once an admin creates one, it stays valid until consumed. We want admins to be able to set a TTL when creating an invitation (default 7 days, max 30, configurable per-row), and the auth pre-create hook should reject expired invitations with a clear error. Also: a daily background job that purges invitations expired more than 30 days ago. Backend only, frontend changes are a separate task. Use the workflow.",
       "assertions": [
         {
           "text": "Output contains a work-doc.md file with YAML frontmatter including slug, title, status, type=feature, project"
@@ -48,7 +48,7 @@
     {
       "id": 2,
       "name": "frontend-redesign-team-toolbar",
-      "prompt": "The team page toolbar in our frontend is cluttered — the Invite, Filter, and Search controls don't have a clear hierarchy and the spacing feels arbitrary. I want it tightened to fit a clear visual direction. Keep the same controls; nothing functional changes. Use the workflow.",
+      "prompt": "The team page toolbar in our frontend is cluttered, the Invite, Filter, and Search controls don't have a clear hierarchy and the spacing feels arbitrary. I want it tightened to fit a clear visual direction. Keep the same controls; nothing functional changes. Use the workflow.",
       "assertions": [
         {
           "text": "Transcript explicitly mentions loading references/frontend-design.md (recognizing the FE-design trigger)"
@@ -72,7 +72,7 @@
           "text": "Proposed implementation does NOT introduce new font families without explicit reason"
         },
         {
-          "text": "Proposed implementation uses design tokens / CSS variables / utility classes — not inline hex colors or px paddings outside the system"
+          "text": "Proposed implementation uses design tokens / CSS variables / utility classes, not inline hex colors or px paddings outside the system"
         },
         {
           "text": "Proposed implementation uses logical properties (margin-inline-start / padding-inline-end) for any spacing changes if RTL is in scope"
@@ -92,7 +92,7 @@
     {
       "id": 3,
       "name": "bug-fix-401-on-tenant-route",
-      "prompt": "We have a bug in the backend. An integration test for the GET /api/invitations endpoint is failing with `expected 200, got 401` when called against a tenant subdomain. It started failing after we merged a multi-tenant auth refactor last week. I already tried adding `await` to one of the auth handlers — didn't help. Find the root cause and fix it. Use the workflow.",
+      "prompt": "We have a bug in the backend. An integration test for the GET /api/invitations endpoint is failing with `expected 200, got 401` when called against a tenant subdomain. It started failing after we merged a multi-tenant auth refactor last week. I already tried adding `await` to one of the auth handlers, didn't help. Find the root cause and fix it. Use the workflow.",
       "assertions": [
         {
           "text": "Transcript recognizes this as a debug task (Phase 3b / 4-phase systematic debug)"
@@ -101,16 +101,16 @@
           "text": "Work-doc clarifying questions focus on reproduction + recent changes + scope (matches the `fix` or `debug` question bank)"
         },
         {
-          "text": "Phase D1 (root cause) — work-doc/transcript shows evidence-gathering at component boundaries (tenant resolver, auth middleware, route handler, DB query, etc.)"
+          "text": "Phase D1 (root cause), work-doc/transcript shows evidence-gathering at component boundaries (tenant resolver, auth middleware, route handler, DB query, etc.)"
         },
         {
-          "text": "Phase D2 (pattern analysis) — work-doc/transcript references comparing against a working analogue (another tenant route)"
+          "text": "Phase D2 (pattern analysis), work-doc/transcript references comparing against a working analogue (another tenant route)"
         },
         {
-          "text": "Phase D3 — at least one hypothesis is stated explicitly in the form 'I think X is the root cause because Y'"
+          "text": "Phase D3, at least one hypothesis is stated explicitly in the form 'I think X is the root cause because Y'"
         },
         {
-          "text": "Phase D4 — proposed fix includes a failing regression test that fails before the fix and passes after (red-green cycle)"
+          "text": "Phase D4, proposed fix includes a failing regression test that fails before the fix and passes after (red-green cycle)"
         },
         {
           "text": "Transcript honors the 3-hypothesis circuit breaker (mentions stopping if 3 fail and surfacing architectural concern)"
@@ -136,13 +136,13 @@
     {
       "id": 4,
       "name": "design-spec-pipeline-ui-redesign",
-      "prompt": "Our internal ops dashboard looks like every other admin panel — purple gradient header, Inter everywhere, cards with big drop shadows, and the numbers in the tables never line up. I want it redesigned so it actually reads like a serious tool. It's a React web app and we also ship a small React Native companion that should match. Use the workflow.",
+      "prompt": "Our internal ops dashboard looks like every other admin panel, purple gradient header, Inter everywhere, cards with big drop shadows, and the numbers in the tables never line up. I want it redesigned so it actually reads like a serious tool. It's a React web app and we also ship a small React Native companion that should match. Use the workflow.",
       "assertions": [
         {
           "text": "Transcript explicitly mentions loading references/frontend-design.md (recognizing the FE-design trigger)"
         },
         {
-          "text": "Transcript mentions loading references/design-spec/ — spec-contract.md and/or direction-library.md"
+          "text": "Transcript mentions loading references/design-spec/, spec-contract.md and/or direction-library.md"
         },
         {
           "text": "Phase 1 asks a design question that establishes the design authority (existing spec vs recover from code vs choose a direction)"
@@ -172,7 +172,7 @@
           "text": "Phase 5 dispatches Reviewer E (design conformance) as the standing fifth reviewer because the diff is UI-bearing"
         },
         {
-          "text": "No raw hex or bare pixel values appear inside the spec's components block — every value is a {token.ref}"
+          "text": "No raw hex or bare pixel values appear inside the spec's components block, every value is a {token.ref}"
         }
       ]
     }

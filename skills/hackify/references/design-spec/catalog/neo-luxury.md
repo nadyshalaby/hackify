@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Neo-Luxury — design spec
+name: Neo-Luxury, design spec
 direction: neo-luxury
 platforms: [web, native]
 description: >
@@ -137,7 +137,7 @@ motion:
     enter: "cubic-bezier(0.22, 0.61, 0.36, 1)"
     exit: "cubic-bezier(0.55, 0, 0.68, 0.19)"
     move: "cubic-bezier(0.22, 0.61, 0.36, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, halve every duration"
+  reduced: "respect prefers-reduced-motion, opacity only, halve every duration"
 
 components:
   button-primary:
@@ -270,23 +270,23 @@ The typographic signature is the gap. A small all-caps overline at 0.22em tracki
 ## Colors
 
 ### Brand & Accent
-- **Champagne** (`{colors.accent}` — `#c9a961`): the single primary button on a page, hairline borders on badges, link underlines, and active indicators. Contrast against `{colors.on-accent}` is 8.43:1. Small scale only.
-- **Champagne Hover / Press** (`{colors.accent-hover}` — `#d8bb79`, `{colors.accent-press}` — `#a88b4a`).
+- **Champagne** (`{colors.accent}`, `#c9a961`): the single primary button on a page, hairline borders on badges, link underlines, and active indicators. Contrast against `{colors.on-accent}` is 8.43:1. Small scale only.
+- **Champagne Hover / Press** (`{colors.accent-hover}`, `#d8bb79`, `{colors.accent-press}`, `#a88b4a`).
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#111013`): the field. Warm near-black with a faint violet cast.
-- **Surface** (`{colors.surface}` — `#17161a`): cards and modals, one step up.
-- **Surface Raised** (`{colors.surface-raised}` — `#1e1c21`): toasts and popovers.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#0c0b0e`): image wells and quiet insets.
-- **Hairline** (`{colors.hairline}` — `#26242a`) and **Hairline Strong** (`{colors.hairline-strong}` — `#363239`): borders at very low contrast, meant to be sensed rather than seen.
+- **Canvas** (`{colors.canvas}`, `#111013`): the field. Warm near-black with a faint violet cast.
+- **Surface** (`{colors.surface}`, `#17161a`): cards and modals, one step up.
+- **Surface Raised** (`{colors.surface-raised}`, `#1e1c21`): toasts and popovers.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#0c0b0e`): image wells and quiet insets.
+- **Hairline** (`{colors.hairline}`, `#26242a`) and **Hairline Strong** (`{colors.hairline-strong}`, `#363239`): borders at very low contrast, meant to be sensed rather than seen.
 
 ### Text
-- **Alabaster** (`{colors.text-primary}` — `#ece7dd`): headings and body. Contrast on canvas 15.39:1.
-- **Alabaster Secondary** (`{colors.text-secondary}` — `#9b9489`): supporting copy, navigation, captions. Contrast 6.31:1.
-- **Alabaster Muted** (`{colors.text-muted}` — `#6d6760`): disabled states, fine print.
+- **Alabaster** (`{colors.text-primary}`, `#ece7dd`): headings and body. Contrast on canvas 15.39:1.
+- **Alabaster Secondary** (`{colors.text-secondary}`, `#9b9489`): supporting copy, navigation, captions. Contrast 6.31:1.
+- **Alabaster Muted** (`{colors.text-muted}`, `#6d6760`): disabled states, fine print.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#7d9b6a`), **Caution** (identical to the accent by design, since in a restrained system a caution and a highlight are the same event), **Negative** (`{colors.negative}` — `#cf8471`). All are muted and warm so nothing in the palette raises its voice.
+**Positive** (`{colors.positive}`, `#7d9b6a`), **Caution** (identical to the accent by design, since in a restrained system a caution and a highlight are the same event), **Negative** (`{colors.negative}`, `#cf8471`). All are muted and warm so nothing in the palette raises its voice.
 
 ## Typography
 
@@ -340,7 +340,7 @@ The depth medium is **light**, not shadow.
 | Level | Treatment | Use |
 |---|---|---|
 | 0 | Flat | Most surfaces |
-| 1 | `{elevation.1}` — a 1px top highlight at 6% opacity | Cards, raised panels |
+| 1 | `{elevation.1}`, a 1px top highlight at 6% opacity | Cards, raised panels |
 | 2 | `{elevation.2}` | Toasts, popovers |
 | 3 | `{elevation.3}` | Modals |
 
@@ -353,7 +353,7 @@ The depth medium is **light**, not shadow.
 | Token | Value | Use |
 |---|---|---|
 | `{rounded.none}` | 0 | Inputs, images, rules |
-| `{rounded.xs}` – `{rounded.md}` | 1–2px | Buttons, badges, small controls |
+| `{rounded.xs}`, `{rounded.md}` | 1-2px | Buttons, badges, small controls |
 | `{rounded.lg}` | 3px | Cards |
 | `{rounded.xl}` | 4px | Modals, the maximum |
 | `{rounded.pill}` | 9999px | Avatars only |
@@ -400,8 +400,8 @@ Inputs are **underlines only**: transparent background with a single bottom hair
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full two-column inset; 176px section rhythm |
-| `lg` | 1024–1439px | Inset narrows to one column each side |
-| `md` | 768–1023px | Inset drops; display-xl to 52px |
+| `lg` | 1024-1439px | Inset narrows to one column each side |
+| `md` | 768-1023px | Inset drops; display-xl to 52px |
 | `sm` | < 768px | Single column; display-xl to 36px; rhythm to 88px |
 
 **Type ramp on small screens:** display-xl 76 → 36px, display-lg 52 → 30px, heading-lg 36 → 26px. Cormorant is never allowed below 26px, so at `sm` the headline sits exactly at its floor.
@@ -434,7 +434,7 @@ Inputs are **underlines only**: transparent background with a single bottom hair
 
 ## Agent Prompt Guide
 
-**Token quick reference.** Canvas `#111013` · Surface `#17161a` · Alabaster `#ece7dd` / `#9b9489` · Champagne `#c9a961` · Radius 2–4px · Section rhythm 176px · Cormorant Garamond 300 display, Jost 300 body, Courier Prime figures.
+**Token quick reference.** Canvas `#111013` · Surface `#17161a` · Alabaster `#ece7dd` / `#9b9489` · Champagne `#c9a961` · Radius 2-4px · Section rhythm 176px · Cormorant Garamond 300 display, Jost 300 body, Courier Prime figures.
 
 **Building a page:**
 

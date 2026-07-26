@@ -1,55 +1,55 @@
-# Perf-scout — deterministic performance candidate finder
+# Perf-scout (deterministic performance candidate finder)
 
 A predictable, grep-based scan that surfaces performance-violation **candidates** keyed to the stable IDs in [rules/performance.md](../../../rules/performance.md) (the canonical catalog). Run by the parent at fixed points in the workflow; its output feeds the Phase 5 address-all decision table and Reviewer D (performance).
 
 ## WHAT
 
-- **Deterministic candidate finder.** Same files in, same candidates out — plain `grep`/`awk`, no compiler, no AST, no new dependency. It maps to the shell primitive on every runtime tier.
+- **Deterministic candidate finder.** Same files in, same candidates out, plain `grep`/`awk`, no compiler, no AST, no new dependency. It maps to the shell primitive on every runtime tier.
 - **Candidates, not verdicts.** A match means "look here", never "guilty". Judgment lives in the TRIAGE rules below and with Reviewer D.
-- **Keyed to catalog IDs.** Every pattern cites a `perf.<domain>.<slug>` ID from `rules/performance.md`, so staging, default severity, and deduplication stay stable across runs. A pattern with no catalog ID is invalid — extend the catalog first.
-- **Cheap by design.** Seconds per run — run it at every mandated point without hesitation.
+- **Keyed to catalog IDs.** Every pattern cites a `perf.<domain>.<slug>` ID from `rules/performance.md`, so staging, default severity, and deduplication stay stable across runs. A pattern with no catalog ID is invalid, extend the catalog first.
+- **Cheap by design.** Seconds per run, run it at every mandated point without hesitation.
 
 ## WHEN
 
 | Run point | Scope | What happens with findings |
 |---|---|---|
-| **Phase 3 — every wave-end** | Union of the wave's file allowlists (wave-touched files), before tasks tick | Trivial fixes inside the wave's allowlist may land in-wave (mark `fixed`); everything else is `staged` |
-| **Phase 5 — start** | The whole sprint diff (`git diff --name-only <base>..HEAD`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
-| **quick (5-lite mirror)** | Touched files, before the single-lens review | Findings resolved in the same pass — the quick lens includes performance |
-| **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop — auto-fixed at every severity |
+| **Phase 3, every wave-end** | Union of the wave's file allowlists (wave-touched files), before tasks tick | Trivial fixes inside the wave's allowlist may land in-wave (mark `fixed`); everything else is `staged` |
+| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
+| **quick (5-lite mirror)** | Touched files, before the single-lens review | Findings resolved in the same pass, the quick lens includes performance |
+| **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop, auto-fixed at every severity |
 
 ## HOW
 
 Ground rules for every pattern:
 
-- **POSIX ERE, macOS/BSD-safe.** No `\b`, no `\s`, no `\d` — use `[[:space:]]`, `[0-9]`, explicit classes. Run with `grep -E -n` or `rg -n`.
-- **SQL-ish patterns run case-insensitive** (`grep -i -E`) — marked per table.
+- **POSIX ERE, macOS/BSD-safe.** No `\b`, no `\s`, no `\d`, use `[[:space:]]`, `[0-9]`, explicit classes. Run with `grep -E -n` or `rg -n`.
+- **SQL-ish patterns run case-insensitive** (`grep -i -E`), marked per table.
 - **Loop-window patterns** need loop context. Use the two-step helper: find loop headers, then search a 6-line window.
 - **Scope is the diff**, never the whole user repo (lawkeeper owns full-codebase sweeps).
 
 ```bash
-# loop_window <file> <token-ERE> — grep a token inside loop bodies (6-line window).
+# loop_window <file> <token-ERE>, grep a token inside loop bodies (6-line window).
 loop_window() {
   grep -n -E -A 6 'for[[:space:]]*\(|while[[:space:]]*\(|for[[:space:]]+[A-Za-z_].*[[:space:]]in[[:space:]]|\.forEach\(|\.map\(' "$1" \
     | grep -E "$2"
 }
 
-# consecutive awaits — perf.network.sequential-awaits candidates (confirm independence).
+# consecutive awaits, perf.network.sequential-awaits candidates (confirm independence).
 awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev=1; next } { prev=0 }' "$file"
 ```
 
-### JS/TS — whole-file patterns
+### JS/TS (whole-file patterns)
 
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
 | `JSON\.parse\(JSON\.stringify\(` | perf.memory.json-deep-clone | The call is the finding. Fix: `structuredClone` or clone the mutated slice. |
-| `\.forEach\([[:space:]]*async` | perf.async.await-in-loop | forEach never awaits its callback — also a perf.async.fire-and-forget candidate. |
-| `Promise\.all\([[:space:]]*[A-Za-z_$][A-Za-z0-9_$.]*\.map\(` | perf.async.unbounded-fanout | Fine when the list is constant-size; flag data-sized lists. Same for `Promise\.allSettled\(` — run both. |
-| `[A-Za-z]+Sync\(` | perf.async.sync-blocking | Also perf.io.sync-fs. CLI scripts, startup, and tests are fine — flag request/handler paths. |
+| `\.forEach\([[:space:]]*async` | perf.async.await-in-loop | forEach never awaits its callback, also a perf.async.fire-and-forget candidate. |
+| `Promise\.all\([[:space:]]*[A-Za-z_$][A-Za-z0-9_$.]*\.map\(` | perf.async.unbounded-fanout | Fine when the list is constant-size; flag data-sized lists. Same for `Promise\.allSettled\(`, run both. |
+| `[A-Za-z]+Sync\(` | perf.async.sync-blocking | Also perf.io.sync-fs. CLI scripts, startup, and tests are fine, flag request/handler paths. |
 | `new[[:space:]]+Map\(` | perf.memory.unbounded-cache | Candidate when module-scope AND written from handlers with no `.delete`/`.clear`/TTL. Run `new[[:space:]]+Set\(` too. |
 | `=\{\{` | perf.frontend.unstable-props | JSX inline object prop. Cheap on plain DOM leaves; matters for memoized children and hot lists. |
-| `=\{\[` | perf.frontend.unstable-props | JSX inline array prop — same guard as above. |
-| `=\{\([[:space:]A-Za-z_$,]*\)[[:space:]]*=>` | perf.frontend.unstable-props | JSX inline lambda prop — same guard as above. |
+| `=\{\[` | perf.frontend.unstable-props | JSX inline array prop, same guard as above. |
+| `=\{\([[:space:]A-Za-z_$,]*\)[[:space:]]*=>` | perf.frontend.unstable-props | JSX inline lambda prop, same guard as above. |
 | `key=\{index\}` | perf.frontend.index-key | Variants: `key=\{i\}`, `key=\{idx\}`. Confirm the identifier is the map index, not an entity id. |
 | `addEventListener\(` | perf.memory.leaked-listeners | Confirm a paired `removeEventListener` in cleanup. scroll/resize/mousemove/input handlers doing real work → perf.frontend.unthrottled-handlers. |
 | `setInterval\(` | perf.memory.leaked-listeners | Confirm a paired `clearInterval`. Polling an endpoint on interval → perf.network.polling-vs-push. |
@@ -59,38 +59,38 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 | `\.\.\.acc` | perf.algorithmic.spread-accumulator | Accumulator spread inside reduce/loop. Variants: `\.\.\.prev`, `\.\.\.result`, `\.\.\.out`. |
 | `OFFSET[[:space:]]+` (with `-i`) | perf.data.deep-offset | Also `\.offset\(` and `skip[[:space:]]*:` in ORM query builders. Fixed small offsets are fine; parametric page math is not. |
 
-### JS/TS — loop-window patterns (run through `loop_window`)
+### JS/TS, loop-window patterns (run through `loop_window`)
 
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
 | `await[[:space:]]` | perf.async.await-in-loop | Dependent iterations (each needs the previous result) are legitimately serial. |
 | `\.find[A-Za-z]*\(` | perf.data.n-plus-one | ORM/repository receiver → n-plus-one. Array receiver → perf.algorithmic.scan-in-loop instead. |
 | `\.query\(` | perf.data.n-plus-one | Reads per item. Batch with JOIN / `IN (...)` / dataloader. |
-| `\.save\(` | perf.data.per-item-write | Also `\.create\(`, `\.insert[A-Za-z]*\(`, `\.update[A-Za-z]*\(` — bulk APIs are the fix. |
+| `\.save\(` | perf.data.per-item-write | Also `\.create\(`, `\.insert[A-Za-z]*\(`, `\.update[A-Za-z]*\(`, bulk APIs are the fix. |
 | `fetch\(` | perf.network.chatty-calls | Any HTTP client call in a loop maps the same (axios/got/request). Retry wrappers are not chatty-calls. |
 | `\.includes\(` | perf.algorithmic.scan-in-loop | Bounded constant lists are fine; data-sized collections need a Set/Map. Run `\.indexOf\(` too. |
 | `\.sort\(` | perf.algorithmic.sort-in-loop | Sort once before the loop. |
 | `\.u?n?shift\(` | perf.algorithmic.shift-in-loop | Matches `.shift(` and `.unshift(`. Tiny bounded queues are fine; hot loops are not. |
 | `\+=[[:space:]]*['"]` | perf.algorithmic.string-concat-loop | Also flag `+=` where the LHS accumulates strings (template literals included). Numeric accumulators are fine. |
-| `new[[:space:]]+RegExp\(` | perf.algorithmic.regex-in-loop | A pattern that genuinely changes per item is legitimate — hoist only invariant ones. |
-| `console\.` | perf.obs.log-in-hot-loop | Logger calls (`logger.info/debug`) count too. Tooling loops over a handful of items are usually fine — hot data loops are not. |
+| `new[[:space:]]+RegExp\(` | perf.algorithmic.regex-in-loop | A pattern that genuinely changes per item is legitimate, hoist only invariant ones. |
+| `console\.` | perf.obs.log-in-hot-loop | Logger calls (`logger.info/debug`) count too. Tooling loops over a handful of items are usually fine, hot data loops are not. |
 
 ### Python
 
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
 | `json\.loads\(json\.dumps\(` | perf.memory.json-deep-clone | Use `copy.deepcopy`, or build the new shape directly. |
-| `\.objects\.` (loop-window) | perf.data.n-plus-one | Django ORM per item — `select_related`/`prefetch_related`/`in_bulk`. Lazy FK attribute access in loops counts too. |
-| `session\.` (loop-window) | perf.data.n-plus-one | SQLAlchemy per-item query/get — batch with `in_()`. |
+| `\.objects\.` (loop-window) | perf.data.n-plus-one | Django ORM per item, `select_related`/`prefetch_related`/`in_bulk`. Lazy FK attribute access in loops counts too. |
+| `session\.` (loop-window) | perf.data.n-plus-one | SQLAlchemy per-item query/get, batch with `in_()`. |
 | `cursor\.execute\(` (loop-window) | perf.data.per-item-write | `executemany` / bulk insert is the fix. |
 | `time\.sleep\(` | perf.async.sleep-poll | Candidate when inside a `while` condition-wait. Backoff inside a retry helper is legitimate. |
-| `requests\.` | perf.async.sync-blocking | Candidate when inside `async def` — use an async client (httpx/aiohttp). Sync scripts are fine. |
+| `requests\.` | perf.async.sync-blocking | Candidate when inside `async def`, use an async client (httpx/aiohttp). Sync scripts are fine. |
 | `\+=[[:space:]]*f?['"]` (loop-window) | perf.algorithmic.string-concat-loop | `''.join(parts)` is the fix. |
-| `re\.compile\(` (loop-window) | perf.algorithmic.regex-in-loop | Note: bare `re.match/search` auto-caches up to 512 patterns — weak candidate; still hoist hot ones. |
+| `re\.compile\(` (loop-window) | perf.algorithmic.regex-in-loop | Note: bare `re.match/search` auto-caches up to 512 patterns, weak candidate; still hoist hot ones. |
 | `lru_cache\(maxsize=None\)` | perf.caching.unbounded-memo-args | Also `@(functools\.)?cache`. Bounded arg spaces (enums) are fine; user-derived args are not. |
 | `\.read\(\)` | perf.io.whole-file-read | Small config files are fine; uploads/exports/logs iterate chunks or lines. |
 | `pd\.concat\(` (loop-window) | perf.memory.buffer-concat-loop | Collect frames in a list, concat once. DataFrame `.append` in loops maps the same. |
-| `[[:space:]]in[[:space:]]+\[` (loop-window) | perf.algorithmic.scan-in-loop | Membership against a literal list per iteration — use a set. `x in some_list` variants need type knowledge (semantic). |
+| `[[:space:]]in[[:space:]]+\[` (loop-window) | perf.algorithmic.scan-in-loop | Membership against a literal list per iteration, use a set. `x in some_list` variants need type knowledge (semantic). |
 | `global[[:space:]]+[a-z_]` | perf.memory.global-accumulator | Candidate when mutated inside request handlers; bounded module registries are fine. |
 
 ### SQL (run with `grep -i -E`)
@@ -99,31 +99,31 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 |---|---|---|
 | `SELECT[[:space:]]+\*` | perf.data.select-star | Migration/introspection scripts excluded; hot queries name their columns. |
 | `LIKE[[:space:]]+'%` | perf.data.leading-wildcard | Leading wildcard defeats btree indexes. Trailing-only wildcards (`'x%'`) are fine. |
-| `COUNT\(\*\)` | perf.data.count-for-exists | Finding only when the caller tests `> 0` / truthiness — real count displays are legitimate. |
+| `COUNT\(\*\)` | perf.data.count-for-exists | Finding only when the caller tests `> 0` / truthiness, real count displays are legitimate. |
 | `OFFSET[[:space:]]+[0-9$:?]` | perf.data.deep-offset | Parametric or deep offsets → keyset. Fixed first-page offsets are fine. |
-| `WHERE[[:space:]]+[A-Z_]+\(` | perf.data.missing-index | A function wrapped around a column in WHERE is non-sargable — functional index or rewrite. |
+| `WHERE[[:space:]]+[A-Z_]+\(` | perf.data.missing-index | A function wrapped around a column in WHERE is non-sargable, functional index or rewrite. |
 | `LIMIT` (inverted: `grep -L -i`) | perf.data.unbounded-result | Query files containing SELECT but no LIMIT. Aggregates and unique-key lookups are fine. |
 
 ### Semantic-only candidates (no reliable grep)
 
-These catalog entries need reading, not pattern-matching — the scout lists them for Reviewer D's checklist instead: perf.data.missing-index (needs EXPLAIN), perf.network.sequential-awaits (independence — the awk helper only finds adjacency), perf.network.no-timeout, perf.caching.no-invalidation, perf.caching.stampede, perf.network.duplicate-inflight, perf.frontend.missing-virtualization, perf.memory.retained-payload.
+These catalog entries need reading, not pattern-matching, the scout lists them for Reviewer D's checklist instead: perf.data.missing-index (needs EXPLAIN), perf.network.sequential-awaits (independence, the awk helper only finds adjacency), perf.network.no-timeout, perf.caching.no-invalidation, perf.caching.stampede, perf.network.duplicate-inflight, perf.frontend.missing-virtualization, perf.memory.retained-payload.
 
 ### Stack extension (other languages)
 
-For Go, Rust, Java, Ruby, PHP, and anything else: derive tokens from the **Detect (hint)** column of the catalog — e.g. Go `db.Query` inside `for` → perf.data.n-plus-one; Ruby `Model.find` inside `.each` → the same ID. Keep patterns POSIX-ERE and `[[:space:]]`-safe, and every new pattern MUST cite an ID that already exists in `rules/performance.md` — no ID, no pattern.
+For Go, Rust, Java, Ruby, PHP, and anything else: derive tokens from the **Detect (hint)** column of the catalog, e.g. Go `db.Query` inside `for` → perf.data.n-plus-one; Ruby `Model.find` inside `.each` → the same ID. Keep patterns POSIX-ERE and `[[:space:]]`-safe, and every new pattern MUST cite an ID that already exists in `rules/performance.md`, no ID, no pattern.
 
 ## STAGING
 
-Stage findings in exactly this table (append it to the work-doc section for the run point — the wave log at wave-end, the Phase 5 review section at review start):
+Stage findings in exactly this table (append it to the work-doc section for the run point, the wave log at wave-end, the Phase 5 review section at review start):
 
 ```markdown
-### Perf-scout — <wave-id or phase-5> — <YYYY-MM-DD>
+### Perf-scout (<wave-id or phase-5>, <YYYY-MM-DD>)
 
 | Finding | Catalog ID | file:line | Evidence | Proposed fix | Status |
 |---|---|---|---|---|---|
 | Query per task in export loop | perf.data.n-plus-one | src/export/service.ts:88 | `await repo.findOne(t.id)` inside `for (const t of tasks)` | one `findMany` with `id IN (...)` before the loop | staged |
 | Sync read in request handler | perf.io.sync-fs | src/routes/report.ts:14 | `readFileSync(tplPath)` per request | async read once at startup, reuse | fixed |
-| `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items | — | false-positive: bounded constant list |
+| `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items |, | false-positive: bounded constant list |
 ```
 
 - **Status** is one of `staged` / `fixed` / `false-positive: <one-line reason>`.
@@ -131,38 +131,38 @@ Stage findings in exactly this table (append it to the work-doc section for the 
 
 ## TRIAGE
 
-- **Every candidate gets exactly one disposition** — `staged`, `fixed`, or `false-positive`. A candidate that vanishes without a row is a protocol violation, not a judgment call.
+- **Every candidate gets exactly one disposition**, `staged`, `fixed`, or `false-positive`. A candidate that vanishes without a row is a protocol violation, not a judgment call.
 - **Dismissing needs a one-line reason** tied to the pattern's false-positive guard or the run context (bounded input, cold path, test fixture).
-- **Disputed rows go to Reviewer D** — implementer says false-positive but the evidence is unclear → Reviewer D decides; that verdict is final for the sprint.
-- **Critical candidates need a co-sign.** A candidate whose catalog default is Critical cannot be dismissed by the implementer alone — Reviewer D co-signs the false-positive. In quick mode there is no Reviewer D: the dismissal carries over to the 5-lite single reviewer — whose lens includes performance — for co-sign during its review.
+- **Disputed rows go to Reviewer D**, implementer says false-positive but the evidence is unclear → Reviewer D decides; that verdict is final for the sprint.
+- **Critical candidates need a co-sign.** A candidate whose catalog default is Critical cannot be dismissed by the implementer alone. Reviewer D co-signs the false-positive. In quick mode there is no Reviewer D: the dismissal carries over to the 5-lite single reviewer, whose lens includes performance, for co-sign during its review.
 - **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist; mark them `fixed` with the diff in the wave log. Everything else waits for the address-all loop.
 
 ## Wrong → right micro-examples (top offenders)
 
-Helpers like `mapWithLimit` / `createLruCache` stand for your project's own pool/LRU utility — search for an existing one before writing it (DRY).
+Helpers like `mapWithLimit` / `createLruCache` stand for your project's own pool/LRU utility, search for an existing one before writing it (DRY).
 
 **perf.data.n-plus-one**
 
 ```ts
-// wrong — one query per id
+// wrong, one query per id
 for (const id of ids) orders.push(await repo.findOne(id))
-// right — one batched query
+// right, one batched query
 const orders = await repo.findMany({ where: { id: { in: ids } } })
 ```
 
 **perf.async.await-in-loop**
 
 ```ts
-// wrong — independent items, serial latency
+// wrong, independent items, serial latency
 for (const u of urls) results.push(await fetchJson(u))
-// right — bounded parallelism
+// right, bounded parallelism
 const results = await mapWithLimit(urls, 5, fetchJson)
 ```
 
 **perf.memory.json-deep-clone**
 
 ```ts
-// wrong — full serialize + parse, loses Dates/Maps
+// wrong, full serialize + parse, loses Dates/Maps
 const copy = JSON.parse(JSON.stringify(state))
 // right
 const copy = structuredClone(state)
@@ -171,46 +171,46 @@ const copy = structuredClone(state)
 **perf.algorithmic.string-concat-loop**
 
 ```ts
-// wrong — quadratic reallocation
+// wrong, quadratic reallocation
 let csv = ''
 for (const row of rows) csv += toLine(row)
-// right — build once
+// right, build once
 const csv = rows.map(toLine).join('')
 ```
 
 **perf.data.select-star**
 
 ```sql
--- wrong — wide rows, no covering index
+-- wrong, wide rows, no covering index
 SELECT * FROM users WHERE org_id = $1
--- right — name the columns you read
+-- right, name the columns you read
 SELECT id, email, display_name FROM users WHERE org_id = $1
 ```
 
 **perf.async.unbounded-fanout**
 
 ```ts
-// wrong — one socket per user, all at once
+// wrong, one socket per user, all at once
 await Promise.all(userIds.map(syncUser))
-// right — pool of 10
+// right, pool of 10
 await mapWithLimit(userIds, 10, syncUser)
 ```
 
 **perf.io.sync-fs**
 
 ```ts
-// wrong — blocks every in-flight request
+// wrong, blocks every in-flight request
 const tpl = readFileSync(tplPath, 'utf8')
-// right — async, read once at startup and reuse
+// right, async, read once at startup and reuse
 const tpl = await readFile(tplPath, 'utf8')
 ```
 
 **perf.data.unbounded-result**
 
 ```ts
-// wrong — grows with the table
+// wrong, grows with the table
 const rows = await db.query('SELECT id, name FROM events ORDER BY id')
-// right — keyset page
+// right, keyset page
 const rows = await db.query(
   'SELECT id, name FROM events WHERE id > $1 ORDER BY id LIMIT 100', [cursor]
 )
@@ -219,24 +219,24 @@ const rows = await db.query(
 **perf.frontend.unstable-props**
 
 ```tsx
-// wrong — new object + lambda every render
+// wrong, new object + lambda every render
 <Row style={{ padding: 8 }} onSelect={() => pick(row.id)} />
-// right — stable references
+// right, stable references
 <Row style={rowStyle} onSelect={handlePick} />
 ```
 
 **perf.memory.unbounded-cache**
 
 ```ts
-// wrong — grows forever
+// wrong, grows forever
 const cache = new Map<string, User>()
 cache.set(key, user)
-// right — bounded LRU with TTL
+// right, bounded LRU with TTL
 const cache = createLruCache<User>({ maxSize: 5000, ttlMs: 60_000 })
 ```
 
 ## See also
 
-- [rules/performance.md](../../../rules/performance.md) — the canonical catalog every ID here resolves against.
-- [rules/perf-guardrails.md](../../../rules/perf-guardrails.md) — the always-on distilled stub.
-- [review-and-verify.md](review-and-verify.md) — Phase 5 address-all loop the staging table feeds.
+- [rules/performance.md](../../../rules/performance.md), the canonical catalog every ID here resolves against.
+- [rules/perf-guardrails.md](../../../rules/perf-guardrails.md), the always-on distilled stub.
+- [review-and-verify.md](review-and-verify.md). Phase 5 address-all loop the staging table feeds.

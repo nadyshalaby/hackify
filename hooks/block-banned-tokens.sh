@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# hackify v0.4.2 — PreToolUse (Write|Edit|Bash) ban-blocker.
+# hackify v0.4.2. PreToolUse (Write|Edit|Bash) ban-blocker.
 #
 # Blocks edits that INTRODUCE zero-tolerance banned tokens into JS/TS source:
 #   - lint/type suppressions (@ts-ignore, @ts-nocheck, eslint-disable,
 #     biome-ignore; @ts-expect-error outside test files)
 #   - non-null `!` assertions, empty `catch {}`, bare `throw new Error(`
 #   - hardcoded secrets/credentials (AWS/GitHub/Slack/Google keys, PEM private
-#     keys, assigned api-key/password/token literals) — the only critical-
+#     keys, assigned api-key/password/token literals), the only critical-
 #     severity rule, so blocking it before it reaches disk matters most
 #
-# Write/Edit: net-new only — a banned line already present in the file (Write)
+# Write/Edit: net-new only, a banned line already present in the file (Write)
 # or the replaced old_string (Edit) is grandfathered.
 # Bash: also scans source written via a heredoc or echo/printf redirect to a
 # JS/TS file (the shell path that would otherwise bypass Write/Edit). It does
-# NOT see content produced by cp/mv/sed/awk — those are not statically
+# NOT see content produced by cp/mv/sed/awk, those are not statically
 # knowable and fall through.
 #
 # Detection delegates to scan_edit.py / scan_bash.py, which reuse lawkeeper's
-# tested lexer + check regexes — so a token inside a string or comment never
+# tested lexer + check regexes, so a token inside a string or comment never
 # false-fires. Scope is JS/TS files only.
 #
 # Per-path escape hatch: list a path (literal or glob) in
@@ -25,7 +25,7 @@
 #
 # Block contract: exit 2 + reason on stderr blocks the tool call.
 # Fail-open contract: any INTERNAL failure (no jq/python3, unparseable input)
-# exits 0 — a hook bug must never wedge the user's editing.
+# exits 0, a hook bug must never wedge the user's editing.
 # `set -e` is intentionally NOT used.
 
 set -u
@@ -70,13 +70,13 @@ allowlisted() {
 
 message_for() {
   case "$1" in
-    suppression.eslint | suppression.biome) printf 'lint suppression — fix the root cause' ;;
-    suppression.ts-ignore | suppression.ts-nocheck) printf 'type suppression — fix the type error' ;;
+    suppression.eslint | suppression.biome) printf 'lint suppression, fix the root cause' ;;
+    suppression.ts-ignore | suppression.ts-nocheck) printf 'type suppression, fix the type error' ;;
     suppression.ts-expect-error) printf '@ts-expect-error outside a test file' ;;
-    ban.empty-catch) printf 'empty catch block — handle or rethrow' ;;
+    ban.empty-catch) printf 'empty catch block, handle or rethrow' ;;
     ban.non-null) printf 'non-null `!` assertion in production code' ;;
-    ban.bare-error) printf 'bare `throw new Error(` — use a domain exception (or allowlist this path)' ;;
-    sec.hardcoded-secret) printf 'hardcoded secret/credential — move it to an env var or secret store' ;;
+    ban.bare-error) printf 'bare `throw new Error(`, use a domain exception (or allowlist this path)' ;;
+    sec.hardcoded-secret) printf 'hardcoded secret/credential, move it to an env var or secret store' ;;
     *) printf 'banned token' ;;
   esac
 }

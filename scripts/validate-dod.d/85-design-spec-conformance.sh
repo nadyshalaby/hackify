@@ -10,7 +10,7 @@
 # time, which is exactly the kind of check that does not survive contact with a
 # future edit. This makes it permanent.
 #
-# Delegates to scripts/check_design_specs.py — contrast needs real floating
+# Delegates to scripts/check_design_specs.py, contrast needs real floating
 # point, which bash does not have. The Python script is standalone-runnable and
 # exits non-zero on any finding.
 
@@ -20,13 +20,13 @@ CHECKER="scripts/check_design_specs.py"
 CATALOG="skills/hackify/references/design-spec/catalog"
 
 if [ ! -f "$CHECKER" ]; then
-  red "  FAIL $CHECKER missing — cannot verify catalog conformance"
+  red "  FAIL $CHECKER missing, cannot verify catalog conformance"
   FAILED=$((FAILED + 1))
 elif [ ! -d "$CATALOG" ]; then
-  red "  FAIL $CATALOG missing — design-spec package not installed"
+  red "  FAIL $CATALOG missing, design-spec package not installed"
   FAILED=$((FAILED + 1))
 elif ! command -v python3 > /dev/null 2>&1; then
-  red "  FAIL python3 not available — cannot verify catalog conformance"
+  red "  FAIL python3 not available, cannot verify catalog conformance"
   FAILED=$((FAILED + 1))
 else
   # The checker prints its own "  ok" / "  FAIL" lines in validator format.

@@ -11,9 +11,9 @@
 #   FAILED      integer, incremented on errors
 #
 # Globals this file exports:
-#   MIRROR_SOURCES       array — canonical files mirrored into every full-mirror runtime
-#   CLAUDE_CODE_EXTRA    array — files only claude-code mirrors
-#   RUNTIMES             array — all supported runtime names
+#   MIRROR_SOURCES       array, canonical files mirrored into every full-mirror runtime
+#   CLAUDE_CODE_EXTRA    array, files only claude-code mirrors
+#   RUNTIMES             array, all supported runtime names
 # Functions this file exports:
 #   red / green / yellow
 #   write_or_announce_copy <src> <dst>
@@ -29,7 +29,7 @@
 # ATTENTION future maintainers:
 #   MIRROR_SOURCES is an EXPLICIT ENUMERATION, not a glob. When you add a
 #   NEW canonical source file under skills/, commands/, .claude-plugin/, or
-#   rules/, you MUST add an explicit entry to MIRROR_SOURCES below — otherwise
+#   rules/, you MUST add an explicit entry to MIRROR_SOURCES below, otherwise
 #   the dist/<runtime>/ trees will silently ship without it. Same goes for
 #   CLAUDE_CODE_EXTRA (only mirrored into dist/claude-code/).
 #   This was discovered the hard way in v0.2.6 when rules/four-principles.md
@@ -142,7 +142,7 @@ MIRROR_SOURCES=(
 # claude-code additionally mirrors the plugin manifests + the claude-code-native
 # primitive directories (agents/, hooks/) so the entire repo layout is
 # reproducible inside dist/claude-code/. Other runtimes never see agents/ or
-# hooks/ — they fall back to the inline templates in
+# hooks/, they fall back to the inline templates in
 # `skills/hackify/references/parallel-agents/` (already in MIRROR_SOURCES).
 CLAUDE_CODE_EXTRA=(
   ".claude-plugin/plugin.json"
@@ -163,7 +163,7 @@ CLAUDE_CODE_EXTRA=(
   "hooks/scan_bash.py"
 )
 
-# Runtime list — these substrings MUST each appear at least once in --dry-run
+# Runtime list, these substrings MUST each appear at least once in --dry-run
 # output for validate-dod.sh check (a) to pass.
 RUNTIMES=(claude-code codex-cli codex-app gemini-cli opencode cursor copilot-cli)
 
@@ -248,14 +248,14 @@ print_runtime_summary() {
   if [ "$DRY_RUN" -eq 1 ]; then
     printf '[dry-run] %d runtimes, %d files total\n' "${#RUNTIMES[@]}" "$FILE_COUNT"
     [ "$FAILED" -eq 0 ] && exit 0
-    red "FAILED — $FAILED errors during dry-run planning"
+    red "FAILED, $FAILED errors during dry-run planning"
     exit 1
   fi
   if [ "$FAILED" -eq 0 ]; then
-    green "OK — synced $FILE_COUNT files across ${#RUNTIMES[@]} runtimes"
+    green "OK, synced $FILE_COUNT files across ${#RUNTIMES[@]} runtimes"
     exit 0
   else
-    red "FAILED — $FAILED errors"
+    red "FAILED, $FAILED errors"
     exit 1
   fi
 }

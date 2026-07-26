@@ -10,9 +10,9 @@ Output always conforms to [spec-contract.md](spec-contract.md). Direction naming
 
 | Situation | Mode |
 |---|---|
-| The project already has styles, tokens, or a component library | **A — from code** |
-| The user points at a site or app they want to evoke | **B — from reference** |
-| The user supplies screenshots, mockups, or a mood board | **C — from image** |
+| The project already has styles, tokens, or a component library | **A, from code** |
+| The user points at a site or app they want to evoke | **B, from reference** |
+| The user supplies screenshots, mockups, or a mood board | **C, from image** |
 | A `DESIGN.md` exists and the product has drifted from it | **REFRESH** |
 | Nothing exists yet | Not an extraction. Author from the direction library. |
 
@@ -31,7 +31,7 @@ Binding, all modes:
 
 ---
 
-## Mode A — extract from code
+## Mode A (extract from code)
 
 **Goal.** Recover the system the codebase is already expressing, including the parts it expresses inconsistently.
 
@@ -42,14 +42,14 @@ Binding, all modes:
 5. **Harvest type.** Collect font-size, weight, line-height and letter-spacing combinations with usage counts. Map the twelve required roles onto the most-used combinations. Where a required role has no match, derive it from the neighbouring steps in the scale.
 6. **Recover the scales.** Sort observed spacing and radius values. Identify the base unit as the greatest common divisor of the frequent values. Snap near-misses to the scale and record every snap.
 7. **Harvest components.** For each required component, read its real implementation and record its actual token composition and its real interactive states. States that do not exist in the code are noted as gaps, not invented.
-8. **Name the direction.** Match the recovered system against the direction library. If two directions fit equally, the product is mixing directions — say so plainly in the report, because that is a finding.
+8. **Name the direction.** Match the recovered system against the direction library. If two directions fit equally, the product is mixing directions, say so plainly in the report, because that is a finding.
 9. **Write the report.** Before writing the spec, emit the extraction report (shape below) so the user sees the drift.
 
 **Snapping rule.** When observed values cluster near a clean scale (13px, 14px, 15px, 16px against a 4px base), snap to the scale and list each snapped value with its original. Never silently round. A snap that changes a value by more than 15% is a change, not a snap, and needs the user's agreement.
 
 ---
 
-## Mode B — extract from reference
+## Mode B (extract from reference)
 
 **Goal.** Turn a site or app the user admires into a spec for a different product.
 
@@ -62,7 +62,7 @@ Binding, all modes:
 
 ---
 
-## Mode C — extract from image
+## Mode C (extract from image)
 
 **Goal.** Turn screenshots, mockups, or a mood board into a spec.
 
@@ -113,10 +113,10 @@ When two sources disagree:
 Emit before writing the spec. Keep it under 300 words.
 
 ```
-## Extraction report — <mode(s)>
+## Extraction report (<mode(s)>)
 
 **Source.** <files read / reference / images, with counts>
-**Direction matched.** <slug> — <one-line why>
+**Direction matched.** <slug>, <one-line why>
 
 ### Recovered
 | Block | Tokens | Confidence | Source |
@@ -126,10 +126,10 @@ Emit before writing the spec. Keep it under 300 words.
 | spacing | 8 steps, 4px base | observed, 6 values snapped | utility config |
 
 ### Drift found
-- `<value>` used <n> times outside the token set at `<file:line>` — <proposed role or removal>
+- `<value>` used <n> times outside the token set at `<file:line>`, <proposed role or removal>
 
 ### Gaps filled by derivation
-- `<token>` — derived from <direction> because <reason>
+- `<token>`, derived from <direction> because <reason>
 
 ### Needs your decision
 - <question>

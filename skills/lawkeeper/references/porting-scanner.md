@@ -1,8 +1,8 @@
-# Porting the scanner — on-demand deterministic audit for a non-JS stack
+# Porting the scanner (on-demand deterministic audit for a non-JS stack)
 
 When the project's primary language is not the ECMAScript family, generate a throwaway scanner
 for that language in-session, run it, and delete it. The goal is to give a Python/Go/Rust/Java
-project the SAME deterministic core the bundled TS/JS scanner gives — grounded in the same
+project the SAME deterministic core the bundled TS/JS scanner gives, grounded in the same
 concepts, not invented fresh each time.
 
 Use the bundled scanner as the reference implementation:
@@ -24,7 +24,7 @@ rule analogs).
                   "message": "...", "snippet": "...", "fixable": "manual"}]}
    ```
 3. **False-positive discipline.** Mask comments and string literals before matching code-construct
-   bans, exactly as `lexer.py` does — a ban hiding in a string or comment must NOT match. Only
+   bans, exactly as `lexer.py` does, a ban hiding in a string or comment must NOT match. Only
    emit `confidence: exact` for checks that are truly exact; mark anything heuristic as such.
 4. **Same carve-outs.** Reuse the path-exemption model from `exemptions.py`: skip dependency/
    build dirs, generated files, and migrations; waive suppression/inline-type/non-null bans in
@@ -37,7 +37,7 @@ rule analogs).
 
 ## Rule analogs by language
 
-Keep the universal checks (file-line cap; secret regexes — those are language-independent).
+Keep the universal checks (file-line cap; secret regexes, those are language-independent).
 Translate the construct bans to each language's real syntax. Drop a row where the language has
 no analog (e.g. Python has no non-null `!`).
 
@@ -45,24 +45,24 @@ no analog (e.g. Python has no non-null `!`).
 |---|---|---|---|---|---|
 | `cap.file-lines` | line count | line count | line count | line count | line count |
 | `ban.suppression` | `@ts-ignore`, `biome-ignore`, `eslint-disable` | `# type: ignore`, `# noqa` | `//nolint` | `#[allow(...)]` | `@SuppressWarnings` |
-| `ban.empty-catch` | `catch {}` | `except: pass`, bare `except:` | — (errors are values) | — | `catch (...) {}` |
+| `ban.empty-catch` | `catch {}` | `except: pass`, bare `except:` |, (errors are values) |, | `catch (...) {}` |
 | `ban.bare-error` | `throw new Error(` | `raise Exception(`/`raise Error(` | `errors.New(`/`fmt.Errorf(` (judgment) | `panic!(` (judgment) | `throw new Exception(` |
-| `ban.non-null` | `x!` | — | — | `.unwrap()` / `.expect(` (judgment) | — |
-| `ban.inline-type` | `interface`/`type` in scoped module | dataclass/TypedDict in a router/service module | — | — | nested class in controller |
+| `ban.non-null` | `x!` |, |, | `.unwrap()` / `.expect(` (judgment) |, |
+| `ban.inline-type` | `interface`/`type` in scoped module | dataclass/TypedDict in a router/service module |, |, | nested class in controller |
 | `sec.hardcoded-secret` | universal regexes | universal | universal | universal | universal |
 
-Severity and category come from `rule-catalog.md` — keep them identical so the merged report is
+Severity and category come from `rule-catalog.md`, keep them identical so the merged report is
 consistent across the deterministic and on-demand engines.
 
 ## Masking notes per language
 
-- **Python** — comments `#…` to end of line; strings `'…'`, `"…"`, and triple-quoted
+- **Python**, comments `#…` to end of line; strings `'…'`, `"…"`, and triple-quoted
   `'''…'''` / `"""…"""` (multi-line, track across lines like the JS template state); raw/f
-  strings prefix-aware. No braces, so there is no brace-based structure check — leave function
+  strings prefix-aware. No braces, so there is no brace-based structure check, leave function
   length / nesting to the linter or semantic pass.
-- **Go / Rust / Java / C#** — `//` line and `/* */` block comments; `"…"` strings;
+- **Go / Rust / Java / C#**, `//` line and `/* */` block comments; `"…"` strings;
   Go/C# raw strings (backtick / `@"…"`); Rust raw strings `r#"…"#`. Brace-based, so the JS
-  masker's logic transfers almost directly — only the comment/string token set changes.
+  masker's logic transfers almost directly, only the comment/string token set changes.
 
 When in doubt, prefer a missed finding (false negative) over a false positive: an on-demand
 scanner that cries wolf is worse than one that quietly defers a class of checks to the semantic

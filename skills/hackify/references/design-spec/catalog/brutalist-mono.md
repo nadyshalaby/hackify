@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Brutalist Mono — design spec
+name: Brutalist Mono, design spec
 direction: brutalist-mono
 platforms: [web]
 description: >
@@ -137,7 +137,7 @@ motion:
     enter: "linear"
     exit: "linear"
     move: "steps(2, end)"
-  reduced: "respect prefers-reduced-motion — remove the 300ms reveal, keep instant states"
+  reduced: "respect prefers-reduced-motion, remove the 300ms reveal, keep instant states"
 
 components:
   button-primary:
@@ -265,22 +265,22 @@ The one color, `{colors.accent}` electric blue, is used in **large flat areas**:
 ## Colors
 
 ### Brand & Accent
-- **Electric Blue** (`{colors.accent}` — `#1f4fe0`): filled buttons, full-bleed sections, hovered table rows, focus rings. Contrast against white is 6.46:1. Used in large areas only.
-- **Blue Hover / Press** (`{colors.accent-hover}` — `#1a44c4`, `{colors.accent-press}` — `#15379e`).
+- **Electric Blue** (`{colors.accent}`, `#1f4fe0`): filled buttons, full-bleed sections, hovered table rows, focus rings. Contrast against white is 6.46:1. Used in large areas only.
+- **Blue Hover / Press** (`{colors.accent-hover}`, `#1a44c4`, `{colors.accent-press}`, `#15379e`).
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#f4f4f0`): the page, slightly off-white so pure-white cards read as laid on top.
-- **Surface** (`{colors.surface}` — `#ffffff`): cards, inputs, modals.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#e8e8e2`): disabled fills and quiet blocks.
+- **Canvas** (`{colors.canvas}`, `#f4f4f0`): the page, slightly off-white so pure-white cards read as laid on top.
+- **Surface** (`{colors.surface}`, `#ffffff`): cards, inputs, modals.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#e8e8e2`): disabled fills and quiet blocks.
 - **Hairline** and **Hairline Strong** (both `#0a0a0a`): identical by design. There is only one border color in this system, and it is black.
 
 ### Text
-- **Black** (`{colors.text-primary}` — `#0a0a0a`): everything. Contrast on canvas 17.96:1.
-- **Grey** (`{colors.text-secondary}` — `#4a4a4a`): captions, secondary labels. Contrast 8.04:1.
-- **Grey Muted** (`{colors.text-muted}` — `#767670`): disabled only.
+- **Black** (`{colors.text-primary}`, `#0a0a0a`): everything. Contrast on canvas 17.96:1.
+- **Grey** (`{colors.text-secondary}`, `#4a4a4a`): captions, secondary labels. Contrast 8.04:1.
+- **Grey Muted** (`{colors.text-muted}`, `#767670`): disabled only.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#0d7a3d`), **Caution** (`{colors.caution}` — `#8a6a00`), **Negative** (`{colors.negative}` — `#c81e0e`). All fully saturated flat colors, used as fills with black borders in the same way as the accent. No tints, no soft backgrounds, no 10%-opacity alert boxes.
+**Positive** (`{colors.positive}`, `#0d7a3d`), **Caution** (`{colors.caution}`, `#8a6a00`), **Negative** (`{colors.negative}`, `#c81e0e`). All fully saturated flat colors, used as fills with black borders in the same way as the accent. No tints, no soft backgrounds, no 10%-opacity alert boxes.
 
 ## Typography
 
@@ -385,8 +385,8 @@ All buttons are square with 3px black borders and an offset shadow. `button-prim
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | display-xl at full 128px; overlapping blocks active |
-| `lg` | 1024–1439px | display-xl clamps to ~96px; overlaps reduce |
-| `md` | 768–1023px | Two-column maximum; offsets drop from 8px to 6px |
+| `lg` | 1024-1439px | display-xl clamps to ~96px; overlaps reduce |
+| `md` | 768-1023px | Two-column maximum; offsets drop from 8px to 6px |
 | `sm` | < 768px | Single column; display-xl to 48px; offsets drop to 4px |
 
 **Type ramp on small screens:** display-xl 128 → 48px, display-lg 72 → 36px, heading-lg 40 → 28px. The tracking scales with it, from -4px to -1.5px, since heavy negative tracking at small sizes collides letterforms.

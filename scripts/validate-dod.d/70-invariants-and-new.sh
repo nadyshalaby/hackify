@@ -50,13 +50,13 @@ if [ -f "skills/yolo/SKILL.md" ]; then
 fi
 
 yellow "[37] hooks/hooks.json command targets exist on disk (.sh targets executable)"
-# Every ${CLAUDE_PLUGIN_ROOT}/-prefixed token in every hook command — the
+# Every ${CLAUDE_PLUGIN_ROOT}/-prefixed token in every hook command, the
 # script AND its file arguments, across ALL event arrays (UserPromptSubmit,
-# PreToolUse, and any added later) — must resolve to a file in this repo.
+# PreToolUse, and any added later), must resolve to a file in this repo.
 # Tokens are shell-quoted inside the JSON string (so install paths with
 # spaces survive word-splitting), so strip one leading/trailing quote
 # before the prefix match. Iteration is a while-read over the
-# newline-separated list — no unquoted word-splitting (bash 3.2 safe).
+# newline-separated list, no unquoted word-splitting (bash 3.2 safe).
 # jq path: .hooks.<event>[] (matcher groups) → .hooks[] (entries) → .command.
 HOOK_TARGETS=$(jq -r '.hooks[][].hooks[].command' hooks/hooks.json 2>/dev/null \
   | tr ' ' '\n' | sed -e "s/^['\"]//" -e "s/['\"]\$//" \

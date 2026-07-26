@@ -47,7 +47,7 @@ if [ ! -f "$PLUGIN_JSON" ]; then
   exit 2
 fi
 
-# Extract version field — prefer jq, fall back to grep-cut for portability.
+# Extract version field, prefer jq, fall back to grep-cut for portability.
 if command -v jq >/dev/null 2>&1; then
   VERSION="$(jq -r '.version // ""' "$PLUGIN_JSON")"
 else
@@ -67,7 +67,7 @@ fi
 
 TAG="v$VERSION"
 
-# HEAD must be on main — a tag pushed from a feature branch ends up pointing at
+# HEAD must be on main, a tag pushed from a feature branch ends up pointing at
 # a commit unreachable from main, while `git push origin main` pushes stale.
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo '')"
 if [ "$CURRENT_BRANCH" != "main" ]; then
@@ -110,7 +110,7 @@ fi
 
 # --- prompt + execute --------------------------------------------------------
 if [ ! -t 0 ]; then
-  red "FATAL: stdin is not a TTY — refusing to release non-interactively. Run with --dry-run to plan."
+  red "FATAL: stdin is not a TTY, refusing to release non-interactively. Run with --dry-run to plan."
   exit 2
 fi
 

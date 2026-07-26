@@ -1,24 +1,24 @@
-# Trace rubric — how to walk a stack with rigor
+# Trace rubric (how to walk a stack with rigor)
 
 The viewer renders whatever the trace produces. A polished viewer over a sloppy trace is worthless; an ugly viewer over a sharp trace still ships decisions. This rubric is the IP of the skill.
 
-Walk depth-first from the entry point. Capture exactly the fields named in [data-schema.md](./data-schema.md). When in doubt at a fork, **stop and ask** — never guess which branch the runtime takes.
+Walk depth-first from the entry point. Capture exactly the fields named in [data-schema.md](./data-schema.md). When in doubt at a fork, **stop and ask**, never guess which branch the runtime takes.
 
 ---
 
-## 0. Pre-step — read the repo's conventions before annotating
+## 0. Pre-step (read the repo's conventions before annotating)
 
 Before opening the entry function, spend 60-90 seconds reading the repo's structure and adjacent files. The trace must annotate in the repo's own idiom, not a generic one.
 
 Specifically look at:
 
-- **Framework signature** — is this NestJS, Express, Rails, Django, FastAPI, Spring, Phoenix? Layer naming follows the framework's vocabulary. NestJS has Controllers / Services / Repositories. Rails has Controllers / Models / Concerns. Don't impose NestJS layer labels on a Rails app.
-- **DI patterns** — constructor injection, decorator-based DI, manual factories, ServiceLocator. The "called-by" graph depends on knowing where instances come from.
-- **Module boundaries** — does the repo enforce module boundaries via an index file, a barrel export, a package boundary? When you see a call cross the boundary, that's load-bearing.
-- **Error model** — does the repo throw, return `Result<T, E>`, return `[err, value]` tuples, return `null`-for-not-found-and-throw-for-bug, or something else? The "risk" field is meaningless without knowing the local error model.
-- **Test convention** — `.spec.ts` next to source, `__tests__/` folder, `test/` mirror. Don't expand into test files when tracing production paths.
+- **Framework signature**, is this NestJS, Express, Rails, Django, FastAPI, Spring, Phoenix? Layer naming follows the framework's vocabulary. NestJS has Controllers / Services / Repositories. Rails has Controllers / Models / Concerns. Don't impose NestJS layer labels on a Rails app.
+- **DI patterns**, constructor injection, decorator-based DI, manual factories, ServiceLocator. The "called-by" graph depends on knowing where instances come from.
+- **Module boundaries**, does the repo enforce module boundaries via an index file, a barrel export, a package boundary? When you see a call cross the boundary, that's load-bearing.
+- **Error model**, does the repo throw, return `Result<T, E>`, return `[err, value]` tuples, return `null`-for-not-found-and-throw-for-bug, or something else? The "risk" field is meaningless without knowing the local error model.
+- **Test convention**, `.spec.ts` next to source, `__tests__/` folder, `test/` mirror. Don't expand into test files when tracing production paths.
 
-If the repo has a `README.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`, or `docs/` at the root, skim them. If it has a `CLAUDE.md` or `.cursorrules`, read it — the user explicitly wrote those for agents.
+If the repo has a `README.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`, or `docs/` at the root, skim them. If it has a `CLAUDE.md` or `.cursorrules`, read it, the user explicitly wrote those for agents.
 
 ---
 
@@ -34,7 +34,7 @@ The user's `$ARGUMENTS` names ONE entry. Resolve it to a single function with a 
 | DI-token resolution | `@Inject(USER_REPO_TOKEN)` with multiple providers | "`USER_REPO_TOKEN` resolves to one of `PostgresUserRepo`, `MockUserRepo`. Which?" |
 | Dynamic dispatch | `handlers[type](payload)` | "`handlers[type]` is a map. Which `type` value should I trace?" |
 
-After the user picks, write the chosen path into the chat in one line — "Tracing entry: `<file>:<line>` for `<entry_point>`" — so the choice is visible in transcript.
+After the user picks, write the chosen path into the chat in one line, "Tracing entry: `<file>:<line>` for `<entry_point>`", so the choice is visible in transcript.
 
 ---
 
@@ -42,20 +42,20 @@ After the user picks, write the chosen path into the chat in one line — "Traci
 
 For every function on the path, extract the fields from `data-schema.md` in this exact order:
 
-1. **`file`, `function_range`, `name`** — open the file, locate the function, note declaration line and end-of-body line. Both 1-indexed. Inclusive.
-2. **`source`** — read the function body verbatim. Do not normalize whitespace. Do not strip comments.
-3. **Identify the invoked block.** See §3 below — this is the hardest part.
-4. **`call_sites`** — for each outgoing call ON THE INVOKED PATH, record line + fragment + callee ID. Calls inside `if`/`else`/`switch` arms that don't fire on this path do NOT count.
-5. **`docblock.purpose`** — one sentence. What does this function DO in the domain, not in implementation terms. "Resolves a user by id" beats "calls `findById` and maps the row."
-6. **`docblock.inputs`** — name + shape pseudocode. List params and read-from-closure values. `req.user` counts as an input when the function reads it.
-7. **`docblock.outputs`** — return shape. `void` if pure side-effect.
-8. **`docblock.side_effects`** — pick from the fixed set: `db`, `queue`, `http`, `cache`, `auth`, `fs`. See §4 below for what falls into each.
-9. **`docblock.ownership`** — one or two sentences on WHY this layer owns this responsibility. "Controllers translate HTTP to domain; tenant scoping happens above this." This is the field that lets the user judge whether the layering is sound.
-10. **`data_in` / `data_out`** — the payload as it enters / leaves. See §5 below — the trace's job is to show how shape transforms across the path.
-11. **`risk`** — exactly ONE concrete risk, smell, or load-bearing assumption. Not three. Pick the one that matters most. See §6 below.
-12. **`branches_not_taken`** — every `if`/`else`/`switch`/`try`/`catch` arm in this function that the runtime DID NOT take on this path. Name + one-line trigger condition. **Do NOT expand them into nodes.** See §7 below.
-13. **`git_blame`** — `git log -1 --pretty=format:'%an|%ad|%s' --date=short -- <file>` for last author + date. If the commit message references a PR (`(#1234)` or `Merge pull request #1234`), capture the PR number. If the file is untracked, set `git_blame: null`.
-14. **`layer`** — pick one of `controller`, `service`, `repository`, `external`, `other`. Use the repo's own framework vocabulary as the tie-breaker.
+1. **`file`, `function_range`, `name`**, open the file, locate the function, note declaration line and end-of-body line. Both 1-indexed. Inclusive.
+2. **`source`**, read the function body verbatim. Do not normalize whitespace. Do not strip comments.
+3. **Identify the invoked block.** See §3 below, this is the hardest part.
+4. **`call_sites`**, for each outgoing call ON THE INVOKED PATH, record line + fragment + callee ID. Calls inside `if`/`else`/`switch` arms that don't fire on this path do NOT count.
+5. **`docblock.purpose`**, one sentence. What does this function DO in the domain, not in implementation terms. "Resolves a user by id" beats "calls `findById` and maps the row."
+6. **`docblock.inputs`**, name + shape pseudocode. List params and read-from-closure values. `req.user` counts as an input when the function reads it.
+7. **`docblock.outputs`**, return shape. `void` if pure side-effect.
+8. **`docblock.side_effects`**, pick from the fixed set: `db`, `queue`, `http`, `cache`, `auth`, `fs`. See §4 below for what falls into each.
+9. **`docblock.ownership`**, one or two sentences on WHY this layer owns this responsibility. "Controllers translate HTTP to domain; tenant scoping happens above this." This is the field that lets the user judge whether the layering is sound.
+10. **`data_in` / `data_out`**, the payload as it enters / leaves. See §5 below, the trace's job is to show how shape transforms across the path.
+11. **`risk`**, exactly ONE concrete risk, smell, or load-bearing assumption. Not three. Pick the one that matters most. See §6 below.
+12. **`branches_not_taken`**, every `if`/`else`/`switch`/`try`/`catch` arm in this function that the runtime DID NOT take on this path. Name + one-line trigger condition. **Do NOT expand them into nodes.** See §7 below.
+13. **`git_blame`**, `git log -1 --pretty=format:'%an|%ad|%s' --date=short -- <file>` for last author + date. If the commit message references a PR (`(#1234)` or `Merge pull request #1234`), capture the PR number. If the file is untracked, set `git_blame: null`.
+14. **`layer`**, pick one of `controller`, `service`, `repository`, `external`, `other`. Use the repo's own framework vocabulary as the tie-breaker.
 
 ---
 
@@ -65,15 +65,15 @@ The `invoked_range` and `invoked_lines` fields are what give the viewer its gree
 
 Approach:
 
-1. Start with `invoked_range = function_range` — assume the whole body fires.
+1. Start with `invoked_range = function_range`, assume the whole body fires.
 2. Walk the function body top to bottom. For every conditional:
-   - **`if (cond) { A } else { B }`** — if you know which arm fires on this path, mark the OTHER arm as not-invoked. The lines of the not-invoked arm are removed from `invoked_lines`.
-   - **`switch (k)`** — only the matching `case` (and any fallthrough) is invoked.
-   - **`try { A } catch { B }`** — the catch fires only if `A` throws. On a happy-path trace, `B` is not invoked. If you're tracing an error path explicitly, the opposite.
-   - **Short-circuit `&&` / `||`** — if the left side decides, the right side may not fire. Count cautiously; when in doubt, include the line.
-   - **Early `return`** — if the function returns at line N, lines after N do not fire.
+   - **`if (cond) { A } else { B }`**, if you know which arm fires on this path, mark the OTHER arm as not-invoked. The lines of the not-invoked arm are removed from `invoked_lines`.
+   - **`switch (k)`**, only the matching `case` (and any fallthrough) is invoked.
+   - **`try { A } catch { B }`**, the catch fires only if `A` throws. On a happy-path trace, `B` is not invoked. If you're tracing an error path explicitly, the opposite.
+   - **Short-circuit `&&` / `||`**, if the left side decides, the right side may not fire. Count cautiously; when in doubt, include the line.
+   - **Early `return`**, if the function returns at line N, lines after N do not fire.
 3. After the walk, narrow `invoked_range` to `[min(invoked_lines), max(invoked_lines)]`. This is the visible range in the viewer; lines outside it are not shown at all.
-4. **If you can't tell which arm fires** — a runtime-resolved condition like `if (config.featureX)` where `featureX` depends on env or DB state — **stop and ask the user**. Do not guess. The whole skill exists to surface this ambiguity, not to paper over it.
+4. **If you can't tell which arm fires**, a runtime-resolved condition like `if (config.featureX)` where `featureX` depends on env or DB state, **stop and ask the user**. Do not guess. The whole skill exists to surface this ambiguity, not to paper over it.
 
 **Common failure mode:** marking *every* line as invoked because "the function ran." That defeats the green-highlight. If the function has a 30-line `else` arm that didn't fire, those 30 lines must NOT be in `invoked_lines`.
 
@@ -81,7 +81,7 @@ Approach:
 
 ## 4. Side-effect classification
 
-Use exactly these six labels. Be precise — the chips in the viewer drive trust.
+Use exactly these six labels. Be precise, the chips in the viewer drive trust.
 
 | Label | Counts as | Does NOT count as |
 |---|---|---|
@@ -104,9 +104,9 @@ A function with no side effects on this path gets `side_effects: []`. That's nor
 - Good: `UserRow | null`
 - Good: `PublicUser`
 - Bad: `the user object after lookup` (prose)
-- Bad: `User` (no field-level detail — useless for spotting field drops)
+- Bad: `User` (no field-level detail, useless for spotting field drops)
 
-When a layer narrows the shape (DB row → public DTO), capture that. The Diagrams tab's "data evolution" chain reads `data_out` of node N and `data_in` of node N+1 — when those disagree, the viewer surfaces the mismatch.
+When a layer narrows the shape (DB row → public DTO), capture that. The Diagrams tab's "data evolution" chain reads `data_out` of node N and `data_in` of node N+1, when those disagree, the viewer surfaces the mismatch.
 
 ---
 
@@ -116,17 +116,17 @@ The brief is explicit: one risk per node, not a list. The risk field is the most
 
 Pick the one that meets the highest of these bars:
 
-1. A **load-bearing assumption** the function makes without checking — `assumes req.user is set; middleware order matters`.
-2. A **silent collision** — `returns null for both not-found and downstream error; caller can't distinguish`.
-3. A **layer leak** — `controller does business logic the service should own`.
-4. A **race or concurrency hazard** — `read-modify-write without a lock or transaction`.
-5. A **performance cliff** — `N+1 query inside a loop over the request body`.
+1. A **load-bearing assumption** the function makes without checking, `assumes req.user is set; middleware order matters`.
+2. A **silent collision**, `returns null for both not-found and downstream error; caller can't distinguish`.
+3. A **layer leak**, `controller does business logic the service should own`.
+4. A **race or concurrency hazard**, `read-modify-write without a lock or transaction`.
+5. A **performance cliff**, `N+1 query inside a loop over the request body`.
 
 If none of those apply, write `"none observed on this path"`. Empty is honest; padding the field with "consider extracting a helper" is noise.
 
 ---
 
-## 7. Branches not taken — listed by name, never expanded
+## 7. Branches not taken (listed by name, never expanded)
 
 For every conditional in the function body that the runtime did not take on this path, add ONE entry to `branches_not_taken`:
 
@@ -134,8 +134,8 @@ For every conditional in the function body that the runtime did not take on this
 { "name": "soft-deleted user path", "trigger": "req.query.includeDeleted === 'true'" }
 ```
 
-- `name` — a SHORT human-readable label. Not the code expression — the meaning. "soft-deleted user path", "admin override path", "cache hit path".
-- `trigger` — the exact condition that would have routed to this branch instead. One line. Code-fragment OK.
+- `name`, a SHORT human-readable label. Not the code expression, the meaning. "soft-deleted user path", "admin override path", "cache hit path".
+- `trigger`, the exact condition that would have routed to this branch instead. One line. Code-fragment OK.
 
 **Do not recurse into the branch.** The whole point is to mark the road-not-traveled so the user knows it exists, without ballooning the trace. The Diagrams tab renders all deferred branches in one place so the user can see what was skipped.
 
@@ -160,15 +160,15 @@ continue / switch branch / stop?
 
 Wait for the user before continuing. The defaults are:
 
-- **continue** — keep walking DFS from `next planned`.
-- **switch branch** — user picks one of the `deferred_branches` to trace instead. The current DFS pauses (the deferred branch becomes the new active DFS); when it terminates, control returns to the original.
-- **stop** — finalize the trace at the current state. `nodes` is locked, `data.json` is written, viewer materializes.
+- **continue**, keep walking DFS from `next planned`.
+- **switch branch**, user picks one of the `deferred_branches` to trace instead. The current DFS pauses (the deferred branch becomes the new active DFS); when it terminates, control returns to the original.
+- **stop**, finalize the trace at the current state. `nodes` is locked, `data.json` is written, viewer materializes.
 
 This block is the difference between a useful trace and a runaway DFS. It is not optional. If the path is shorter than 5 functions total, print the block once at the end with `continue?` replaced by `finalize?`.
 
 ---
 
-## 9. After the trace — chat output, not HTML
+## 9. After the trace (chat output, not HTML)
 
 The viewer is the deliverable. But before handing off to the user, print TWO things to chat:
 
@@ -180,7 +180,7 @@ The viewer is the deliverable. But before handing off to the user, print TWO thi
 > 4. The repository's transaction context comes from where, and is it the same instance across the two queries on this path?
 > 5. One of the deferred branches changes the response shape. Which one, and how?
 
-These are not rhetorical — they're an offer to the user. "If any of these feel un-answerable, the trace is incomplete somewhere; want me to deepen?"
+These are not rhetorical, they're an offer to the user. "If any of these feel un-answerable, the trace is incomplete somewhere; want me to deepen?"
 
 **Decisions you can now make.** A short checklist sorted into three buckets:
 
@@ -189,10 +189,10 @@ Safe to change:
   - The DTO mapper in the controller (pure, no side effects, tested)
 
 Load-bearing:
-  - The middleware order (AuthGuard before TenantGuard) — swapping breaks auth/tenant interaction
+  - The middleware order (AuthGuard before TenantGuard), swapping breaks auth/tenant interaction
 
 Chesterton's fence (don't touch until you ask):
-  - The fallback that returns `null` when `req.user` is missing — looks dead, but the public/health endpoint relies on it
+  - The fallback that returns `null` when `req.user` is missing, looks dead, but the public/health endpoint relies on it
 ```
 
 Each item: one short line. If a bucket is empty, write `- (none on this path)`. The point is to let the user end the session with action, not a feeling of being informed.

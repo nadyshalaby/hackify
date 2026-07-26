@@ -53,8 +53,8 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[6] token scrub — no personal/workspace leaks in plugin content"
-# nadyshalaby is the author's GitHub handle — legitimate in plugin.json /
+yellow "[6] token scrub, no personal/workspace leaks in plugin content"
+# nadyshalaby is the author's GitHub handle, legitimate in plugin.json /
 # marketplace.json / CHANGELOG / README (install snippets, repo URLs) but
 # must NOT appear inside the shipped skill content.
 for token in Syanat SyanatBackend SyanatFrontend graphify corecave nadyshalaby; do

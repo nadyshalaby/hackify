@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for the lawkeeper scanner. No external deps — run: python3 test_audit.py
+"""Unit tests for the lawkeeper scanner. No external deps, run: python3 test_audit.py
 
 Covers the cases most likely to regress: lexer masking (a ban hiding in a string / comment /
 multi-line template must NOT match), each token ban, the path carve-outs, and secret
@@ -95,7 +95,7 @@ def test_recall_corpus_exempt_from_self_audit():
 def test_confidence_tiers_are_honest():
   from checks import RULE_META
   # bare-error and inline-type cannot be confirmed by regex alone (domain scope /
-  # 2+ props), so they are flagged 'syntactic', not 'exact' — see RULE_META.
+  # 2+ props), so they are flagged 'syntactic', not 'exact', see RULE_META.
   assert RULE_META['ban.bare-error'][2] == 'syntactic'
   assert RULE_META['ban.inline-type'][2] == 'syntactic'
   # the genuinely exact ones stay 'exact'.

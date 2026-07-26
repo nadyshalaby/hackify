@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Industrial Precision — design spec
+name: Industrial Precision, design spec
 direction: industrial-precision
 platforms: [web, native]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.16, 1, 0.3, 1)"
     exit: "cubic-bezier(0.4, 0, 1, 1)"
     move: "cubic-bezier(0.2, 0, 0, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, no transform"
+  reduced: "respect prefers-reduced-motion, opacity only, no transform"
 
 components:
   button-primary:
@@ -267,25 +267,25 @@ Type does the hierarchy. `Archivo` sets headings tight and engineered, `Public S
 ## Colors
 
 ### Brand & Accent
-- **Accent** (`{colors.accent}` — `#ffb020`): the only saturated color in the system. Primary buttons, active navigation, focus rings, the one metric that matters on a dashboard. Budget: two per screen.
-- **Accent Hover** (`{colors.accent-hover}` — `#ffc14d`) and **Accent Press** (`{colors.accent-press}` — `#d98f0f`): the interactive pair. Never used for static content.
-- **On Accent** (`{colors.on-accent}` — `#0b0d0e`): text and icons on any amber fill. Contrast 10.65:1.
+- **Accent** (`{colors.accent}`, `#ffb020`): the only saturated color in the system. Primary buttons, active navigation, focus rings, the one metric that matters on a dashboard. Budget: two per screen.
+- **Accent Hover** (`{colors.accent-hover}`, `#ffc14d`) and **Accent Press** (`{colors.accent-press}`, `#d98f0f`): the interactive pair. Never used for static content.
+- **On Accent** (`{colors.on-accent}`, `#0b0d0e`): text and icons on any amber fill. Contrast 10.65:1.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#0b0d0e`): page background and nav chrome.
-- **Surface** (`{colors.surface}` — `#141719`): cards, panels, modal bodies.
-- **Surface Raised** (`{colors.surface-raised}` — `#1c2023`): toasts, badges, hover fills on dark rows.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#08090a`): inputs, code blocks, wells. Recessed, not raised.
-- **Hairline** (`{colors.hairline}` — `#23282b`): the default 1px border. Does most of the structural work.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#333a3e`): emphasized borders, modal edges, secondary button outlines.
+- **Canvas** (`{colors.canvas}`, `#0b0d0e`): page background and nav chrome.
+- **Surface** (`{colors.surface}`, `#141719`): cards, panels, modal bodies.
+- **Surface Raised** (`{colors.surface-raised}`, `#1c2023`): toasts, badges, hover fills on dark rows.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#08090a`): inputs, code blocks, wells. Recessed, not raised.
+- **Hairline** (`{colors.hairline}`, `#23282b`): the default 1px border. Does most of the structural work.
+- **Hairline Strong** (`{colors.hairline-strong}`, `#333a3e`): emphasized borders, modal edges, secondary button outlines.
 
 ### Text
-- **Text Primary** (`{colors.text-primary}` — `#e8ebec`): body and headings. Contrast on canvas 16.26:1.
-- **Text Secondary** (`{colors.text-secondary}` — `#9aa4a8`): labels, inactive navigation, supporting copy. Contrast 7.65:1.
-- **Text Muted** (`{colors.text-muted}` — `#6b7579`): disabled states, timestamps, placeholder text. Non-essential information only.
+- **Text Primary** (`{colors.text-primary}`, `#e8ebec`): body and headings. Contrast on canvas 16.26:1.
+- **Text Secondary** (`{colors.text-secondary}`, `#9aa4a8`): labels, inactive navigation, supporting copy. Contrast 7.65:1.
+- **Text Muted** (`{colors.text-muted}`, `#6b7579`): disabled states, timestamps, placeholder text. Non-essential information only.
 
 ### Semantic
-- **Positive** (`{colors.positive}` — `#3fa66a`), **Caution** (`{colors.caution}` — `#c9962c`), **Negative** (`{colors.negative}` — `#d0503f`). Deliberately desaturated so they read as status rather than decoration, and so none of them competes with the amber accent. Caution is close to the accent in hue and must never appear on the same screen region as a primary action.
+- **Positive** (`{colors.positive}`, `#3fa66a`), **Caution** (`{colors.caution}`, `#c9962c`), **Negative** (`{colors.negative}`, `#d0503f`). Deliberately desaturated so they read as status rather than decoration, and so none of them competes with the amber accent. Caution is close to the accent in hue and must never appear on the same screen region as a primary action.
 
 ## Typography
 
@@ -397,8 +397,8 @@ Radius is capped at 8px on containers and 4px on controls. Above that the system
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full 12-column grid; sidebars persistent; tables show all columns |
-| `lg` | 1024–1439px | Grid holds; secondary sidebar collapses to a toggle |
-| `md` | 768–1023px | Two-column maximum; tables drop to priority columns with a detail drawer |
+| `lg` | 1024-1439px | Grid holds; secondary sidebar collapses to a toggle |
+| `md` | 768-1023px | Two-column maximum; tables drop to priority columns with a detail drawer |
 | `sm` | < 768px | Single column; nav becomes a bottom bar; display-xl drops 52 → 32px |
 
 **Type ramp on small screens:** display-xl 52 → 32px, display-lg 38 → 26px, heading-lg 26 → 20px. Body sizes do not shrink; below 13px this system stops being readable, and reading is the whole job.

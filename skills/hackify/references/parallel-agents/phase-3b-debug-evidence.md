@@ -1,6 +1,6 @@
-# Phase 3b — Debug evidence gathering
+# Phase 3b (Debug evidence gathering)
 
-This file is the dispatchable sub-agent prompt for one Phase 3b debug-evidence agent. Load it whenever the parent fires one (or several parallel) debug-evidence dispatches against a multi-component bug; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT` — `SEVERITY` is omitted because this is a read-only investigation, not a review template) lives in `template-contract.md` — do not restate it here.
+This file is the dispatchable sub-agent prompt for one Phase 3b debug-evidence agent. Load it whenever the parent fires one (or several parallel) debug-evidence dispatches against a multi-component bug; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT`, `SEVERITY` is omitted because this is a read-only investigation, not a review template) lives in `template-contract.md`, do not restate it here.
 
 ```
 Subagent type: Explore for read-only investigation, general-purpose if it needs to run code
@@ -33,17 +33,17 @@ Bias against: closing the investigation after the first supporting
 citation.
 
 **INPUTS**.
-1. `{{hypothesis}}` — the stated hypothesis the dispatch is testing,
+1. `{{hypothesis}}`, the stated hypothesis the dispatch is testing,
    quoted verbatim from the work-doc.
-2. `{{symptom}}` — the observed failure (error message, wrong output,
+2. `{{symptom}}`, the observed failure (error message, wrong output,
    missing record) including the reproduction input where known.
-3. `{{files_involved}}` — newline-separated list of absolute paths the
+3. `{{files_involved}}`, newline-separated list of absolute paths the
    investigation begins from.
-4. `{{module_scope}}` — directory or module the investigation MUST
+4. `{{module_scope}}`, directory or module the investigation MUST
    stay inside (no whole-repo spelunking).
-5. `{{run_mode}}` — `read-only` (default) or `may-run-code` when the
+5. `{{run_mode}}`, `read-only` (default) or `may-run-code` when the
    dispatcher explicitly authorizes executing code to confirm a path.
-6. `{{word_cap}}` — integer max words for the OUTPUT report
+6. `{{word_cap}}`, integer max words for the OUTPUT report
    (recommended 300).
 
 **OBJECTIVE**.
@@ -95,7 +95,7 @@ METHOD before producing OUTPUT.
    executing any code? (yes / no)
 
 **OUTPUT**.
-≤`{{word_cap}}` words — debug evidence is read by an engineer mid-bug;
+≤`{{word_cap}}` words, debug evidence is read by an engineer mid-bug;
 terseness matters. Use this exact report skeleton:
 
 ````
@@ -104,14 +104,14 @@ terseness matters. Use this exact report skeleton:
   PARTIALLY consistent with the code.
 
 ## Supporting evidence
-- `<file>:<line>` — <quoted snippet ≤3 lines>; why it supports.
+- `<file>:<line>`, <quoted snippet ≤3 lines>; why it supports.
 
 ## Contradicting evidence
-- `<file>:<line>` — <quoted snippet ≤3 lines>; why it contradicts.
+- `<file>:<line>`, <quoted snippet ≤3 lines>; why it contradicts.
 
 ## Alternative hypotheses considered
-- <alt 1> — distinguishing evidence: `<file>:<line>`.
-- <alt 2> — distinguishing evidence: `<file>:<line>`.
+- <alt 1>, distinguishing evidence: `<file>:<line>`.
+- <alt 2>, distinguishing evidence: `<file>:<line>`.
 
 ## Reachability of the failure path
 - <yes/no> from `{{symptom}}` back to `<file>:<line>` via
@@ -127,5 +127,5 @@ terseness matters. Use this exact report skeleton:
 ````
 
 If a section has no findings, write `None.` on its own line under the
-heading — never go silent.
+heading, never go silent.
 ```

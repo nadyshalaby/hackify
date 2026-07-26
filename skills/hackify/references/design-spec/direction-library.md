@@ -1,8 +1,8 @@
 # Direction Library
 
-Twelve visual directions, each specified deeply enough to build from. This is the **single canonical direction list** for the plugin — [frontend-design.md](../frontend-design.md) defers here, and every `DESIGN.md` sets its `direction:` key to one of these slugs (or `custom` with a written rationale).
+Twelve visual directions, each specified deeply enough to build from. This is the **single canonical direction list** for the plugin, [frontend-design.md](../frontend-design.md) defers here, and every `DESIGN.md` sets its `direction:` key to one of these slugs (or `custom` with a written rationale).
 
-Pick ONE. Commit. The core law is unchanged: *a strong, coherent aesthetic with a few bold choices beats safe-average UI.* A direction is not decoration — it is the argument the interface makes about what matters.
+Pick ONE. Commit. The core law is unchanged: *a strong, coherent aesthetic with a few bold choices beats safe-average UI.* A direction is not decoration, it is the argument the interface makes about what matters.
 
 **How to choose.** Read the product's job first, then the audience's state of mind. A tool people live inside all day wants a direction that gets quieter over time (`industrial-precision`, `nordic-calm`, `data-dense`). A surface people meet once wants one that lands immediately (`editorial-print`, `brutalist-mono`, `playful-pop`). When the user names a mood, map it here rather than inventing a thirteenth direction.
 
@@ -27,7 +27,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 1. Industrial Precision — `industrial-precision`
+## 1. Industrial Precision (`industrial-precision`)
 
 > Instrumentation, not decoration. The interface behaves like a well-made tool.
 
@@ -49,7 +49,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 2. Editorial Print — `editorial-print`
+## 2. Editorial Print (`editorial-print`)
 
 > The page came first. The interface is what a magazine would do if it could respond.
 
@@ -71,7 +71,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 3. Retro Terminal — `retro-terminal`
+## 3. Retro Terminal (`retro-terminal`)
 
 > The machine talks back in its own voice, and expects you to keep up.
 
@@ -93,7 +93,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 4. Warm Organic — `warm-organic`
+## 4. Warm Organic (`warm-organic`)
 
 > Nothing here has a sharp edge, including the tone of voice.
 
@@ -115,7 +115,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 5. Brutalist Mono — `brutalist-mono`
+## 5. Brutalist Mono (`brutalist-mono`)
 
 > The structure is the design. Nothing is hidden and nothing is softened.
 
@@ -137,7 +137,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 6. Neo-Luxury — `neo-luxury`
+## 6. Neo-Luxury (`neo-luxury`)
 
 > Restraint as the message. What is left out signals the value.
 
@@ -159,7 +159,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 7. Swiss Grid — `swiss-grid`
+## 7. Swiss Grid (`swiss-grid`)
 
 > The International Typographic Style, applied honestly rather than quoted.
 
@@ -181,7 +181,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 8. Data Dense — `data-dense`
+## 8. Data Dense (`data-dense`)
 
 > Maximum information per square inch, without becoming unreadable.
 
@@ -191,7 +191,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 **Surface & depth.** Hairlines and value shifts only. Panels are separated by 1px borders, never gaps. Sticky headers and frozen columns replace visual elevation.
 
-**Type pairing.** `IBM Plex Sans` for labels and chrome, `IBM Plex Mono` with `tnum` for every figure. Body sizes run small (12–14px) with tight line-height (1.35) and the type must stay crisp at that size.
+**Type pairing.** `IBM Plex Sans` for labels and chrome, `IBM Plex Mono` with `tnum` for every figure. Body sizes run small (12-14px) with tight line-height (1.35) and the type must stay crisp at that size.
 
 **Motion.** Nearly none. Sorting and filtering apply instantly. The only animation permitted is a 75ms row-highlight on hover and a brief flash on a value that just changed.
 
@@ -203,7 +203,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 9. Playful Pop — `playful-pop`
+## 9. Playful Pop (`playful-pop`)
 
 > Tactile, saturated, and unafraid to be fun. Every interaction rewards the tap.
 
@@ -225,7 +225,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 10. Nordic Calm — `nordic-calm`
+## 10. Nordic Calm (`nordic-calm`)
 
 > The interface gets out of the way and stays out of the way.
 
@@ -237,7 +237,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 **Type pairing.** `Hanken Grotesk` for both display and body at contrasting weights and sizes; mono `Geist Mono`. Line-height 1.6 or more, measure capped near 68 characters.
 
-**Motion.** Slow and soft. 300ms fades, no transforms beyond a 2–4px settle, and a strong preference for cross-fades over movement.
+**Motion.** Slow and soft. 300ms fades, no transforms beyond a 2-4px settle, and a strong preference for cross-fades over movement.
 
 **Signature move.** Whitespace as the primary structural device: sections separated by 96px or more of nothing, with no rule, no card, and no background change marking the boundary. Silence does the work.
 
@@ -247,7 +247,7 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 11. Cyber Neon — `cyber-neon`
+## 11. Cyber Neon (`cyber-neon`)
 
 > Charged, technical, and lit from within. Night-shift energy.
 
@@ -269,13 +269,13 @@ Every font named below is freely licensed and installable today. Follow the subs
 
 ---
 
-## 12. Soft Depth — `soft-depth`
+## 12. Soft Depth (`soft-depth`)
 
 > Layered, light, and modern, achieved with restraint rather than effects.
 
 **Feels like.** Panes of frosted glass stacked in daylight. Clear hierarchy through layering, with a friendly rather than technical tone.
 
-**Palette logic.** A very light neutral field with a barely-perceptible cool or warm tint, surfaces slightly lighter than the canvas, and one confident accent used for primary action and active state. Tints of the accent at 8–12% opacity carry selected and hover states.
+**Palette logic.** A very light neutral field with a barely-perceptible cool or warm tint, surfaces slightly lighter than the canvas, and one confident accent used for primary action and active state. Tints of the accent at 8-12% opacity carry selected and hover states.
 
 **Surface & depth.** The whole point: three clear layers (canvas, surface, raised) distinguished by value, a soft large-radius shadow, and a 1px light border on top edges to suggest a lit surface. Translucency only where something meaningful sits behind it.
 

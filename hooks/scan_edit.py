@@ -10,7 +10,7 @@ false-fires.
 
 Net-new only: a finding whose offending line already exists verbatim in the
 baseline (the file's prior contents for a Write, or `old_string` for an Edit)
-is grandfathered — the hook blocks tokens you INTRODUCE, not ones you merely
+is grandfathered, the hook blocks tokens you INTRODUCE, not ones you merely
 carry past on an untouched line.
 
 `load_detectors` and `detect` are the public API reused by scan_bash.py;
@@ -18,7 +18,7 @@ carry past on an untouched line.
 
 Usage: `scan_edit.py <lawkeeper-scripts-dir> [baseline-file]` with candidate
 text on stdin. Prints one `<rule>\\t<line>` per net-new finding. Exit 0 always
-— this is a detector; the calling hook decides whether to block. ANY internal
+, this is a detector; the calling hook decides whether to block. ANY internal
 failure (detectors unavailable, undecodable stdin, a detector bug) exits 0
 with no findings: fail open, a hook bug must never wedge editing.
 """
@@ -40,7 +40,7 @@ SUPPRESSIONS = (
 
 def load_detectors(scripts_dir):
     """Return a Detectors bundle (mask_source, semantic rules, FileContext) from
-    lawkeeper's scripts dir — its tested lexer + checks are the single source of truth."""
+    lawkeeper's scripts dir, its tested lexer + checks are the single source of truth."""
     sys.path.insert(0, scripts_dir)
     from lexer import mask_source
     from checks import EMPTY_CATCH_RE, BARE_ERROR_RE, NON_NULL_RE, FileContext
@@ -73,7 +73,7 @@ def _scan_semantic(masked_lines, semantic):
 def _scan_secrets(text, file_context):
     """Hardcoded-secret findings via FileContext.check_secrets so the provider
     patterns, the env-name carve-out, and redaction stay in one tested place. Only
-    (rule, line) is returned — the secret value never leaves the scanner."""
+    (rule, line) is returned, the secret value never leaves the scanner."""
     return [(f['rule_id'], f['line']) for f in file_context('<candidate>', text).check_secrets()]
 
 
@@ -116,7 +116,7 @@ def _run():
 
 def main():
     # Fail-open contract (module docstring: "Exit 0 always"): ANY internal
-    # failure — detectors unavailable, undecodable stdin, a detector bug —
+    # failure, detectors unavailable, undecodable stdin, a detector bug
     # must end in exit 0 with a finding-free stdout so a hook bug never
     # wedges editing. Exiting 0 with no findings IS the documented handling,
     # not a swallow. One stderr line names the error class so manual runs and

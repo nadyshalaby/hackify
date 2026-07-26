@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer-dependencies
-description: Phase 2.5 Spec-review C — proposes a topological execution-wave plan for a hackify work-doc Sprint Backlog and flags dependency/ordering/parallelism risks (file-collision edges within a wave, missing prerequisites, oversized or undersized tasks) before Phase 3 implementation begins.
+description: Phase 2.5 Spec-review C, proposes a topological execution-wave plan for a hackify work-doc Sprint Backlog and flags dependency/ordering/parallelism risks (file-collision edges within a wave, missing prerequisites, oversized or undersized tasks) before Phase 3 implementation begins.
 ---
 
 ```
@@ -31,8 +31,8 @@ Bias against: trusting that "the implementer will sequence it correctly"
 at dispatch time.
 
 **INPUTS**.
-1. `{{work_doc_path}}` — absolute filesystem path to the work-doc.
-2. `{{wave_size_target}}` — preferred maximum number of parallel tasks
+1. `{{work_doc_path}}`, absolute filesystem path to the work-doc.
+2. `{{wave_size_target}}`, preferred maximum number of parallel tasks
    per wave (integer; defaults to 4 if the work-doc does not specify).
 
 **OBJECTIVE**.
@@ -82,19 +82,19 @@ If ANY answer is "no", loop back to METHOD.
    task scheduled before a task it depends on? (yes / no)
 
 **SEVERITY**.
-- **Critical** — A planned wave will fail or corrupt state if dispatched
+- **Critical**. A planned wave will fail or corrupt state if dispatched
   as written. Anchored examples:
   - Tasks T5 and T6 both modify `../skills/hackify/references/parallel-agents/README.md` and the plan puts
     them in the same wave = Critical (concurrent edit conflict).
   - Task T9 reads a CHANGELOG entry that Task T11 creates, but T9 is
     scheduled in an earlier wave than T11 = Critical.
-- **Important** — Ordering or sizing risks that will slow the wave but
+- **Important**. Ordering or sizing risks that will slow the wave but
   not break it. Anchored examples:
   - Task T3 is estimated at ~60 minutes of work touching 8 files =
     Important (split into T3a and T3b).
   - Wave 4 has only one task; Wave 3 has six tasks = Important
     (rebalance for throughput).
-- **Minor** — Cosmetic ordering nits. Anchored examples:
+- **Minor**. Cosmetic ordering nits. Anchored examples:
   - Task T7 could move from Wave 2 to Wave 1 with no dependency
     impact = Minor.
   - Task naming is inconsistent (T4 vs Task 4) = Minor.
@@ -102,7 +102,7 @@ If ANY answer is "no", loop back to METHOD.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤400 words — wave plans need slightly more budget than pure reviews
+≤400 words, wave plans need slightly more budget than pure reviews
 because the proposed plan must be enumerable. Use this exact report
 skeleton:
 
@@ -132,5 +132,5 @@ Wave 3: T<f>
 ````
 
 If a findings section has no entries, write `None.` on its own line
-under the heading — never go silent.
+under the heading, never go silent.
 ```

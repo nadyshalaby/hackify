@@ -7,7 +7,7 @@ emit_codex_app() {
   prune_runtime_dist "codex-app"
   mirror_canonical_files "codex-app"
   write_or_announce_heredoc "dist/codex-app/MANIFEST.md" <<'EOF'
-# hackify — Codex App (web) package
+# hackify. Codex App (web) package
 
 The Codex App accepts custom instructions and uploaded reference documents.
 Hackify is shipped here as a set of markdown files you upload as project
@@ -27,7 +27,7 @@ context.
 
 ## Contents
 
-Same as `dist/codex-cli/` — the canonical hackify file tree.
+Same as `dist/codex-cli/`, the canonical hackify file tree.
 
 ## Source of truth
 

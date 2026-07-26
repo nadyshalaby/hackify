@@ -1,10 +1,10 @@
-# Carve-outs — the exemptions, and how to detect them per project
+# Carve-outs (the exemptions, and how to detect them per project)
 
 An auditor that flags a documented exception trains its user to ignore it. Encoding the
 carve-outs IS the core feature, not an afterthought. Two kinds: **path carve-outs** (which
-files a rule skips — already enforced by `scripts/exemptions.py`) and **semantic floors**
+files a rule skips, already enforced by `scripts/exemptions.py`) and **semantic floors**
 (which constructs a Phase-3 subagent must leave alone). Verify per project which apply by
-checking for the files/dirs/config — do not assume any one project's layout.
+checking for the files/dirs/config, do not assume any one project's layout.
 
 ## Path carve-outs (enforced by the scanner)
 
@@ -21,11 +21,11 @@ them per project via `--extra-generated <glob>` when a project uses a different 
 | Inline-type ban scope | applies ONLY to `*.service.ts`, `*.controller.ts`, `*.routes.ts(x)`, `*.middleware.ts`, `*.guard.ts` | basename glob |
 
 Runtime-detect project specifics before scanning:
-- **Generated files** — grep the first lines of candidates for `@generated`, `eslint-disable`,
+- **Generated files**, grep the first lines of candidates for `@generated`, `eslint-disable`,
   `DO NOT EDIT`, `This file is auto-generated`. Pass matches as `--extra-generated`.
-- **Frozen/vendored dirs** — read `tsconfig.json` `exclude` and the lint ignore file; anything
+- **Frozen/vendored dirs**, read `tsconfig.json` `exclude` and the lint ignore file; anything
   excluded from typecheck/lint is excluded from the audit too.
-- **Schema files** — `**/schema.ts` and `**/*.schema.ts` are off-limits to magic-literal
+- **Schema files**, `**/schema.ts` and `**/*.schema.ts` are off-limits to magic-literal
   extraction (Drizzle/Zod builders). They are not scoped-type files, so the inline-type ban
   already skips them.
 
@@ -34,29 +34,29 @@ Runtime-detect project specifics before scanning:
 These are the DO-NOT-EXTRACT and DO-NOT-FLAG rules for the judgment pass. A subagent that
 flags one of these is producing noise. Pass this list into every relevant subagent prompt.
 
-### Magic-literal extraction floors — leave these inline
+### Magic-literal extraction floors (leave these inline)
 - Identity values: `0`, `1`, `-1`, `''`, `true`, `false`.
 - Tailwind / CSS class strings.
 - Zod-builder arguments: `z.literal(...)`, `z.enum([...])`, and similar schema-builder args.
 - Object keys; SQL fragments; template literals containing `${…}`.
 - Import specifiers; regex literals; union-type member literals.
 - Drizzle schema defaults. **`**/schema.ts` and `**/migrations/**` are entirely off-limits.**
-- Lint-ban tokens themselves (`biome-ignore`, `@ts-ignore`, …) stay literal — they ARE the
+- Lint-ban tokens themselves (`biome-ignore`, `@ts-ignore`, …) stay literal, they ARE the
   strings the bans grep for.
 
 ### Frontend-specific floors (when the project is a TS frontend)
 - **TanStack Router typed paths** consumed by `createFileRoute`, `<Link to>`, `navigate`,
-  `redirect`, `validateSearch` stay inline — extracting breaks route type-inference. (Axios
+  `redirect`, `validateSearch` stay inline, extracting breaks route type-inference. (Axios
   endpoint paths ARE extractable.)
-- **react-refresh carve-out (narrowed)** — a component that declares its own inline
+- **react-refresh carve-out (narrowed)**, a component that declares its own inline
   `const FormSchema = z.object({…})` may keep that schema's `z.infer` value type and field-prop
   interfaces referencing `FormValues`/`Control<FormValues>` in-file; relocating ONLY the type trips
   `react-refresh/only-export-components`. The clean resolution that satisfies the one-construct rule
-  (§3.5) is to relocate BOTH the runtime schema and its inferred type to dedicated files — the
+  (§3.5) is to relocate BOTH the runtime schema and its inferred type to dedicated files, the
   component then exports no runtime value, so react-refresh stays green. So the inline carve-out
   applies ONLY when a project deliberately keeps the runtime schema in-file for locality; otherwise an
   inline component schema IS a finding (`scope.one-construct`). Every OTHER type still leaves the impl file.
-- `routeTree.gen.ts` is generated — never hand-edit, never flag.
+- `routeTree.gen.ts` is generated, never hand-edit, never flag.
 
 ### Bare-error nuance
 `ban.bare-error` is "in DOMAIN code." The scanner flags every `throw new Error(` because it
@@ -68,5 +68,5 @@ weak finding.
 
 Stricter wins, so a project may TIGHTEN but not relax a global ban. If a maintainer states an
 explicit, coherent exception (e.g. "we allow `console.error` in the FE logger"), record it as
-a waiver in the report rather than silently dropping it — the waiver is auditable, a silent
+a waiver in the report rather than silently dropping it, the waiver is auditable, a silent
 skip is not.

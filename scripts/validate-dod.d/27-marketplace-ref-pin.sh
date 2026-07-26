@@ -6,7 +6,7 @@
 # 0.8.0 but the stable channel's `source.ref` left at "v0.7.1". The version
 # field is display metadata; `ref` is what Claude Code actually fetches. The
 # result was a released plugin that clients reported as "already at the latest
-# version (0.7.1)" — the new release was invisible, with every file correct and
+# version (0.7.1)", the new release was invisible, with every file correct and
 # every other check green. A one-line miss with a silent, total failure mode.
 #
 # Rules enforced:
@@ -17,7 +17,7 @@
 yellow "[27] marketplace channel pins match plugin.json (stable ref, edge ref, versions)"
 
 if ! command -v jq > /dev/null 2>&1; then
-  red "  FAIL jq not available — cannot verify marketplace pins"
+  red "  FAIL jq not available, cannot verify marketplace pins"
   FAILED=$((FAILED + 1))
   return 0 2>/dev/null || true
 fi

@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Nordic Calm — design spec
+name: Nordic Calm, design spec
 direction: nordic-calm
 platforms: [web, native]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.25, 0.6, 0.3, 1)"
     exit: "cubic-bezier(0.4, 0, 0.7, 0.2)"
     move: "cubic-bezier(0.25, 0.6, 0.3, 1)"
-  reduced: "respect prefers-reduced-motion — cross-fade only, remove the 2px settle"
+  reduced: "respect prefers-reduced-motion, cross-fade only, remove the 2px settle"
 
 components:
   button-primary:
@@ -266,23 +266,23 @@ The accent appears **once per view at most**. In a writing tool, that is the sav
 ## Colors
 
 ### Brand & Accent
-- **Slate** (`{colors.accent}` — `#4a6b74`): the single accent. The primary button, the active navigation item, the focus ring, the one indicator that matters. Contrast against white is 5.76:1. Once per view.
-- **Slate Hover / Press** (`{colors.accent-hover}` — `#577c86`, `{colors.accent-press}` — `#3b565e`).
+- **Slate** (`{colors.accent}`, `#4a6b74`): the single accent. The primary button, the active navigation item, the focus ring, the one indicator that matters. Contrast against white is 5.76:1. Once per view.
+- **Slate Hover / Press** (`{colors.accent-hover}`, `#577c86`, `{colors.accent-press}`, `#3b565e`).
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#f7f8f7`): the page, a cool off-white.
-- **Surface** (`{colors.surface}` — `#ffffff`): cards, inputs, modals, sitting a shade brighter than the page.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#eceeec`): hover fills, badges, disabled states.
-- **Hairline** (`{colors.hairline}` — `#e2e5e3`): used only inside tables and lists, never between sections.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#ccd2cf`): input and secondary-button borders.
+- **Canvas** (`{colors.canvas}`, `#f7f8f7`): the page, a cool off-white.
+- **Surface** (`{colors.surface}`, `#ffffff`): cards, inputs, modals, sitting a shade brighter than the page.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#eceeec`): hover fills, badges, disabled states.
+- **Hairline** (`{colors.hairline}`, `#e2e5e3`): used only inside tables and lists, never between sections.
+- **Hairline Strong** (`{colors.hairline-strong}`, `#ccd2cf`): input and secondary-button borders.
 
 ### Text
-- **Charcoal** (`{colors.text-primary}` — `#1f2421`): headings and body. Contrast on canvas 14.80:1.
-- **Charcoal Secondary** (`{colors.text-secondary}` — `#5f6a66`): supporting copy, navigation, metadata. Contrast 5.27:1.
-- **Charcoal Muted** (`{colors.text-muted}` — `#8b9591`): placeholders, disabled, timestamps.
+- **Charcoal** (`{colors.text-primary}`, `#1f2421`): headings and body. Contrast on canvas 14.80:1.
+- **Charcoal Secondary** (`{colors.text-secondary}`, `#5f6a66`): supporting copy, navigation, metadata. Contrast 5.27:1.
+- **Charcoal Muted** (`{colors.text-muted}`, `#8b9591`): placeholders, disabled, timestamps.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#4c7a5a`), **Caution** (`{colors.caution}` — `#7d6226`), **Negative** (`{colors.negative}` — `#a05248`). All desaturated to sit within the palette's quietness. A semantic color appearing counts against the one-accent budget for that view, since two colored elements on a near-colorless screen compete regardless of what they mean.
+**Positive** (`{colors.positive}`, `#4c7a5a`), **Caution** (`{colors.caution}`, `#7d6226`), **Negative** (`{colors.negative}`, `#a05248`). All desaturated to sit within the palette's quietness. A semantic color appearing counts against the one-accent budget for that view, since two colored elements on a near-colorless screen compete regardless of what they mean.
 
 ## Typography
 
@@ -397,8 +397,8 @@ Tables are quiet: `{typography.body-sm}` with `{colors.hairline}` bottom rules a
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Centered column with wide margins; optional metadata rail |
-| `lg` | 1024–1439px | Rail narrows; margins reduce |
-| `md` | 768–1023px | Rail moves below content |
+| `lg` | 1024-1439px | Rail narrows; margins reduce |
+| `md` | 768-1023px | Rail moves below content |
 | `sm` | < 768px | Single column; display-xl to 30px; rhythm to 56px |
 
 **Type ramp on small screens:** display-xl 46 → 30px, display-lg 34 → 24px, heading-lg 25 → 20px. Body stays at 16px and line-height stays at 1.7.

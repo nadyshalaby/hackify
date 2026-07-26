@@ -1,4 +1,4 @@
-# Catalog — twelve ready-to-drop design specs
+# Catalog (twelve ready-to-drop design specs)
 
 Twelve complete `DESIGN.md` files, one per direction in [direction-library.md](../direction-library.md), each conforming to [spec-contract.md](../spec-contract.md).
 
@@ -53,9 +53,9 @@ Six dark-canonical, six light-canonical. Nine cover web and native; `editorial-p
 
 Each spec is also a demonstration of the contract, which makes the catalog useful even when none is adopted:
 
-- **industrial-precision** — the fullest treatment of tabular numerics and hairline-based structure.
-- **retro-terminal** — how to write a spec where a whole token category is deliberately null (every radius and elevation is zero).
-- **swiss-grid** — how to specify a grid so precisely that it replaces the depth system.
-- **data-dense** — how to specify density without losing accessibility, and how to spec charts.
-- **cyber-neon** — how to write anti-tells that keep a direction clear of an adjacent cliché.
-- **soft-depth** — how to achieve a layered effect without the expensive technique everyone reaches for first.
+- **industrial-precision**, the fullest treatment of tabular numerics and hairline-based structure.
+- **retro-terminal**, how to write a spec where a whole token category is deliberately null (every radius and elevation is zero).
+- **swiss-grid**, how to specify a grid so precisely that it replaces the depth system.
+- **data-dense**, how to specify density without losing accessibility, and how to spec charts.
+- **cyber-neon**, how to write anti-tells that keep a direction clear of an adjacent cliché.
+- **soft-depth**, how to achieve a layered effect without the expensive technique everyone reaches for first.

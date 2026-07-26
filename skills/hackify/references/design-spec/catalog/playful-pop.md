@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Playful Pop — design spec
+name: Playful Pop, design spec
 direction: playful-pop
 platforms: [web, native]
 accentIsFill: true
@@ -138,7 +138,7 @@ motion:
     enter: "cubic-bezier(0.34, 1.56, 0.64, 1)"
     exit: "cubic-bezier(0.36, 0, 0.66, -0.4)"
     move: "cubic-bezier(0.34, 1.56, 0.64, 1)"
-  reduced: "respect prefers-reduced-motion — remove spring overshoot and press scale, keep color changes"
+  reduced: "respect prefers-reduced-motion, remove spring overshoot and press scale, keep color changes"
 
 components:
   button-primary:
@@ -278,26 +278,26 @@ Color is loud but strictly bounded: **three hues and no more**. Coral `{colors.a
 
 This is the one spec in the catalog with **three accents rather than one**, and the reason is documented here rather than assumed: the direction encodes meaning through hue, so a single accent would force meaning back onto shape and position, which chunky components cannot carry finely enough.
 
-- **Coral** (`{colors.accent}` — `#ff6b47`): the primary action, always. Contrast against `{colors.on-accent}` near-black is 6.37:1.
-- **Coral Hover / Press** (`{colors.accent-hover}` — `#ff8365`, `{colors.accent-press}` — `#e5512e`).
-- **Sun** (`{colors.accent-two}` — `#ffc233`): badges, highlights, streaks and rewards, selected states.
-- **Sky** (`{colors.accent-three}` — `#2f9fd4`): informational surfaces, focus rings, toasts.
+- **Coral** (`{colors.accent}`, `#ff6b47`): the primary action, always. Contrast against `{colors.on-accent}` near-black is 6.37:1.
+- **Coral Hover / Press** (`{colors.accent-hover}`, `#ff8365`, `{colors.accent-press}`, `#e5512e`).
+- **Sun** (`{colors.accent-two}`, `#ffc233`): badges, highlights, streaks and rewards, selected states.
+- **Sky** (`{colors.accent-three}`, `#2f9fd4`): informational surfaces, focus rings, toasts.
 
 All three take `{colors.text-primary}` near-black as their foreground, never white. Dark text on a saturated fill is what keeps this palette from turning into a children's toy.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#fff8ec`): warm cream page background.
-- **Surface** (`{colors.surface}` — `#ffffff`): cards, inputs, modals.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#ffeeda`): hover fills, disabled fills, quiet blocks.
+- **Canvas** (`{colors.canvas}`, `#fff8ec`): warm cream page background.
+- **Surface** (`{colors.surface}`, `#ffffff`): cards, inputs, modals.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#ffeeda`): hover fills, disabled fills, quiet blocks.
 - **Hairline** and **Hairline Strong** (both `#1a1614`): identical by design. Borders in this system are always near-black, always 2px.
 
 ### Text
-- **Ink** (`{colors.text-primary}` — `#1a1614`): everything, including text on colored fills. Contrast on canvas 17.02:1.
-- **Ink Secondary** (`{colors.text-secondary}` — `#5e534c`): supporting copy. Contrast 7.06:1.
-- **Ink Muted** (`{colors.text-muted}` — `#9b8e84`): disabled and placeholder only.
+- **Ink** (`{colors.text-primary}`, `#1a1614`): everything, including text on colored fills. Contrast on canvas 17.02:1.
+- **Ink Secondary** (`{colors.text-secondary}`, `#5e534c`): supporting copy. Contrast 7.06:1.
+- **Ink Muted** (`{colors.text-muted}`, `#9b8e84`): disabled and placeholder only.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#1f9e56`), **Caution** (identical to `{colors.accent-two}` sun, since a highlight and a caution are the same visual event here), **Negative** (`{colors.negative}` — `#e5382b`). All are flat fills with near-black borders and near-black text, matching every other component.
+**Positive** (`{colors.positive}`, `#1f9e56`), **Caution** (identical to `{colors.accent-two}` sun, since a highlight and a caution are the same visual event here), **Negative** (`{colors.negative}`, `#e5382b`). All are flat fills with near-black borders and near-black text, matching every other component.
 
 **Contrast rule specific to this direction.** The three hues and the three semantic colors are **fill colors, never text colors**. Each is measured for contrast against the near-black `{colors.text-primary}` that sits on top of it, not against the canvas. Coral on near-black is 6.37:1 and sun is higher still. Setting any of them as text on `{colors.canvas}` would fail AA, so the spec forbids it: error and status messages use `{colors.text-primary}` text on a semantic fill, or `{colors.text-primary}` text beside a semantic-filled icon. This is the opposite of the convention in the light-canvas specs elsewhere in the catalog, and it is deliberate.
 
@@ -416,8 +416,8 @@ Tables are secondary here. `table-row` uses 2px near-black bottom borders, which
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full layout; shadows at 8px; display-xl at 64px |
-| `lg` | 1024–1439px | Layout holds; shadows at 8px |
-| `md` | 768–1023px | Two-column maximum; shadows drop to 5px |
+| `lg` | 1024-1439px | Layout holds; shadows at 8px |
+| `md` | 768-1023px | Two-column maximum; shadows drop to 5px |
 | `sm` | < 768px | Single column; shadows drop to 3px; display-xl to 36px |
 
 **Type ramp on small screens:** display-xl 64 → 36px, display-lg 44 → 28px, heading-lg 30 → 24px. Body stays at 16px and button text stays at 17px, because shrinking button text undermines the chunky feel.

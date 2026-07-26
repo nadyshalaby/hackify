@@ -1,4 +1,4 @@
-# data.json — the trace-to-viewer contract
+# data.json (the trace-to-viewer contract)
 
 `data.json` is the only file that varies between traces. Everything else in `.codewalk/<slug>/` is a static viewer asset copied from `skills/codewalk/assets/`. If `data.json` is well-formed, the viewer renders. If a field is missing, the viewer degrades gracefully (empty section, neutral state) but never throws.
 
@@ -42,7 +42,7 @@ The schema below is normative. Field names are exact. The order of array element
 
 ## Nodes
 
-Each node is one function on the traced path. The node ID is `<file>:<function_name>` — globally unique within `data.json`. If the same function appears twice on the path (recursion or repeated dispatch), append `#<order>` to disambiguate.
+Each node is one function on the traced path. The node ID is `<file>:<function_name>`, globally unique within `data.json`. If the same function appears twice on the path (recursion or repeated dispatch), append `#<order>` to disambiguate.
 
 ```json
 {
@@ -116,9 +116,9 @@ Each node is one function on the traced path. The node ID is `<file>:<function_n
 { "line": 47, "fragment": "userService.findById(userId)", "callee_id": "src/services/user.service.ts:findById" }
 ```
 
-- `line` — absolute line number within the file where the call appears.
-- `fragment` — short string snippet of the call expression. The viewer searches the source line for this substring to wrap it in an anchor. If the substring is not found, the viewer falls back to wrapping the whole line.
-- `callee_id` — must match a `nodes[].id`. The viewer validates this and warns in the console if dangling.
+- `line`, absolute line number within the file where the call appears.
+- `fragment`, short string snippet of the call expression. The viewer searches the source line for this substring to wrap it in an anchor. If the substring is not found, the viewer falls back to wrapping the whole line.
+- `callee_id`, must match a `nodes[].id`. The viewer validates this and warns in the console if dangling.
 
 ### docblock
 
@@ -132,11 +132,11 @@ Each node is one function on the traced path. The node ID is `<file>:<function_n
 }
 ```
 
-`side_effects` is an array of zero or more of the fixed set: `db`, `queue`, `http`, `cache`, `auth`, `fs`. The viewer renders these as colored chips. Anything outside the set is silently dropped — keep classification consistent.
+`side_effects` is an array of zero or more of the fixed set: `db`, `queue`, `http`, `cache`, `auth`, `fs`. The viewer renders these as colored chips. Anything outside the set is silently dropped, keep classification consistent.
 
 ## Type-definition nodes (`layer: "type"`)
 
-A type node represents a TypeScript `interface`, `type` alias, `class` (declaration only — not its method bodies), `enum`, Zod schema (`z.object({ ... })`), TypeORM entity, NestJS DTO, or equivalent named-shape declaration in other languages (Python `dataclass`, Pydantic model, Go `struct`, Rust `struct`/`enum`, Ruby `Struct`, Java `record`/`class`-as-DTO).
+A type node represents a TypeScript `interface`, `type` alias, `class` (declaration only, not its method bodies), `enum`, Zod schema (`z.object({ ... })`), TypeORM entity, NestJS DTO, or equivalent named-shape declaration in other languages (Python `dataclass`, Pydantic model, Go `struct`, Rust `struct`/`enum`, Ruby `Struct`, Java `record`/`class`-as-DTO).
 
 Type nodes share the same JSON shape as function nodes, but with these specific values:
 
@@ -171,7 +171,7 @@ Type nodes share the same JSON shape as function nodes, but with these specific 
 
 Conventions:
 
-- `invoked_lines` is `[]`. Type declarations aren't "executed" — the viewer simply shows the body greyed (no green-highlight).
+- `invoked_lines` is `[]`. Type declarations aren't "executed", the viewer simply shows the body greyed (no green-highlight).
 - `call_sites` is `[]` in nearly all cases. A `class` whose own methods are traced has its methods captured as separate function nodes.
 - `branches_not_taken` is `[]`. Types have no runtime control flow.
 - `data_in` is the upstream raw payload that gets coerced INTO this shape; `data_out` is the validated/typed result. For pure type-aliases (`type X = Y & Z`), both equal the type itself.
@@ -186,7 +186,7 @@ Type nodes are reached via `call_sites` entries on function nodes:
 ]
 ```
 
-The viewer renders `SearchQuerySchema` in the controller source as a clickable cw-call span. Clicking it navigates to the type node — same as clicking any other callee — and the right rail shows the schema body.
+The viewer renders `SearchQuerySchema` in the controller source as a clickable cw-call span. Clicking it navigates to the type node, same as clicking any other callee, and the right rail shows the schema body.
 
 **Emit a type node for every named shape that appears on the path.** If `data_in: "AuthContext"` appears in any function node's docblock, `AuthContext` must exist as a node. Otherwise the trace claims a shape it can't show.
 
@@ -226,9 +226,9 @@ The viewer renders `SearchQuerySchema` in the controller source as a clickable c
 }
 ```
 
-All five sub-fields are required. Empty array allowed for `data_evolution`, `invariants`, `failure_modes` when the trace is too shallow to warrant them. Empty string allowed for the two Mermaid sources but discouraged — the viewer will render an empty diagram placeholder.
+All five sub-fields are required. Empty array allowed for `data_evolution`, `invariants`, `failure_modes` when the trace is too shallow to warrant them. Empty string allowed for the two Mermaid sources but discouraged, the viewer will render an empty diagram placeholder.
 
-Layer names in `sequence_mermaid` MUST be `Controller`, `Service`, `Repository`, `External`, `Type`, or `Other` — matching `layers` keys, capitalized. This keeps the diagram architectural rather than class-named. Type nodes generally do NOT appear as participants in the sequence diagram (they aren't actors); they're referenced inline via the message labels (e.g. `Controller->>Service: search(query: SearchQuery)`).
+Layer names in `sequence_mermaid` MUST be `Controller`, `Service`, `Repository`, `External`, `Type`, or `Other`, matching `layers` keys, capitalized. This keeps the diagram architectural rather than class-named. Type nodes generally do NOT appear as participants in the sequence diagram (they aren't actors); they're referenced inline via the message labels (e.g. `Controller->>Service: search(query: SearchQuery)`).
 
 ## deferred_branches
 
@@ -281,7 +281,7 @@ Sanitization: lowercase ASCII alphanumeric + dash. Collapse runs of dashes. Stri
 - `invoked_lines` is a subset of the line numbers between `function_range[0]` and `function_range[1]` inclusive.
 - `source` line count equals `function_range[1] - function_range[0] + 1`.
 
-## Playbook mode — multi-entry catalog (since v0.3.1)
+## Playbook mode, multi-entry catalog (since v0.3.1)
 
 When the user wants every endpoint / handler / job in a service traceable from a single index page, the skill switches to **playbook mode**. The deliverable is the same per-slug viewer plus a top-level `index.html` that lists every entry with live filtering. Two extra JSON files drive the build:
 
@@ -342,7 +342,7 @@ Each `entries[i]` carries the same node/edge contract documented in the sections
 
 ### Builder
 
-The builder is shipped as `assets/build-playbook.mjs`. The skill copies it to `.codewalk/_build.mjs` during Phase 5 and runs it once. Re-run is idempotent — safe after the catalog grows or a `_traces.json` is added.
+The builder is shipped as `assets/build-playbook.mjs`. The skill copies it to `.codewalk/_build.mjs` during Phase 5 and runs it once. Re-run is idempotent, safe after the catalog grows or a `_traces.json` is added.
 
 ```
 node .codewalk/_build.mjs --out .codewalk

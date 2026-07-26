@@ -1,4 +1,4 @@
-# hackify — GitHub Copilot CLI package
+# hackify (GitHub Copilot CLI package)
 
 GitHub Copilot CLI has NO plugin / skill / custom-instruction model as of
 hackify v0.2.0. You cannot register hackify as a reusable workflow; the

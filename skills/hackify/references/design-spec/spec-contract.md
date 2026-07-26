@@ -1,4 +1,4 @@
-# DESIGN.md — Spec Contract
+# DESIGN.md (Spec Contract)
 
 The binding anatomy of a hackify design spec. A `DESIGN.md` is the **committed visual contract** for a product: machine-readable tokens a coding agent can resolve, and prose a human can argue with. Code is written against it and reviewed against it.
 
@@ -25,10 +25,10 @@ Two halves, in this order, no exceptions:
 
 ```
 ---
-<YAML frontmatter — the token layer, machine-resolvable>
+<YAML frontmatter, the token layer, machine-resolvable>
 ---
 
-<prose sections — the reasoning layer, human-readable>
+<prose sections, the reasoning layer, human-readable>
 ```
 
 The frontmatter is the source of truth for values. The prose explains *why* and states the rules a value alone cannot carry. When they disagree, the frontmatter wins and the prose is a bug.
@@ -41,7 +41,7 @@ The frontmatter is the source of truth for values. The prose explains *why* and 
 
 ```yaml
 version: 1
-name: <Direction Name> — <Product> design spec
+name: <Direction Name>, <Product> design spec
 direction: <slug from direction-library.md>
 platforms: [web, native]        # or [web] / [native]
 description: >
@@ -86,7 +86,7 @@ Rules:
 - **Semantic set is separate from accent.** `positive` / `caution` / `negative` carry state meaning. Never reuse `accent` as `positive`.
 - **`on-*` for every fill.** Any color used as a fill behind text ships a matching `on-<name>` so contrast is decided once, in the spec.
 - **Hex, lowercase, 6 digits.** No `rgba()` in the token layer. Transparency lives in `elevation` or component entries.
-- **12–20 entries.** Fewer than 12 means roles are missing; more than 20 means hue names crept in.
+- **12-20 entries.** Fewer than 12 means roles are missing; more than 20 means hue names crept in.
 
 ### typography
 
@@ -166,10 +166,10 @@ motion:
     enter: "cubic-bezier(0.16, 1, 0.3, 1)"
     exit:  "cubic-bezier(0.4, 0, 1, 1)"
     move:  "cubic-bezier(0.2, 0, 0, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, no transform, no parallax"
+  reduced: "respect prefers-reduced-motion, opacity only, no transform, no parallax"
 ```
 
-One base unit for `spacing` (4px or 8px), stated in the Layout prose. `elevation` levels are 0–3; a fourth level means the surface hierarchy is unclear.
+One base unit for `spacing` (4px or 8px), stated in the Layout prose. `elevation` levels are 0-3; a fourth level means the surface hierarchy is unclear.
 
 ### components
 
@@ -205,7 +205,7 @@ components:
 
 Required components: `button-primary`, `button-secondary`, `button-ghost`, `input-text`, `card`, `nav-bar`, `table-row`, `badge`, `modal`, `toast`. Interactive components ship their `-hover`, `-focus`, `-press`, and `-disabled` variants as separate entries.
 
-**12–24 component entries.** A spec with 40 entries is documenting screens, not a system.
+**12-24 component entries.** A spec with 40 entries is documenting screens, not a system.
 
 ### platform
 
@@ -220,7 +220,7 @@ platform:
     focusRing: "2px solid {colors.focus-ring}"
     logicalProperties: required      # margin-inline-start, never margin-left
   native:
-    touchTargetMin: 44                # pt/dp — both platforms
+    touchTargetMin: 44                # pt/dp, both platforms
     safeArea: respected
     statusBarStyle: light-content     # light-content | dark-content
     elevationModel: shadow            # shadow | material
@@ -254,7 +254,7 @@ One token set, four renderers. This table is normative: an implementer applying 
 
 **Line-height rule.** The one token that does not map cleanly. Web and Flutter take a ratio; React Native takes an absolute value; SwiftUI takes a delta above the font's natural leading. Store the **ratio** and convert at the adapter: RN `lineHeight = round(fontSize × ratio)`, SwiftUI `lineSpacing = (fontSize × ratio) − fontSize`.
 
-**Elevation rule.** When `elevationModel: material`, Android maps levels 0–3 to Material elevations 0/1/6/12 and iOS keeps the shadow strings. When `shadow`, both platforms use the shadow strings and Android sets a matching `elevation` for correct z-ordering.
+**Elevation rule.** When `elevationModel: material`, Android maps levels 0-3 to Material elevations 0/1/6/12 and iOS keeps the shadow strings. When `shadow`, both platforms use the shadow strings and Android sets a matching `elevation` for correct z-ordering.
 
 ---
 
@@ -264,23 +264,23 @@ Required, in this order. Each has a job the token layer cannot do.
 
 | # | Section | Job |
 |---|---|---|
-| 1 | `## Overview` | Two to four paragraphs on the atmosphere, plus a `**Signature moves:**` list of 4–7 bullets naming what makes this system recognizable at a glance. |
+| 1 | `## Overview` | Two to four paragraphs on the atmosphere, plus a `**Signature moves:**` list of 4-7 bullets naming what makes this system recognizable at a glance. |
 | 2 | `## Colors` | Group by role (Brand & Accent / Surface / Text / Semantic). One line per token: name, `{ref}`, hex, and where it is used. State the accent's budget: how often it may appear per screen. |
-| 3 | `## Typography` | `### Font Family` (why these faces, how the substitute is tuned), `### Hierarchy` (a table of every role: size, weight, line-height, tracking, use), `### Principles` (3–6 rules that make the type read as this system). |
+| 3 | `## Typography` | `### Font Family` (why these faces, how the substitute is tuned), `### Hierarchy` (a table of every role: size, weight, line-height, tracking, use), `### Principles` (3-6 rules that make the type read as this system). |
 | 4 | `## Layout` | Base unit, section rhythm, container width, grid logic, and the whitespace philosophy in prose. |
-| 5 | `## Elevation & Depth` | A table of levels 0–3 with treatment and use. Name the depth *medium*: shadow, border, blur, texture, or color-field. |
+| 5 | `## Elevation & Depth` | A table of levels 0-3 with treatment and use. Name the depth *medium*: shadow, border, blur, texture, or color-field. |
 | 6 | `## Shapes` | Radius scale table, plus the geometry rules for imagery, avatars, and icons. |
 | 7 | `## Motion` | Duration and easing scale, what animates and what must not, the one orchestrated moment per screen, and the reduced-motion behavior. |
 | 8 | `## Components` | Grouped by family (Buttons / Inputs / Cards / Navigation / Feedback / Data). Each entry names its token composition and its interactive states in words. |
 | 9 | `## Platform & Responsive` | Breakpoint table with key changes, touch targets, collapsing strategy, native idioms, and RTL behavior via logical properties. |
-| 10 | `## Do's and Don'ts` | `### Do` and `### Don't`, 5–8 bullets each. The Don'ts are the anti-tells: the specific ways this system gets built wrong. |
+| 10 | `## Do's and Don'ts` | `### Do` and `### Don't`, 5-8 bullets each. The Don'ts are the anti-tells: the specific ways this system gets built wrong. |
 | 11 | `## Agent Prompt Guide` | Copy-paste prompts an implementer can hand to a coding agent, plus the token quick-reference. Ends with the three rules that matter most if everything else is forgotten. |
 
 ---
 
 ## Authoring rules
 
-1. **Size.** 380–470 lines. The complete token set costs roughly 240 lines before any prose (twelve typography roles, twenty component entries with states, the platform block), so a spec much under 380 is missing required tokens. The hard cap on every plugin file is 500 (`rules/hard-caps.md`); a spec pushing past 470 is documenting screens instead of a system.
+1. **Size.** 380-470 lines. The complete token set costs roughly 240 lines before any prose (twelve typography roles, twenty component entries with states, the platform block), so a spec much under 380 is missing required tokens. The hard cap on every plugin file is 500 (`rules/hard-caps.md`); a spec pushing past 470 is documenting screens instead of a system.
 2. **Every component value is a `{token.ref}`.** Raw hex or bare px inside `components:` is a contract violation.
 3. **Every `{ref}` resolves.** A reference to a token that does not exist in the frontmatter is a broken spec.
 4. **Accessibility is a value, not a wish.** Body text against its canvas meets WCAG AA (4.5:1); large display text and UI borders meet 3:1. State the measured ratios for `text-primary`, `text-secondary`, and `on-accent` in the Colors section.
@@ -303,7 +303,7 @@ Run before declaring a spec done. Any "no" sends you back to the frontmatter.
 6. Does every font `stack` end in a generic family and include a stock-machine fallback? (yes / no)
 7. Are the contrast ratios for `text-primary`, `text-secondary`, and `on-accent` stated and passing? (yes / no)
 8. Are all eleven prose sections present, in order? (yes / no)
-9. Does the Overview name 4–7 signature moves? (yes / no)
+9. Does the Overview name 4-7 signature moves? (yes / no)
 10. Are there zero network references in the spec and the preview? (yes / no)
-11. Is the file within 380–470 lines? (yes / no)
+11. Is the file within 380-470 lines? (yes / no)
 12. When `platforms` includes `native`, is the `platform.native` block complete? (yes / no)

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Per-runtime emitter: copilot-cli (MANIFEST-only — no plugin model).
+# Per-runtime emitter: copilot-cli (MANIFEST-only, no plugin model).
 # Sourced by scripts/sync-runtimes.sh. Helpers come from 00-helpers.sh.
 
 emit_copilot_cli() {
-  [ "$DRY_RUN" -eq 0 ] && yellow "[copilot-cli] MANIFEST.md only — no plugin model"
+  [ "$DRY_RUN" -eq 0 ] && yellow "[copilot-cli] MANIFEST.md only, no plugin model"
   prune_runtime_dist "copilot-cli"
   if [ ! -f "skills/hackify/SKILL.md" ]; then
-    red "  MISS skills/hackify/SKILL.md — cannot build copilot-cli MANIFEST.md"
+    red "  MISS skills/hackify/SKILL.md, cannot build copilot-cli MANIFEST.md"
     FAILED=$((FAILED + 1))
     return 1
   fi

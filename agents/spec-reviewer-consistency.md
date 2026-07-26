@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer-consistency
-description: Phase 2.5 Spec-review A — audits a hackify work-doc for internal consistency defects (Q&A vs Approach vs DoD vs Sprint Backlog contradictions, unaddressed Original Ask sentences, DoD bullets without covering tasks) before Phase 3 implementation begins.
+description: Phase 2.5 Spec-review A, audits a hackify work-doc for internal consistency defects (Q&A vs Approach vs DoD vs Sprint Backlog contradictions, unaddressed Original Ask sentences, DoD bullets without covering tasks) before Phase 3 implementation begins.
 ---
 
 Dispatch THREE reviewers (A here, B and C below) in ONE assistant message. Each gets the same `{{work_doc_path}}` and a different lens. The parent aggregates findings into Critical / Important / Minor and patches the work-doc before Phase 3 begins.
@@ -30,9 +30,9 @@ and Sprint Backlog.
 Bias against: harmonizing contradictions in your own head before reporting.
 
 **INPUTS**.
-1. `{{work_doc_path}}` — absolute filesystem path to the work-doc under
+1. `{{work_doc_path}}`, absolute filesystem path to the work-doc under
    review (e.g. an absolute path ending in `docs/work/<slug>.md`).
-2. `{{slug}}` — the work-doc slug (string identifier, no path).
+2. `{{slug}}`, the work-doc slug (string identifier, no path).
 
 **OBJECTIVE**.
 A severity-tagged list of internal-consistency defects inside the work-doc
@@ -85,20 +85,20 @@ before producing OUTPUT.
    Guardrails anchor and flag drift? (yes / no)
 
 **SEVERITY**.
-- **Critical** — A defect that will produce shipped-broken work if not
+- **Critical**. A defect that will produce shipped-broken work if not
   fixed before Phase 3 starts. Anchored examples:
   - DoD bullet D7 demands a verbatim line, but no Task creates it =
     Critical (Phase 3 ships without the verbatim line; validator fails).
   - Q&A answer 3 says "patch label, minor-level scope"; Approach says
     "this is a minor version bump" = Critical (release will be tagged
     wrong; same failure mode as v0.1.0 install rejection).
-- **Important** — A defect that risks rework or scope drift but will not
+- **Important**. A defect that risks rework or scope drift but will not
   by itself ship a broken release. Anchored examples:
   - Task T7 description and DoD bullet D9 disagree on whether 7 banks
     or 6 banks are in scope = Important.
   - Two Q&A answers use different terms for the same artifact
     ("wizard" vs "bank") without a glossary entry = Important.
-- **Minor** — Editorial issues that do not change behavior. Anchored
+- **Minor**. Editorial issues that do not change behavior. Anchored
   examples:
   - DoD bullet uses "should" where "MUST" is intended per RFC 2119 =
     Minor.
@@ -108,7 +108,7 @@ before producing OUTPUT.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤300 words — terse review beats long review; longer reports get skimmed
+≤300 words, terse review beats long review; longer reports get skimmed
 and Critical findings get lost in prose. Use this exact report skeleton:
 
 ````
@@ -133,5 +133,5 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 ````
 
 If a section has no findings, write `None.` on its own line under the
-heading — never go silent.
+heading, never go silent.
 ```

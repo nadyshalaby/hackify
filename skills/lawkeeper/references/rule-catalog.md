@@ -1,17 +1,17 @@
-# Rule catalog — rule_id → category, severity, engine, source
+# Rule catalog (rule_id → category, severity, engine, source)
 
 This is a MAP, not a copy of the laws. Each row names where the rule is actually defined
 (the canonical source resolved in Phase 1) and which engine checks it. The thresholds and
-ban tokens are read from those sources at audit time — never hardcoded here. If a project's
+ban tokens are read from those sources at audit time, never hardcoded here. If a project's
 `CLAUDE.md` is silent on a rule, the global-doctrine floor applies (stricter wins).
 
 Engines:
-- **deterministic** — `scripts/audit_scan.py`, exact `file:line`. Eight rules are
+- **deterministic**, `scripts/audit_scan.py`, exact `file:line`. Eight rules are
   zero-false-positive (`confidence: exact`); `ban.bare-error` and `ban.inline-type` are
-  `confidence: syntactic` — matched exactly in syntax, but a true positive needs a one-step
+  `confidence: syntactic`, matched exactly in syntax, but a true positive needs a one-step
   scope/threshold check (is this domain code? does the type have 2+ props?).
-- **linter** — the project's own ESLint/Biome with the cap rule configured; exact.
-- **semantic** — a Phase-3 subagent that reads the code and judges (see `semantic-pass.md`).
+- **linter**, the project's own ESLint/Biome with the cap rule configured; exact.
+- **semantic**, a Phase-3 subagent that reads the code and judges (see `semantic-pass.md`).
 
 Categories: **folder-structure**, **code-style**, **file-scoping**, **security**,
 **performance**, **testing**, **cleanup**. Design principles (SOLID/YAGNI) report under
@@ -48,7 +48,7 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
 | `ban.inline-type` | `interface`/`type` declared in a scoped module | high | deterministic (syntactic) | global §3.1 (service/controller/routes/middleware/guard) |
-| `scope.one-construct` | impl file declares a type/enum/constant/config/schema/style not in its dedicated file (broader than the deterministic `ban.inline-type` scope — covers components/pages/routes) | medium | semantic | global §3.5 |
+| `scope.one-construct` | impl file declares a type/enum/constant/config/schema/style not in its dedicated file (broader than the deterministic `ban.inline-type` scope, covers components/pages/routes) | medium | semantic | global §3.5 |
 | `scope.one-component` | 2+ components (public or private) declared in one file | medium | semantic | global §3.5 |
 | `scope.layer` | layer leak (controller→DB, service→HTTP, etc.) | high | semantic | global §1.3 / workspace §5.1 |
 | `scope.controller-purity` | controller does more than one service call | medium | semantic | global §3.3 |
@@ -58,7 +58,7 @@ Categories: **folder-structure**, **code-style**, **file-scoping**, **security**
 ## Folder-Structure
 
 Folder rules only exist when the project documents a topology (Phase 1). With no documented
-layout, skip this category and say so in the report — do not invent a structure.
+layout, skip this category and say so in the report, do not invent a structure.
 
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
@@ -85,13 +85,13 @@ installed; these are the built-in fallback concerns.
 ## Performance
 
 The CANONICAL performance catalog is `rules/performance.md` (stable IDs `perf.<domain>.<slug>`,
-severity model, detection hints). The five rule ids below are lawkeeper's coarse groupings —
+severity model, detection hints). The five rule ids below are lawkeeper's coarse groupings
 they predate the catalog; the canonical-source column maps each to its catalog equivalents.
-Judgment stays delegated to the semantic `performance-auditor` agent when installed —
+Judgment stays delegated to the semantic `performance-auditor` agent when installed
 diff/hot-path scoped by nature. Deterministic candidate patterns now exist in
 `skills/hackify/references/perf-scout.md` (grep tables keyed to catalog IDs); the semantic
 performance-auditor may seed its pass from them. The mechanical scanner
-(`scripts/audit_scan.py`) stays caps+bans — performance is never scanned deterministically here.
+(`scripts/audit_scan.py`) stays caps+bans, performance is never scanned deterministically here.
 
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
@@ -122,7 +122,7 @@ performance-auditor may seed its pass from them. The mechanical scanner
 
 ## Severity → handling
 
-- **critical** — secrets, auth/permission leaks. Surface first; fix is usually urgent.
-- **high** — zero-tolerance bans, layer leaks, DRY. Strong recommend-to-fix.
-- **medium** — caps, SRP, placement. Fix or record a deliberate waiver.
-- **low** — naming, magic literals, re-exports. Batch or defer; never auto-apply silently.
+- **critical**, secrets, auth/permission leaks. Surface first; fix is usually urgent.
+- **high**, zero-tolerance bans, layer leaks, DRY. Strong recommend-to-fix.
+- **medium**, caps, SRP, placement. Fix or record a deliberate waiver.
+- **low**, naming, magic literals, re-exports. Batch or defer; never auto-apply silently.

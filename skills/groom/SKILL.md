@@ -1,13 +1,13 @@
 ---
 name: groom
-description: Socratic pre-task refinement skill — the idea-shaping front door to the hackify workflow. Runs an interactive 1-or-2-forking-questions-per-turn conversation (NOT a batched wizard), reflects what the user said before each following question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers — invoke this skill when the user prompt contains any of `/hackify:groom`, `let's discuss`, `let's think`, `what if`, `groom`, `explore the idea`, `what do you think`, `considering`, `thinking about`, or any open-ended idea-exploration phrasing that has no concrete build verb. Do NOT invoke when the prompt already contains build verbs like `add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen` — those route directly to full hackify or quick via each skill's own description-based auto-discovery. Locked contract — groom runs WITHOUT a work-doc until graduation; no scratch files, no eager creation. At graduation, write a one-paragraph distillation, create the canonical work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` with a `## Groom Provenance` block, then hand off to Phase 1 of `skills/hackify/SKILL.md`. Use this skill when the user is exploring an idea, not yet asking for a build.
+description: Socratic pre-task refinement skill, the idea-shaping front door to the hackify workflow. Runs an interactive 1-or-2-forking-questions-per-turn conversation (NOT a batched wizard), reflects what the user said before each following question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers, invoke this skill when the user prompt contains any of `/hackify:groom`, `let's discuss`, `let's think`, `what if`, `groom`, `explore the idea`, `what do you think`, `considering`, `thinking about`, or any open-ended idea-exploration phrasing that has no concrete build verb. Do NOT invoke when the prompt already contains build verbs like `add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`, those route directly to full hackify or quick via each skill's own description-based auto-discovery. Locked contract, groom runs WITHOUT a work-doc until graduation; no scratch files, no eager creation. At graduation, write a one-paragraph distillation, create the canonical work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` with a `## Groom Provenance` block, then hand off to Phase 1 of `skills/hackify/SKILL.md`. Use this skill when the user is exploring an idea, not yet asking for a build.
 ---
 
-# Groom — Socratic pre-task refinement
+# Groom (Socratic pre-task refinement)
 
-Groom is the idea-shaping front door to the hackify workflow. It runs ONE Socratic conversation — 1 or 2 forking questions per turn, reflection before each following question — until the user signals intent to build. At that signal, it writes a one-paragraph distillation, creates the canonical hackify work-doc with a Groom Provenance block, and hands off to Phase 1 of `skills/hackify/SKILL.md`.
+Groom is the idea-shaping front door to the hackify workflow. It runs ONE Socratic conversation, 1 or 2 forking questions per turn, reflection before each following question, until the user signals intent to build. At that signal, it writes a one-paragraph distillation, creates the canonical hackify work-doc with a Groom Provenance block, and hands off to Phase 1 of `skills/hackify/SKILL.md`.
 
-This skill is fully self-contained. **Never call other skills** mid-conversation — third-party plugins may not be installed. The graduation handoff is by name to `skills/hackify/SKILL.md` Phase 1; it does not depend on any other plugin.
+This skill is fully self-contained. **Never call other skills** mid-conversation, third-party plugins may not be installed. The graduation handoff is by name to `skills/hackify/SKILL.md` Phase 1; it does not depend on any other plugin.
 
 ---
 
@@ -22,7 +22,7 @@ Auto-discovery fires this skill when the user's most recent prompt contains any 
 - `groom`
 - `explore the idea`
 
-Do NOT invoke groom when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`) — those route directly to full hackify or quick via each skill's own auto-discovery. Groom is strictly pre-task; it is not a discussion stage that runs after Phase 1.
+Do NOT invoke groom when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`), those route directly to full hackify or quick via each skill's own auto-discovery. Groom is strictly pre-task; it is not a discussion stage that runs after Phase 1.
 
 ---
 
@@ -30,13 +30,13 @@ Do NOT invoke groom when the user prompt already contains build-intent verbs (`a
 
 Groom runs an interactive Socratic loop until the user signals build intent. The loop has exactly three rules. Violating any rule is a workflow failure.
 
-**Rule 1 — 1 or 2 questions per turn. Never more.** Groom is NOT the Phase 1 Clarify wizard. Clarify batches 4 questions to lock requirements; groom asks 1 or 2 questions to surface a real fork in the user's thinking. Plain prose questions in chat are the format — do NOT use the `AskUserQuestion` wizard tool here. The wizard belongs to Phase 1.
+**Rule 1, 1 or 2 questions per turn. Never more.** Groom is NOT the Phase 1 Clarify wizard. Clarify batches 4 questions to lock requirements; groom asks 1 or 2 questions to surface a real fork in the user's thinking. Plain prose questions in chat are the format, do NOT use the `AskUserQuestion` wizard tool here. The wizard belongs to Phase 1.
 
-**Rule 2 — Every question must surface a real fork.** A real fork is a choice where the two branches lead to different builds, different acceptance criteria, or different user experiences. Vanity questions ("what do you want to call this?", "what color theme?") are forbidden at this stage — those go to Phase 1 Clarify after graduation. If you cannot name the fork the question opens, do not ask it.
+**Rule 2. Every question must surface a real fork.** A real fork is a choice where the two branches lead to different builds, different acceptance criteria, or different user experiences. Vanity questions ("what do you want to call this?", "what color theme?") are forbidden at this stage, those go to Phase 1 Clarify after graduation. If you cannot name the fork the question opens, do not ask it.
 
-**Rule 3 — Reflect before asking the following question.** Each turn begins with one sentence (≤25 words) that mirrors back what the user just said in their own framing. Then the following 1–2 questions. The reflection proves you read what they wrote and gives them a chance to correct a misread cheaply.
+**Rule 3. Reflect before asking the following question.** Each turn begins with one sentence (≤25 words) that mirrors back what the user just said in their own framing. Then the following 1-2 questions. The reflection proves you read what they wrote and gives them a chance to correct a misread cheaply.
 
-**Anti-loop guard.** If you have asked 3 or more questions in a row without the user offering new substantive information (their answers shrink to one-word affirmations, or they ask you for an opinion), surface the implicit graduation offer verbatim: *"Want me to write up what we have so far as a draft plan?"* If they say yes, graduate. If they decline, change tactic — propose a concrete option instead of asking another open-ended question.
+**Anti-loop guard.** If you have asked 3 or more questions in a row without the user offering new substantive information (their answers shrink to one-word affirmations, or they ask you for an opinion), surface the implicit graduation offer verbatim: *"Want me to write up what we have so far as a draft plan?"* If they say yes, graduate. If they decline, change tactic, propose a concrete option instead of asking another open-ended question.
 
 **No work-doc during groom.** Groom runs WITHOUT a work-doc. The conversation transcript IS the state. Do NOT create `docs/work/.groom-scratch.md`, `docs/work/.groom-<slug>.md`, or any scratch path. Do NOT create the canonical work-doc until graduation fires. Lazy creation is locked.
 
@@ -54,11 +54,11 @@ Graduation fires when the user signals intent to build. The signal phrases (case
 
 On graduation, execute these three steps in order. Do not reorder. Do not skip.
 
-**Step 1 — Distill.** Write a one-paragraph distillation (≤120 words) of what the groom clarified. The paragraph names: the user's underlying goal, the chosen approach (the surviving fork branch), the constraints surfaced during the conversation, and any explicit non-goals. The distillation is for the future hackify Phase 1 reader — it must be self-contained enough that someone who did not see the groom transcript can read the work-doc and understand the locked decisions. These four elements map straight onto the Primary Goal & Guardrails anchor (goal → North-Star Goal; approach → In-Scope; constraints → Guardrails; non-goals → Out-of-Scope).
+**Step 1. Distill.** Write a one-paragraph distillation (≤120 words) of what the groom clarified. The paragraph names: the user's underlying goal, the chosen approach (the surviving fork branch), the constraints surfaced during the conversation, and any explicit non-goals. The distillation is for the future hackify Phase 1 reader, it must be self-contained enough that someone who did not see the groom transcript can read the work-doc and understand the locked decisions. These four elements map straight onto the Primary Goal & Guardrails anchor (goal → North-Star Goal; approach → In-Scope; constraints → Guardrails; non-goals → Out-of-Scope).
 
-**Step 2 — Create the work-doc.** Create the canonical hackify work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` (date is today; slug is `kebab-case`, ≤6 words, derived from the distilled goal). Use the skeleton from `skills/hackify/references/work-doc-template.md`. Fill in frontmatter `slug`, `title`, `status: clarifying`, `type` (best-fit from `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`), `created`, `project`. Insert a new H2 section titled `## Groom Provenance` placed directly under the frontmatter and above `## Original Ask`. The Groom Provenance block contains the one-paragraph distillation from Step 1 and nothing else. Then populate the template's `## Primary Goal & Guardrails` section from the distillation — North-Star Goal, In-Scope, Out-of-Scope/Non-Goals, Guardrails/Invariants, Success Signals — so Phase 1 inherits a seeded anchor to confirm rather than build from scratch. See [../hackify/references/goal-anchor.md](../hackify/references/goal-anchor.md).
+**Step 2. Create the work-doc.** Create the canonical hackify work-doc at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` (date is today; slug is `kebab-case`, ≤6 words, derived from the distilled goal). Use the skeleton from `skills/hackify/references/work-doc-template.md`. Fill in frontmatter `slug`, `title`, `status: clarifying`, `type` (best-fit from `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`), `created`, `project`. Insert a new H2 section titled `## Groom Provenance` placed directly under the frontmatter and above `## Original Ask`. The Groom Provenance block contains the one-paragraph distillation from Step 1 and nothing else. Then populate the template's `## Primary Goal & Guardrails` section from the distillation. North-Star Goal, In-Scope, Out-of-Scope/Non-Goals, Guardrails/Invariants, Success Signals, so Phase 1 inherits a seeded anchor to confirm rather than build from scratch. See [../hackify/references/goal-anchor.md](../hackify/references/goal-anchor.md).
 
-**Step 3 — Hand off to hackify Phase 1.** End your turn with a single explicit handoff line: *"Groom done — handing off to hackify Phase 1 (Clarify). Work-doc created at `<path>`."* Then invoke `skills/hackify/SKILL.md` Phase 1 — Clarify. You do NOT run Phase 1 yourself inside this skill. The handoff is the terminal action of groom.
+**Step 3. Hand off to hackify Phase 1.** End your turn with a single explicit handoff line: *"Groom done, handing off to hackify Phase 1 (Clarify). Work-doc created at `<path>`."* Then invoke `skills/hackify/SKILL.md` Phase 1. Clarify. You do NOT run Phase 1 yourself inside this skill. The handoff is the terminal action of groom.
 
 **Never create two work-docs.** If a work-doc already exists for the same slug, append a numeric suffix (`-2`, `-3`) to the slug. Never write to two paths in one graduation.
 
@@ -86,10 +86,10 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the Socratic loop + graduation rule)
 ```
 
-No reference files. The skill is small by design — discovery, not build. Cross-references resolve at runtime against `skills/hackify/SKILL.md` (Phase 1, work-doc template path). Routing between groom / full hackify / quick is handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery — there is no shared router.
+No reference files. The skill is small by design, discovery, not build. Cross-references resolve at runtime against `skills/hackify/SKILL.md` (Phase 1, work-doc template path). Routing between groom / full hackify / quick is handled entirely by each skill's frontmatter `description` field via the harness's native auto-discovery, there is no shared router.
 
 ---
 
 ## One-line summary
 
-Reflect → ask 1–2 forking questions → loop until the user signals build → distill → create the work-doc with a Groom Provenance block + seeded Primary Goal & Guardrails → hand off to hackify Phase 1.
+Reflect → ask 1-2 forking questions → loop until the user signals build → distill → create the work-doc with a Groom Provenance block + seeded Primary Goal & Guardrails → hand off to hackify Phase 1.

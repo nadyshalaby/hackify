@@ -7,7 +7,7 @@ emit_gemini_cli() {
   prune_runtime_dist "gemini-cli"
   mirror_canonical_files "gemini-cli"
   write_or_announce_heredoc "dist/gemini-cli/GEMINI.md" <<'EOF'
-# hackify — Gemini CLI entry point
+# hackify. Gemini CLI entry point
 
 Gemini CLI reads `GEMINI.md` from the project root as its primary instruction
 file. This file points at the full hackify workflow and companion skills.
@@ -20,15 +20,15 @@ and review.
 
 ## Skills available in this package
 
-- `skills/hackify/SKILL.md` — the universal end-to-end dev workflow.
-- `skills/hackify/references/` — sub-agent templates and the wizard.
-- `skills/hackify/evals/evals.json` — eval cases.
-- `skills/groom/SKILL.md` — early-stage idea shaping.
-- `skills/skillsmith/SKILL.md` — guidance for authoring new skills.
-- `skills/review-triage/SKILL.md` — protocol for handling review
+- `skills/hackify/SKILL.md`, the universal end-to-end dev workflow.
+- `skills/hackify/references/`, sub-agent templates and the wizard.
+- `skills/hackify/evals/evals.json`, eval cases.
+- `skills/groom/SKILL.md`, early-stage idea shaping.
+- `skills/skillsmith/SKILL.md`, guidance for authoring new skills.
+- `skills/review-triage/SKILL.md`, protocol for handling review
   feedback.
-- `skills/quick/SKILL.md` — compressed-flow companion for small fixes.
-- `commands/summary.md` — body of the `/hackify:summary` summary command.
+- `skills/quick/SKILL.md`, compressed-flow companion for small fixes.
+- `commands/summary.md`, body of the `/hackify:summary` summary command.
 
 ## Source of truth
 

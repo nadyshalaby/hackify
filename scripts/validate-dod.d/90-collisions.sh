@@ -3,7 +3,7 @@
 # [90] Skill-slug collision scan (soft warning).
 # Invokes scripts/check-collisions.sh against any installed Claude Code
 # plugins under ~/.claude/plugins/. Substring overlaps with hackify's
-# slugs are reported as warnings — NEVER fail the build, because a
+# slugs are reported as warnings. NEVER fail the build, because a
 # hostile sibling plugin must not be able to break our CI.
 
 yellow "[90] Sibling-plugin slug collision scan (soft warning, never fails)"

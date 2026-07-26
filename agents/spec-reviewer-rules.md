@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer-rules
-description: Phase 2.5 Spec-review B — audits a hackify work-doc plan against project CLAUDE.md and user-global rule files for architectural/cross-cutting risks (lint suppression, non-null assertions, inline types in forbidden files, layering violations, bare Error throws, security regressions) before Phase 3 implementation begins.
+description: Phase 2.5 Spec-review B, audits a hackify work-doc plan against project CLAUDE.md and user-global rule files for architectural/cross-cutting risks (lint suppression, non-null assertions, inline types in forbidden files, layering violations, bare Error throws, security regressions) before Phase 3 implementation begins.
 ---
 
 ```
@@ -30,10 +30,10 @@ Bias against: trusting that the implementer will "do the right thing"
 when the plan steers them at a known anti-pattern.
 
 **INPUTS**.
-1. `{{work_doc_path}}` — absolute filesystem path to the work-doc.
-2. `{{project_root}}` — absolute filesystem path to the project's
+1. `{{work_doc_path}}`, absolute filesystem path to the work-doc.
+2. `{{project_root}}`, absolute filesystem path to the project's
    repository root (used to locate `{{project_root}}/CLAUDE.md`).
-3. `{{user_global_rules_path}}` — absolute filesystem path to the
+3. `{{user_global_rules_path}}`, absolute filesystem path to the
    user-global rules file (typically `~/.claude/CLAUDE.md`). If the
    file does not exist, treat the rules from `{{project_root}}/CLAUDE.md`
    alone as binding.
@@ -48,7 +48,7 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
    file path mentioned in DoD / Approach / Sprint Backlog. Build a list of
    {task → file → planned change}.
 2. Read `{{project_root}}/CLAUDE.md`. For each of the rule families
-   listed in steps 4–9 (lint suppression, non-null `!`, inline-type
+   listed in steps 4-9 (lint suppression, non-null `!`, inline-type
    bans, layering boundaries, bare-Error throws, security
    middleware), extract the first sentence under each numbered
    subsection of CLAUDE.md containing the tokens MUST, NEVER, or BANNED.
@@ -59,7 +59,7 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 4. For each {task → file → planned change}, walk through whether the
    change can be implemented without SUPPRESSING A LINT RULE
    (`biome-ignore`, `eslint-disable`, `@ts-ignore`, `@ts-expect-error`
-   outside `*.test.ts`). These four tokens are literal scan targets —
+   outside `*.test.ts`). These four tokens are literal scan targets
    they cannot be abstracted; see `rules/hard-caps.md:14` for the
    canonical carve-out rationale.
 5. For each {task → file → planned change}, walk through whether the
@@ -78,7 +78,7 @@ plan in `{{work_doc_path}}` would force, anchored to the rule files at
 9. For each {task → file → planned change}, walk through whether the
    change can be implemented without REGRESSING SECURITY (cookies,
    CORS, OAuth state, secret handling, security middleware).
-10. For every risk found in steps 4–9, record: the task ID, the file,
+10. For every risk found in steps 4-9, record: the task ID, the file,
     the specific rule quoted from step 2 or step 3, and the smallest
     plan-level change that would dissolve the risk.
 
@@ -100,21 +100,21 @@ If ANY answer is "no", loop back to METHOD.
    than your own architectural preference? (yes / no)
 
 **SEVERITY**.
-- **Critical** — A planned change that cannot be executed without
+- **Critical**. A planned change that cannot be executed without
   breaking a rule quoted from a `CLAUDE.md` file. Anchored examples:
   - Task T5 plans to add a database query inside a route handler in
     `*.routes.ts`; the project rule file says "routes are pure
     delegation layers" verbatim = Critical.
   - Task T9 plans to wrap a third-party call in `catch (e) {}`;
     project rule file bans empty catches outright = Critical.
-- **Important** — A planned change that risks a layering violation
+- **Important**. A planned change that risks a layering violation
   unless the implementer makes a specific design choice the plan
   does not specify. Anchored examples:
   - Task T7 plans to share a DTO between a service and a controller
     but does not name the shared types folder = Important.
   - Task T4 plans to add a new env var but does not say where the
     validation schema lives = Important.
-- **Minor** — Naming or organization preferences that do not break a
+- **Minor**. Naming or organization preferences that do not break a
   quoted rule. Anchored examples:
   - Task T3 puts a helper in `lib/` where convention has it in
     `utils/` = Minor.
@@ -124,20 +124,20 @@ If ANY answer is "no", loop back to METHOD.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤300 words — terse review beats long review. Use this exact report
+≤300 words, terse review beats long review. Use this exact report
 skeleton:
 
 ````
 ## Critical
-- <finding> — rule: "<verbatim rule sentence>" (source:
+- <finding>, rule: "<verbatim rule sentence>" (source:
   `{{project_root}}/CLAUDE.md` | `{{user_global_rules_path}}`);
   task: T<n>; file: <path>; remediation: <one sentence>.
 
 ## Important
-- <finding> — rule cite, task, file, remediation.
+- <finding>, rule cite, task, file, remediation.
 
 ## Minor
-- <finding> — short note.
+- <finding>, short note.
 
 ## Verification
 1. <yes|no>
@@ -149,5 +149,5 @@ skeleton:
 ````
 
 If a section has no findings, write `None.` on its own line under the
-heading — never go silent.
+heading, never go silent.
 ```

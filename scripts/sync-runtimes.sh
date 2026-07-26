@@ -14,16 +14,16 @@
 #   then mirrors the canonical files fresh.
 #
 # Layout (since v0.3.0):
-#   scripts/sync-runtimes.sh           — orchestrator (this file)
+#   scripts/sync-runtimes.sh, orchestrator (this file)
 #   scripts/sync-runtimes.d/
-#     00-helpers.sh                    — shared helpers + manifests
-#     <runtime>.sh                     — one emitter per runtime
+#     00-helpers.sh, shared helpers + manifests
+#     <runtime>.sh, one emitter per runtime
 #
 # Flags:
 #   --dry-run   Print files that WOULD be written; touch no files. Used by
 #               scripts/validate-dod.sh to check runtime coverage.
 #
-# Note: -e is intentionally omitted — like validate-dod.sh, this script
+# Note: -e is intentionally omitted, like validate-dod.sh, this script
 # accumulates failures into FAILED and exits non-zero at the end.
 
 set -uo pipefail

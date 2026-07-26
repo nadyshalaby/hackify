@@ -1,4 +1,4 @@
-"""Carve-out catalog — which files and rules are exempt, and why.
+"""Carve-out catalog, which files and rules are exempt, and why.
 
 An auditor that flags documented exceptions trains its user to ignore it, so the
 exemption logic is a first-class part of the scanner, not an afterthought. The lists
@@ -11,7 +11,7 @@ References for the carve-outs encoded here live in references/carve-outs.md.
 
 from fnmatch import fnmatch
 
-# Directories never walked — build output, dependencies, VCS internals, caches.
+# Directories never walked, build output, dependencies, VCS internals, caches.
 SKIP_DIRS = frozenset({
   'node_modules', '.git', 'dist', 'build', 'out', '.next', '.turbo', '.cache',
   'coverage', '.nyc_output', 'vendor', '.venv', 'venv', '__pycache__', '.svelte-kit',
@@ -21,19 +21,19 @@ SKIP_DIRS = frozenset({
 # File extensions the scanner understands (braced ECMAScript family).
 SCAN_EXTS = frozenset({'.ts', '.tsx', '.js', '.jsx', '.mts', '.cts', '.mjs', '.cjs'})
 
-# Generated / vendored files — exempt from EVERY rule (you don't refactor generated code).
+# Generated / vendored files, exempt from EVERY rule (you don't refactor generated code).
 GENERATED_GLOBS = (
   '*.gen.ts', '*.gen.tsx', '*.generated.*', 'routeTree.gen.ts', '*.d.ts',
   '*/migrations/*', '*/migrations/**/*',
   # The lawkeeper recall corpus is deliberately-violating test fixtures, not real
-  # code — exempt it from a self-audit (`/lawkeeper` on this repo) so a contributor
+  # code, exempt it from a self-audit (`/lawkeeper` on this repo) so a contributor
   # is not handed a pile of planted false-positives. run_corpus.py roots its scan
   # INSIDE corpus/project, where rel-paths don't contain this segment, so the
   # corpus's own scoring is unaffected.
   '*/evals/corpus/*',
 )
 
-# Test files — exempt from suppression, non-null, and inline-type bans (the deliberate
+# Test files, exempt from suppression, non-null, and inline-type bans (the deliberate
 # carve-outs in the doctrine: @ts-expect-error for invalid input, test fixtures, etc.).
 TEST_GLOBS = (
   '*.test.*', '*.spec.*', '*_test.*', '*test_*', '*/tests/*', '*/tests/**/*',

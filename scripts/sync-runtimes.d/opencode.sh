@@ -7,7 +7,7 @@ emit_opencode() {
   prune_runtime_dist "opencode"
   mirror_canonical_files "opencode"
   write_or_announce_heredoc "dist/opencode/MANIFEST.md" <<'EOF'
-# hackify — OpenCode package
+# hackify. OpenCode package
 
 OpenCode supports custom modes via markdown files. Hackify is shipped here
 as a set of mode-style markdown files plus reference documents.

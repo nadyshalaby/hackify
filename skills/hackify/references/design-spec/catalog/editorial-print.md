@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Editorial Print — design spec
+name: Editorial Print, design spec
 direction: editorial-print
 platforms: [web]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.2, 0.7, 0.3, 1)"
     exit: "cubic-bezier(0.4, 0, 1, 1)"
     move: "cubic-bezier(0.3, 0, 0, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, no transform"
+  reduced: "respect prefers-reduced-motion, opacity only, no transform"
 
 components:
   button-primary:
@@ -259,23 +259,23 @@ The type does the rest. `Playfair Display` sets the headline at a size that woul
 ## Colors
 
 ### Brand & Accent
-- **Oxblood** (`{colors.accent}` — `#7a2118`): inline links, section rules, the single primary action, and drop caps. Contrast on canvas is 9.70:1, so it is safe as body-size link text.
-- **Oxblood Hover / Press** (`{colors.accent-hover}` — `#96291d`, `{colors.accent-press}` — `#5c1812`): interactive states only.
-- **On Accent** (`{colors.on-accent}` — `#fbf9f4`): paper white on the oxblood fill.
+- **Oxblood** (`{colors.accent}`, `#7a2118`): inline links, section rules, the single primary action, and drop caps. Contrast on canvas is 9.70:1, so it is safe as body-size link text.
+- **Oxblood Hover / Press** (`{colors.accent-hover}`, `#96291d`, `{colors.accent-press}`, `#5c1812`): interactive states only.
+- **On Accent** (`{colors.on-accent}`, `#fbf9f4`): paper white on the oxblood fill.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#fbf9f4`): the page. Warm, never pure white.
-- **Surface** (`{colors.surface}` — `#ffffff`): the rare card or modal, deliberately brighter than the page so it reads as a laid-on element.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#f2eee5`): pull quotes, code blocks, table row hover.
-- **Hairline** (`{colors.hairline}` — `#e0d9cc`) and **Hairline Strong** (`{colors.hairline-strong}` — `#c4baa8`): rules between sections and under inputs. These carry all the structure the layout has.
+- **Canvas** (`{colors.canvas}`, `#fbf9f4`): the page. Warm, never pure white.
+- **Surface** (`{colors.surface}`, `#ffffff`): the rare card or modal, deliberately brighter than the page so it reads as a laid-on element.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#f2eee5`): pull quotes, code blocks, table row hover.
+- **Hairline** (`{colors.hairline}`, `#e0d9cc`) and **Hairline Strong** (`{colors.hairline-strong}`, `#c4baa8`): rules between sections and under inputs. These carry all the structure the layout has.
 
 ### Text
-- **Ink** (`{colors.text-primary}` — `#141210`): body and headlines. Contrast 17.76:1.
-- **Ink Secondary** (`{colors.text-secondary}` — `#5a544c`): standfirsts, captions, bylines. Contrast 7.11:1.
-- **Ink Muted** (`{colors.text-muted}` — `#8a8278`): datelines, credits, disabled states.
+- **Ink** (`{colors.text-primary}`, `#141210`): body and headlines. Contrast 17.76:1.
+- **Ink Secondary** (`{colors.text-secondary}`, `#5a544c`): standfirsts, captions, bylines. Contrast 7.11:1.
+- **Ink Muted** (`{colors.text-muted}`, `#8a8278`): datelines, credits, disabled states.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#2f6b46`), **Caution** (`{colors.caution}` — `#8a6410`), **Negative** (`{colors.negative}` — `#a3271a`). All muted toward ink so they sit inside the page's warmth. Negative is close to the accent in hue and must never appear as a link color, or readers will click errors.
+**Positive** (`{colors.positive}`, `#2f6b46`), **Caution** (`{colors.caution}`, `#8a6410`), **Negative** (`{colors.negative}`, `#a3271a`). All muted toward ink so they sit inside the page's warmth. Negative is close to the accent in hue and must never appear as a link color, or readers will click errors.
 
 ## Typography
 
@@ -340,7 +340,7 @@ If a design here needs a shadow to separate two things, the correct fix is more 
 | Token | Value | Use |
 |---|---|---|
 | `{rounded.none}` | 0 | Images, rules, inputs, tables |
-| `{rounded.xs}` – `{rounded.md}` | 1–3px | Badges, small chips |
+| `{rounded.xs}`, `{rounded.md}` | 1-3px | Badges, small chips |
 | `{rounded.lg}` | 4px | Cards and modals, the maximum |
 | `{rounded.pill}` | 9999px | Avatars only |
 
@@ -384,8 +384,8 @@ Inputs are **underlines, not boxes**: transparent background with a single botto
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full asymmetric grid; marginalia column visible; images break wide |
-| `lg` | 1024–1439px | Grid holds; marginalia narrows |
-| `md` | 768–1023px | Marginalia moves inline below its anchor; images go full-width |
+| `lg` | 1024-1439px | Grid holds; marginalia narrows |
+| `md` | 768-1023px | Marginalia moves inline below its anchor; images go full-width |
 | `sm` | < 768px | Single column; display-xl drops 68 → 36px; nav collapses to a menu |
 
 **Type ramp on small screens:** display-xl 68 → 36px, display-lg 46 → 30px, heading-lg 32 → 24px. Body drops from 17px to 16px and no further; line-height stays at 1.7 because a narrow measure needs the leading more, not less.

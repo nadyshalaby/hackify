@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""lawkeeper deterministic scanner — walk a project, emit exact rule violations as JSON.
+"""lawkeeper deterministic scanner, walk a project, emit exact rule violations as JSON.
 
 This is the mechanical half of the audit. It reports ONLY high-confidence findings (see
-checks.py for why). The semantic half — function caps, DRY, layering, naming, folder
-structure — is run by the skill's subagent pass, which reads this script's JSON as its
+checks.py for why). The semantic half, function caps, DRY, layering, naming, folder
+structure, is run by the skill's subagent pass, which reads this script's JSON as its
 starting map. Run it directly:
 
     python3 audit_scan.py <root> [--max-file-lines 500] [--ban-patterns PATH]

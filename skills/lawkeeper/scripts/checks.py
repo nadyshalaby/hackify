@@ -1,14 +1,14 @@
-"""The deterministic checks — rules a regex matches exactly.
+"""The deterministic checks, rules a regex matches exactly.
 
 Most are zero-false-positive (`confidence: exact`); two (`ban.bare-error`,
-`ban.inline-type`) are `confidence: syntactic` — matched exactly in syntax, but a
+`ban.inline-type`) are `confidence: syntactic`, matched exactly in syntax, but a
 true positive needs a one-step scope/threshold check the regex cannot make (domain
 code? 2+ props?). See RULE_META for the tier definitions.
 
 Why this subset and not more: an auditor is only useful if its findings are trusted,
 so this scanner refuses to guess. File line-count is exact. The token bans live in
-unambiguous syntax. Everything that needs real parsing to be precise — function length,
-parameter count, nesting depth, DRY, layering — is deferred to the project's own linter
+unambiguous syntax. Everything that needs real parsing to be precise, function length,
+parameter count, nesting depth, DRY, layering, is deferred to the project's own linter
 (which has `max-lines-per-function` / `max-params` / `max-depth` exactly) or to the
 semantic subagent pass. See references/rule-catalog.md for the full rule -> engine map.
 
@@ -25,9 +25,9 @@ from lexer import mask_source
 # rule_id -> (category, severity, confidence, fixable)
 #
 # confidence tiers:
-#   'exact'     — the match IS the violation; no judgment needed (a suppression
+#   'exact', the match IS the violation; no judgment needed (a suppression
 #                 token, an empty catch, a file over the line cap).
-#   'syntactic' — the construct is matched exactly, but whether it is a TRUE
+#   'syntactic', the construct is matched exactly, but whether it is a TRUE
 #                 violation needs a scope/threshold check the regex cannot make:
 #                 `ban.bare-error` matches every `throw new Error(`, yet the rule
 #                 bans it only in DOMAIN code; `ban.inline-type` matches every
@@ -53,9 +53,9 @@ BARE_ERROR_RE = re.compile(
   r'\bthrow\s+new\s+(?:Error|TypeError|RangeError|SyntaxError|EvalError|URIError|AggregateError)\s*\(')
 NON_NULL_RE = re.compile(r'[\w$)\]]!(?=[.\[);,}\s]|$)')
 TYPE_DECL_RE = re.compile(r'^\s*(?:export\s+)?(?:declare\s+)?(?:interface\s+[\w$]+|type\s+[\w$]+\s*(?:<[^>]*>)?\s*=)')
-# Hygiene markers — language-agnostic, so they also run in text-only mode.
+# Hygiene markers, language-agnostic, so they also run in text-only mode.
 # Both require a comment opener before the marker so the word inside a string literal
-# (e.g. a UI label "TODO list") is not flagged — debt markers live in comments by convention.
+# (e.g. a UI label "TODO list") is not flagged, debt markers live in comments by convention.
 REMOVED_RE = re.compile(r'(?://|#|/\*|^\s*\*)\s*removed:', re.IGNORECASE)
 DEBT_RE = re.compile(
   r'(?://|#|/\*|^\s*\*)\s*(?:TODO|FIXME|HACK|XXX)\b(?!\s*\()(?![:\s]*[A-Z][A-Z0-9]+-\d+)')
@@ -118,7 +118,7 @@ class FileContext:
 
     Skips every check that needs the JS/TS lexer (those would misfire on other syntaxes).
     A genuine deterministic audit of a non-JS stack is done by an on-demand scanner the
-    skill generates per stack — see references/porting-scanner.md.
+    skill generates per stack, see references/porting-scanner.md.
     """
     out = self.check_file_lines(max_file_lines)
     out.extend(self.check_extra_bans(extra_bans))
@@ -130,7 +130,7 @@ class FileContext:
     count = len(self.lines)
     if count <= cap:
       return []
-    msg = f'File is {count} lines (cap {cap}) — split by responsibility.'
+    msg = f'File is {count} lines (cap {cap}), split by responsibility.'
     return [self._finding('cap.file-lines', (1, count), msg)]
 
   def check_suppression(self):
@@ -138,19 +138,19 @@ class FileContext:
     for idx, line in enumerate(self.lines, 1):
       hit = SUPPRESSION_RE.search(line)
       if hit:
-        msg = f'Lint/type suppression `{hit.group(0)}` — fix the root cause, do not suppress.'
+        msg = f'Lint/type suppression `{hit.group(0)}`, fix the root cause, do not suppress.'
         out.append(self._finding('ban.suppression', (idx, idx), msg))
     return out
 
   def check_empty_catch(self):
     return self._multiline('ban.empty-catch', EMPTY_CATCH_RE,
-                           'Empty catch block — catch must log or rethrow.')
+                           'Empty catch block, catch must log or rethrow.')
 
   def check_bare_error(self):
     out = []
     for idx, line in enumerate(self.masked, 1):
       if BARE_ERROR_RE.search(line):
-        msg = 'Bare `new Error(...)` throw — use a domain-specific exception (verify this is domain code).'
+        msg = 'Bare `new Error(...)` throw, use a domain-specific exception (verify this is domain code).'
         out.append(self._finding('ban.bare-error', (idx, idx), msg))
     return out
 
@@ -158,7 +158,7 @@ class FileContext:
     out = []
     for idx, line in enumerate(self.masked, 1):
       if NON_NULL_RE.search(line):
-        msg = 'Non-null assertion `!` — handle null/undefined with a guard or optional chaining.'
+        msg = 'Non-null assertion `!`, handle null/undefined with a guard or optional chaining.'
         out.append(self._finding('ban.non-null', (idx, idx), msg))
     return out
 
@@ -166,7 +166,7 @@ class FileContext:
     out = []
     for idx, line in enumerate(self.masked, 1):
       if TYPE_DECL_RE.match(line):
-        msg = ('Type/interface declared in a scoped module — if it has 2+ props, '
+        msg = ('Type/interface declared in a scoped module, if it has 2+ props, '
                'move it to interfaces/ or dto/.')
         out.append(self._finding('ban.inline-type', (idx, idx), msg))
     return out
@@ -183,7 +183,7 @@ class FileContext:
     for idx, line in enumerate(self.lines, 1):
       if REMOVED_RE.search(line):
         out.append(self._finding('clean.removed-comment', (idx, idx),
-                                  'Leftover `removed:` comment — the deletion is in git history.'))
+                                  'Leftover `removed:` comment, the deletion is in git history.'))
     return out
 
   def check_debt_marker(self):
@@ -191,7 +191,7 @@ class FileContext:
     for idx, line in enumerate(self.lines, 1):
       if DEBT_RE.search(line):
         out.append(self._finding('clean.debt-marker', (idx, idx),
-                                  'Debt marker without an owner/ticket — assign one or resolve it.'))
+                                  'Debt marker without an owner/ticket, assign one or resolve it.'))
     return out
 
   def check_extra_bans(self, extra_bans):
@@ -212,7 +212,7 @@ class FileContext:
     if name == 'assigned-secret' and _ENVNAME_RE.match(value):
       return []
     finding = self._finding('sec.hardcoded-secret', (idx, idx),
-                            f'Possible hardcoded secret ({name}) — never commit credentials.')
+                            f'Possible hardcoded secret ({name}), never commit credentials.')
     finding['snippet'] = line.replace(value, '***REDACTED***').strip()[:200]
     return [finding]
 

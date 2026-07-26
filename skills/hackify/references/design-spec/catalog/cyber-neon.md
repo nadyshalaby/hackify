@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Cyber Neon — design spec
+name: Cyber Neon, design spec
 direction: cyber-neon
 platforms: [web]
 description: >
@@ -138,7 +138,7 @@ motion:
     enter: "cubic-bezier(0.16, 1, 0.3, 1)"
     exit: "cubic-bezier(0.5, 0, 0.9, 0.3)"
     move: "cubic-bezier(0.2, 0, 0, 1)"
-  reduced: "respect prefers-reduced-motion — disable pulse, sweep and scan; keep static glow"
+  reduced: "respect prefers-reduced-motion, disable pulse, sweep and scan; keep static glow"
 
 components:
   button-primary:
@@ -265,24 +265,24 @@ Geometry is angular. Containers carry a clipped corner (a 45-degree cut of 10 to
 ## Colors
 
 ### Brand & Accent
-- **Cyan** (`{colors.accent}` — `#3ce0e0`): the primary light source. Active borders, focus, the single filled primary button, live indicators, sort markers. Contrast against `{colors.on-accent}` is 12.24:1.
-- **Cyan Hover / Press** (`{colors.accent-hover}` — `#6ceded`, `{colors.accent-press}` — `#2bb3b3`).
-- **Magenta** (`{colors.accent-two}` — `#e0409c`): the permitted second light source, used for a genuinely different meaning: a second data series, an opposing team, a secondary channel. It is never decorative and never mixed with cyan in the same element. If a product has no second meaning to encode, this token stays unused.
+- **Cyan** (`{colors.accent}`, `#3ce0e0`): the primary light source. Active borders, focus, the single filled primary button, live indicators, sort markers. Contrast against `{colors.on-accent}` is 12.24:1.
+- **Cyan Hover / Press** (`{colors.accent-hover}`, `#6ceded`, `{colors.accent-press}`, `#2bb3b3`).
+- **Magenta** (`{colors.accent-two}`, `#e0409c`): the permitted second light source, used for a genuinely different meaning: a second data series, an opposing team, a secondary channel. It is never decorative and never mixed with cyan in the same element. If a product has no second meaning to encode, this token stays unused.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#08090f`): the indigo-black field.
-- **Surface** (`{colors.surface}` — `#0e1019`): panels and cards.
-- **Surface Raised** (`{colors.surface-raised}` — `#141726`): hover fills, toasts.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#05060a`): inputs, terminals, log wells.
-- **Hairline** (`{colors.hairline}` — `#1c2033`) and **Hairline Strong** (`{colors.hairline-strong}` — `#2a3050`): unlit borders, the default state of every container.
+- **Canvas** (`{colors.canvas}`, `#08090f`): the indigo-black field.
+- **Surface** (`{colors.surface}`, `#0e1019`): panels and cards.
+- **Surface Raised** (`{colors.surface-raised}`, `#141726`): hover fills, toasts.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#05060a`): inputs, terminals, log wells.
+- **Hairline** (`{colors.hairline}`, `#1c2033`) and **Hairline Strong** (`{colors.hairline-strong}`, `#2a3050`): unlit borders, the default state of every container.
 
 ### Text
-- **Ice** (`{colors.text-primary}` — `#dfe3f2`): headings and values. Contrast on canvas 15.53:1.
-- **Ice Secondary** (`{colors.text-secondary}` — `#8b90ad`): labels, chrome, inactive items. Contrast 6.33:1.
-- **Ice Muted** (`{colors.text-muted}` — `#5d6382`): disabled, timestamps.
+- **Ice** (`{colors.text-primary}`, `#dfe3f2`): headings and values. Contrast on canvas 15.53:1.
+- **Ice Secondary** (`{colors.text-secondary}`, `#8b90ad`): labels, chrome, inactive items. Contrast 6.33:1.
+- **Ice Muted** (`{colors.text-muted}`, `#5d6382`): disabled, timestamps.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#3fd68a`), **Caution** (`{colors.caution}` — `#f5c344`), **Negative** (`{colors.negative}` — `#ff4d6a`). Each is treated as its own light source, following the same rule as the accent: small fills, glowing borders, and text, never large panels.
+**Positive** (`{colors.positive}`, `#3fd68a`), **Caution** (`{colors.caution}`, `#f5c344`), **Negative** (`{colors.negative}`, `#ff4d6a`). Each is treated as its own light source, following the same rule as the accent: small fills, glowing borders, and text, never large panels.
 
 ## Typography
 
@@ -335,9 +335,9 @@ The depth medium is **glow**. Elevation is expressed by how lit an element is, n
 | Level | Treatment | Use |
 |---|---|---|
 | 0 | Flat with a `{colors.hairline-strong}` border | Every panel and card at rest |
-| 1 | `{elevation.1}` — a crisp 1px ring | Hovered panels, toasts |
-| 2 | `{elevation.2}` — 12px cyan glow plus a cyan ring | The active or focused element |
-| 3 | `{elevation.3}` — deep shadow plus a ring | Modals |
+| 1 | `{elevation.1}`, a crisp 1px ring | Hovered panels, toasts |
+| 2 | `{elevation.2}`, 12px cyan glow plus a cyan ring | The active or focused element |
+| 3 | `{elevation.3}`, deep shadow plus a ring | Modals |
 
 **Only one element on a screen carries `{elevation.2}` at a time.** Glow marks focus, and focus is singular by definition. Applying glow to every card flattens the hierarchy that glow exists to create, which is the most common way this direction is built wrong.
 
@@ -350,8 +350,8 @@ Radii stay minimal and the identity comes from **clipped corners** instead.
 | Token | Value | Use |
 |---|---|---|
 | `{rounded.none}` | 0 | Cards, modals, panels, tables |
-| `{rounded.xs}` – `{rounded.md}` | 1–3px | Buttons, inputs, badges |
-| `{rounded.lg}` – `{rounded.xl}` | 4–6px | Dropdowns |
+| `{rounded.xs}`, `{rounded.md}` | 1-3px | Buttons, inputs, badges |
+| `{rounded.lg}`, `{rounded.xl}` | 4-6px | Dropdowns |
 | `{rounded.pill}` | 9999px | Status dots and progress tracks only |
 
 **The corner cut** is applied with `clip-path` on cards, modals, and hero containers: a 45-degree bevel of 10 to 14px, on the top-inline-start and bottom-inline-end corners only. Cutting all four corners reads as a badge rather than a panel. When a clipped element needs a border, draw it with a matching clipped pseudo-element rather than `border`, since `clip-path` cuts the border too.
@@ -398,8 +398,8 @@ Radii stay minimal and the identity comes from **clipped corners** instead.
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full multi-panel layout; grid overlay visible; corner cuts at 14px |
-| `lg` | 1024–1439px | Panels reduce to two columns; cuts at 12px |
-| `md` | 768–1023px | Single panel column; grid overlay removed |
+| `lg` | 1024-1439px | Panels reduce to two columns; cuts at 12px |
+| `md` | 768-1023px | Single panel column; grid overlay removed |
 | `sm` | < 768px | Stacked; display-xl to 32px; cuts at 8px |
 
 **Type ramp on small screens:** display-xl 58 → 32px, display-lg 40 → 26px, heading-lg 27 → 21px. Body stays at 14px. Overline tracking reduces from 0.18em to 0.12em so labels do not wrap.

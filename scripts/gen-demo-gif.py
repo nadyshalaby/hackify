@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/assets/hackify-demo.gif — the README hero animation.
+"""Generate docs/assets/hackify-demo.gif, the README hero animation.
 
 requires Pillow (pip install Pillow>=10).
 
@@ -148,7 +148,7 @@ def main(output_path: str = "docs/assets/hackify-demo.gif") -> None:
 
 
 if __name__ == "__main__":
-    # Dev-only tool. The output path is trusted developer input — not a
+    # Dev-only tool. The output path is trusted developer input, not a
     # CI entry point and never invoked on untrusted argv.
     output = sys.argv[1] if len(sys.argv) > 1 else "docs/assets/hackify-demo.gif"
     Path(output).parent.mkdir(parents=True, exist_ok=True)

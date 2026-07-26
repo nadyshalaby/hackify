@@ -38,10 +38,10 @@ PA_REVIEW_SINGLE_FILES=(
 # Multi-template file: holds 4 sub-agent templates under h2 headings.
 PA_MULTI_REVIEW="$PA_DIR/phase-5-multi-review.md"
 PA_MULTI_REVIEW_HEADINGS=(
-  "## Phase 5 — Multi-reviewer A (security & correctness)"
-  "## Phase 5 — Multi-reviewer B (quality & layering)"
-  "## Phase 5 — Multi-reviewer C (plan consistency & scope)"
-  "## Phase 5 — Multi-reviewer D (performance)"
+  "## Phase 5, Multi-reviewer A (security & correctness)"
+  "## Phase 5, Multi-reviewer B (quality & layering)"
+  "## Phase 5, Multi-reviewer C (plan consistency & scope)"
+  "## Phase 5, Multi-reviewer D (performance)"
 )
 
 # Wizard bank files in CQ_DIR (exclude README + contract + picking guide).
@@ -59,11 +59,11 @@ CANONICAL_SEVERITY='If you cannot verify a claim against live docs or live code,
 ALLOWLIST='OWASP|SANS|NIST|RFC|WCAG|ARIA|Clean Code|SOLID|12-Factor|Conventional Commits|Semantic Versioning|Keep a Changelog|ISO 8601|Postel|expand-then-contract'
 
 # Extract one sub-template body from the multi-template file by h2 heading.
-# Boundary is the NEXT h2 heading starting with the multi-review prefix —
+# Boundary is the NEXT h2 heading starting with the multi-review prefix
 # this avoids prematurely terminating at `## Critical` lines inside the
 # OUTPUT report skeleton.
 multi_review_body() {
-  awk -v h="$1" '$0 == h {flag=1; next} flag && /^## Phase 5 — Multi-reviewer/ {flag=0} flag' "$PA_MULTI_REVIEW"
+  awk -v h="$1" '$0 == h {flag=1; next} flag && /^## Phase 5, Multi-reviewer/ {flag=0} flag' "$PA_MULTI_REVIEW"
 }
 
 # Extract the OUTPUT subsection out of a template body. Terminates on the
@@ -170,7 +170,7 @@ done
 check_role "$(cat "$RAV_FILE")" "review-and-verify.md"
 
 yellow "[13] no leaked absolute paths in template/bank bodies (PA_DIR/*.md, CQ_DIR/*.md, review-and-verify.md)"
-# Skip non-template files (README, the contract itself, aggregation guidance) —
+# Skip non-template files (README, the contract itself, aggregation guidance)
 # the contract document literally lists `/Users/` etc. as forbidden tokens.
 is_pa_non_template() {
   local base="$1"
@@ -253,7 +253,7 @@ done
 # === Agent-catalog contract conformance (agents/*.md) ===
 
 yellow "[36] agents/*.md template contract (anchors + ROLE substance + OUTPUT word cap; SEVERITY on code-reviewer-*)"
-# Agent files carry YAML frontmatter before **ROLE** — the anchor checks grep
+# Agent files carry YAML frontmatter before **ROLE**, the anchor checks grep
 # the whole body, so frontmatter passes through harmlessly. The file list is
 # the live glob: a new agent is contract-checked the moment it lands, and an
 # empty glob is itself a FAIL (never a silent pass).

@@ -1,4 +1,4 @@
-# hackify — Cursor package
+# hackify (Cursor package)
 
 Cursor rules live under `.cursor/rules/` as `.mdc` files. v0.2.0 does NOT
 ship an automatic markdown -> `.mdc` adapter; the markdown files here are
@@ -11,7 +11,7 @@ copy-paste-ready bodies you can wrap in a minimal `.mdc` frontmatter.
 2. Add minimal Cursor rule frontmatter at the top of each `.mdc`:
 
        ---
-       description: hackify — universal end-to-end dev workflow
+       description: hackify, universal end-to-end dev workflow
        globs: "**/*"
        alwaysApply: false
        ---

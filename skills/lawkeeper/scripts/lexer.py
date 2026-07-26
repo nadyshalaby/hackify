@@ -5,7 +5,7 @@ strings, template literals, and line/block comments with spaces. Structural deli
 live in real code (`{`, `}`, `(`, `)`) survive, so a token scan run over the masked text can
 never match inside a string literal or comment.
 
-This is a pragmatic, line-aware lexer — not a full ECMAScript parser. It tracks the two
+This is a pragmatic, line-aware lexer, not a full ECMAScript parser. It tracks the two
 states that span lines (block comments, multi-line template literals); everything else
 resolves within a line. Interpolations inside template literals (`${...}`) are NOT
 un-masked, an accepted approximation: the high-value token bans never hide inside an

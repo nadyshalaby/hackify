@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Data Dense — design spec
+name: Data Dense, design spec
 direction: data-dense
 platforms: [web]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.3, 0, 0.2, 1)"
     exit: "cubic-bezier(0.4, 0, 1, 1)"
     move: "linear"
-  reduced: "respect prefers-reduced-motion — drop the value-change flash, keep instant states"
+  reduced: "respect prefers-reduced-motion, drop the value-change flash, keep instant states"
 
 components:
   button-primary:
@@ -258,25 +258,25 @@ Density is not an excuse for illegibility. `IBM Plex Sans` was drawn for small s
 ## Colors
 
 ### Brand & Accent
-- **Blue** (`{colors.accent}` — `#4a9eda`): selection, focus, active tab, primary button, sort indicator. Contrast against `{colors.on-accent}` is 6.84:1. This is the only accent, and it means *selected or actionable*, never *important*.
-- **Blue Hover / Press** (`{colors.accent-hover}` — `#6bb2e4`, `{colors.accent-press}` — `#3580b5`).
+- **Blue** (`{colors.accent}`, `#4a9eda`): selection, focus, active tab, primary button, sort indicator. Contrast against `{colors.on-accent}` is 6.84:1. This is the only accent, and it means *selected or actionable*, never *important*.
+- **Blue Hover / Press** (`{colors.accent-hover}`, `#6bb2e4`, `{colors.accent-press}`, `#3580b5`).
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#0d1013`): the outermost field and the gutter between panel groups.
-- **Surface** (`{colors.surface}` — `#141a1f`): panels, cards, nav.
-- **Surface Raised** (`{colors.surface-raised}` — `#1b2229`): row hover, secondary buttons, toasts.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#090c0f`): inputs, code and log wells.
-- **Hairline** (`{colors.hairline}` — `#1f272e`): row rules inside a table.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#2d3841`): panel edges, header rules, input borders.
+- **Canvas** (`{colors.canvas}`, `#0d1013`): the outermost field and the gutter between panel groups.
+- **Surface** (`{colors.surface}`, `#141a1f`): panels, cards, nav.
+- **Surface Raised** (`{colors.surface-raised}`, `#1b2229`): row hover, secondary buttons, toasts.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#090c0f`): inputs, code and log wells.
+- **Hairline** (`{colors.hairline}`, `#1f272e`): row rules inside a table.
+- **Hairline Strong** (`{colors.hairline-strong}`, `#2d3841`): panel edges, header rules, input borders.
 
 ### Text
-- **Primary** (`{colors.text-primary}` — `#dfe5e9`): values and headings. Contrast on canvas 15.01:1.
-- **Secondary** (`{colors.text-secondary}` — `#8b97a1`): labels, column headers, chrome. Contrast 6.40:1.
-- **Muted** (`{colors.text-muted}` — `#61707c`): disabled, null values, units.
+- **Primary** (`{colors.text-primary}`, `#dfe5e9`): values and headings. Contrast on canvas 15.01:1.
+- **Secondary** (`{colors.text-secondary}`, `#8b97a1`): labels, column headers, chrome. Contrast 6.40:1.
+- **Muted** (`{colors.text-muted}`, `#61707c`): disabled, null values, units.
 
 ### Semantic (data encoding)
-- **Positive** (`{colors.positive}` — `#3fb27a`) and **Negative** (`{colors.negative}` — `#e05c4e`): value direction. Applied to the figure itself, not to a background.
-- **Caution** (`{colors.caution}` — `#d9a441`): threshold breaches and stale data.
+- **Positive** (`{colors.positive}`, `#3fb27a`) and **Negative** (`{colors.negative}`, `#e05c4e`): value direction. Applied to the figure itself, not to a background.
+- **Caution** (`{colors.caution}`, `#d9a441`): threshold breaches and stale data.
 
 **Categorical series** for charts, in order: `{colors.accent}`, `{colors.positive}`, `{colors.caution}`, `{colors.negative}`, then `#9b7fd4` and `#54c2c2`. Six is the maximum; beyond that a chart needs grouping, not more colors.
 
@@ -345,7 +345,7 @@ The one place shadow earns its place is the **sticky header and frozen column**:
 | `{rounded.none}` | 0 | Table cells, panel edges, chart areas |
 | `{rounded.xs}` | 1px | Badges, tags |
 | `{rounded.sm}` | 2px | Buttons, inputs, selects |
-| `{rounded.md}` – `{rounded.lg}` | 3–4px | Dropdowns, modals |
+| `{rounded.md}`, `{rounded.lg}` | 3-4px | Dropdowns, modals |
 | `{rounded.pill}` | 9999px | Status dots only |
 
 Radius stays tiny. At this density a 6px radius on a 28px row eats visible area and makes adjacent panels look detached.
@@ -400,8 +400,8 @@ This is the system's centre.
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | All columns visible; side panels persistent; charts full detail |
-| `lg` | 1024–1439px | Side panel collapses to icons; low-priority columns hidden |
-| `md` | 768–1023px | Single panel column; table scrolls horizontally with a frozen key column |
+| `lg` | 1024-1439px | Side panel collapses to icons; low-priority columns hidden |
+| `md` | 768-1023px | Single panel column; table scrolls horizontally with a frozen key column |
 | `sm` | < 768px | Table becomes a stacked list of key-value pairs |
 
 **Column priority is declared per column,** not inferred. Every table column carries a priority so hiding is deterministic across breakpoints. Hiding the wrong column silently is worse than a horizontal scrollbar.

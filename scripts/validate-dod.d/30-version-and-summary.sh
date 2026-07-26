@@ -35,7 +35,7 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-# === v0.1.4 — Summary command + Quick mode skill ===
+# === v0.1.4. Summary command + Quick mode skill ===
 
 SUMMARY_CMD="commands/summary.md"
 QUICK_SKILL="skills/quick/SKILL.md"

@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Warm Organic — design spec
+name: Warm Organic, design spec
 direction: warm-organic
 platforms: [web, native]
 description: >
@@ -139,7 +139,7 @@ motion:
     enter: "cubic-bezier(0.16, 1, 0.3, 1)"
     exit: "cubic-bezier(0.5, 0, 0.9, 0.4)"
     move: "cubic-bezier(0.34, 1.2, 0.64, 1)"
-  reduced: "respect prefers-reduced-motion — opacity only, drop the settle overshoot"
+  reduced: "respect prefers-reduced-motion, opacity only, drop the settle overshoot"
 
 components:
   button-primary:
@@ -271,23 +271,23 @@ Terracotta `{colors.accent}` carries every action. It is muted rather than satur
 ## Colors
 
 ### Brand & Accent
-- **Terracotta** (`{colors.accent}` — `#9c4a2a`): every primary action, active state, focus ring, and inline link. Contrast against `{colors.on-accent}` is 5.65:1, so white-on-terracotta is safe at body size.
-- **Terracotta Hover / Press** (`{colors.accent-hover}` — `#b25733`, `{colors.accent-press}` — `#7d3a20`).
-- **On Accent** (`{colors.on-accent}` — `#faf5ee`): the canvas oat, not white, so the button feels part of the page.
+- **Terracotta** (`{colors.accent}`, `#9c4a2a`): every primary action, active state, focus ring, and inline link. Contrast against `{colors.on-accent}` is 5.65:1, so white-on-terracotta is safe at body size.
+- **Terracotta Hover / Press** (`{colors.accent-hover}`, `#b25733`, `{colors.accent-press}`, `#7d3a20`).
+- **On Accent** (`{colors.on-accent}`, `#faf5ee`): the canvas oat, not white, so the button feels part of the page.
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#faf5ee`): warm oat page background.
-- **Surface** (`{colors.surface}` — `#ffffff`): cards and inputs. This is the one place pure white appears, and it works because it is surrounded by warmth.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#f2ebe0`): row hover, disabled fills, badges, quiet sections.
-- **Hairline** (`{colors.hairline}` — `#e6ddd0`) and **Hairline Strong** (`{colors.hairline-strong}` — `#d2c5b3`): table rules and input borders.
+- **Canvas** (`{colors.canvas}`, `#faf5ee`): warm oat page background.
+- **Surface** (`{colors.surface}`, `#ffffff`): cards and inputs. This is the one place pure white appears, and it works because it is surrounded by warmth.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#f2ebe0`): row hover, disabled fills, badges, quiet sections.
+- **Hairline** (`{colors.hairline}`, `#e6ddd0`) and **Hairline Strong** (`{colors.hairline-strong}`, `#d2c5b3`): table rules and input borders.
 
 ### Text
-- **Bark** (`{colors.text-primary}` — `#2e2823`): body and headings. Contrast on canvas 13.41:1.
-- **Bark Secondary** (`{colors.text-secondary}` — `#6b6058`): supporting copy, labels, captions. Contrast 5.63:1.
-- **Bark Muted** (`{colors.text-muted}` — `#96897d`): placeholders, disabled, timestamps.
+- **Bark** (`{colors.text-primary}`, `#2e2823`): body and headings. Contrast on canvas 13.41:1.
+- **Bark Secondary** (`{colors.text-secondary}`, `#6b6058`): supporting copy, labels, captions. Contrast 5.63:1.
+- **Bark Muted** (`{colors.text-muted}`, `#96897d`): placeholders, disabled, timestamps.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#4a7c52`), **Caution** (`{colors.caution}` — `#855f1f`), **Negative** (`{colors.negative}` — `#a94436`). All shifted warm and desaturated so they belong to the same family as the accent. Negative is deliberately close to terracotta in hue; it is distinguished by context and by an accompanying icon or label, never by color alone.
+**Positive** (`{colors.positive}`, `#4a7c52`), **Caution** (`{colors.caution}`, `#855f1f`), **Negative** (`{colors.negative}`, `#a94436`). All shifted warm and desaturated so they belong to the same family as the accent. Negative is deliberately close to terracotta in hue; it is distinguished by context and by an accompanying icon or label, never by color alone.
 
 ## Typography
 
@@ -400,8 +400,8 @@ Tables are used sparingly. `table-row` carries `{typography.body-sm}` with a `{c
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Content column plus card rail; full 88px section rhythm |
-| `lg` | 1024–1439px | Rail narrows; rhythm holds |
-| `md` | 768–1023px | Rail moves below content; cards go 2-up |
+| `lg` | 1024-1439px | Rail narrows; rhythm holds |
+| `md` | 768-1023px | Rail moves below content; cards go 2-up |
 | `sm` | < 768px | Single column; cards 1-up; display-xl drops 54 → 32px |
 
 **Type ramp on small screens:** display-xl 54 → 32px, display-lg 38 → 26px, heading-lg 28 → 22px. Body stays at 16px. Line-height stays at 1.65 or increases; it never compresses.

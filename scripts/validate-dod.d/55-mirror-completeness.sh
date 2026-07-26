@@ -1,14 +1,14 @@
 # shellcheck shell=bash
 
-# [55] Mirror-completeness — every tracked canonical file under skills/,
+# [55] Mirror-completeness, every tracked canonical file under skills/,
 # commands/, rules/, agents/, and hooks/ MUST appear in the sync manifest
 # (MIRROR_SOURCES or CLAUDE_CODE_EXTRA). Both manifests are hand-maintained
 # enumerations; a file forgotten there ships silently absent from the
 # dist/<runtime>/ trees (bit the project in v0.2.6, again in v0.4.1 when 5
-# companion-skill evals.json were found unmirrored — and agents/ + hooks/
+# companion-skill evals.json were found unmirrored, and agents/ + hooks/
 # were a blind spot until v0.7.0). This check makes that failure mode loud.
 
-yellow "[55] mirror-completeness — tracked skills/ commands/ rules/ agents/ hooks/ files are all in the sync manifest"
+yellow "[55] mirror-completeness, tracked skills/ commands/ rules/ agents/ hooks/ files are all in the sync manifest"
 
 # Single source of truth: read the manifest arrays straight from the sync
 # helper, in a command-substitution subshell so its function/var definitions
@@ -19,21 +19,21 @@ MANIFEST_LIST=$(
   printf '%s\n' "${MIRROR_SOURCES[@]}" "${CLAUDE_CODE_EXTRA[@]}"
 )
 
-# The canonical source set IS the git-tracked set — using git ls-files (not
+# The canonical source set IS the git-tracked set, using git ls-files (not
 # find) excludes dist/ and __pycache__/*.pyc for free, so build artifacts can
 # never masquerade as unmirrored canonical files.
 #
-# Exclusions — tracked files that legitimately never ship:
-#   */evals/corpus/*                  — the lawkeeper recall corpus is a synthetic
+# Exclusions, tracked files that legitimately never ship:
+#   */evals/corpus/*, the lawkeeper recall corpus is a synthetic
 #                                       set of DELIBERATELY-violating fixtures used
 #                                       only to score the scanner in CI. Mirroring
 #                                       deliberately-broken code (incl. a planted
 #                                       hardcoded secret) into dist/ would be wrong.
-#   hooks/test_block_banned_tokens.sh — dev-only test harness for
+#   hooks/test_block_banned_tokens.sh, dev-only test harness for
 #                                       block-banned-tokens.sh. The claude-code
 #                                       emitter copies only the explicit
 #                                       CLAUDE_CODE_EXTRA enumeration, which omits
-#                                       test files by design — no runtime ships it.
+#                                       test files by design, no runtime ships it.
 TRACKED_SORTED=$(git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/null \
   | grep -v -e '/evals/corpus/' -e '^hooks/test_block_banned_tokens\.sh$' \
   | sort -u)

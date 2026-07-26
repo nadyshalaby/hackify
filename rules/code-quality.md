@@ -1,38 +1,38 @@
-# Code Rules — Always-On
+# Code Rules (Always-On)
 
 > **Working principles.** This doc is the deep doctrine. The 4 working principles that
-> frame it — Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven
-> Execution — live at [rules/four-principles.md](four-principles.md). Read that first;
+> frame it. Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven
+> Execution, live at [rules/four-principles.md](four-principles.md). Read that first;
 > come back here for the operational rules.
 
-These rules are global, project-agnostic, and load-bearing. They mirror the principles in a typical project-root `CLAUDE.md` — but recompiled here so hackify is self-contained even if those files are absent.
+These rules are global, project-agnostic, and load-bearing. They mirror the principles in a typical project-root `CLAUDE.md`, but recompiled here so hackify is self-contained even if those files are absent.
 
 When in conflict with project `CLAUDE.md`, project rules win (more specific). When in conflict between user-global `CLAUDE.md` and a workspace `CLAUDE.md`, the **stricter** rule wins.
 
 ---
 
-## Voice — abstract principles, concrete adaptation
+## Voice (abstract principles, concrete adaptation)
 
-This file is written in abstract, ecosystem-neutral voice. Paths, file globs, and role names are placeholders for the equivalent in your stack — substitute freely. Where the text says "package manager," "linter / formatter," "type system," "test runner," "HTTP framework," "ORM," or "UI framework," read your own toolchain.
+This file is written in abstract, ecosystem-neutral voice. Paths, file globs, and role names are placeholders for the equivalent in your stack, substitute freely. Where the text says "package manager," "linter / formatter," "type system," "test runner," "HTTP framework," "ORM," or "UI framework," read your own toolchain.
 
-The *principles* — DRY, no inline types, strict layering, edge-case discipline, hard caps, no lint suppressions — apply regardless of stack. The patterns adapt; the principles do not.
+The *principles*. DRY, no inline types, strict layering, edge-case discipline, hard caps, no lint suppressions, apply regardless of stack. The patterns adapt; the principles do not.
 
 ---
 
-## Reusable, generic, shareable — the prime directive
+## Reusable, generic, shareable (the prime directive)
 
 This is the rule every other rule serves. Code exists to be reused; copy-paste is debt.
 
-- Write every unit to be REUSED, not duplicated. Assume a second caller will need it — build so they can import it as-is.
+- Write every unit to be REUSED, not duplicated. Assume a second caller will need it, build so they can import it as-is.
 - Default GENERIC over specific: parameterize behavior, depend on abstractions, never bake one caller's assumptions into shared code.
-- SHAREABLE means zero hidden coupling — an extracted unit carries its dependencies explicitly and works at a second call site with no edits.
+- SHAREABLE means zero hidden coupling, an extracted unit carries its dependencies explicitly and works at a second call site with no edits.
 - TESTABLE follows from the above: pure functions, injected dependencies, no import-time singletons, no side effect a test cannot observe.
-- Litmus test before merge: *could a second feature import this as-is, and is there a test that proves it works?* If no — refactor until yes.
-- Reuse never justifies speculation: prefer the simpler concrete solution and extract on the SECOND use — never the third, never the hypothetical. Simplicity First and DRY are the two guardrails of this principle.
+- Litmus test before merge: *could a second feature import this as-is, and is there a test that proves it works?* If no, refactor until yes.
+- Reuse never justifies speculation: prefer the simpler concrete solution and extract on the SECOND use, never the third, never the hypothetical. Simplicity First and DRY are the two guardrails of this principle.
 
 ---
 
-## DRY — Don't Repeat Yourself
+## DRY (Don't Repeat Yourself)
 
 DRY is not a guideline. It is a hard requirement.
 
@@ -46,11 +46,11 @@ Typical reusable locations in a layered codebase:
 - **Backend:** common-utility module, list helpers, error catalog, DB pool / client, schema definitions, auth module, env-config module
 - **Frontend:** shared lib module, list helpers, auth-client wrapper, API client, design-system primitives
 
-If you import a singleton (`auth`, `api`, `pool`, etc.) — confirm you're using the canonical one. Don't construct a second.
+If you import a singleton (`auth`, `api`, `pool`, etc.), confirm you're using the canonical one. Don't construct a second.
 
 ---
 
-## No inline types — name everything ≥2 props
+## No inline types (name everything ≥2 props)
 
 Inline object shapes are BANNED.
 
@@ -67,11 +67,11 @@ Inline object shapes are BANNED.
 - **Frontend feature-level:** the feature's own `types` file
 - **Frontend cross-feature:** a shared lib-types folder (rare; prefer feature-local)
 
-**Forbidden:** defining an `interface` or `type` (≥2 props) inside any implementation file — router, service, middleware, guard, controller, component, page, or route. Extract to a dedicated `*.types` file (see *One construct per file & dedicated-file separation* below).
+**Forbidden:** defining an `interface` or `type` (≥2 props) inside any implementation file, router, service, middleware, guard, controller, component, page, or route. Extract to a dedicated `*.types` file (see *One construct per file & dedicated-file separation* below).
 
 ---
 
-## Clean architecture — strict layer separation
+## Clean architecture (strict layer separation)
 
 Dependencies flow inward. Layers do not leak.
 
@@ -112,13 +112,13 @@ Routes are pure delegation: **one handler = one service call + one response**. Z
 - One service owns one domain.
 - One module owns one bounded context.
 - A seed command seeds. A migrate command migrates. **Do NOT merge responsibilities.**
-- If a command has a prerequisite, validate and give a clear error — do NOT silently run the prerequisite.
+- If a command has a prerequisite, validate and give a clear error, do NOT silently run the prerequisite.
 
 When in doubt, the simpler approach is correct.
 
 ---
 
-## Edge cases — handle MORE, not fewer
+## Edge cases (handle MORE, not fewer)
 
 - null, undefined, empty arrays, empty strings, empty objects
 - Concurrent access, partial failures
@@ -133,7 +133,7 @@ If something CAN go wrong, write code that handles it. Don't hope.
 
 ## Hard caps (zero tolerance)
 
-Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps.md) — every cap (size, ban, refuse-on-sight) is defined there. This doc operationalizes the principles that motivate the caps; the caps themselves are not restated here to keep one canonical source.
+Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps.md), every cap (size, ban, refuse-on-sight) is defined there. This doc operationalizes the principles that motivate the caps; the caps themselves are not restated here to keep one canonical source.
 
 ---
 
@@ -160,12 +160,12 @@ Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps
 - Never commit `.env` or any file containing secrets. `.env.example` is the only env file in version control.
 - Validate ALL user input at system boundaries (schema validator for HTTP, runtime checks for IPC).
 - Sanitize file paths to prevent directory traversal.
-- Use parameterized queries — NEVER string-concatenate SQL.
+- Use parameterized queries. NEVER string-concatenate SQL.
 - Platform-specific secret keys (push-notification keys, service-account JSON, etc.) live under a gitignored keys directory or outside the repo. Test fixtures under a dedicated test-fixtures tree are the only such files committed.
 
 ---
 
-## Migrations — idempotent
+## Migrations (idempotent)
 
 - Handle both existing state (with old tables) AND fresh state (without old tables).
 - Always guard with existence checks (`information_schema.tables`) before reading from tables that may not exist.
@@ -175,7 +175,7 @@ Hard caps are the canonical operational list in [`rules/hard-caps.md`](hard-caps
 
 ## Type & interface placement (recap)
 
-BANNED: defining `interface` or `type` inside any implementation file (service, controller, guard, router, middleware, component, page, route). Extract — see *One construct per file & dedicated-file separation*.
+BANNED: defining `interface` or `type` inside any implementation file (service, controller, guard, router, middleware, component, page, route). Extract, see *One construct per file & dedicated-file separation*.
 
 ---
 
@@ -183,19 +183,19 @@ BANNED: defining `interface` or `type` inside any implementation file (service, 
 
 A file holds ONE thing; every other concern moves to its own dedicated file.
 
-- **One component per file** — a component file defines and exports exactly ONE component. No second component, public OR private. A sub-component used only by its parent gets its own file, co-located in a `<component>/` folder with an index that re-exports only the public component.
-- **One class per file** — named for the file. Its private methods/helpers stay with it; implementation cohesion is preserved — this is NOT one-function-per-file.
-- **No complex type in any implementation file** — the inline-type ban extends beyond service/controller/guard/router/middleware to components, pages, and routes. Any `interface`/`type` (≥2 props) or domain `enum` lives in a sibling `*.types` file.
-- **A dedicated file per concern** — constants → a constants file, config → a config file, validation schemas → a schema(s) file, style tokens / variant maps / class-name maps → a styles file. Implementation files import these; they never declare them.
-- **Consistent folder structure** — every module/feature follows the SAME documented skeleton. A new file goes where the convention says; "just this once, elsewhere" is a violation. Wrong convention? Change it in one place — never deviate locally.
+- **One component per file**, a component file defines and exports exactly ONE component. No second component, public OR private. A sub-component used only by its parent gets its own file, co-located in a `<component>/` folder with an index that re-exports only the public component.
+- **One class per file**, named for the file. Its private methods/helpers stay with it; implementation cohesion is preserved, this is NOT one-function-per-file.
+- **No complex type in any implementation file**, the inline-type ban extends beyond service/controller/guard/router/middleware to components, pages, and routes. Any `interface`/`type` (≥2 props) or domain `enum` lives in a sibling `*.types` file.
+- **A dedicated file per concern**, constants → a constants file, config → a config file, validation schemas → a schema(s) file, style tokens / variant maps / class-name maps → a styles file. Implementation files import these; they never declare them.
+- **Consistent folder structure**, every module/feature follows the SAME documented skeleton. A new file goes where the convention says; "just this once, elsewhere" is a violation. Wrong convention? Change it in one place, never deviate locally.
 
-### Extraction floors — leave these inline (extracting is worse, or breaks the build)
+### Extraction floors, leave these inline (extracting is worse, or breaks the build)
 
-- **Single-use, read-in-place values** — a one-off utility/CSS class string, an identity value (`0`, `1`, `-1`, `''`, `true`, `false`). A name adds indirection, not reuse.
-- **Correctness floors** — schema-builder arguments (`z.literal`, `z.enum`), object keys, SQL fragments, template literals containing `${…}`, import specifiers, regex literals, union-type members, ORM schema defaults. Extracting changes behavior or types. Schema files and migration files are off-limits to extraction entirely.
-- **Lint-ban tokens** (`biome-ignore`, `@ts-ignore`, …) stay literal — they ARE the strings the bans grep for.
-- **Framework typed-path floors** — strings a typed router checks against a generated route/search union (route definitions, typed `<Link>` / navigate / redirect targets, route `validateSearch` schemas) stay inline; extracting them breaks route type-inference. A component's own inline form schema may move out cleanly by relocating BOTH the runtime schema and its inferred type — the component then exports no runtime value, so framework hot-reload stays happy; it stays inline only when a project deliberately keeps it in-file for locality.
-- **Technical exceptions** must cite the concrete compiler/linter error they prevent — an undocumented inline exception is itself a finding.
+- **Single-use, read-in-place values**, a one-off utility/CSS class string, an identity value (`0`, `1`, `-1`, `''`, `true`, `false`). A name adds indirection, not reuse.
+- **Correctness floors**, schema-builder arguments (`z.literal`, `z.enum`), object keys, SQL fragments, template literals containing `${…}`, import specifiers, regex literals, union-type members, ORM schema defaults. Extracting changes behavior or types. Schema files and migration files are off-limits to extraction entirely.
+- **Lint-ban tokens** (`biome-ignore`, `@ts-ignore`, …) stay literal, they ARE the strings the bans grep for.
+- **Framework typed-path floors**, strings a typed router checks against a generated route/search union (route definitions, typed `<Link>` / navigate / redirect targets, route `validateSearch` schemas) stay inline; extracting them breaks route type-inference. A component's own inline form schema may move out cleanly by relocating BOTH the runtime schema and its inferred type, the component then exports no runtime value, so framework hot-reload stays happy; it stays inline only when a project deliberately keeps it in-file for locality.
+- **Technical exceptions** must cite the concrete compiler/linter error they prevent, an undocumented inline exception is itself a finding.
 
 ---
 
@@ -209,15 +209,15 @@ A file holds ONE thing; every other concern moves to its own dedicated file.
 
 ## Structural rules (frequent gotchas)
 
-- **Entity class name uniqueness** — every ORM entity name is globally unique across schemas (no `Tenant.User` and `Control.User`).
-- **No re-exports** — import from canonical source. Never re-export from a secondary location.
-- **Service scope awareness** — request-scoped services CANNOT be injected into singletons (cron jobs, event handlers, queue processors). Create dedicated singleton services for cross-scope.
-- **Shared utility extraction** — utilities live in shared directories (a common-utils tree on the backend, a lib tree on the frontend). Search before adding.
-- **Config factory reuse** — never inline a config a factory already provides.
-- **Module import hygiene** — only import modules whose services you actually inject from.
-- **Global type augmentation** — framework request types are extended ONCE, globally, in a type-declaration file. No local `request` interfaces or `any` casts.
-- **Guard-decorator completeness** — every metadata key read by a guard has a corresponding decorator.
-- **Environment-variable validation** — every env variable used in code MUST be in the env validation schema. No orphans, no unvalidated env.
+- **Entity class name uniqueness**, every ORM entity name is globally unique across schemas (no `Tenant.User` and `Control.User`).
+- **No re-exports**, import from canonical source. Never re-export from a secondary location.
+- **Service scope awareness**, request-scoped services CANNOT be injected into singletons (cron jobs, event handlers, queue processors). Create dedicated singleton services for cross-scope.
+- **Shared utility extraction**, utilities live in shared directories (a common-utils tree on the backend, a lib tree on the frontend). Search before adding.
+- **Config factory reuse**, never inline a config a factory already provides.
+- **Module import hygiene**, only import modules whose services you actually inject from.
+- **Global type augmentation**, framework request types are extended ONCE, globally, in a type-declaration file. No local `request` interfaces or `any` casts.
+- **Guard-decorator completeness**, every metadata key read by a guard has a corresponding decorator.
+- **Environment-variable validation**, every env variable used in code MUST be in the env validation schema. No orphans, no unvalidated env.
 
 ---
 
@@ -225,7 +225,7 @@ A file holds ONE thing; every other concern moves to its own dedicated file.
 
 - **Package manager:** pick ONE and stick with it. Lockfile committed.
 - **Linter / formatter:** pick ONE per surface (backend, frontend) and enforce it in CI. Documented divergence between surfaces is acceptable when ecosystem support diverges.
-- **Type system:** maximally strict mode — opt in to every safety flag your type checker offers (no implicit-any, no unchecked indexed access, exact optional properties).
+- **Type system:** maximally strict mode, opt in to every safety flag your type checker offers (no implicit-any, no unchecked indexed access, exact optional properties).
 - **Validation:** a single schema-validator library for env, request bodies, and schema-driven types.
 
 Match your project's formatter config; don't fight it.
@@ -236,8 +236,8 @@ Match your project's formatter config; don't fight it.
 
 - Default to writing **no comments**.
 - Only add a comment when the WHY is non-obvious: a hidden constraint, a subtle invariant, a workaround for a specific bug, behavior that would surprise a reader.
-- Don't explain WHAT the code does — well-named identifiers already do that.
-- Don't reference the current task / fix / callers ("used by X", "added for the Y flow", "handles the case from issue #123") — those belong in the PR description and commit message; they rot.
+- Don't explain WHAT the code does, well-named identifiers already do that.
+- Don't reference the current task / fix / callers ("used by X", "added for the Y flow", "handles the case from issue #123"), those belong in the PR description and commit message; they rot.
 
 ---
 
@@ -247,7 +247,7 @@ Match your project's formatter config; don't fight it.
 - "Fallback for hypothetical future requirements"
 - "Backwards-compat shim for code that's never deployed"
 - "Half-finished implementation"
-- Renaming `_var` → `var` to "use it" (the underscore prefix says "unused"; if it's now used, that's fine — but renaming for cosmetics is noise)
+- Renaming `_var` → `var` to "use it" (the underscore prefix says "unused"; if it's now used, that's fine, but renaming for cosmetics is noise)
 - Re-exporting types "for convenience"
 - Adding `// removed: <X>` comments for deleted code (the deletion is in git history)
 

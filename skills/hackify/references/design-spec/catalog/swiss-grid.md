@@ -1,6 +1,6 @@
 ---
 version: 1
-name: Swiss Grid — design spec
+name: Swiss Grid, design spec
 direction: swiss-grid
 platforms: [web]
 description: >
@@ -135,7 +135,7 @@ motion:
     enter: "cubic-bezier(0.4, 0, 0.2, 1)"
     exit: "cubic-bezier(0.4, 0, 1, 1)"
     move: "cubic-bezier(0.4, 0, 0.2, 1)"
-  reduced: "respect prefers-reduced-motion — all transitions become instant"
+  reduced: "respect prefers-reduced-motion, all transitions become instant"
 
 components:
   button-primary:
@@ -260,22 +260,22 @@ There is nothing to hide behind. No shadow, no gradient, no radius beyond 2px, n
 ## Colors
 
 ### Brand & Accent
-- **Red** (`{colors.accent}` — `#d42b1e`): the primary button, an emphasis rule, a badge, the focus ring. Contrast against white is 5.04:1. One red element per view is the target; two is the maximum.
-- **Red Hover / Press** (`{colors.accent-hover}` — `#b8241a`, `{colors.accent-press}` — `#931c14`).
+- **Red** (`{colors.accent}`, `#d42b1e`): the primary button, an emphasis rule, a badge, the focus ring. Contrast against white is 5.04:1. One red element per view is the target; two is the maximum.
+- **Red Hover / Press** (`{colors.accent-hover}`, `#b8241a`, `{colors.accent-press}`, `#931c14`).
 
 ### Surface
-- **Canvas** (`{colors.canvas}` — `#ffffff`): the page, and also cards, and also modals. There is essentially one surface in this system.
-- **Surface Sunken** (`{colors.surface-sunken}` — `#f2f2f2`): row hover and disabled fills, the only tonal variation permitted.
-- **Hairline** (`{colors.hairline}` — `#d8d8d8`): light rules inside dense content such as tables.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#0d0d0d`): black rules. The primary structural device, used under the nav bar, above footers, and to mark section boundaries.
+- **Canvas** (`{colors.canvas}`, `#ffffff`): the page, and also cards, and also modals. There is essentially one surface in this system.
+- **Surface Sunken** (`{colors.surface-sunken}`, `#f2f2f2`): row hover and disabled fills, the only tonal variation permitted.
+- **Hairline** (`{colors.hairline}`, `#d8d8d8`): light rules inside dense content such as tables.
+- **Hairline Strong** (`{colors.hairline-strong}`, `#0d0d0d`): black rules. The primary structural device, used under the nav bar, above footers, and to mark section boundaries.
 
 ### Text
-- **Black** (`{colors.text-primary}` — `#0d0d0d`): everything. Contrast 19.44:1.
-- **Grey** (`{colors.text-secondary}` — `#5c5c5c`): captions, secondary information. Contrast 6.69:1.
-- **Grey Muted** (`{colors.text-muted}` — `#8c8c8c`): disabled only.
+- **Black** (`{colors.text-primary}`, `#0d0d0d`): everything. Contrast 19.44:1.
+- **Grey** (`{colors.text-secondary}`, `#5c5c5c`): captions, secondary information. Contrast 6.69:1.
+- **Grey Muted** (`{colors.text-muted}`, `#8c8c8c`): disabled only.
 
 ### Semantic
-**Positive** (`{colors.positive}` — `#157a45`) and **Caution** (`{colors.caution}` — `#8a6100`). **Negative** is deliberately the same value as `{colors.accent}`: in a system with one accent, an error and an emphasis are the same red, distinguished by context and by an accompanying label. Semantic colors are flat fills or text colors, never tinted background panels.
+**Positive** (`{colors.positive}`, `#157a45`) and **Caution** (`{colors.caution}`, `#8a6100`). **Negative** is deliberately the same value as `{colors.accent}`: in a system with one accent, an error and an emphasis are the same red, distinguished by context and by an accompanying label. Semantic colors are flat fills or text colors, never tinted background panels.
 
 ## Typography
 
@@ -320,7 +320,7 @@ One family everywhere: `Instrument Sans`, at 400 for body, 700 for display and e
 
 **Grid** is 12 columns, 36px gutter, rigorously honored. This is the core of the system:
 
-- Content spans named ranges: 1–5, 6–12, 1–8, 4–12.
+- Content spans named ranges: 1-5, 6-12, 1-8, 4-12.
 - Asymmetric splits are the default: 5+7 for text with a supporting image, 4+8 for a sidebar with content, 3+9 for a label column with a body column.
 - A **baseline grid** of 24px runs vertically. Text in every column sits on it, so adjacent columns align across a horizontal read.
 - Elements may span the full width, but never sit outside the grid.
@@ -346,7 +346,7 @@ Radius is 0 on structural elements and 2px on controls, which is close enough to
 | Token | Value | Use |
 |---|---|---|
 | `{rounded.none}` | 0 | Cards, images, modals, tables, badges |
-| `{rounded.sm}` – `{rounded.xl}` | 2px | Buttons, inputs, selects |
+| `{rounded.sm}`, `{rounded.xl}` | 2px | Buttons, inputs, selects |
 | `{rounded.pill}` | 9999px | Avatars and radio controls only |
 
 **Imagery** is a core element, not decoration. Photographs run at `{rounded.none}` with no border, cropped to align exactly with column boundaries. Black and white or single-color duotone treatments are traditional and still effective. Images should span named column ranges just as text does; an image that does not align to the grid is the most visible possible error here.
@@ -378,7 +378,7 @@ The standard easing is `cubic-bezier(0.4, 0, 0.2, 1)` for everything, because a 
 `input-text` is a white field with a 1px black border, which thickens to 2px red on focus. Labels sit above in `{typography.heading-sm}`. Forms follow the grid: a 3+9 split with labels in the narrow column and fields in the wide one is the canonical layout, and it is far more legible than the stacked arrangement most systems default to.
 
 ### Cards & Navigation
-`card` has no border, no fill, and no shadow. It is content in a grid position with space around it. `nav-bar` is a row with a 1px black bottom rule; the wordmark sits in columns 1–2, navigation in 8–12, and the active item carries a 2px red underline.
+`card` has no border, no fill, and no shadow. It is content in a grid position with space around it. `nav-bar` is a row with a 1px black bottom rule; the wordmark sits in columns 1-2, navigation in 8-12, and the active item carries a 2px red underline.
 
 ### Data
 `table-row` uses `{typography.body-sm}` with light `{colors.hairline}` bottom rules, and the header row carries a 1px black rule beneath it. Figures switch to `{typography.numeric}` with `tnum`, right-aligned. Column headers are `{typography.overline}`. No vertical rules, no zebra striping.
@@ -391,13 +391,13 @@ The standard easing is `cubic-bezier(0.4, 0, 0.2, 1)` for everything, because a 
 | Breakpoint | Width | Key changes |
 |---|---|---|
 | `xl` | ≥ 1440px | Full 12-column grid; asymmetric spans active |
-| `lg` | 1024–1439px | 12 columns held; gutter narrows to 24px |
-| `md` | 768–1023px | 8-column grid; 5+7 becomes 3+5 |
+| `lg` | 1024-1439px | 12 columns held; gutter narrows to 24px |
+| `md` | 768-1023px | 8-column grid; 5+7 becomes 3+5 |
 | `sm` | < 768px | 4-column grid; all splits stack; display-xl to 36px |
 
 **Type ramp on small screens:** display-xl 80 → 36px, display-lg 52 → 28px, heading-lg 32 → 22px. Tracking scales with it. Body stays at 15px.
 
-**The grid narrows rather than disappears.** At `sm` there are still four columns, and elements still span named ranges (1–3, 2–4) rather than defaulting to full width. Preserving the grid at small sizes is what keeps the system coherent across breakpoints.
+**The grid narrows rather than disappears.** At `sm` there are still four columns, and elements still span named ranges (1-3, 2-4) rather than defaulting to full width. Preserving the grid at small sizes is what keeps the system coherent across breakpoints.
 
 **The baseline grid holds at 24px** across every breakpoint, which is the main reason vertical rhythm stays consistent when columns collapse.
 
@@ -427,15 +427,15 @@ The standard easing is `cubic-bezier(0.4, 0, 0.2, 1)` for everything, because a 
 
 ## Agent Prompt Guide
 
-**Token quick reference.** Canvas `#ffffff` · Black `#0d0d0d` / `#5c5c5c` · Red `#d42b1e` · Rules 1px black · Radius 0–2px · Grid 12 columns, 36px gutter, 24px baseline · Instrument Sans 400/700 · Anonymous Pro figures.
+**Token quick reference.** Canvas `#ffffff` · Black `#0d0d0d` / `#5c5c5c` · Red `#d42b1e` · Rules 1px black · Radius 0-2px · Grid 12 columns, 36px gutter, 24px baseline · Instrument Sans 400/700 · Anonymous Pro figures.
 
 **Building a page:**
 
-> Build this in the Swiss Grid system. White canvas, black `#0d0d0d` text, Instrument Sans at 400 and 700 only. Twelve-column grid with a 36px gutter; place content in asymmetric spans such as columns 1–5 and 6–12, never equal halves. Headline at 80px weight 700, line-height 0.95, tracking -2.4px, flush left. Body at 15px with line-height 1.5 so columns share a 24px baseline grid. Separators are 1px `#0d0d0d` rules. No shadows, no card borders, no radius above 2px. Exactly one red `#d42b1e` element: the primary button. No entrance animation.
+> Build this in the Swiss Grid system. White canvas, black `#0d0d0d` text, Instrument Sans at 400 and 700 only. Twelve-column grid with a 36px gutter; place content in asymmetric spans such as columns 1-5 and 6-12, never equal halves. Headline at 80px weight 700, line-height 0.95, tracking -2.4px, flush left. Body at 15px with line-height 1.5 so columns share a 24px baseline grid. Separators are 1px `#0d0d0d` rules. No shadows, no card borders, no radius above 2px. Exactly one red `#d42b1e` element: the primary button. No entrance animation.
 
 **Building a form:**
 
-> Grid the form as a 3+9 split: labels in columns 1–3 in Instrument Sans 16px bold, fields in columns 4–12 with a 1px black border thickening to 2px red on focus. Errors below the field in `#d42b1e` with a text label, never color alone. Submit as a flat red rectangle, left-aligned in the field column.
+> Grid the form as a 3+9 split: labels in columns 1-3 in Instrument Sans 16px bold, fields in columns 4-12 with a 1px black border thickening to 2px red on focus. Errors below the field in `#d42b1e` with a text label, never color alone. Submit as a flat red rectangle, left-aligned in the field column.
 
 **The three rules that survive everything else:**
 1. The grid is the design; span named ranges and prefer asymmetric splits.

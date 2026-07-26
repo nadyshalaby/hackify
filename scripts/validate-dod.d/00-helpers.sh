@@ -3,7 +3,7 @@
 # Validate the hackify plugin against its shipping Definition of Done.
 # Run from repo root. Exits 0 if all checks pass, non-zero on any failure.
 
-# Note: -e is intentionally omitted — this script accumulates failures into
+# Note: -e is intentionally omitted, this script accumulates failures into
 # FAILED and exits non-zero at the end. -e would abort on the first failed
 # check and hide the rest.
 # This module defines shared helpers and is sourced first by the validate-dod.sh orchestrator. No check groups live here.

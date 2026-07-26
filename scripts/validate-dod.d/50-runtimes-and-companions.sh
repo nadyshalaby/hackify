@@ -100,5 +100,5 @@ for kw in 'pause' 'stop' 'exit' 'later' 'tomorrow' 'come back' 'pick this up lat
   fi
 done
 
-# === v0.2.2 — plugin primitives (rules/, agents/, hooks/) ===
+# === v0.2.2, plugin primitives (rules/, agents/, hooks/) ===
 

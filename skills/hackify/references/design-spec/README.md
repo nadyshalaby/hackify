@@ -1,4 +1,4 @@
-# Design Spec — package index
+# Design Spec (package index)
 
 The producing half of hackify's design discipline. [frontend-design.md](../frontend-design.md) is the **law** (what good looks like, what never ships); this package is the **artifact** (a committed spec the code is written against and reviewed against).
 
@@ -40,8 +40,8 @@ Related, outside this package:
 |---|---|
 | `../frontend-design.md` | The visual law. Bans, musts, the quality gate. Loads this package. |
 | `../../assets/design-preview-template.html` | Self-contained visual catalog. Fill with the spec's tokens. |
-| `../parallel-agents/phase-5-multi-review-e-design.md` | Reviewer E — design conformance, standing lens on UI-bearing diffs. |
-| `../../../../commands/designify.md` | `/hackify:designify` — author, refresh, or extract standalone. |
+| `../parallel-agents/phase-5-multi-review-e-design.md` | Reviewer E, design conformance, standing lens on UI-bearing diffs. |
+| `../../../../commands/designify.md` | `/hackify:designify`, author, refresh, or extract standalone. |
 
 ---
 
@@ -57,13 +57,13 @@ The spec lands in the **user's** project, not in the plugin:
 
 This mirrors the existing `<project>/docs/work/` convention: committed to git, visible to humans and to other tools, not hidden in agent-only storage.
 
-One spec per product. Never author a second spec beside an existing one — refresh it (`extract-protocol.md`, REFRESH mode).
+One spec per product. Never author a second spec beside an existing one, refresh it (`extract-protocol.md`, REFRESH mode).
 
 ---
 
 ## When this package applies
 
-Any task touching UI, styling, theming, layout, components, typography, color, spacing, icons, forms, motion, brand, RTL, responsive behavior, or visual polish — on web **or** native.
+Any task touching UI, styling, theming, layout, components, typography, color, spacing, icons, forms, motion, brand, RTL, responsive behavior, or visual polish, on web **or** native.
 
 | Situation | What happens |
 |---|---|
@@ -80,4 +80,4 @@ Any task touching UI, styling, theming, layout, components, typography, color, s
 
 1. **One direction, committed.** Mixing directions produces a product with no point of view.
 2. **Every value is a token.** A raw hex or bare pixel value in a component is the beginning of drift.
-3. **The spec is the contract.** When code and spec disagree, one of them is a bug — decide which, in writing, and fix that one.
+3. **The spec is the contract.** When code and spec disagree, one of them is a bug, decide which, in writing, and fix that one.
