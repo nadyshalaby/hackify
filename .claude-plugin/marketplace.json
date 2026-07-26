@@ -12,7 +12,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nadyshalaby/hackify.git",
-        "ref": "v0.7.1"
+        "ref": "v0.8.0"
       },
       "description": "One end-to-end dev workflow for every task — feature, bug fix, refactor, redesign, debug, or research. Replaces multi-skill ceremony with a single per-task markdown work-doc that captures spec, plan, progress, review, and post-mortem in one file. Latest tagged release — the stable channel.",
       "version": "0.8.0",
