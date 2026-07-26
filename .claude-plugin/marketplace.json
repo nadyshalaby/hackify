@@ -22,7 +22,9 @@
         "tdd",
         "code-review",
         "spec-driven",
-        "parallel-agents"
+        "parallel-agents",
+        "design-system",
+        "design-tokens"
       ],
       "homepage": "https://github.com/nadyshalaby/hackify",
       "license": "MIT"
@@ -43,6 +45,8 @@
         "code-review",
         "spec-driven",
         "parallel-agents",
+        "design-system",
+        "design-tokens",
         "edge"
       ],
       "homepage": "https://github.com/nadyshalaby/hackify",
