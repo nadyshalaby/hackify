@@ -1,14 +1,14 @@
 ---
 slug: 2026-07-26-design-spec-pipeline
 title: Design-spec pipeline — DESIGN.md contract, direction library, 12-spec catalog, conformance reviewer
-status: reviewing
+status: done
 type: feature
 created: 2026-07-26
 project: hackify
 related: []
-current_task: Phase 6 — finish
+current_task: null
 worktree: null
-branch: null
+branch: feature/design-spec-pipeline
 sprint_goal: |
   Give hackify a durable design artifact. Design work stops being taste-in-prose and starts
   emitting a token-bearing DESIGN.md plus a visual preview into the user's own repo, authored
@@ -242,3 +242,22 @@ Reviewers were run **inline, sequentially** rather than dispatched as parallel s
 - **`phase-5-multi-review.md` at 497/500 forced a better design.** The cap made a separate reviewer file mandatory, which is the correct structure anyway — one reviewer per file, matching how the agents mirror.
 - **Follow-up (not done, needs your call):** the contrast and contract checks that verified this work live in the scratchpad, not the repo. Promoting them to `scripts/validate-dod.d/` would make catalog conformance and AA contrast permanently enforced in CI rather than verified once, by hand, at authoring time.
 - **Follow-up (not done, needs your call):** the plugin's house style uses em dashes throughout; your global rule bans them in prose. I matched the existing house style in the new files rather than leaving the repo half-and-half. A repo-wide scrub is a separate, mechanical task if you want it.
+
+## Summary of changes shipped
+
+| Area | Change |
+|---|---|
+| Design spec contract | New `spec-contract.md` defines the `DESIGN.md` anatomy: nine token blocks, `{token.ref}` syntax, 12 type roles, 10 components with states, 11 prose sections, validation checklist. |
+| Web ↔ native mapping | One spec drives both. Normative table across CSS, React Native, Flutter and SwiftUI, plus the `platform.native` block and the line-height conversion rule. |
+| Direction library | 12 directions with palette logic, type pairing, motion, signature move and anti-tells. Now the plugin's only direction list. |
+| Spec catalog | 12 complete original specs, 6 dark and 6 light, each 433–465 lines with computed and passing WCAG AA contrast. |
+| Extract protocol | Derive a spec from existing code, a reference site, or screenshots, plus REFRESH mode and merge rules. |
+| Visual preview | Self-contained `design-preview-template.html` renders swatches, type ramp, scales, elevation, motion and live components; surfaces broken `{token.ref}` values as chips. |
+| Phase 5 Reviewer E | Standing design-conformance reviewer on UI-bearing diffs, in its own file with a byte-identical `agents/` mirror. |
+| Slash command | `/hackify:designify` authors, extracts, refreshes or validates a spec in four resolved modes. |
+| Visual law sync | `frontend-design.md` rewritten as the law layer that owns the pipeline; its old 9-item list removed so exactly one direction list exists. |
+| Clarify banks | `revamp-redesign` gains Q4b (within vs of direction); `feature` gains Q6b (design authority). |
+| Companion skills | `yolo` names Reviewer E; `quick` folds design conformance into its single-lens review. |
+| Accessibility fixes | Four specs shipped semantic colors below AA as text; all corrected and re-verified across 80 computed pairs. |
+| Preview resolver fix | Token resolution now repeats to a fixed point, so a token whose value holds another token no longer sets invalid CSS silently. |
+| Plumbing | `AGENTS_EXPECTED` to 9, 22 files added to the sync manifest, eval case 4, README and CHANGELOG, version 0.8.0, `dist/` regenerated for 7 runtimes. |

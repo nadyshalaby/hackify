@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design-spec pipeline — DESIGN.md contract, direction library, 12-spec catalog, conformance reviewer — hackify report</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #1a1c22;
+    --ink-dim: #5b6270;
+    --line: #e4e7ec;
+    --brand: #7c3aed;
+    --brand-soft: #efe8fe;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --crit: #dc2626;
+    --imp: #d97706;
+    --min: #64748b;
+    --add: #16a34a;
+    --del: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+      --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header.report { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--brand); background: var(--brand-soft);
+    padding: 3px 10px; border-radius: 999px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 12px 0 6px; }
+  .meta { color: var(--ink-dim); font-size: 13px; }
+  .meta code { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  .goal { margin-top: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--brand); border-radius: 10px; color: var(--ink-dim); }
+  .goal strong { color: var(--ink); }
+  .summary { margin: 0 0 8px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--ok); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .summary h2 { margin: 0 0 8px; color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 17px; }
+  .summary p { margin: 0; font-size: 16px; line-height: 1.6; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-dim);
+    margin: 34px 0 14px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); }
+  .card .n { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .card .k { font-size: 12px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .card .add { color: var(--add); } .card .del { color: var(--del); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .timeline { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--ink-dim); background: var(--bg); }
+  .pill.done { color: #fff; background: var(--brand); border-color: var(--brand); }
+  .pill.skipped { opacity: .55; text-decoration: line-through; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-dim); }
+  tr:last-child td { border-bottom: 0; }
+  td code, .area { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .sev { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  .sev.critical { color: var(--crit); } .sev.important { color: var(--imp); } .sev.minor { color: var(--min); }
+  ul.items { list-style: none; padding: 0; margin: 0; }
+  ul.items li { padding: 10px 0 10px 26px; border-bottom: 1px solid var(--line); position: relative; }
+  ul.items li:last-child { border-bottom: 0; }
+  ul.items li::before { content: "→"; position: absolute; left: 4px; color: var(--brand); font-weight: 700; }
+  .empty { color: var(--ink-dim); font-style: italic; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--ink-dim); font-size: 12px; }
+  footer a { color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report">
+    <span class="eyebrow">Sprint report</span>
+    <h1>Design-spec pipeline — DESIGN.md contract, direction library, 12-spec catalog, conformance reviewer</h1>
+    <p class="meta"><code>2026-07-26-design-spec-pipeline</code> · generated 2026-07-26</p>
+    <div class="goal"><strong>Sprint goal.</strong> Give hackify a durable design artifact. Design work stops being taste-in-prose and starts emitting a token-bearing DESIGN.md plus a visual preview into the user&#x27;s own repo, authored from a 12-direction library, enforced by a Phase 5 conformance reviewer.</div>
+  </header>
+
+  <section class="summary">
+    <h2>What changed &amp; why it matters</h2>
+    <!-- Hackify could describe good design but never wrote it down, so the look of a product drifted every time a new session started and no reviewer could tell whether the code matched the intent. From now on, design work produces a real file in your project: a design spec listing every color, text size, spacing step and component, plus a web page that shows them all so you can look at it. Twelve finished designs ship with it, ready to drop in and adapt. The same file works for websites and for mobile apps. A new reviewer checks every future change against that file and points at the exact value to use when something drifts. — 3–6 plain-language (B2) sentences for a non-technical reader; entity-encoded -->
+    <p>Hackify could describe good design but never wrote it down, so the look of a product drifted every time a new session started and no reviewer could tell whether the code matched the intent. From now on, design work produces a real file in your project: a design spec listing every color, text size, spacing step and component, plus a web page that shows them all so you can look at it. Twelve finished designs ship with it, ready to drop in and adapt. The same file works for websites and for mobile apps. A new reviewer checks every future change against that file and points at the exact value to use when something drifts.</p>
+  </section>
+
+  <h2>At a glance</h2>
+  <div class="cards">
+    <div class="card"><div class="n">31 / 31</div><div class="k">Tasks done</div></div>
+    <div class="card"><div class="n">37</div><div class="k">Files changed</div></div>
+    <div class="card"><div class="n"><span class="add">+7,548</span> <span class="del">−118</span></div><div class="k">Lines</div></div>
+    <div class="card"><div class="n">1</div><div class="k">Commits</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="panel">
+      <h2 style="margin-top:0">Review findings</h2>
+      <!-- <svg viewBox="0 0 320 120" width="320" height="120" role="img" aria-label="Findings by severity: 1 Critical fixed, 3 Important fixed, 1 Minor pushed back, 1 not a defect">
+<g font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">
+<text x="0" y="14" fill="#9aa4a8">Critical</text><rect x="62" y="4" width="40" height="13" rx="2" fill="#d0503f"/><text x="110" y="14" fill="#9aa4a8">1 fixed</text>
+<text x="0" y="38" fill="#9aa4a8">Important</text><rect x="62" y="28" width="120" height="13" rx="2" fill="#c9962c"/><text x="190" y="38" fill="#9aa4a8">3 fixed</text>
+<text x="0" y="62" fill="#9aa4a8">Minor</text><rect x="62" y="52" width="40" height="13" rx="2" fill="#6b7579"/><text x="110" y="62" fill="#9aa4a8">1 pushed back</text>
+<text x="0" y="86" fill="#9aa4a8">Not a defect</text><rect x="62" y="76" width="40" height="13" rx="2" fill="#3fa66a"/><text x="110" y="86" fill="#9aa4a8">1 explained</text>
+<text x="0" y="110" fill="#6b7579">4 of 4 real defects fixed · decision table empty</text>
+</g></svg> — inline <svg> donut/bar of Critical/Important/Minor (fixed vs open) -->
+      <svg viewBox="0 0 320 120" width="320" height="120" role="img" aria-label="Findings by severity: 1 Critical fixed, 3 Important fixed, 1 Minor pushed back, 1 not a defect">
+<g font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">
+<text x="0" y="14" fill="#9aa4a8">Critical</text><rect x="62" y="4" width="40" height="13" rx="2" fill="#d0503f"/><text x="110" y="14" fill="#9aa4a8">1 fixed</text>
+<text x="0" y="38" fill="#9aa4a8">Important</text><rect x="62" y="28" width="120" height="13" rx="2" fill="#c9962c"/><text x="190" y="38" fill="#9aa4a8">3 fixed</text>
+<text x="0" y="62" fill="#9aa4a8">Minor</text><rect x="62" y="52" width="40" height="13" rx="2" fill="#6b7579"/><text x="110" y="62" fill="#9aa4a8">1 pushed back</text>
+<text x="0" y="86" fill="#9aa4a8">Not a defect</text><rect x="62" y="76" width="40" height="13" rx="2" fill="#3fa66a"/><text x="110" y="86" fill="#9aa4a8">1 explained</text>
+<text x="0" y="110" fill="#6b7579">4 of 4 real defects fixed · decision table empty</text>
+</g></svg>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0">Phases</h2>
+      <!-- <span class="pill done">1 Clarify</span><span class="pill done">2 Plan + Gate</span><span class="pill done">2.5 Spec review</span><span class="pill done">3 Implement (5 waves)</span><span class="pill done">4 Verify</span><span class="pill done">5 Review</span><span class="pill done">6 Finish</span> — six <span class="pill done|skipped">N Name</span> for Clarify→Finish -->
+      <div class="timeline"><span class="pill done">1 Clarify</span><span class="pill done">2 Plan + Gate</span><span class="pill done">2.5 Spec review</span><span class="pill done">3 Implement (5 waves)</span><span class="pill done">4 Verify</span><span class="pill done">5 Review</span><span class="pill done">6 Finish</span></div>
+    </div>
+  </div>
+
+  <h2>Findings detail</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Finding</th><th>Severity</th><th>Decision</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <!-- <tr><td>Preview resolved tokens in a single pass, so a token whose value contains another token (elevation &quot;8px 8px 0 0 {colors.text-primary}&quot; in brutalist-mono and playful-pop) set invalid CSS silently — and no warning chip appeared, because the outer ref resolved fine.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>Resolution now repeats to a fixed point, bounded at 5 passes. Node harness against a brutalist-shaped SPEC: {elevation.2} → &quot;8px 8px 0 0 #0a0a0a&quot;. Re-rendered: 0 unresolved shadows in the DOM.</td></tr>
+<tr><td>Four catalog specs shipped semantic colors below WCAG AA when used as text.</td><td><span class="sev sev-critical">Critical</span></td><td>Accepted — fixed</td><td>soft-depth 3.20/3.19/4.06 → 5.00/5.26/5.30; nordic-calm 4.00 → 5.41; warm-organic 3.66 → 5.30; neo-luxury 4.36 → 6.49. Re-verified from the shipped files: 80 pairs, 0 failures.</td></tr>
+<tr><td>12 unresolved-ref chips rendered on first load of the preview.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>False positive in the checker: typography refs point at objects, which legitimately survive string resolution. Now tests ref existence instead. 0 chips after fix.</td></tr>
+<tr><td>Contrast verdicts were applied to surface colors, so canvas scored 1.00:1 against itself and rendered as a red FAIL.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>Only roles rendered as text are scored; text-muted and hairlines show an informational ratio with no verdict, since disabled text is exempt from the AA minimum. 0 fails after fix.</td></tr>
+<tr><td>playful-pop accent measures 2.67:1 against its canvas.</td><td><span class="sev sev-not">Not a defect</span></td><td>Push-back — evidence</td><td>Its accent and semantics are fill colors carrying near-black text at 6.37:1; the spec forbids using them as text on the canvas. Made explicit in a new contrast-rule paragraph.</td></tr>
+<tr><td>README describes dist/ as gitignored, but .gitignore does not list it.</td><td><span class="sev sev-minor">Minor</span></td><td>Push-back — out of scope</td><td>dist/.gitignore (tracked since v0.2.0) is a self-ignoring file, so dist contents never enter git status. Pre-existing; not introduced by this diff.</td></tr> — <tr><td>…</td><td><span class="sev critical|important|minor">…</span></td><td>…</td><td>…</td></tr>; render one empty row with class="empty" if none -->
+        <tr><td>Preview resolved tokens in a single pass, so a token whose value contains another token (elevation &quot;8px 8px 0 0 {colors.text-primary}&quot; in brutalist-mono and playful-pop) set invalid CSS silently — and no warning chip appeared, because the outer ref resolved fine.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>Resolution now repeats to a fixed point, bounded at 5 passes. Node harness against a brutalist-shaped SPEC: {elevation.2} → &quot;8px 8px 0 0 #0a0a0a&quot;. Re-rendered: 0 unresolved shadows in the DOM.</td></tr>
+<tr><td>Four catalog specs shipped semantic colors below WCAG AA when used as text.</td><td><span class="sev sev-critical">Critical</span></td><td>Accepted — fixed</td><td>soft-depth 3.20/3.19/4.06 → 5.00/5.26/5.30; nordic-calm 4.00 → 5.41; warm-organic 3.66 → 5.30; neo-luxury 4.36 → 6.49. Re-verified from the shipped files: 80 pairs, 0 failures.</td></tr>
+<tr><td>12 unresolved-ref chips rendered on first load of the preview.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>False positive in the checker: typography refs point at objects, which legitimately survive string resolution. Now tests ref existence instead. 0 chips after fix.</td></tr>
+<tr><td>Contrast verdicts were applied to surface colors, so canvas scored 1.00:1 against itself and rendered as a red FAIL.</td><td><span class="sev sev-important">Important</span></td><td>Accepted — fixed</td><td>Only roles rendered as text are scored; text-muted and hairlines show an informational ratio with no verdict, since disabled text is exempt from the AA minimum. 0 fails after fix.</td></tr>
+<tr><td>playful-pop accent measures 2.67:1 against its canvas.</td><td><span class="sev sev-not">Not a defect</span></td><td>Push-back — evidence</td><td>Its accent and semantics are fill colors carrying near-black text at 6.37:1; the spec forbids using them as text on the canvas. Made explicit in a new contrast-rule paragraph.</td></tr>
+<tr><td>README describes dist/ as gitignored, but .gitignore does not list it.</td><td><span class="sev sev-minor">Minor</span></td><td>Push-back — out of scope</td><td>dist/.gitignore (tracked since v0.2.0) is a self-ignoring file, so dist contents never enter git status. Pre-existing; not introduced by this diff.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Action items &amp; follow-ups</h2>
+  <div class="panel">
+    <ul class="items">
+      <!-- <li>Promote the contrast and contract checks to <code>scripts/validate-dod.d/</code> so catalog conformance and WCAG AA are enforced in CI, not verified once by hand at authoring time.</li><li>Decide whether to scrub em dashes repo-wide. The new files match the existing house style rather than leaving the repo half-and-half.</li> — <li>…</li> per item, or <li class="empty">None — nothing outstanding.</li> -->
+      <li>Promote the contrast and contract checks to <code>scripts/validate-dod.d/</code> so catalog conformance and WCAG AA are enforced in CI, not verified once by hand at authoring time.</li><li>Decide whether to scrub em dashes repo-wide. The new files match the existing house style rather than leaving the repo half-and-half.</li>
+    </ul>
+  </div>
+
+  <h2>What changed</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Area</th><th>Change</th></tr></thead>
+      <tbody>
+        <!-- <tr><td>Design spec contract</td><td>New <code>spec-contract.md</code> defines the <code>DESIGN.md</code> anatomy: nine token blocks, <code>{token.ref}</code> syntax, 12 type roles, 10 components with states, validation checklist.</td></tr>
+<tr><td>Web ↔ native mapping</td><td>One spec drives both. Normative table across CSS, React Native, Flutter and SwiftUI, plus the <code>platform.native</code> block and the line-height conversion rule.</td></tr>
+<tr><td>Direction library</td><td>12 directions with palette logic, type pairing, motion, signature move and anti-tells. Now the plugin's only direction list.</td></tr>
+<tr><td>Spec catalog</td><td>12 complete original specs, 6 dark and 6 light, each 433–465 lines with computed and passing WCAG AA contrast.</td></tr>
+<tr><td>Extract protocol</td><td>Derive a spec from existing code, a reference site, or screenshots, plus REFRESH mode and merge rules.</td></tr>
+<tr><td>Visual preview</td><td>Self-contained preview template renders swatches, type ramp, scales, elevation, motion and live components; surfaces broken refs as chips.</td></tr>
+<tr><td>Phase 5 Reviewer E</td><td>Standing design-conformance reviewer on UI-bearing diffs, in its own file with a byte-identical <code>agents/</code> mirror.</td></tr>
+<tr><td>Slash command</td><td><code>/hackify:designify</code> authors, extracts, refreshes or validates a spec in four resolved modes.</td></tr>
+<tr><td>Visual law sync</td><td><code>frontend-design.md</code> rewritten as the law layer that owns the pipeline; old 9-item list removed so exactly one direction list exists.</td></tr>
+<tr><td>Clarify banks</td><td><code>revamp-redesign</code> gains Q4b (within vs of direction); <code>feature</code> gains Q6b (design authority).</td></tr>
+<tr><td>Companion skills</td><td><code>yolo</code> names Reviewer E; <code>quick</code> folds design conformance into its single-lens review.</td></tr>
+<tr><td>Accessibility fixes</td><td>Four specs shipped semantic colors below AA as text; all corrected and re-verified across 80 computed pairs.</td></tr>
+<tr><td>Preview resolver fix</td><td>Token resolution repeats to a fixed point, so a token holding another token no longer sets invalid CSS silently.</td></tr>
+<tr><td>Plumbing</td><td><code>AGENTS_EXPECTED</code> to 9, 22 files added to the sync manifest, eval case 4, README and CHANGELOG, version 0.8.0, <code>dist/</code> regenerated for 7 runtimes.</td></tr> — <tr><td class="area">…</td><td>…</td></tr> mirroring the chat Area/Change table -->
+        <tr><td>Design spec contract</td><td>New <code>spec-contract.md</code> defines the <code>DESIGN.md</code> anatomy: nine token blocks, <code>{token.ref}</code> syntax, 12 type roles, 10 components with states, validation checklist.</td></tr>
+<tr><td>Web ↔ native mapping</td><td>One spec drives both. Normative table across CSS, React Native, Flutter and SwiftUI, plus the <code>platform.native</code> block and the line-height conversion rule.</td></tr>
+<tr><td>Direction library</td><td>12 directions with palette logic, type pairing, motion, signature move and anti-tells. Now the plugin's only direction list.</td></tr>
+<tr><td>Spec catalog</td><td>12 complete original specs, 6 dark and 6 light, each 433–465 lines with computed and passing WCAG AA contrast.</td></tr>
+<tr><td>Extract protocol</td><td>Derive a spec from existing code, a reference site, or screenshots, plus REFRESH mode and merge rules.</td></tr>
+<tr><td>Visual preview</td><td>Self-contained preview template renders swatches, type ramp, scales, elevation, motion and live components; surfaces broken refs as chips.</td></tr>
+<tr><td>Phase 5 Reviewer E</td><td>Standing design-conformance reviewer on UI-bearing diffs, in its own file with a byte-identical <code>agents/</code> mirror.</td></tr>
+<tr><td>Slash command</td><td><code>/hackify:designify</code> authors, extracts, refreshes or validates a spec in four resolved modes.</td></tr>
+<tr><td>Visual law sync</td><td><code>frontend-design.md</code> rewritten as the law layer that owns the pipeline; old 9-item list removed so exactly one direction list exists.</td></tr>
+<tr><td>Clarify banks</td><td><code>revamp-redesign</code> gains Q4b (within vs of direction); <code>feature</code> gains Q6b (design authority).</td></tr>
+<tr><td>Companion skills</td><td><code>yolo</code> names Reviewer E; <code>quick</code> folds design conformance into its single-lens review.</td></tr>
+<tr><td>Accessibility fixes</td><td>Four specs shipped semantic colors below AA as text; all corrected and re-verified across 80 computed pairs.</td></tr>
+<tr><td>Preview resolver fix</td><td>Token resolution repeats to a fixed point, so a token holding another token no longer sets invalid CSS silently.</td></tr>
+<tr><td>Plumbing</td><td><code>AGENTS_EXPECTED</code> to 9, 22 files added to the sync manifest, eval case 4, README and CHANGELOG, version 0.8.0, <code>dist/</code> regenerated for 7 runtimes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Next steps &amp; instructions</h2>
+  <div class="panel">
+    <ul class="items">
+      <!-- <li>Branch <code>feature/design-spec-pipeline</code> holds the work; <code>main</code> is untouched. Merge or open a PR when ready.</li><li>Try it: run <code>/hackify:designify</code> in a project with UI, or just ask for a redesign and the spec becomes a Phase 2 deliverable automatically.</li><li>No migration, no new dependency, no build step. The demo GIF does not need regenerating: phases and install commands are unchanged.</li> — <li>…</li> the developer must act on, or <li class="empty">None — ready as-is.</li> -->
+      <li>Branch <code>feature/design-spec-pipeline</code> holds the work; <code>main</code> is untouched. Merge or open a PR when ready.</li><li>Try it: run <code>/hackify:designify</code> in a project with UI, or just ask for a redesign and the spec becomes a Phase 2 deliverable automatically.</li><li>No migration, no new dependency, no build step. The demo GIF does not need regenerating: phases and install commands are unchanged.</li>
+    </ul>
+  </div>
+
+  <h2>Evidence appendix</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Item</th><th>Claim</th><th>What ran</th><th>Proof sample</th><th>Result</th></tr></thead>
+      <tbody>
+        <!-- <tr><td>AC2</td><td>12 directions, single canonical list</td><td><code>grep -c &#x27;^## &#x27; direction-library.md</code></td><td>12 · old labels elsewhere: 0 files</td><td>PASS</td></tr>
+<tr><td>AC3</td><td>12 specs conform to the contract</td><td><code>validate_specs.py</code></td><td>OK — 12 specs pass all 6 contract checks</td><td>PASS</td></tr>
+<tr><td>AC5</td><td>Preview renders, zero network refs</td><td><code>Playwright render + grep -cE &#x27;https?://&#x27;</code></td><td>7 sections · 0 unresolved chips · 0 contrast fails · 0 network refs</td><td>PASS</td></tr>
+<tr><td>AC6</td><td>Reviewer E mirror is byte-identical</td><td><code>fenced-block diff</code></td><td>IDENTICAL (8093 chars) · 7/7 contract sections</td><td>PASS</td></tr>
+<tr><td>AC8</td><td>frontend-design synced, one list, links resolve</td><td><code>grep + link resolver</code></td><td>225 LOC · 0 duplicate-list hits · broken links: none</td><td>PASS</td></tr>
+<tr><td>AC11</td><td>Plugin DoD validator green</td><td><code>bash scripts/validate-dod.sh</code></td><td>ALL CHECKS PASSED · exit=0</td><td>PASS</td></tr>
+<tr><td>AC12</td><td>0.8.0 shipped to every runtime</td><td><code>sync-runtimes.sh</code></td><td>OK — synced 629 files across 7 runtimes</td><td>PASS</td></tr>
+<tr><td>AC13</td><td>Companion skills mirror the design lens</td><td><code>grep</code></td><td>yolo names Reviewer E · quick 5-lite carries the lens · both under cap</td><td>PASS</td></tr>
+<tr><td>contrast</td><td>Every spec passes WCAG AA</td><td><code>luminance computation over shipped files</code></td><td>80 pairs computed · FAILING: none</td><td>PASS</td></tr>
+<tr><td>caps</td><td>No file over 500 LOC</td><td><code>find + wc -l sweep</code></td><td>130 files scanned; all ≤ 500 LOC</td><td>PASS</td></tr>
+<tr><td>mirror</td><td>Every new file ships to dist</td><td><code>[55] mirror-completeness after staging</code></td><td>every tracked file is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA</td><td>PASS</td></tr> — <tr><td>…</td>×5</tr> per Phase 4 Evidence Ledger row (item / claim / what ran / proof sample / result); render one class="empty" row if none -->
+        <tr><td>AC2</td><td>12 directions, single canonical list</td><td><code>grep -c &#x27;^## &#x27; direction-library.md</code></td><td>12 · old labels elsewhere: 0 files</td><td>PASS</td></tr>
+<tr><td>AC3</td><td>12 specs conform to the contract</td><td><code>validate_specs.py</code></td><td>OK — 12 specs pass all 6 contract checks</td><td>PASS</td></tr>
+<tr><td>AC5</td><td>Preview renders, zero network refs</td><td><code>Playwright render + grep -cE &#x27;https?://&#x27;</code></td><td>7 sections · 0 unresolved chips · 0 contrast fails · 0 network refs</td><td>PASS</td></tr>
+<tr><td>AC6</td><td>Reviewer E mirror is byte-identical</td><td><code>fenced-block diff</code></td><td>IDENTICAL (8093 chars) · 7/7 contract sections</td><td>PASS</td></tr>
+<tr><td>AC8</td><td>frontend-design synced, one list, links resolve</td><td><code>grep + link resolver</code></td><td>225 LOC · 0 duplicate-list hits · broken links: none</td><td>PASS</td></tr>
+<tr><td>AC11</td><td>Plugin DoD validator green</td><td><code>bash scripts/validate-dod.sh</code></td><td>ALL CHECKS PASSED · exit=0</td><td>PASS</td></tr>
+<tr><td>AC12</td><td>0.8.0 shipped to every runtime</td><td><code>sync-runtimes.sh</code></td><td>OK — synced 629 files across 7 runtimes</td><td>PASS</td></tr>
+<tr><td>AC13</td><td>Companion skills mirror the design lens</td><td><code>grep</code></td><td>yolo names Reviewer E · quick 5-lite carries the lens · both under cap</td><td>PASS</td></tr>
+<tr><td>contrast</td><td>Every spec passes WCAG AA</td><td><code>luminance computation over shipped files</code></td><td>80 pairs computed · FAILING: none</td><td>PASS</td></tr>
+<tr><td>caps</td><td>No file over 500 LOC</td><td><code>find + wc -l sweep</code></td><td>130 files scanned; all ≤ 500 LOC</td><td>PASS</td></tr>
+<tr><td>mirror</td><td>Every new file ships to dist</td><td><code>[55] mirror-completeness after staging</code></td><td>every tracked file is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA</td><td>PASS</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Generated by hackify · Phase 6 summary report · self-contained, works offline.</footer>
+
+</div>
+</body>
+</html>
