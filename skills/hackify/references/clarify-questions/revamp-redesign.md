@@ -48,10 +48,20 @@ Q4 — Visual reference (UI redesigns only)
 - Text: What visual reference should the redesign honor?
 - Header: Visual ref
 - Options:
-  - A. Existing brand spec under `docs/` (Recommended)
-  - B. Reference mockups / mood — I'll attach now
-  - C. No reference — propose 2-3 directions in Phase 2
-- Why-this-matters: Loads `references/frontend-design.md` (binding) and determines whether Phase 3 fans out a design exploration sub-agent.
+  - A. The committed spec at `docs/design/DESIGN.md` (Recommended)
+  - B. Reference mockups / site / mood — I'll attach or name it now
+  - C. Existing code is the only reference — recover the system from it
+  - D. No reference — propose 2-3 directions in Phase 2
+- Why-this-matters: Loads `references/frontend-design.md` (binding). A selects the existing spec as the authority; B and C route to `references/design-spec/extract-protocol.md` (Mode B and Mode A); D routes to `references/design-spec/direction-library.md` for a direction choice at the gate.
+
+Q4b — Direction change (UI redesigns only)
+- Text: Is this a change WITHIN the current visual direction, or a change OF direction?
+- Header: Direction
+- Options:
+  - A. Within the current direction — tighten and sharpen it (Recommended)
+  - B. Change of direction — this is a rebrand and needs a new spec
+  - C. No direction is committed yet — pick one as part of this work
+- Why-this-matters: A keeps the existing `DESIGN.md` binding and scopes Phase 5 Reviewer E to conformance. B or C makes authoring or refreshing `docs/design/DESIGN.md` an explicit Phase 2 deliverable, before any component is touched, and requires sign-off at the gate because it changes the product's committed look.
 
 Q5 — API impact
 - Text: What is the public-API impact of the redesign?
@@ -92,4 +102,4 @@ Q8 — Backward compatibility
 
 **EXIT CRITERIA**
 
-Q1, Q2, Q3, Q6, Q7, Q8 answered (always required); Q4 answered if the redesign is UI-bearing; Q5 answered if a public API is touched; invariants list and migration plan captured in the work-doc. If revamp Q4 indicates a UI-bearing change, the dispatching agent MUST load `references/frontend-design.md` and follow its rules BEFORE drafting the work-doc Approach section. This is binding, not advisory.
+Q1, Q2, Q3, Q6, Q7, Q8 answered (always required); Q4 and Q4b answered if the redesign is UI-bearing; Q5 answered if a public API is touched; invariants list and migration plan captured in the work-doc. If revamp Q4 indicates a UI-bearing change, the dispatching agent MUST load `references/frontend-design.md` and follow its rules BEFORE drafting the work-doc Approach section. This is binding, not advisory. If Q4b answers B or C, authoring or refreshing `<project>/docs/design/DESIGN.md` is a named Phase 2 deliverable that lands BEFORE any component work, and the gate covers it explicitly.

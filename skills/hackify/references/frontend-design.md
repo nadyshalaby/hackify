@@ -1,8 +1,29 @@
 # Frontend Design — Visual Law
 
-Load this file at Phase 1 (Clarify) for any task that touches **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / buttons / cards / modals / motion / brand / RTL / responsive / accessibility / visual polish**.
+Load this file at Phase 1 (Clarify) for any task that touches **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / buttons / cards / modals / motion / brand / RTL / responsive / accessibility / visual polish** — on web **or** native.
 
 These rules are binding. They preserve the soul of a strict frontend-design discipline so visual work doesn't drift into generic AI aesthetics.
+
+**This file is the law. [`design-spec/`](design-spec/README.md) is the artifact.** The law says what good looks like and what never ships; the artifact is a committed specification the code is written against and reviewed against. Neither works alone: rules with no artifact evaporate between sessions, and an artifact with no law is just a file full of hex codes.
+
+---
+
+## Spec first (the binding sequence)
+
+Design work produces a **spec before it produces components**. Building components first and extracting tokens afterwards yields a spec that documents accidents.
+
+| Situation | What happens |
+|---|---|
+| Project has `docs/design/DESIGN.md` | Load it. Design **within** it. Its tokens are binding, and a raw hex in a component is a defect. |
+| Project has tokens but no spec | Run [`design-spec/extract-protocol.md`](design-spec/extract-protocol.md) Mode A. Propose the recovered spec before writing components. |
+| Project has neither, task is UI-bearing | Choose a direction in Phase 1, author the spec in Phase 2 (before any component), build against it in Phase 3. |
+| One-line copy, color, or spacing fix | No spec needed. Honor the existing one if present. |
+
+**Output contract.** The spec lives in the user's project at `<project>/docs/design/DESIGN.md`, with its visual catalog at `<project>/docs/design/preview.html`. This mirrors the existing `<project>/docs/work/` convention: committed to git, visible to humans and other tools.
+
+**One spec per product.** Never author a second beside an existing one — refresh it ([`extract-protocol.md`](design-spec/extract-protocol.md), REFRESH mode).
+
+Standalone entry point: `/hackify:designify` authors, extracts, refreshes, or validates a spec without running a full task.
 
 ---
 
@@ -15,6 +36,8 @@ Pick ONE direction. Commit. Don't mix.
 > **Pick a direction and commit to it. Safe-average UI is usually worse than a strong, coherent aesthetic with a few bold choices.**
 
 The point is not to be flashy. The point is to have a point of view.
+
+**The twelve directions live in [`design-spec/direction-library.md`](design-spec/direction-library.md)** — the single canonical list for the plugin, each entry carrying palette logic, type pairing, motion character, signature move, and anti-tells. Do not maintain a second list anywhere; a spec's `direction:` key names one of those slugs or `custom` with a written rationale.
 
 ---
 
@@ -32,8 +55,11 @@ Concretely, NEVER ship:
 - Motion scattered as decoration (hover effects on every element)
 - Space Grotesk (it has converged into a cliché — was strong, now overused)
 - Interchangeable SaaS hero sections
+- Backdrop blur reached for by default (expensive, degrades text behind it, and now a generic signal)
 
 > **Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.**
+
+Each direction in the library carries its own **anti-tells** — the specific ways *that* direction gets built wrong. Those are project-specific bans and they matter more than this global list, because every direction has a lazy version that reads as generic output.
 
 ---
 
@@ -53,6 +79,8 @@ Concretely, NEVER ship:
 
 > **Keep accessibility and responsiveness intact; frontends should feel deliberate on desktop and mobile.**
 
+**Fonts must be reachable.** Every face named in a spec ships with a freely-licensed substitute and a fallback stack ending in a generic family. No webfont URL appears in a spec or a preview — they render offline by contract.
+
 ---
 
 ## The design process — 4 phases (apply within hackify Phase 2 + 3)
@@ -64,35 +92,23 @@ Before writing CSS, settle:
 - **Purpose** — what is this screen for, in one sentence?
 - **Audience** — who will see it, in what context (mood, urgency, environment)?
 - **Emotional tone** — calm / energetic / serious / playful / formal / industrial / luxurious?
-- **Visual direction** — pick ONE from the tonal directions below; do not mix casually.
+- **Visual direction** — pick ONE from [`direction-library.md`](design-spec/direction-library.md); do not mix casually.
 - **One thing the user remembers** — if they look away after 3 seconds, what stays?
-
-### Tonal directions (pick one)
-
-- **Brutally minimal** — pure forms, generous whitespace, monospace where used
-- **Editorial** — magazine-grade typography, asymmetric grids, image as hero
-- **Industrial** — engineered, technical, tabular numerics, signal colors
-- **Luxury** — restrained, slow motion, refined kerning, subtle textures
-- **Playful** — bold colors, irregular shapes, generous motion, expressive typography
-- **Geometric** — modular, grid-honoring, mathematical proportions
-- **Retro-futurist** — CRT glows, scanlines, monochrome amber, terminal aesthetics
-- **Soft / organic** — rounded everything, gradients as atmosphere, breathing motion
-- **Maximalist** — layered, dense, every surface earns its space, heavy motion
 
 > **Do not mix directions casually. Choose one and execute it cleanly.**
 
 ### Build the visual system
 
-Lock these as **CSS variables / utility-framework tokens** before painting any component:
+Lock these as tokens **in the spec** before painting any component. The full schema, including the native platform layer and the web-to-native mapping table, is [`design-spec/spec-contract.md`](design-spec/spec-contract.md).
 
-- **Type hierarchy** — display, h1-h4, body, caption, mono. Specify font family, weight, size, line-height, letter-spacing for each. Pair a distinctive display with a refined body.
-- **Color** — one dominant field (background + neutrals), one accent (signal), 1-2 supporting tones. Use logical names (`bg`, `surface`, `border`, `text-primary`, `text-muted`, `accent`, `accent-hover`) not hex names.
-- **Spacing rhythm** — geometric or modular scale. 4px base or 8px base.
-- **Layout logic** — grid? Asymmetric? Container queries? Logical properties (block-start / inline-start) for RTL?
-- **Motion rules** — duration scale (75/150/300/500ms), ease curves (one curve for entry, one for exit), what gets animated (reveal? hover? scroll-triggered?).
-- **Surface treatment** — borders, shadows, blur, noise, grain, mesh gradients. Pick a treatment vocabulary; apply consistently.
+- **Type hierarchy** — twelve named roles, each with family, weight, size, line-height, letter-spacing. Pair a distinctive display with a refined body.
+- **Color** — semantic role names (`canvas`, `surface`, `text-primary`, `accent`, `on-accent`), never hue names. One dominant field, one accent with a stated budget, semantic colors kept separate from the accent.
+- **Spacing rhythm** — one base unit (4px or 8px), a stated scale.
+- **Layout logic** — grid, container, and logical properties (`margin-inline-start`, `padding-block-end`) for RTL.
+- **Motion rules** — a duration scale, one curve for entry and one for exit, what animates and what must not, and the reduced-motion behavior.
+- **Surface treatment** — name the depth *medium*: hairline, shadow, border, texture, glow, or color field. Apply one vocabulary consistently.
 
-If working inside an existing product, inherit from the project's tokens. **Don't invent a new token system** — extend the one in the project's stylesheet entry point / utility-framework config.
+If working inside an existing product, **inherit from the spec**. Don't invent a parallel token system.
 
 ### Compose with intention
 
@@ -111,70 +127,83 @@ The quality gate before saying "done":
 - Do typography and spacing feel intentional, not arbitrary?
 - Do color and motion *support* the product (not decorate it)?
 - Does it avoid reading like generic AI UI?
+- Is every value a token, with zero raw hex or bare pixels in components?
+- Are the contrast ratios computed and passing, not asserted?
 - Is the implementation production-grade (responsive, accessible, RTL-correct, performant)?
 
 If any answer is "no", iterate.
 
 ---
 
-## Stack-specific binding (example pattern)
+## Working inside a committed spec
 
-If the project has a committed brand spec under `docs/`, treat it as the **committed direction** for the product. Design WITHIN it, never over it. The skill's role is to enforce visual quality *within* that direction.
+When the project ships `docs/design/DESIGN.md`, it is the **committed direction** for the product. Design WITHIN it, never over it. This file's role is to enforce visual quality *inside* that direction.
 
-A concrete example of what such a binding looks like in practice:
+Read the spec and extract its binding constraints before touching anything:
 
-- **Direction:** Industrial precision (dark-mode canonical; muted neutrals + a single saturated signal accent like amber)
-- **Typography:** A super-family that covers Latin, the project's primary non-Latin script (e.g. Arabic, CJK), and a matching monospace for tabular/code/numerics
-  - **Forbidden alternatives** even when they "would be fine": Inter, Roboto, system fonts, Space Grotesk
-- **Color system:** OKLCH-based palette, signal accent for the single high-attention moment per screen (CTA, alert, status indicator). Backgrounds are muted and engineered.
-- **Numerics:** Tabular features on (`font-feature-settings: 'tnum'`) wherever numbers are compared or aligned
-- **Direction-awareness:** RTL-first when the product is bilingual. Use **logical properties** (`margin-inline-start`, `padding-block-end`, `inset-inline-start`) — never `margin-left` / `right`. Test in the non-default direction first.
-- **Tone:** Direct, technical, not decorative. No generic SaaS gradients, no purple, no playful flourishes.
+- **Direction** — the `direction:` slug, and its anti-tells from the library.
+- **Typography** — the named faces and the twelve roles. Sizes outside the ramp are defects, not choices.
+- **Color system** — the role names and the accent's stated budget per screen.
+- **Numerics** — where the spec calls for tabular figures (`font-feature-settings: 'tnum'`), apply them wherever numbers are compared or aligned.
+- **Direction-awareness** — when `platform.web.logicalProperties: required`, use logical properties everywhere and never `margin-left` / `right`. Test the non-default direction first on bilingual products.
+- **Do's and Don'ts** — the spec's own list. Each Don't is a literal, enforceable rule.
 
-If a task asks for "softer", "more colorful", or "more friendly", **flag it back to the user** before complying — this is a brand direction shift, not a styling tweak.
-
-Adapt the pattern: read your project's brand spec (if any), extract its committed direction + typography + color system + accessibility constraints, and enforce them as binding for the work you're doing.
+If a task asks for "softer", "more colorful", or "more friendly" in a way the spec's direction forbids, **flag it back to the user** before complying — that is a brand direction shift, not a styling tweak, and it needs sign-off.
 
 ---
 
 ## When the user says "polish" or "redesign"
 
-These words trigger the full design-process phases. Do not start touching CSS. In Phase 1 (Clarify), ask:
+These words trigger the full design process. Do not start touching CSS. In Phase 1 (Clarify), ask:
 
 - What's wrong with the current state? (specific pain points)
 - What's the *one thing* the redesign should make different?
-- Does this stay within the existing brand direction? Or is this a brand direction shift? *(Default: stays within.)*
+- Does this stay within the existing direction? Or is this a direction shift? *(Default: stays within.)*
 - Reference moods / screenshots / sites the user wants to evoke
 - What CANNOT change? (existing components used by other features, brand tokens, typography)
 
 In Phase 2 (Plan), the Approach section explicitly names:
 
-- **The committed direction** (e.g., "Tighten the Industrial Precision direction; trim ornament; emphasize tabular hierarchy")
-- **What stays** (token system, type family, accent color, RTL-first behavior)
+- **The committed direction** (the `direction:` slug and what tightening it means here)
+- **What stays** (token system, type family, accent budget, RTL behavior)
 - **What changes** (specific component-level shifts)
-- **The quality gate** (the 5 questions above) — ticked at the end
+- **The quality gate** (the seven questions above) — ticked at the end
 
 For a UI redesign, the work-doc's DoD includes:
 
-- Visual point of view sharpened (vs. before/after screenshot or description)
-- No new generic-AI signals introduced (purple, gradients-on-white, Inter, Space Grotesk)
-- Token system honored (no inline colors, no inline font families)
-- Mobile + RTL (if bilingual) + dark mode tested manually (since visual-only changes default to manual smoke)
+- Visual point of view sharpened (before/after screenshot or description)
+- No new generic-AI signals introduced (purple gradients on white, Inter, Space Grotesk, default backdrop blur)
+- Token system honored — zero inline colors, zero inline font families, zero off-ramp sizes
+- Contrast ratios recomputed for any changed color pair
+- Mobile + RTL (if bilingual) + the non-canonical theme tested manually
 - Existing components in the path don't visually regress
+- `docs/design/preview.html` regenerated if tokens changed
 
 ---
 
-## Reusable visual moments (pattern library, opinionated)
+## Reusable visual moments
 
-When the task needs one of these, here's a canonical treatment for an "industrial precision" direction (adapt to your direction):
+Every direction in the catalog specifies its own treatment for these, and the catalog file is the authority for a project on that direction. The cross-direction rules:
 
-- **Page-load reveal** — staggered `animation-delay` on hero elements (50ms increments, 6-12 elements max), fade + 4px slide. ONE such moment per page.
-- **Empty state** — illustrative SVG (geometric, monochrome accent on neutral), one-sentence message, single primary CTA. Do not show 3 options.
-- **Error state** — signal-accent bar (reserve red for destructive only). Inline, not modal.
-- **Loading state** — skeleton with the actual layout structure, not a spinner. Spinners only for in-place buttons.
-- **Modal** — overlay is solid neutral with 80% opacity, NOT blurred (blur is a generic-AI signal). Modal itself is bordered, not shadowed.
-- **Form** — labels above inputs, ample spacing, error inline below the field. Submit at the bottom-right (LTR) / bottom-left (RTL — logical properties handle this).
-- **Data table** — monospace for numerics, sans for text, sticky header, zebra OFF (signal-accent column borders or none), row hover with neutral surface shift not color.
+- **Page-load reveal** — ONE orchestrated moment per view. Staggered `animation-delay`, 6–12 elements maximum. Scattering reveals across a page makes it feel unstable.
+- **Empty state** — one illustrative element, one sentence, ONE primary action. Never three options.
+- **Error state** — inline, beside or below the field, never a modal. Never color alone: pair with an icon or a label.
+- **Loading state** — skeletons that match the real layout structure. Spinners only in place, inside a button.
+- **Modal** — the overlay is a solid color at high opacity. Blur it only when the project's spec explicitly calls for blur.
+- **Form** — labels above inputs, errors inline below, submit at the block end. Logical properties handle RTL placement.
+- **Data table** — tabular numerics right-aligned, sticky header, zebra striping OFF by default, row hover shifts *surface value* rather than adding a color tint.
+
+For twelve worked treatments, read [`design-spec/catalog/`](design-spec/catalog/README.md). Each spec's Components section states its own answers.
+
+---
+
+## Enforcement
+
+Design conformance is reviewed, not trusted:
+
+- **Phase 5 Reviewer E** ([`parallel-agents/phase-5-multi-review-e-design.md`](parallel-agents/phase-5-multi-review-e-design.md)) is the standing design lens on UI-bearing diffs. It audits hardcoded literals where tokens exist, off-ramp type sizes, missing interactive states, violations of the spec's own Don'ts, WCAG AA contrast and focus regressions, and physical properties where logical are required.
+- **The preview page** surfaces broken `{token.ref}` values as visible chips, so it doubles as a reference checker.
+- **The contract's validation checklist** ([`spec-contract.md`](design-spec/spec-contract.md)) runs before any spec is declared done.
 
 ---
 
@@ -182,16 +211,15 @@ When the task needs one of these, here's a canonical treatment for an "industria
 
 > **Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.**
 
-For a committed Industrial Precision direction, "extraordinary" means: tabular discipline, surgical typography, signal-only color, motion as punctuation not decoration, RTL parity that *feels* native not translated. Not flashy — *committed*. The same principle applies to whichever tonal direction your project has chosen — execute it with conviction.
+"Extraordinary" is direction-specific. For Industrial Precision it means tabular discipline, surgical typography, signal-only color, motion as punctuation. For Editorial Print it means a four-fold type jump and whitespace doing the structural work. For Brutalist Mono it means type large enough to become the layout. Not flashy — *committed*. Execute whichever direction the project chose with conviction.
 
 ---
 
 ## What's safe to drop (covered by hackify core rules)
 
-These design-skill items are already enforced elsewhere — don't repeat:
+These items are enforced elsewhere — don't repeat:
 
-- File-size caps (covered by `code-rules.md`)
-- Function/method caps (covered by `code-rules.md`)
-- Static-type strict mode (covered by `code-rules.md`)
-- Accessibility *as a hygiene rule* (covered everywhere; the principle is preserved above as part of the quality gate)
-- Performance basics (covered by `review-and-verify.md`)
+- File-size caps and function caps (covered by `rules/hard-caps.md`)
+- Static-type strict mode (covered by `rules/code-quality.md`)
+- Accessibility *as a hygiene rule* (the principle is preserved above as part of the quality gate, and enforced concretely by Reviewer E)
+- Performance basics (covered by `review-and-verify.md` and `rules/performance.md`)

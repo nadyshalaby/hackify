@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.7.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.8.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -26,6 +26,17 @@ Hackify replaces multi-skill ceremony (separate spec, plan, groom, execute, veri
 The workflow is opinionated and expert-led: a batched clarifying questionnaire up front, a hard gate before any code is written, parallel-agent dispatch as the default for spec review and implementation, mandatory multi-reviewer code review on non-trivial diffs, and a definition-of-done that demands fresh verification output before anyone may say *"done"*.
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
+
+### New in 0.8.0
+
+- **Design work now produces an artifact, not just taste.** UI and mobile tasks emit a committed `docs/design/DESIGN.md` in your project: machine-readable tokens (colors, twelve typography roles, spacing, radius, elevation, motion, named components) plus the prose explaining them, with a self-contained `docs/design/preview.html` visual catalog beside it. Design intent stops evaporating between sessions.
+- **One spec drives web and native.** The token layer is platform-neutral, with a `platform.native` block (touch targets, safe area, elevation model, haptics, Dynamic Type) and a normative web ↔ React Native ↔ Flutter ↔ SwiftUI mapping table, including the line-height conversion the four platforms disagree about.
+- **Twelve directions, deeply specified.** `direction-library.md` is the plugin's single canonical direction list — each entry carries palette logic, type pairing, motion character, a signature move, and **anti-tells**: the specific ways that direction gets built wrong.
+- **A twelve-spec catalog you can drop in today.** Industrial Precision, Editorial Print, Retro Terminal, Warm Organic, Brutalist Mono, Neo-Luxury, Swiss Grid, Data Dense, Playful Pop, Nordic Calm, Cyber Neon, Soft Depth. All original work, all with computed and passing WCAG AA contrast, all using freely-licensed fonts with offline fallback stacks.
+- **Reviewer E — design conformance.** Phase 5 gains a standing fifth reviewer on UI-bearing diffs. It audits the diff against your spec: hardcoded literals where a token exists, off-ramp type sizes, components missing documented states, violations of the spec's own Don'ts list, contrast and focus regressions, and physical properties where logical are required. Every finding names the replacement token.
+- **`/hackify:designify`.** Author, extract, refresh, or validate a spec standalone — including recovering one from a codebase that already has tokens but never wrote them down.
+
+_The visual law in `frontend-design.md` is unchanged in spirit and now owns the pipeline: it is the law, `design-spec/` is the artifact._
 
 ### New in 0.7.0
 
@@ -64,7 +75,7 @@ Verify with `/hackify:hackify` — or simply describe a task. Hackify auto-trigg
 
 All three skills auto-trigger from natural-language prompts — no need to invoke them by slash unless you want to be explicit.
 
-**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md`, `expert-mindset.md`, and `perf-guardrails.md` injected every prompt via hook; `code-quality.md` and `performance.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects the hard caps, the expert mindset, and the performance guardrails into context every turn (via `inject-context.sh`, one entry per file), and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`, hardcoded secrets) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — `/hackify:summary` slash command. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
+**Plugin primitives** (since v0.2.2). Hackify ships five first-class harness primitives, each owning a separate concern. `skills/` — the workflows (full hackify, quick, yolo, groom, skillsmith, review-triage, codewalk) plus `lawkeeper` (a full-codebase engineering-rules auditor). `rules/` — always-on engineering law (`hard-caps.md`, `expert-mindset.md`, and `perf-guardrails.md` injected every prompt via hook; `code-quality.md` and `performance.md` loaded by skills on demand). `agents/` — formal sub-agent definitions for Phase 2.5 spec reviewers, Phase 3 wave-task implementers, and Phase 5 multi-reviewers (claude-code only; other runtimes use the inline templates in `skills/hackify/references/parallel-agents/`). `hooks/` — a `UserPromptSubmit` hook injects the hard caps, the expert mindset, and the performance guardrails into context every turn (via `inject-context.sh`, one entry per file), and (since v0.4.2) a `PreToolUse` hook blocks `Write`/`Edit`/`Bash` actions that introduce banned tokens (lint suppressions, non-null `!`, empty `catch {}`, bare `Error`, hardcoded secrets) into JS/TS source — net-new only, with a per-path `.claude/hooks/ban-allowlist` escape hatch (claude-code only). `commands/` — the `/hackify:summary` and `/hackify:designify` slash commands. Routing between skills is handled by each skill's frontmatter `description` field via the harness's native auto-discovery — no prompt-based classifier.
 
 ## The workflow
 
@@ -222,6 +233,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:quick <ask>` | Start the compressed-flow sibling. |
 | `/hackify:yolo <ask>` | Start the full-autopilot sibling. |
 | `/hackify:summary` | Print the current Area/Change summary table on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
+| `/hackify:designify` | Author, extract, refresh, or validate the project's design spec at `docs/design/DESIGN.md` plus its `preview.html` visual catalog. Picks a direction from the twelve-entry library, starts from a catalog spec, computes real WCAG contrast ratios, and validates against the spec contract before finishing. |
 | `/hackify:groom <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
 | `/hackify:skillsmith` | Author new hackify-conformant skills via a 9-check self-validation loop. |
 | `/hackify:review-triage` | Structure your response to reviewer findings as a per-finding accept/push-back/defer table. |
@@ -263,6 +275,7 @@ hooks/                                 prompt-time + edit-time enforcement (clau
   scan_bash.py                         Bash detector — scans heredoc/echo writes to JS/TS files
 commands/
   summary.md                           /hackify:summary slash command
+  designify.md                         /hackify:designify — author / extract / refresh / validate the design spec (since v0.8.0)
 scripts/
   validate-dod.sh                      CI helper — validates the plugin's own DoD
   sync-runtimes.sh                     fan canonical skills/ into dist/<runtime>/
@@ -279,10 +292,14 @@ skills/
       phase-ledger.md                  trackable ordered phase ledger — order-enforcer + archive gate (always-on, since v0.7.0)
       expert-mindset.md                senior multi-hat mindset + stakes framing (always-on, since v0.7.0)
       finish.md                        Phase 6 — options, archive, summary table
-      frontend-design.md               visual law (loaded on FE / UI tasks)
+      frontend-design.md               visual law (loaded on FE / UI / mobile-design tasks) — owns the design-spec pipeline
+      design-spec/                     the design artifact (since v0.8.0) — README.md index; spec-contract.md (DESIGN.md schema, {token.ref} syntax, web ↔ RN / Flutter / SwiftUI mapping, validation checklist); direction-library.md (the twelve directions with palette logic, type pairing, motion, signature move, anti-tells — the plugin's only direction list); extract-protocol.md (derive a spec from code / a reference site / screenshots, plus REFRESH mode and merge rules); catalog/ (twelve complete ready-to-drop specs)
       code-rules.md                    forwarding stub → rules/code-quality.md
       parallel-agents/                 parallel subagent dispatch templates (cross-runtime fallback) — subdir index in README.md; canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review, escalation, aggregation
       runtime-adapters.md              primitive → per-runtime mapping table
+    assets/
+      report-template.html             Phase 6 styled HTML report skeleton
+      design-preview-template.html     self-contained design preview — swatches, type ramp, scales, elevation, live components, light/dark toggle (since v0.8.0)
     evals/
       evals.json                       optional eval harness
   quick/

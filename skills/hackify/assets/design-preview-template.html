@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design preview</title>
+<!--
+  hackify design-spec preview template.
+
+  HOW TO FILL: replace the SPEC object below with the values from the project's
+  docs/design/DESIGN.md frontmatter, then save this file as
+  <project>/docs/design/preview.html beside the spec.
+
+  Keys map 1:1 to the frontmatter blocks in spec-contract.md. Component entries
+  keep their {token.ref} strings; this page resolves them at render time, so a
+  broken reference shows up as a visible "unresolved" chip rather than failing
+  silently. That is deliberate: the preview doubles as a reference checker.
+
+  Self-contained by contract: no external fonts, scripts, styles, or images.
+  The theme toggle switches this page's own chrome. Spec surfaces always render
+  in the spec's own colors, because a spec declares one canonical mode.
+-->
+<style>
+  :root{--pg:#ffffff;--pg2:#f4f5f7;--pt:#16181d;--pt2:#5b6270;--pl:#e2e5ea;--pa:#3355e0}
+  @media (prefers-color-scheme:dark){
+    :root{--pg:#0e1013;--pg2:#161a1f;--pt:#e6e9ee;--pt2:#98a1af;--pl:#242a32;--pa:#6f8dff}
+  }
+  :root[data-theme=dark]{--pg:#0e1013;--pg2:#161a1f;--pt:#e6e9ee;--pt2:#98a1af;--pl:#242a32;--pa:#6f8dff}
+  :root[data-theme=light]{--pg:#ffffff;--pg2:#f4f5f7;--pt:#16181d;--pt2:#5b6270;--pl:#e2e5ea;--pa:#3355e0}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pg);color:var(--pt);
+    font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 96px}
+  header{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+    flex-wrap:wrap;border-bottom:1px solid var(--pl);padding-bottom:20px;margin-bottom:8px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.4px}
+  .dir{font:600 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--pa)}
+  .desc{color:var(--pt2);margin:10px 0 0;max-width:62ch;font-size:14px}
+  button.tg{background:transparent;color:var(--pt);border:1px solid var(--pl);
+    border-radius:6px;padding:8px 12px;cursor:pointer;font:inherit;font-size:13px}
+  button.tg:hover{border-color:var(--pa)}
+  section{margin-top:44px}
+  h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pt2);
+    margin:0 0 16px;font-weight:600}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+  .sw{border:1px solid var(--pl);border-radius:8px;overflow:hidden}
+  .sw .chip{height:60px}
+  .sw .meta{padding:8px 10px;font-size:12px}
+  .sw .k{font-weight:600;word-break:break-all}
+  .sw .v{color:var(--pt2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+  .ratio{font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .pass{color:#1f9e63}.fail{color:#d94436}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:start;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--pt2);border-bottom:1px solid var(--pl);padding:8px 10px;font-weight:600}
+  td{border-bottom:1px solid var(--pl);padding:10px;vertical-align:middle}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--pt2)}
+  .scale{display:flex;flex-wrap:wrap;gap:14px}
+  .scale .item{text-align:center;font-size:11px;color:var(--pt2)}
+  .scale .bar{background:var(--pa);height:26px;border-radius:2px;margin-bottom:6px}
+  .scale .box{border:2px solid var(--pa);width:62px;height:62px;margin-bottom:6px}
+  .stage{border:1px solid var(--pl);border-radius:10px;padding:28px;margin-top:12px}
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:20px}
+  .row:last-child{margin-bottom:0}
+  .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pt2);
+    width:100%;margin-bottom:-4px;font-weight:600}
+  .unres{color:#d94436;font-family:ui-monospace,Menlo,monospace;font-size:11px;
+    border:1px dashed #d94436;padding:2px 6px;border-radius:4px}
+  .note{color:var(--pt2);font-size:13px;margin:0 0 12px}
+  @media (max-width:640px){.wrap{padding:20px 14px 64px}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <div class="dir" id="h-dir"></div>
+    <h1 id="h-name"></h1>
+    <p class="desc" id="h-desc"></p>
+  </div>
+  <button class="tg" id="toggle" type="button">Toggle theme</button>
+</header>
+<main id="out"></main>
+</div>
+
+<script>
+/* ==== FILL THIS FROM docs/design/DESIGN.md FRONTMATTER ==================== */
+const SPEC = {
+  name: "Industrial Precision — design spec",
+  direction: "industrial-precision",
+  description: "An instrument, not a brochure. A narrow band of cool near-blacks carries every surface, separated by hairlines rather than shadows. One saturated amber signal appears at most twice per screen.",
+  fonts: {
+    display: { name: "Archivo", stack: "'Archivo','Helvetica Neue',Helvetica,Arial,sans-serif" },
+    body:    { name: "Public Sans", stack: "'Public Sans','Helvetica Neue',Helvetica,Arial,sans-serif" },
+    mono:    { name: "JetBrains Mono", stack: "'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace" }
+  },
+  colors: {
+    canvas:"#0b0d0e", surface:"#141719", "surface-raised":"#1c2023", "surface-sunken":"#08090a",
+    hairline:"#23282b", "hairline-strong":"#333a3e", "text-primary":"#e8ebec",
+    "text-secondary":"#9aa4a8", "text-muted":"#6b7579", accent:"#ffb020",
+    "accent-hover":"#ffc14d", "accent-press":"#d98f0f", "on-accent":"#0b0d0e",
+    positive:"#3fa66a", caution:"#c9962c", negative:"#d0503f", "focus-ring":"#ffb020"
+  },
+  typography: {
+    "display-xl":{fontFamily:"{fonts.display}",fontSize:"52px",fontWeight:600,lineHeight:1.05,letterSpacing:"-1.1px"},
+    "display-lg":{fontFamily:"{fonts.display}",fontSize:"38px",fontWeight:600,lineHeight:1.1,letterSpacing:"-0.7px"},
+    "heading-lg":{fontFamily:"{fonts.display}",fontSize:"26px",fontWeight:600,lineHeight:1.2,letterSpacing:"-0.3px"},
+    "heading-md":{fontFamily:"{fonts.display}",fontSize:"20px",fontWeight:600,lineHeight:1.3,letterSpacing:"-0.2px"},
+    "heading-sm":{fontFamily:"{fonts.display}",fontSize:"16px",fontWeight:600,lineHeight:1.35,letterSpacing:"0"},
+    "body-lg":{fontFamily:"{fonts.body}",fontSize:"16px",fontWeight:400,lineHeight:1.6,letterSpacing:"0"},
+    "body-md":{fontFamily:"{fonts.body}",fontSize:"14px",fontWeight:400,lineHeight:1.55,letterSpacing:"0"},
+    "body-sm":{fontFamily:"{fonts.body}",fontSize:"13px",fontWeight:400,lineHeight:1.5,letterSpacing:"0"},
+    caption:{fontFamily:"{fonts.body}",fontSize:"12px",fontWeight:400,lineHeight:1.4,letterSpacing:"0"},
+    overline:{fontFamily:"{fonts.mono}",fontSize:"11px",fontWeight:500,lineHeight:1.2,letterSpacing:"0.12em",textTransform:"uppercase"},
+    button:{fontFamily:"{fonts.body}",fontSize:"14px",fontWeight:500,lineHeight:1,letterSpacing:"0"},
+    numeric:{fontFamily:"{fonts.mono}",fontSize:"13px",fontWeight:450,lineHeight:1.45,letterSpacing:"0",fontFeature:"tnum"}
+  },
+  spacing: {xxs:"2px",xs:"4px",sm:"8px",md:"12px",lg:"16px",xl:"24px",xxl:"32px",huge:"64px"},
+  rounded: {none:"0",xs:"2px",sm:"4px",md:"6px",lg:"8px",xl:"12px",pill:"9999px"},
+  elevation: {0:"none",1:"0 1px 2px rgba(0,0,0,0.32)",2:"0 8px 24px rgba(0,0,0,0.40)",3:"0 24px 64px rgba(0,0,0,0.52)"},
+  motion: {
+    duration:{instant:"75ms",fast:"150ms",base:"240ms",slow:"400ms",deliberate:"600ms"},
+    easing:{enter:"cubic-bezier(0.16,1,0.3,1)",exit:"cubic-bezier(0.4,0,1,1)",move:"cubic-bezier(0.2,0,0,1)"}
+  },
+  components: {
+    "button-primary":{backgroundColor:"{colors.accent}",textColor:"{colors.on-accent}",typography:"{typography.button}",rounded:"{rounded.sm}",padding:"{spacing.sm} {spacing.lg}",border:"none",elevation:"{elevation.0}"},
+    "button-secondary":{backgroundColor:"transparent",textColor:"{colors.text-primary}",typography:"{typography.button}",rounded:"{rounded.sm}",padding:"{spacing.sm} {spacing.lg}",border:"1px solid {colors.hairline-strong}"},
+    "button-ghost":{backgroundColor:"transparent",textColor:"{colors.text-secondary}",typography:"{typography.button}",rounded:"{rounded.sm}",padding:"{spacing.sm} {spacing.md}",border:"none"},
+    "input-text":{backgroundColor:"{colors.surface-sunken}",textColor:"{colors.text-primary}",typography:"{typography.body-md}",rounded:"{rounded.sm}",padding:"{spacing.sm} {spacing.md}",border:"1px solid {colors.hairline}"},
+    card:{backgroundColor:"{colors.surface}",textColor:"{colors.text-primary}",typography:"{typography.body-md}",rounded:"{rounded.lg}",padding:"{spacing.xl}",border:"1px solid {colors.hairline}",elevation:"{elevation.0}"},
+    "nav-bar":{backgroundColor:"{colors.canvas}",textColor:"{colors.text-secondary}",typography:"{typography.body-md}",padding:"{spacing.md} {spacing.xl}",border:"0 0 1px 0 solid {colors.hairline}"},
+    "table-row":{backgroundColor:"transparent",textColor:"{colors.text-primary}",typography:"{typography.numeric}",padding:"{spacing.sm} {spacing.md}",border:"0 0 1px 0 solid {colors.hairline}"},
+    badge:{backgroundColor:"{colors.surface-raised}",textColor:"{colors.text-secondary}",typography:"{typography.overline}",rounded:"{rounded.xs}",padding:"{spacing.xxs} {spacing.sm}",border:"1px solid {colors.hairline}"},
+    modal:{backgroundColor:"{colors.surface}",textColor:"{colors.text-primary}",typography:"{typography.body-md}",rounded:"{rounded.lg}",padding:"{spacing.xxl}",border:"1px solid {colors.hairline-strong}",elevation:"{elevation.3}"},
+    toast:{backgroundColor:"{colors.surface-raised}",textColor:"{colors.text-primary}",typography:"{typography.body-sm}",rounded:"{rounded.md}",padding:"{spacing.md} {spacing.lg}",border:"1px solid {colors.hairline-strong}",elevation:"{elevation.2}"}
+  }
+};
+/* ==== END FILL ============================================================ */
+
+const el = (t, cls, txt) => { const n = document.createElement(t); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n }
+const path = (p) => p.split('.').reduce((o, k) => (o == null ? o : o[k]), SPEC)
+
+/* Resolve every {a.b.c} in a value string. Unknown refs are left visible.
+   Resolution repeats because a token's VALUE may itself hold a token — some
+   directions define elevation as "8px 8px 0 0 {colors.text-primary}". Bounded
+   at 5 passes so a self-referential spec cannot hang the page. */
+function resolve (v) {
+  if (typeof v !== 'string') return v
+  let out = v
+  for (let i = 0; i < 5; i++) {
+    const next = out.replace(/\{([\w.-]+)\}/g, (m, ref) => {
+      const hit = path(ref)
+      return (hit == null || typeof hit === 'object') ? m : String(hit)
+    })
+    if (next === out) break
+    out = next
+  }
+  return out
+}
+/* A ref is broken only when its path does not exist. Object-valued refs such as
+   {typography.button} legitimately survive resolve() and are not broken. */
+function brokenRefs (v) {
+  if (typeof v !== 'string') return []
+  return [...v.matchAll(/\{([\w.-]+)\}/g)].map(m => m[1]).filter(r => path(r) == null)
+}
+
+function typeStyle (ref) {
+  const t = typeof ref === 'string' ? path(ref.replace(/[{}]/g, '')) : ref
+  if (!t) return {}
+  const s = {
+    fontFamily: resolve(t.fontFamily), fontSize: t.fontSize, fontWeight: t.fontWeight,
+    lineHeight: t.lineHeight, letterSpacing: t.letterSpacing
+  }
+  if (t.textTransform) s.textTransform = t.textTransform
+  if (t.fontFeature) s.fontFeatureSettings = '"' + t.fontFeature + '"'
+  return s
+}
+
+/* WCAG 2.1 relative luminance + contrast ratio. */
+function lum (hex) {
+  const h = String(hex).replace('#', '')
+  if (h.length !== 6) return null
+  const c = [0, 2, 4].map(i => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+}
+function ratio (a, b) {
+  const x = lum(a), y = lum(b)
+  if (x == null || y == null) return null
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+}
+
+function section (title, node, note) {
+  const s = el('section')
+  s.append(el('h2', null, title))
+  if (note) s.append(el('p', 'note', note))
+  s.append(node)
+  return s
+}
+
+/* Only roles actually rendered AS TEXT get a pass/fail verdict. Surfaces and
+   hairlines are not text, so scoring them against the canvas would be noise.
+   text-muted is informational: disabled and non-essential text is exempt from
+   the AA minimum. Directions that use their accent as a fill rather than as a
+   text color declare that in TEXT_ROLES below. */
+const TEXT_ROLES = ['text-primary', 'text-secondary', 'accent', 'positive', 'caution', 'negative']
+const INFO_ROLES = ['text-muted', 'hairline', 'hairline-strong']
+
+function renderColors () {
+  const g = el('div', 'grid')
+  const canvas = SPEC.colors.canvas
+  for (const [k, v] of Object.entries(SPEC.colors)) {
+    const card = el('div', 'sw')
+    const chip = el('div', 'chip')
+    chip.style.background = v
+    const meta = el('div', 'meta')
+    meta.append(el('div', 'k', k), el('div', 'v', v))
+    const scored = k === 'on-accent' || TEXT_ROLES.includes(k)
+    if (scored || INFO_ROLES.includes(k)) {
+      const against = k === 'on-accent' ? SPEC.colors.accent : canvas
+      const r = ratio(v, against)
+      if (r) {
+        const label = r.toFixed(2) + ':1 vs ' + (k === 'on-accent' ? 'accent' : 'canvas')
+        meta.append(scored
+          ? el('div', 'ratio ' + (r >= 4.5 ? 'pass' : 'fail'), label)
+          : el('div', 'ratio', label + ' (info)'))
+      }
+    }
+    card.append(chip, meta)
+    g.append(card)
+  }
+  return g
+}
+
+function renderType () {
+  const t = el('table')
+  t.innerHTML = '<thead><tr><th>Role</th><th>Specimen</th><th>Size / weight</th></tr></thead>'
+  const tb = el('tbody')
+  for (const [k, v] of Object.entries(SPEC.typography)) {
+    const tr = el('tr')
+    tr.append(el('td', 'mono', k))
+    const spec = el('td')
+    const sample = el('div', null, k.startsWith('numeric') ? '1,204.86  0123456789' : 'Grumpy wizards make toxic brew')
+    Object.assign(sample.style, typeStyle(v))
+    sample.style.color = 'var(--pt)'
+    spec.append(sample)
+    tr.append(spec, el('td', 'mono', v.fontSize + ' / ' + v.fontWeight))
+    tb.append(tr)
+  }
+  t.append(tb)
+  return t
+}
+
+function renderScale (obj, kind) {
+  const wrap = el('div', 'scale')
+  for (const [k, v] of Object.entries(obj)) {
+    const item = el('div', 'item')
+    const box = el('div', kind === 'space' ? 'bar' : 'box')
+    if (kind === 'space') box.style.width = v
+    else box.style.borderRadius = v === '9999px' ? '9999px' : v
+    item.append(box, el('div', null, k), el('div', 'v', v))
+    wrap.append(item)
+  }
+  return wrap
+}
+
+function renderElevation () {
+  const wrap = el('div', 'scale')
+  for (const [k, v] of Object.entries(SPEC.elevation)) {
+    const item = el('div', 'item')
+    const box = el('div')
+    Object.assign(box.style, {
+      width: '112px', height: '72px', marginBottom: '8px',
+      background: SPEC.colors.surface, borderRadius: SPEC.rounded.lg,
+      border: '1px solid ' + SPEC.colors.hairline,
+      boxShadow: v === 'none' ? 'none' : resolve(v)
+    })
+    item.append(box, el('div', null, 'elevation ' + k))
+    wrap.append(item)
+  }
+  const pad = el('div')
+  Object.assign(pad.style, { background: SPEC.colors.canvas, padding: '28px', borderRadius: '10px' })
+  pad.append(wrap)
+  return pad
+}
+
+function renderMotion () {
+  const t = el('table')
+  t.innerHTML = '<thead><tr><th>Token</th><th>Value</th></tr></thead>'
+  const tb = el('tbody')
+  for (const grp of ['duration', 'easing']) {
+    for (const [k, v] of Object.entries(SPEC.motion[grp] || {})) {
+      const tr = el('tr')
+      tr.append(el('td', 'mono', 'motion.' + grp + '.' + k), el('td', 'mono', v))
+      tb.append(tr)
+    }
+  }
+  t.append(tb)
+  return t
+}
+
+/* Apply a component entry's tokens to a real element. */
+function applyComponent (node, name) {
+  const c = SPEC.components[name]
+  if (!c) { node.append(el('span', 'unres', 'missing component: ' + name)); return node }
+  const s = node.style
+  if (c.backgroundColor) s.background = resolve(c.backgroundColor)
+  if (c.textColor) s.color = resolve(c.textColor)
+  if (c.rounded) s.borderRadius = resolve(c.rounded)
+  if (c.padding) s.padding = resolve(c.padding)
+  if (c.elevation) { const e = resolve(c.elevation); s.boxShadow = e === 'none' ? 'none' : e }
+  if (c.border) {
+    const b = resolve(c.border)
+    const m = b.match(/^(\d+) (\d+) (\d+) (\d+) solid (.+)$/)
+    if (m) { s.border = '0'; s.borderStyle = 'solid'; s.borderColor = m[5]; s.borderWidth = m.slice(1, 5).map(n => n + 'px').join(' ') }
+    else s.border = b
+  }
+  if (c.typography) Object.assign(s, typeStyle(c.typography))
+  for (const v of Object.values(c)) {
+    for (const r of brokenRefs(v)) node.append(el('span', 'unres', 'unresolved {' + r + '}'))
+  }
+  return node
+}
+
+function comp (tag, name, text) { return applyComponent(el(tag, null, text), name) }
+
+function renderComponents () {
+  const stage = el('div', 'stage')
+  stage.style.background = SPEC.colors.canvas
+  stage.style.borderColor = SPEC.colors.hairline
+
+  const nav = comp('div', 'nav-bar', '')
+  Object.assign(nav.style, { display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px' })
+  const brand = el('span', null, 'Product')
+  Object.assign(brand.style, typeStyle('{typography.heading-sm}'))
+  brand.style.color = SPEC.colors['text-primary']
+  const active = el('span', null, 'Overview')
+  active.style.color = SPEC.colors.accent
+  nav.append(brand, active, el('span', null, 'Reports'), el('span', null, 'Settings'))
+  stage.append(nav)
+
+  const r1 = el('div', 'row')
+  r1.append(el('div', 'lbl', 'Buttons'),
+    comp('button', 'button-primary', 'Primary action'),
+    comp('button', 'button-secondary', 'Secondary'),
+    comp('button', 'button-ghost', 'Ghost'))
+  r1.querySelectorAll('button').forEach(b => { b.style.cursor = 'pointer' })
+
+  const r2 = el('div', 'row')
+  const inp = applyComponent(el('input'), 'input-text')
+  inp.value = 'Editable input'
+  inp.style.minWidth = '260px'
+  r2.append(el('div', 'lbl', 'Input, badge, toast'), inp,
+    comp('span', 'badge', 'STATUS'), comp('div', 'toast', 'Saved 12 records'))
+
+  const card = comp('div', 'card', '')
+  card.style.maxWidth = '320px'
+  const ct = el('div', null, 'Card title')
+  Object.assign(ct.style, typeStyle('{typography.heading-md}'))
+  ct.style.color = SPEC.colors['text-primary']
+  const cb = el('div', null, 'Supporting copy sits at body size against the card surface.')
+  cb.style.color = SPEC.colors['text-secondary']
+  card.append(ct, cb)
+
+  const modal = comp('div', 'modal', '')
+  modal.style.maxWidth = '320px'
+  const mt = el('div', null, 'Modal')
+  Object.assign(mt.style, typeStyle('{typography.heading-md}'))
+  mt.style.color = SPEC.colors['text-primary']
+  modal.append(mt, el('div', null, 'Level 3 surface.'))
+
+  const r3 = el('div', 'row')
+  r3.style.alignItems = 'stretch'
+  r3.append(el('div', 'lbl', 'Card and modal'), card, modal)
+
+  const tbl = el('table')
+  tbl.style.marginTop = '8px'
+  const thead = el('thead')
+  const head = el('tr')
+  for (const h of ['Region', 'Requests', 'Latency']) {
+    const th = el('th', null, h)
+    Object.assign(th.style, typeStyle('{typography.overline}'))
+    th.style.color = SPEC.colors['text-secondary']
+    th.style.borderBottom = '1px solid ' + SPEC.colors['hairline-strong']
+    head.append(th)
+  }
+  const body = el('tbody')
+  for (const row of [['eu-west-1', '1,204,886', '42.10 ms'], ['us-east-1', '984,120', '38.44 ms'], ['ap-south-1', '77,431', '112.08 ms']]) {
+    const tr = applyComponent(el('tr'), 'table-row')
+    tr.style.padding = ''
+    row.forEach((cell, i) => {
+      const td = el('td', null, cell)
+      Object.assign(td.style, typeStyle('{typography.numeric}'))
+      td.style.color = SPEC.colors['text-primary']
+      td.style.borderBottom = '1px solid ' + SPEC.colors.hairline
+      td.style.textAlign = i === 0 ? 'start' : 'end'
+      tr.append(td)
+    })
+    body.append(tr)
+  }
+  thead.append(head)
+  tbl.append(thead, body)
+  const r4 = el('div', 'row')
+  r4.append(el('div', 'lbl', 'Data table'), tbl)
+
+  stage.append(r1, r2, r3, r4)
+  return stage
+}
+
+/* ---- mount ---- */
+document.getElementById('h-name').textContent = SPEC.name
+document.getElementById('h-dir').textContent = SPEC.direction
+document.getElementById('h-desc').textContent = SPEC.description
+document.title = SPEC.name
+
+const out = document.getElementById('out')
+out.append(
+  section('Colors', renderColors(), 'Contrast is measured against canvas, except on-accent which is measured against accent. AA needs 4.5:1 for body text.'),
+  section('Typography', renderType()),
+  section('Spacing', renderScale(SPEC.spacing, 'space')),
+  section('Radius', renderScale(SPEC.rounded, 'radius')),
+  section('Elevation', renderElevation()),
+  section('Motion', renderMotion()),
+  section('Components', renderComponents(), 'Live elements built from the component token entries. A red dashed chip marks an unresolved {token.ref}.')
+)
+
+document.getElementById('toggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme')
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark')
+})
+</script>
+</body>
+</html>

@@ -5,6 +5,36 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-07-26
+
+> **Design work now produces an artifact.** Hackify's visual law told the model what good looks like but never wrote anything down, so design intent evaporated between sessions and no reviewer could check whether the code matched the intent. 0.8.0 adds the missing half: a committed design specification in the user's own project, twelve deeply-specified directions to author it from, twelve ready-to-drop specs, a self-contained visual preview, and a standing Phase 5 reviewer that audits diffs against it. `references/frontend-design.md` remains the law and now owns the pipeline.
+
+### Added
+
+- **`references/design-spec/` — the design artifact package.**
+  - `spec-contract.md` — the binding `DESIGN.md` anatomy: a nine-block YAML token layer (colors, fonts, typography, spacing, rounded, elevation, motion, components, platform), the `{token.ref}` cross-reference syntax, twelve required typography roles, ten required components with their interactive states, eleven prose sections, authoring rules, and a twelve-item validation checklist.
+  - `direction-library.md` — twelve visual directions, each with palette logic, type pairing, motion character, a signature move, **anti-tells** (the specific ways that direction gets built wrong), and best-fit product types. This is now the plugin's **single canonical direction list**; `frontend-design.md`'s former nine-item list was removed rather than duplicated.
+  - `extract-protocol.md` — deriving a spec from an existing codebase (Mode A), a reference site (Mode B), or screenshots (Mode C), plus REFRESH mode with a drift / evolution / gap / dead classification, merge rules, and an extraction-report format.
+  - `catalog/` — twelve complete, original specs: `industrial-precision`, `editorial-print`, `retro-terminal`, `warm-organic`, `brutalist-mono`, `neo-luxury`, `swiss-grid`, `data-dense`, `playful-pop`, `nordic-calm`, `cyber-neon`, `soft-depth`. Six dark-canonical, six light-canonical. No real brand identity is reproduced; every font is freely licensed and ships an offline fallback stack.
+- **Web ↔ native from one spec.** The token layer is platform-neutral with a `platform.native` block (touch targets, safe area, status bar, elevation model, haptics, Dynamic Type) and a normative mapping table across CSS, React Native, Flutter and SwiftUI — including the line-height rule, the one token the four platforms genuinely disagree about.
+- **`assets/design-preview-template.html`** — a self-contained visual catalog rendering color swatches with live computed contrast, the type ramp, spacing and radius scales, elevation on the spec's own canvas, the motion table, and real components built from the token entries, with a light/dark toggle. Zero network references. Broken `{token.ref}` values render as visible chips, so the preview doubles as a reference checker.
+- **Phase 5 Reviewer E — design conformance.** A standing fifth reviewer on UI-bearing diffs (`references/parallel-agents/phase-5-multi-review-e-design.md`, mirrored byte-for-byte at `agents/design-conformance-reviewer.md`). Audits hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, components missing documented hover/focus/press/disabled states, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, and physical properties where logical are required. Every finding names the exact replacement token. Falls back to the `frontend-design.md` visual law when no spec exists.
+- **`/hackify:designify`** (`commands/designify.md`) — author, extract, refresh, or validate a spec standalone, in four resolved modes. Computes real WCAG contrast rather than asserting it, and runs the contract's validation checklist before finishing.
+- **Clarify-bank design questions.** `revamp-redesign.md` gains Q4b (change *within* the direction vs change *of* direction, the latter making a new spec an explicit gated Phase 2 deliverable); `feature.md` gains Q6b (design authority for a UI-bearing feature).
+- **Eval case 4** — `design-spec-pipeline-ui-redesign`, twelve assertions covering direction choice, spec-before-components ordering, the native platform block, AI-slop rejection, computed contrast, and Reviewer E dispatch.
+
+### Changed
+
+- **`references/frontend-design.md` is now the law layer that owns the pipeline** (197 → 225 lines). Adds the spec-first binding sequence and the `docs/design/` output contract, defers the direction list to `direction-library.md` so exactly one list exists in the plugin, generalizes the reusable-visual-moments section across directions, and adds an Enforcement section pointing at Reviewer E. Its bans gain default backdrop blur; its musts gain the reachable-fonts rule.
+- **Phase 5 reviewer roster.** The 5th slot is now explicitly Reviewer E on UI-bearing diffs; `phase-5-escalation.md` keeps every other specialist surface. Boundary documented in both files so the two lenses cannot collide. Cap stays at 5.
+- **Companion skills mirrored.** `yolo` names Reviewer E in its Phase 5 table; `quick` folds the design-conformance lens into its single-lens 5-lite review, since a one-line CSS tweak is exactly where token drift starts.
+- **`scripts/validate-dod.d/60-primitives.sh`** — `AGENTS_EXPECTED` grows to 9 with `design-conformance-reviewer`.
+- **`scripts/sync-runtimes.d/00-helpers.sh`** — 22 new canonical files added to `MIRROR_SOURCES` / `CLAUDE_CODE_EXTRA`.
+
+### Fixed
+
+- **Four catalog specs shipped semantic colors below WCAG AA as text** and were corrected before release, caught by computing every ratio rather than eyeballing it: `soft-depth` positive/caution/negative (3.20 / 3.19 / 4.06 → 5.00 / 5.26 / 5.30), `nordic-calm` caution (4.00 → 5.41), `warm-organic` caution (3.66 → 5.30), `neo-luxury` negative (4.36 → 6.49). `playful-pop` documents explicitly that its hues are fill colors measured against the near-black text on them, never text colors on the canvas.
+
 ## [0.7.1] - 2026-07-03
 
 > **Patch: version-only alignment release — no functional changes since 0.7.0.** Cut so the marketplace channels serve a fresh tag; every feature listed under 0.7.0 is unchanged.

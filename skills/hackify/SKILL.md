@@ -242,7 +242,9 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 - **Reviewer C — Plan consistency, scope & goal drift.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach. **Drift-check:** trace every changed hunk to the Primary Goal & Guardrails anchor — a hunk serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
 - **Reviewer D — Performance.** Semantic perf lens: consumes the scout report, judges every staged candidate, and hunts what greps cannot — N+1 shapes, algorithmic complexity, unbounded growth (caches, listeners, result sets), wasted parallelism, blocking I/O on request paths, render storms. Cites `perf.<domain>.<slug>` catalog IDs from `rules/performance.md` and sets final severity. Adversarial intent — a hot path is hot until proven cold.
 
-Multi-concern diffs (UI + backend migration): add a 5th reviewer on the second concern. Cap at 5. **Self-review still happens** by you, against `references/review-and-verify.md`'s 16-item checklist — reviewers are *additive* defense, not replacement.
+- **Reviewer E — Design conformance** *(standing 5th reviewer whenever the diff is UI-bearing)*. Audits the diff against the project's committed `docs/design/DESIGN.md`: hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, components missing documented hover/focus/press/disabled states, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, and physical properties where logical are required. Names the exact replacement token for every finding. With no spec present it falls back to the `references/frontend-design.md` visual law and reports the missing spec. Template: `references/parallel-agents/phase-5-multi-review-e-design.md`.
+
+Cap at 5 reviewers. When a diff is UI-bearing, E takes the fifth slot; otherwise a second-concern specialist may (`references/parallel-agents/phase-5-escalation.md`). **Self-review still happens** by you, against `references/review-and-verify.md`'s 16-item checklist — reviewers are *additive* defense, not replacement.
 
 **Carve-out (skill optional).** A diff that is *purely* a one-line typo / comment / config-only change can skip multi-reviewer. When in doubt, dispatch.
 
@@ -341,7 +343,7 @@ Whenever 2+ pieces of work are independent — **dispatch foreground subagents i
 | 3 | Implementation waves — one agent per task (parent runs the perf-scout at wave-end) | MANDATORY |
 | 3b | Debug evidence gathering — different component boundaries | optional |
 | 4 | Cross-module verification — tests in different packages | optional |
-| 5 | Multi-reviewer code review — security/quality/plan/performance lenses | MANDATORY (non-trivial diffs) |
+| 5 | Multi-reviewer code review — security/quality/plan/performance lenses, plus design conformance on UI-bearing diffs | MANDATORY (non-trivial diffs) |
 
 **Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents/README.md`.
 
@@ -349,7 +351,18 @@ Whenever 2+ pieces of work are independent — **dispatch foreground subagents i
 
 ## Frontend design work — special handling
 
-For tasks touching **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / motion / brand / RTL**, before drafting the Plan **load `references/frontend-design.md`** and treat its rules as binding. If your project has a committed brand/design spec, design WITHIN it — let the spec lead and adapt new components to its tokens, scale, and voice.
+For tasks touching **UI / styling / theming / layout / components / typography / colors / spacing / icons / forms / motion / brand / RTL** on web **or** native, before drafting the Plan **load `references/frontend-design.md`** (the visual law) and treat its rules as binding. It loads the design-spec package in turn.
+
+**Design work produces a spec before it produces components.** The artifact is a committed `DESIGN.md` in the *user's* project at `<project>/docs/design/DESIGN.md`, with its visual catalog at `docs/design/preview.html` — machine-readable tokens plus the prose that explains them, so intent survives the session and reviewers have something to check against.
+
+| Situation | Phase 1 → 2 action |
+|---|---|
+| Spec exists at `docs/design/DESIGN.md` | Load it; its tokens are binding. A raw hex in a component is a defect. |
+| Tokens exist, no spec | Run `references/design-spec/extract-protocol.md` Mode A; propose the recovered spec. |
+| Neither, task is UI-bearing | Pick a direction from `references/design-spec/direction-library.md` in Phase 1; author the spec in Phase 2 **before** any component. |
+| One-line copy/color/spacing fix | No spec needed; honor the existing one. |
+
+Contract, schema, and the web↔native token mapping: `references/design-spec/spec-contract.md`. Twelve ready-to-drop specs: `references/design-spec/catalog/`. Standalone entry point: `/hackify:designify`. Conformance is enforced in Phase 5 by Reviewer E.
 
 ---
 
@@ -389,7 +402,9 @@ Hackify talks in **B2 (upper-intermediate) English** so non-native readers can f
 | `references/debug-when-stuck.md` | 4-phase root-cause hunt for Phase 3b |
 | `references/review-and-verify.md` | DoD + self-review checklist + escalation rules |
 | `references/finish.md` | Phase 6 — 4-options, archive, worktree cleanup |
-| `references/frontend-design.md` | visual law (load on FE/UI/design tasks) |
+| `references/frontend-design.md` | visual law (load on FE/UI/design tasks); loads the design-spec package |
+| `references/design-spec/` | the design artifact: `spec-contract.md` (DESIGN.md schema + web↔native mapping), `direction-library.md` (the 12 directions — the plugin's only direction list), `extract-protocol.md` (derive a spec from code / reference / screenshots), `catalog/` (12 ready-to-drop specs) |
+| `assets/design-preview-template.html` | self-contained visual catalog; fill with a spec's tokens → `docs/design/preview.html` |
 | `rules/code-quality.md` (plugin root) | SOLID/DRY/types/layering deep dive — canonical location (legacy `references/code-rules.md` is a forwarding stub) |
 | `rules/performance.md` (plugin root) | canonical perf catalog — stable `perf.<domain>.<slug>` IDs + severity model (load: implementers, Reviewer D, scout triage) |
 | `rules/perf-guardrails.md` (plugin root) | always-on perf stub — injected every prompt by the `UserPromptSubmit` hook |

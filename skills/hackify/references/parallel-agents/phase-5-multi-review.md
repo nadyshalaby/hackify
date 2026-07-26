@@ -494,4 +494,4 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 If a findings section has no entries, write `None.` on its own line under the heading — never go silent. An empty scout table gets `None.` under `## Scout verdicts` too.
 ```
 
-For diffs with a 5th distinct concern (e.g., a heavy UX/visual change layered on top of backend changes), add a 5th reviewer focused on that lens. Cap at 5.
+UI-bearing diffs take Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the 5th slot; any other 5th distinct concern takes a specialist from `phase-5-escalation.md`. Cap at 5.

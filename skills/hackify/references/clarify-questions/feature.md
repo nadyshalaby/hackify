@@ -72,7 +72,16 @@ Q6 — UI surface
   - B. New page or route
   - C. New component embedded in an existing page
   - D. Dialog / modal / inline action
-- Why-this-matters: Triggers (or skips) loading `references/frontend-design.md` and the frontend-design sub-agent in Phase 3.
+- Why-this-matters: Triggers (or skips) loading `references/frontend-design.md` and the frontend-design sub-agent in Phase 3. Any answer other than A also makes Phase 5 Reviewer E (design conformance) a standing reviewer on the diff.
+
+Q6b — Design spec (ask only when Q6 is not A)
+- Text: This feature has a UI surface. What is the design authority for it?
+- Header: Design spec
+- Options:
+  - A. The committed spec at `docs/design/DESIGN.md` — build within it (Recommended)
+  - B. No spec yet — recover one from the existing code first
+  - C. No spec and no existing UI — choose a direction and author one
+- Why-this-matters: A makes the spec's tokens binding in Phase 3 and gives Reviewer E something concrete to audit. B routes to `references/design-spec/extract-protocol.md` Mode A. C routes to `references/design-spec/direction-library.md` plus the catalog, and makes `docs/design/DESIGN.md` a Phase 2 deliverable authored BEFORE any component, since building components first produces a spec that documents accidents.
 
 Q7 — Acceptance criteria
 - Text: How should the testable DoD be phrased?
