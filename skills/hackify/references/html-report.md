@@ -58,7 +58,7 @@ Keep all existing technical blocks (stats, charts, findings, update log) between
    - `{{PHASE_TIMELINE}}`, the six phase pills
    - `{{FINDINGS_TABLE}}`, `<tr>` rows: finding / severity / decision / evidence
    - `{{ACTION_ITEMS}}`, `<li>` items (or an empty-state line)
-   - `{{UPDATE_LOG}}`, the same blocks as the chat update log, each rendered as a `<section class="update">` with the five field headings and a rule between blocks
+   - `{{UPDATE_LOG}}`, the same blocks as the chat update log, each rendered as a `<section class="update">` whose five field headings are `<h3>` elements (Problem / Root cause / Solution / Verification evidence / Deployment status), the template draws the rule between blocks
    - `{{EVIDENCE_APPENDIX}}`, `<tr>` rows of the cumulative Evidence Ledger: item / claim / what ran / proof sample / result
    - `{{NEXT_STEPS}}`, instructions the developer must act on (or an empty-state line)
 3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens, `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, `{{PLAIN_SUMMARY}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{UPDATE_LOG}}` / `{{EVIDENCE_APPENDIX}}` / `{{NEXT_STEPS}}` cells (a commit subject, a type like `Promise<User>`, or a proof sample can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.

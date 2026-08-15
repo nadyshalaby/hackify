@@ -5,6 +5,15 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-08-16
+
+> **Patch: the update log's five field headings were paraphrased instead of used verbatim, and the HTML report still wrapped the log in the table it replaced.** 0.9.0 was asked for the fields `Problem`, `Root cause`, `Solution`, `Verification evidence`, `Deployment status`, and shipped them as the conversational questions `What was wrong`, `Why it happened`, `What I did about it`, `How I know it works`, `Status`. Same five slots, wrong labels, and the labels are the part of a format contract that gets read.
+
+### Fixed
+
+- **The five update-log field headings are now the specified ones, verbatim.** Renamed across `references/finish.md` (the shape block, the field table, the voice rules, and the two-update worked example), `commands/summary.md` (frontmatter, METHOD, VERIFICATION, the OUTPUT template and the nothing-yet fallback block), `SKILL.md` Step F, `skills/quick/SKILL.md`, and checks `[18]` and `[20]`, which pin the headings as the format contract. Both checks were proven to still bind by reintroducing an old label and watching them fail, then reverting.
+- **The HTML report rendered the update log inside the Area/Change table it was supposed to replace.** 0.9.0 swapped the `{{AREA_CHANGE_TABLE}}` token for `{{UPDATE_LOG}}` but left the `<table><thead><tr><th>Area</th><th>Change</th></tr></thead><tbody>` scaffolding around it, so a report would have shown a stray "Area | Change" header row above `<section>` elements that browsers hoist straight out of the table body. The scaffolding is gone, and `section.update` finally has the styling it was already being asked to use: uppercase field headings and a rule between blocks, drawn by the stylesheet rather than emitted by the filler.
+
 ## [0.9.1] - 2026-08-16
 
 > **Patch: 0.9.0's headline reviewer was advertised out of existence.** The release wired Reviewer F, the standing cross-module coherence lens, into `SKILL.md` and every reference file, but two sibling reviewers still described the wave as A/B/C/D in their `description:` frontmatter. That field is not prose, it is the live agent metadata a model reads when it composes the Phase 5 fan-out, so the surface closest to the dispatch decision was the one still naming four reviewers. This release corrects that surface, the escalation baseline that depended on it, and the README sections 0.9.0 left behind.

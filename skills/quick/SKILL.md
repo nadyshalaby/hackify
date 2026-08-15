@@ -89,11 +89,11 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 End every task with a plain-language **update log**: one block per change, five fields each, in this order.
 
 ```
-**What was wrong**
-**Why it happened**
-**What I did about it**
-**How I know it works**
-**Status**
+**Problem**
+**Root cause**
+**Solution**
+**Verification evidence**
+**Deployment status**
 ```
 
 Separate blocks with a line containing exactly `----`. Quick mode typically produces one block; up to three if the fix touched separate things.

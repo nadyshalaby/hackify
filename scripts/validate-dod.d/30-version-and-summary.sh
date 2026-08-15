@@ -50,7 +50,7 @@ if [ -f "$SUMMARY_CMD" ]; then
     red "  FAIL $SUMMARY_CMD missing description: frontmatter"
     FAILED=$((FAILED + 1))
   fi
-  for tok in 'What was wrong' 'Why it happened' 'What I did about it' 'How I know it works' 'Status'; do
+  for tok in 'Problem' 'Root cause' 'Solution' 'Verification evidence' 'Deployment status'; do
     if grep -qF "$tok" "$SUMMARY_CMD"; then
       green "  ok   $SUMMARY_CMD body contains '$tok'"
     else
@@ -81,7 +81,7 @@ fi
 yellow "[20] finish.md update-log authoring subsection (5 fields + the ---- separator)"
 # The five field headings are the format contract; a missing one silently
 # drops a section the user asked for (root cause and evidence most often).
-for tok in '**What was wrong**' '**Why it happened**' '**What I did about it**' '**How I know it works**' '**Status**'; do
+for tok in '**Problem**' '**Root cause**' '**Solution**' '**Verification evidence**' '**Deployment status**'; do
   if grep -qF -- "$tok" "$FINISH_REF"; then
     green "  ok   $FINISH_REF documents the '$tok' field"
   else

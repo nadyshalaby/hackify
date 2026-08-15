@@ -372,19 +372,19 @@ Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **u
 ### The shape (one block per update, `----` between them)
 
 ```
-**What was wrong**
+**Problem**
 <the problem, in the user's terms>
 
-**Why it happened**
+**Root cause**
 <the actual cause, plainly>
 
-**What I did about it**
+**Solution**
 <the fix, in one or two sentences>
 
-**How I know it works**
+**Verification evidence**
 <real evidence: what was run and what came back>
 
-**Status**
+**Deployment status**
 <Shipped / Not shipped, and where it is>
 
 ----
@@ -396,11 +396,11 @@ Repeat for every update, separated by a line containing exactly `----`. No table
 
 | Field | What goes in it | What kills it |
 |---|---|---|
-| **What was wrong** | The symptom as the user would have experienced it. "Invite links kept working after they should have expired." | Naming a function instead of a symptom. |
-| **Why it happened** | The real cause in one plain sentence. "Nothing ever checked the expiry date, so every link stayed valid forever." | "A missing guard clause in the validator." Same sentence in costume. |
-| **What I did about it** | The change in outcome terms. "Added the expiry check, so links stop working the moment they pass their date." | Listing files touched. Nobody reads that here. |
-| **How I know it works** | Real evidence, trimmed. "Ran the tests: 87 passed. Also made an invite, set it back 8 days, and saw the expired message." | "Verified." or "Tests pass." with nothing behind it. |
-| **Status** | Where it actually is. "Shipped, it's on your `main` branch." or "Not shipped, waiting on your review." | Vagueness. The user needs to know whether they can use it. |
+| **Problem** | The symptom as the user would have experienced it. "Invite links kept working after they should have expired." | Naming a function instead of a symptom. |
+| **Root cause** | The real cause in one plain sentence. "Nothing ever checked the expiry date, so every link stayed valid forever." | "A missing guard clause in the validator." Same sentence in costume. |
+| **Solution** | The change in outcome terms. "Added the expiry check, so links stop working the moment they pass their date." | Listing files touched. Nobody reads that here. |
+| **Verification evidence** | Real evidence, trimmed. "Ran the tests: 87 passed. Also made an invite, set it back 8 days, and saw the expired message." | "Verified." or "Tests pass." with nothing behind it. |
+| **Deployment status** | Where it actually is. "Shipped, it's on your `main` branch." or "Not shipped, waiting on your review." | Vagueness. The user needs to know whether they can use it. |
 
 ### Voice (this is the whole point of the format)
 
@@ -409,41 +409,41 @@ Repeat for every update, separated by a line containing exactly `----`. No table
 - **Never mention the workflow's own machinery.** No phase numbers, no task IDs, no reviewer letters, no scout names, no mention of the work-doc. The user asked for working software, not a tour of the process.
 - **Say it and stop.** No "in conclusion", no restating the block you just wrote, no praise for your own work.
 - **One block per thing the user would recognize as a change.** Group by what they would notice, not by file. Three files serving one fix is one block. Typical task: 1-5 blocks; a large one: up to 12.
-- **Be honest in Status.** If something is half-done or deliberately left out, say so here rather than burying it.
+- **Be honest in Deployment status.** If something is half-done or deliberately left out, say so here rather than burying it.
 
 ### Worked example (two updates)
 
 ```
-**What was wrong**
+**Problem**
 Invite links kept working forever. Someone could dig up a link from months ago and still get in.
 
-**Why it happened**
+**Root cause**
 We stored an expiry date on every invite, but nothing ever looked at it. The check was simply never written.
 
-**What I did about it**
+**Solution**
 Added the missing check. An invite now stops working the moment it passes its date, and the person sees a clear "this link has expired" message instead of a confusing error.
 
-**How I know it works**
+**Verification evidence**
 Wrote a test that creates an invite, moves the clock forward 8 days, and tries it. It failed before the fix and passes now. Full suite: 87 passed, 0 failed. I also clicked through it by hand.
 
-**Status**
+**Deployment status**
 Shipped, it's on your `main` branch.
 
 ----
 
-**What was wrong**
+**Problem**
 The invites page got slow once an account had a few hundred invites, taking several seconds to load.
 
-**Why it happened**
+**Root cause**
 The page asked the database one question per invite instead of one question for all of them. With 300 invites that's 300 round trips.
 
-**What I did about it**
+**Solution**
 Changed it to fetch them all at once. The page now loads in about the same time whether you have 5 invites or 5,000.
 
-**How I know it works**
+**Verification evidence**
 Timed it with 500 invites: 4.2 seconds before, 0.3 seconds after.
 
-**Status**
+**Deployment status**
 Shipped, same branch.
 ```
 
