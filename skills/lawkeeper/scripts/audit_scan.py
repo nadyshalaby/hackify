@@ -8,6 +8,12 @@ starting map. Run it directly:
 
     python3 audit_scan.py <root> [--max-file-lines 500] [--ban-patterns PATH]
                                   [--text-only-ext .py] [--extra-generated GLOB]
+                                  [--paths-from PATH]
+
+`--paths-from` narrows the scan to a newline-delimited list of root-relative paths (a
+`git diff --name-only` dump), so a caller auditing one sprint's touched files pays for
+those files instead of a whole-tree walk. Paths that no longer exist are ignored, a diff
+list names deleted files too. Without it the whole tree is walked, the default sweep.
 
 The full JS/TS check suite runs on the ECMAScript family. `--text-only-ext` adds extensions
 that get ONLY the language-agnostic checks (file-line cap + project ban-patterns), so a
@@ -71,7 +77,37 @@ def _norm_exts(exts):
   return tuple(ext if ext.startswith('.') else '.' + ext for ext in exts)
 
 
-def iter_source_files(root, config):
+def load_paths_from(path):
+  """Parse a newline-delimited path list (git diff --name-only shape) into a rel-path set."""
+  if not path or not os.path.isfile(path):
+    return frozenset()
+  out = set()
+  with open(path, encoding='utf-8', errors='replace') as handle:
+    for raw in handle:
+      rel = raw.strip().replace(os.sep, '/').lstrip('./')
+      if rel and not rel.startswith('#'):
+        out.add(rel)
+  return frozenset(out)
+
+
+def _in_skipped_dir(rel_path):
+  return any(is_skipped_dir(part) for part in rel_path.split('/')[:-1])
+
+
+def _iter_listed_files(root, config):
+  """Yield only the explicitly listed paths, no tree walk. Missing paths are dropped."""
+  for rel_path in sorted(config.only_paths):
+    if _in_skipped_dir(rel_path):
+      continue
+    abs_path = os.path.join(root, rel_path)
+    if not os.path.isfile(abs_path):
+      continue
+    mode = scan_mode(rel_path, config.extra_generated, config.text_exts)
+    if mode:
+      yield abs_path, rel_path, mode
+
+
+def _iter_walked_files(root, config):
   for current, dirs, files in os.walk(root):
     dirs[:] = [d for d in dirs if not is_skipped_dir(d)]
     for name in files:
@@ -80,6 +116,12 @@ def iter_source_files(root, config):
       mode = scan_mode(rel_path, config.extra_generated, config.text_exts)
       if mode:
         yield abs_path, rel_path, mode
+
+
+def iter_source_files(root, config):
+  if config.only_paths:
+    return _iter_listed_files(root, config)
+  return _iter_walked_files(root, config)
 
 
 def read_text(abs_path):
@@ -130,7 +172,8 @@ def build_report(root, config, result):
     'root': os.path.abspath(root),
     'config': {'max_file_lines': config.max_file_lines,
                'extra_bans': len(config.extra_bans),
-               'text_only_exts': list(config.text_exts)},
+               'text_only_exts': list(config.text_exts),
+               'scoped_paths': len(config.only_paths)},
     'stats': {'files_scanned': scanned, 'files_skipped': skipped,
               'findings': len(findings)},
     'findings': sorted(findings, key=lambda f: (f['file'], f['line'])),
@@ -144,6 +187,7 @@ def parse_args(argv):
   parser.add_argument('--ban-patterns', default=None)
   parser.add_argument('--extra-generated', action='append', default=[])
   parser.add_argument('--text-only-ext', action='append', default=[])
+  parser.add_argument('--paths-from', default=None)
   return parser.parse_args(argv)
 
 
@@ -153,6 +197,7 @@ def build_config(args):
     extra_generated=tuple(args.extra_generated),
     extra_bans=load_extra_bans(args.ban_patterns),
     text_exts=_norm_exts(args.text_only_ext),
+    only_paths=load_paths_from(args.paths_from),
   )
 
 

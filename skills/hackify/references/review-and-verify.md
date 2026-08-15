@@ -8,7 +8,7 @@ Phase 4 proves the **original ask** is met. Phase 5 ensures the **code is good**
 
 **Rule.** Evidence before claims. Every "passes" / "done" / "works" must be backed by output you ran in THIS turn, not earlier, not remembered.
 
-Phase 4 has two parts: an **Evidence Ledger** (prove every item landed) and a **three-layer re-verify** (re-earn the proof and confirm you did not drift from the goal).
+Phase 4 has three parts: an **Evidence Ledger** (prove every item landed), a **three-layer re-verify** (re-earn the proof and confirm you did not drift from the goal), and the **ship gate** (prove the app actually builds, boots, and serves the touched flow).
 
 ### Part 1, The Evidence Ledger (per-item proof)
 
@@ -35,7 +35,8 @@ Worked rows:
 - Cover EVERY task and EVERY acceptance bullet. A missing row is an unproven item, treat it as ❌.
 - The proof sample is trimmed but real: copy the true lines that show the result, then cut the noise. Do not paraphrase output into prose.
 - A ❌ row blocks Phase 5. Loop back to Phase 3 (or 3b if stuck).
-- The perf-scout staging table (or its explicit "no candidates" result) is itself a ledger row. Item `scout`, Type `protocol`, proof sample the trimmed table or `none` ([perf-scout.md](perf-scout.md)).
+- Each deterministic scout's staging table (or its explicit "no candidates" result) is itself a ledger row. Item `scout.perf` and `scout.law`, Type `protocol`, proof sample the trimmed table or `none` ([perf-scout.md](perf-scout.md), [law-scout.md](law-scout.md)).
+- The three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) are mandatory in every mode, see Part 3.
 - The full ledger is saved in the work-doc Sprint Review, and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
 The top-level triad still runs and appears as acceptance rows in the ledger:
@@ -62,6 +63,22 @@ Run the layers in order. Each layer can be re-run on demand, the point is that t
 **Layer 3. Independent re-prove.** Re-earn the proof WITHOUT trusting Layer 1's output. Either re-run from a clean checkout / fresh state, or dispatch a fresh foreground subagent that re-runs the ledger's commands and reports what it actually saw. If Layer 3 disagrees with Layer 1, Layer 1 was stale, investigate before advancing.
 
 **How much to run.** Full hackify + yolo run all three layers. quick runs Layers 1-2 (skips the heavier independent pass). Re-run any layer whenever the user asks "prove it again", that is why the layers are named.
+
+### Part 3, The ship gate (prove it runs, not just that it compiles)
+
+A green triad proves the code is well-formed. It does not prove the app **builds**, **boots**, or **serves a request**, and a missing env var, a broken bundler config, or a migration that never ran will pass every test you have and still ship a dead app.
+
+Run the three legs in order and record one ledger row each. Full protocol, detection table per ecosystem, readiness-probe rules, and the secrets/state guards: [ship-gate.md](ship-gate.md).
+
+| Leg | Row | Proves |
+|---|---|---|
+| 1 Build | `ship.build` | Builds clean from a cold cache, and the artifact exists on disk |
+| 2 Boot | `ship.boot` | Starts, reaches a real ready signal (health endpoint / port / listening line), tears down clean |
+| 3 Smoke | `ship.smoke` | The critical path this sprint touched works end to end against the running app |
+
+**The contract: a leg is blocking whenever the diff touched something that leg's target consumes; a recorded skip otherwise; never silently skipped.** The trigger is the diff, not whether a run command exists, almost every repo has one and gating a typo fix on booting the app is how a mandatory check gets quietly disabled. A blocking build or boot command that fails is ❌ and blocks Phase 5, same as a failing test. When a leg is not triggered, or the project has no target for it (a library, a plugin repo), the row still exists and carries `⏭ skipped` plus a reason naming which manifest you read. A blank row, an `n/a`, or a missing row counts as ❌.
+
+This gate runs in **every mode**, including quick, and takes no user opt-in. It is the difference between "the tests pass" and "you can ship this".
 
 ### How "evidence" looks
 
@@ -119,7 +136,13 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FOUR foreground reviewers in parallel. A security/correctness, B quality/layering, C plan-consistency, D performance, in a single message. Reviewer D is the performance lens: it consumes the perf-scout staging table ([perf-scout.md](perf-scout.md)) as input and cites `rules/performance.md` catalog IDs in every finding. The dispatch templates live in `parallel-agents/phase-5-multi-review.md`. Add a 5th reviewer for diffs with a 5th distinct concern (e.g., heavy UI redesign on top of backend changes); cap at 5.
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FIVE foreground reviewers in parallel in a single message: A security/correctness, B quality/layering, C plan-consistency, D performance, F cross-module coherence. On a UI-bearing diff, E design-conformance joins as the sixth. Cap at 6.
+
+Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs.
+
+Reviewer F is the lens no other reviewer owns: it compares every boundary-crossing symbol's **producer** against every **consumer** for shape, semantic, error-contract, duplicate-concept, and wiring agreement. It exists because Phase 3 builds in parallel waves, separate agents write separate files blind to each other, which is precisely how two independently-correct halves of a feature end up disagreeing.
+
+Dispatch templates: `parallel-agents/phase-5-multi-review.md` (A, B, C), `phase-5-multi-review-d-performance.md`, `phase-5-multi-review-e-design.md`, `phase-5-multi-review-f-coherence.md`. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E.
 
 The self-review still happens, the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
@@ -147,6 +170,9 @@ The self-review still happens, the parent walks the diff (`git diff <BASE_SHA>..
 - [ ] No query/remote call inside a loop (perf.data.*, perf.network.chatty-calls), batch or index instead
 - [ ] Independent I/O parallelized; result sets, caches, and fan-out bounded (LIMIT/pagination, TTL/LRU, pool)
 - [ ] No sync blocking I/O on a server path; large payloads streamed, not buffered
+- [ ] One construct per file; types/constants/config/schemas/styles in their dedicated files
+- [ ] Every boundary-crossing symbol agrees with its consumers on shape, units, and error contract
+- [ ] Every symbol this diff added is reachable, route registered / handler subscribed / component mounted
 ```
 
 ### When to escalate to a reviewer subagent
@@ -406,12 +432,13 @@ Phase 5 addresses **every** finding, the address-all loop below drives the decis
 
 ### Address-all loop (drive the decision table to empty)
 
-Modeled on the lawkeeper fix-loop. The exit condition is a clean re-scan, not "the important ones are done." (`/hackify:review-triage` runs this table on demand.)
+Modeled on the lawkeeper fix-loop. The exit condition is a clean re-scan **over a diff that has not changed since that scan** (step 4), not "the important ones are done." (`/hackify:review-triage` runs this table on demand.)
 
-1. **Tabulate.** Build a decision table with columns **Finding / Severity / Decision / Evidence**, one row per finding from every reviewer plus the self-review, plus every `staged` row from the perf-scout table ([perf-scout.md](perf-scout.md)) at its catalog-default severity. Decision is one of `accept` (fix) / `push-back` (needs file:line evidence) / `defer` (Minor only, with explicit user sign-off). A Critical may never be `push-back` without escalating to the adjudication reviewer.
-2. **Fix in severity order.** Critical → Important → Minor. Non-trivial fixes go through a batched approval wizard (propose 2-3 options per finding or tight cluster, ask before writing); trivial fixes applied directly. One coherent fix or cluster at a time, test each.
-3. **Re-scan to prove zero.** After each batch, re-run the verify triad on the touched scope AND re-dispatch the reviewers (or the escalation reviewer) over the new diff. Repeat until the table has no open `accept` rows and no new findings surface.
-4. **Record.** The final table (every Decision + Evidence) goes into the work-doc Sprint Review; any deferred row carries its sign-off note.
+1. **Tabulate.** Build a decision table with columns **Finding / Severity / Decision / Evidence**, one row per finding from every reviewer plus the self-review, plus every `staged` row from the perf-scout ([perf-scout.md](perf-scout.md)) and law-scout ([law-scout.md](law-scout.md)) tables at its catalog-default severity. Decision is one of `accept` (fix) / `push-back` (needs file:line evidence) / `defer` (Minor only, with explicit user sign-off).
+2. **Refute before you fix.** Dispatch the adversarial refuters ([parallel-agents/phase-5-refute.md](parallel-agents/phase-5-refute.md)) over the table in one message: two independent refuters with distinct lenses (reproduction, authority) per **Critical**, one batched refuter for the whole Important+Minor set. Their verdicts fill the `Decision` and `Evidence` columns. **The default is to keep the finding**, uncertainty is never a refutation, and a Critical dies only when BOTH of its refuters refute it with a file:line counter-citation. This is how a `push-back` earns its required evidence; a Critical may never be `push-back` on a single refutation, escalate to the adjudication reviewer instead.
+3. **Fix in severity order.** Critical → Important → Minor. Non-trivial fixes go through a batched approval wizard (propose 2-3 options per finding or tight cluster, ask before writing); trivial fixes applied directly. One coherent fix or cluster at a time, test each.
+4. **Re-scan to prove zero, on a settled diff.** After each batch, re-run the verify triad on the touched scope, re-run both scouts, and re-dispatch the reviewers over the new diff. **A round that changed any code mandates another round**, its clean result describes the pre-fix diff, not the current one. Exit only when a full round produces zero new findings AND the diff is byte-identical to the diff that round scanned (`git diff <base>..HEAD` hash unchanged across the round). That is the difference between "the last fixes were never reviewed" and "the work is clean".
+5. **Record.** The final table (every Decision + Evidence, including every refuter verdict) goes into the work-doc Sprint Review; any deferred row carries its sign-off note, and any `push-back` row carries its counter-citation so a refuted finding stays auditable rather than deleted.
 
 ---
 

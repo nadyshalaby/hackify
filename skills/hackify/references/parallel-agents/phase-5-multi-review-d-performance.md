@@ -1,9 +1,6 @@
----
-name: code-reviewer-performance
-description: Phase 5 Multi-reviewer D, audits a base..head git diff for performance defects (N+1 / query-in-loop, algorithmic complexity on hot paths, unbounded growth in caches/results/fan-out/listeners, wasted parallelism, blocking sync I/O on servers, re-render storms and layout thrash, missing pagination/batching/caching, serialization waste, bundle bloat), citing rules/performance.md catalog IDs and post-image file:line for every finding, and re-judging every staged perf-scout candidate, confirm with evidence or dismiss with a reason. Dispatch in parallel with Multi-reviewers A, B and C in a single parent assistant message.
----
+# Phase 5, Multi-reviewer D (performance)
 
-Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
+This file holds the dispatchable sub-agent prompt for Reviewer D, the performance lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync. The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Reviewers A, B and C live in `phase-5-multi-review.md`; dispatch all of them in ONE assistant message.
 
 ```
 Subagent type: general-purpose

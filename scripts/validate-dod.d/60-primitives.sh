@@ -21,7 +21,9 @@ AGENTS_EXPECTED=(
   "code-reviewer-quality"
   "code-reviewer-plan-consistency"
   "code-reviewer-performance"
+  "code-reviewer-coherence"
   "design-conformance-reviewer"
+  "finding-refuter"
   "wave-task-implementer"
 )
 yellow "[30] agents/ directory contains all ${#AGENTS_EXPECTED[@]} expected hackify agent definitions"

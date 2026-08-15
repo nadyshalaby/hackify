@@ -180,5 +180,6 @@ After all wave agents return:
 1. Read every report. Spot-check that no agent touched files outside its list (`git diff --name-only`, should match the union).
 2. Run the repo-wide triad ONCE, `<test runner command> && <linter command> && <typecheck command>`, substituting the project's actual commands.
 3. If any are red, classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b).
-4. Tick all wave checkboxes. Append one Daily Updates entry per task.
-5. Single commit for the wave (subject covers the wave; body lists task IDs).
+4. Run BOTH deterministic scouts over the wave-touched files (the union of this wave's allowlists), **before ticking anything**: the perf-scout (`../perf-scout.md`) and the law-scout (`../law-scout.md`). Give every candidate exactly one disposition, `fixed` (trivial and inside this wave's allowlist), `staged` (carried to Phase 5), or `false-positive: <one-line reason>`. Append both staging tables to this wave's Daily Updates entry. A candidate that vanishes without a row is a protocol violation.
+5. Tick all wave checkboxes. Append one Daily Updates entry per task.
+6. Single commit for the wave (subject covers the wave; body lists task IDs).

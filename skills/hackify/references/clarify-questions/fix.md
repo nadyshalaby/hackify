@@ -14,72 +14,82 @@ Use when the user is reporting broken behavior, an observable defect, a stack tr
 - Always ask Q4 (Regression scope), silently affected flows are the top source of incomplete fixes.
 - Always ask Q5 (Severity), it determines polish-vs-ship tradeoff.
 - Always ask Q6 (Solution shape), it gates whether Phase 3 dispatches a refactor sub-agent.
-- Always ask Q7 (Regression test), defaults to A; the only gate that prevents silent re-breakage. Q1 wording aligns with `debug` Q1 by design (keep in sync if either is edited).
+- Always ask Q6 (Guard against it returning), defaults to A; the only gate that prevents silent re-breakage. Q1 wording aligns with `debug` Q1 by design (keep in sync if either is edited).
 
 **QUESTIONS**
 
-Q1. Reproduction shape
-- Text: How is the reproduction already specified?
-- Header: Repro
-- Options:
-  - A. Prompt has full steps + expected + actual, confirm and proceed (Recommended)
-  - B. I'll walk through the repro now in chat
-  - C. No reliable repro yet, switch to `debug` flow
-- Why-this-matters: Routes the task: stay in `fix` flow vs. escalate to `debug` (Phase 3b evidence-gathering).
+Every question below is a TEMPLATE. Substitute the real names, files and current behavior you found before sending it, so the user can answer without opening anything. Angle-bracket slots are yours to fill. `What happens:` lines are mandatory and are what the user reads.
 
-Q2. Frequency
-- Text: How often does this defect occur?
-- Header: Frequency
+Q1. Can you make it happen on demand
+- Text: Can you make `<the bug, in their words>` happen again whenever you want, by following the same steps?
+- Header: Repeatable
 - Options:
-  - A. Always reproducible (Recommended)
-  - B. Intermittent / flaky
-  - C. Happened once
-- Why-this-matters: Intermittent/once-only routes require evidence gathering in Phase 3b before patching.
+  - A. Yes, every time, and here are the steps (Recommended)
+    - What happens: I reproduce it myself first, so I'm certain I'm fixing the real thing and not guessing.
+  - B. It happens sometimes, not every time
+    - What happens: I'll gather evidence first to find the pattern. Slower, but an intermittent bug fixed by guesswork usually comes back.
+  - C. It happened once and I can't repeat it
+    - What happens: I'll investigate properly from logs and code before changing anything, rather than patching a symptom.
+- Why-this-matters: Routes the task: stay in `fix` flow (A) vs escalate to Phase 3b evidence-gathering (B/C). No reliable repro means no honest RED test.
 
-Q3. Recent changes
-- Text: Is the regression linked to a recent change?
+Q2. Did something change just before it started
+- Text: Do you remember anything changing around the time this started, like a release, an update, or a settings change?
 - Header: Trigger
 - Options:
-  - A. Known trigger (deploy / dep upgrade / config change) (Recommended)
-  - B. No known trigger, appeared on its own
-  - C. Unknown, needs git-bisect or log review
-- Why-this-matters: Determines whether Phase 1 ends with a bisect step or jumps directly to root-cause analysis.
+  - A. Yes, I know roughly what changed (Recommended)
+    - What happens: I look there first, which is usually the fastest route to the real cause.
+  - B. No, it just started on its own
+    - What happens: I'll trace it from the symptom backwards instead of from a suspected change.
+  - C. No idea, can you work it out
+    - What happens: I'll walk back through your project's history to find the commit where it broke.
+- Why-this-matters: Determines whether Phase 1 ends with a bisect step or goes straight to root-cause analysis.
 
-Q4. Regression scope
-- Text: What is the blast radius of this defect?
-- Header: Blast radius
+Q3. How far it spreads
+- Text: As far as you know, does this break only `<the specific flow they named>`, or have you seen it affect other things too?
+- Header: Reach
 - Options:
-  - A. Just this one flow (Recommended)
-  - B. This flow plus a small set of related flows
-  - C. Cross-cutting, multiple unrelated areas affected
-- Why-this-matters: Decides whether Phase 4 cross-package verification runs and whether the fix needs a feature-flag rollback path.
+  - A. Just that one thing (Recommended)
+    - What happens: I keep the fix tight and focused on that flow.
+  - B. That, plus a few related things
+    - What happens: I check the related areas too and make sure the fix covers all of them.
+  - C. It seems to affect lots of unrelated places
+    - What happens: That usually means something shared underneath is broken. I'll find that instead of patching each place.
+- Why-this-matters: Decides whether Phase 4 cross-package verification runs and whether Reviewer F's seam sweep needs a wider consumer grep.
 
-Q5. Severity
-- Text: How urgent is this fix?
-- Header: Severity
+Q4. How urgent
+- Text: How much is this hurting you right now?
+- Header: Urgency
 - Options:
-  - A. Production blocker, minimum viable fix now (Recommended)
-  - B. Important but not blocking, polish acceptable
-  - C. Nice-to-have, can be batched with other work
-- Why-this-matters: Trades off Phase 3 minimum-diff vs. broader refactor and whether Phase 6 fast-paths to a hotfix tag.
+  - A. It's blocking people, I need the fastest safe fix (Recommended)
+    - What happens: I make the smallest change that genuinely fixes it, and leave any tidying for later.
+  - B. It's annoying but nothing is stopping
+    - What happens: I fix it properly and tidy the surrounding area while I'm in there.
+  - C. No rush, do it whenever
+    - What happens: I take the time to fix the underlying cause well, even if that means a bigger change.
+- Why-this-matters: Trades Phase 3 minimum-diff against a broader refactor, and whether Phase 6 fast-paths to a hotfix.
 
-Q6. Solution shape
-- Text: What shape should the fix take?
-- Header: Fix shape
+Q5. Patch it or fix the cause
+- Text: `<State what you found, e.g. "The immediate cause looks like a missing check in checkout.ts, but the deeper reason is that nothing validates the cart before payment.">` Which do you want?
+- Header: Depth
 - Options:
-  - A. Small targeted patch + regression test (Recommended)
-  - B. Broader refactor of the broken area (more risk, more value)
-  - C. Workaround now + follow-up work-doc filed
-- Why-this-matters: Determines whether Phase 3 dispatches a single implementation agent or also a refactor agent.
+  - A. Fix the underlying cause properly (Recommended)
+    - What happens: Takes a bit longer, but this class of bug stops coming back.
+  - B. Just patch the immediate problem for now
+    - What happens: Quickest route to working. The same root cause can bite again elsewhere.
+  - C. Patch it now, and write down the real fix for later
+    - What happens: You get it working today, plus a written note of what still needs doing.
+- Why-this-matters: Determines whether Phase 3 dispatches one implementer or also a refactor task, and whether a Retrospective follow-up is filed.
 
-Q7. Regression test
-- Text: Should a regression test be added that fails before the fix and passes after?
-- Header: Regression
+Q6. Guard against it returning
+- Text: Do you want me to add an automated check that fails if this exact bug ever comes back?
+- Header: Guard
 - Options:
-  - A. Yes, write the failing test first (Recommended)
-  - B. No, fix only, no new test
-- Why-this-matters: Determines whether Phase 3 starts with a RED test step (TDD) or skips straight to the patch. A regression test that fails before the fix and passes after is the only way to prove the bug is actually fixed. Recommend A (yes) unconditionally unless the user prompt contains `no test`, `quick fix only`, or `can't test`.
+  - A. Yes, please (Recommended)
+    - What happens: I prove the check catches the bug by watching it fail before the fix, then pass after. That's how you know it's real.
+  - B. No, just fix it
+    - What happens: Quicker now. Nothing stops this breaking again silently in a future change.
+- Why-this-matters: Determines whether Phase 3 starts with a watched RED test. Recommend A unconditionally unless the user prompt contains `no test`, `quick fix only`, or `can't test`.
 
 **EXIT CRITERIA**
 
-Q4, Q5, Q6, Q7 answered (always required); for Q1, Q2, Q3: either the question was answered OR its COMPOSITION skip condition fired and was logged; if Q1 = C, the task is re-routed to the `debug` bank and this bank's exit is bypassed; regression-test decision captured in the work-doc.
+Q4, Q5, Q6 answered (always required); for Q1, Q2, Q3: either the question was answered OR its COMPOSITION skip condition fired and was logged; if Q1 = C, the task is re-routed to the `debug` bank and this bank's exit is bypassed; the regression-guard decision captured in the work-doc.

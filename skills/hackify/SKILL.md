@@ -1,13 +1,23 @@
 ---
 name: hackify
-description: One unified end-to-end dev workflow for ANY substantive task, feature, bug fix, refactor, redesign, design, debug, migration, or research-then-build, driven by a single per-task markdown work-doc at <project>/docs/work/. Replaces multi-skill ceremony (no separate spec/plan files). Asks every clarifying question up-front in one batched questionnaire, holds a hard gate before code is written, file-driven pause/resume across sessions, mandatory evidence-before-claims, baked-in self-review checklist, parallel multi-reviewer code review on non-trivial diffs, explicit definition-of-done verified end-to-end. The default route for any substantive prompt, auto-fires on broad-spectrum verbs (add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit) AND on architecture/scope/security surface (auth, crypto, migration, secret, token, password, schema, data model, API surface, refactor everywhere, across all). Invoke even when the user does not say "use the workflow", carve-outs are trivial factual Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill, escalation to full ceremony is free, demotion is not.
+description: One unified end-to-end dev workflow for ANY substantive task, feature, bug fix, refactor, redesign, design, debug, migration, or research-then-build, driven by a single per-task markdown work-doc at <project>/docs/work/. Replaces multi-skill ceremony (no separate spec/plan files). Asks every clarifying question up-front in one batched questionnaire, holds a hard gate before code is written, file-driven pause/resume across sessions, mandatory evidence-before-claims, baked-in self-review checklist, parallel multi-reviewer code review on non-trivial diffs, explicit definition-of-done verified end-to-end. Ships an always-on ship bar in every mode with no opt-in: a deterministic engineering-law scan and a performance scan at every wave-end and at review start, a runtime gate that proves the app builds, boots and serves the touched flow before the task can finish, a standing cross-module coherence reviewer that checks the parts agree with each other, and adversarial refutation of every finding before a fix is spent on it. The default route for any substantive prompt, auto-fires on broad-spectrum verbs (add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit) AND on architecture/scope/security surface (auth, crypto, migration, secret, token, password, schema, data model, API surface, refactor everywhere, across all). Invoke even when the user does not say "use the workflow", carve-outs are trivial factual Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill, escalation to full ceremony is free, demotion is not.
 ---
 
 # Hackify (One Workflow For Every Dev Task)
 
 Hackify replaces plan/spec/brainstorm/execute/verify/review/finish ceremony with **one workflow + one markdown work-doc per task**. The work-doc is spec, plan, progress tracker, review log, and post-mortem in one file. Resume across sessions via "continue work on `<slug>`".
 
-Self-contained. **Never call other skills**, third-party plugins may not be installed. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined here or in `references/`.
+Self-contained. **Never call other skills**, third-party plugins may not be installed. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined here or in `references/`. Running a **script bundled inside this plugin** by path (the lawkeeper scanner behind the law-scout, `references/law-scout.md`) is not a skill call: no sibling skill is invoked, no sibling workflow is entered, and the file ships with hackify.
+
+## The ship bar (always-on, no opt-in)
+
+Every mode ends with work that is **proven to run**, not merely proven to compile. Four always-on mechanisms enforce it, and none of them asks the user first:
+
+- **Two deterministic scouts at every wave-end and at review start.** The perf-scout (`references/perf-scout.md`) finds `perf.*` waste; the law-scout (`references/law-scout.md`) runs the bundled lawkeeper scanner over the touched files and finds `ban.*` / `cap.*` / `sec.*` / `clean.*` rule breaks. Every candidate gets one disposition, no silent drops.
+- **The ship gate in Phase 4** (`references/ship-gate.md`). Build, boot, smoke the touched flow. A leg is blocking whenever the diff touched something that leg's target consumes, a written skip otherwise, never silently absent.
+- **A coherence reviewer in every review wave** (Reviewer F). Parallel waves are what make hackify fast and also what let two halves of a feature disagree; F is the only lens that checks producer against consumer.
+- **Refute before you fix, and exit on a settled diff.** Findings are judged by adversarial refuters before a fix is spent on them, and the review loop may only exit when a clean round scanned the diff that is actually on disk.
+- **Maximum orchestration tier and a self-driving task loop** ([references/orchestration.md](references/orchestration.md)). Every mandatory fan-out runs at the heaviest orchestration the runtime offers (Claude Code: `ultracode` in scope plus the Workflow tool), and the workflow re-enters itself across turns until the phase ledger is fully ticked (Claude Code: `/loop` self-paced on `continue work on <slug>`). Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
 
 ## When to invoke
 
@@ -37,8 +47,8 @@ Four principles frame every phase. Read [rules/four-principles.md](../../rules/f
 | 2.5 Spec review | Parallel agents scrutinize work-doc for conflicting / inconsistent logic |
 | 3 Implement | Order tasks by dependency, dispatch each wave to PARALLEL foreground agents |
 | 3b Debug | Only if stuck after 2+ failed attempts |
-| 4 Verify | Evidence Ledger (real proof per item) + three-layer re-verify |
-| 5 Review | PARALLEL multi-reviewer (security + quality + consistency + performance), always |
+| 4 Verify | Evidence Ledger (real proof per item) + three-layer re-verify + ship gate (build/boot/smoke) |
+| 5 Review | PARALLEL multi-reviewer (security + quality + consistency + performance + coherence, design on UI), always |
 | 6 Finish | Present 4 options, execute, archive work-doc, cleanup |
 
 The only mandatory user gate is between **Plan** and **Spec review**. After Phase 2.5, implementation begins automatically. Phases 3-6 run continuously with progress reports at each transition. The user can interrupt anytime, the work-doc holds state.
@@ -75,7 +85,7 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 2. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions/README.md`).
 3. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
 4. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`. The ~16-question target is a floor, not a ceiling, keep asking (across back-to-back wizard calls) until the anchor's five parts are all pinned: North-Star Goal, In-Scope, Out-of-Scope/Non-Goals, Guardrails/Invariants, Success Signals. Every question must fork a real decision; never pad with vanity questions.
-5. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every clarify question goes through the wizard tool, plain numbered lists in chat are forbidden. Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1-4 questions per call, 2-4 options per question, split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided, never add one yourself.
+5. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every question you put to the user, in EVERY phase (clarify, a Phase 5 fix-approval batch, the Phase 6 finish menu), goes through the wizard tool; plain numbered lists in chat are forbidden. Questions must also obey the **Clarity law** in `references/clarify-questions/wizard-contract.md`: written so the user can answer without knowing how this workflow works. No task IDs, no phase numbers, no internal artifact names; name the real files and current behavior you found; and give every option a one-line "what happens if you pick this". Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1-4 questions per call, 2-4 options per question, split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided, never add one yourself.
 6. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
 
 **Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a locked answer set **and** a complete Primary Goal & Guardrails anchor recorded in the work-doc (in-chat block for quick/yolo). See [references/goal-anchor.md](references/goal-anchor.md) and `references/clarify-questions/README.md`.
@@ -139,11 +149,12 @@ Templates: `references/parallel-agents/phase-2.5-spec-review-a-consistency.md`, 
 4. Run full project verification (test + lint + typecheck) ONCE for the wave.
 5. On red: classify, agent failure (re-dispatch sharper prompt) vs. plan failure
    (drop to Phase 3b). Never paper over.
-6. Run the deterministic perf-scout (references/perf-scout.md) over the wave-touched
-   files (union of the wave's allowlists), BEFORE ticking tasks. Trivial in-allowlist
-   candidates are fixed in-wave; everything else is staged for Phase 5 in the scout's
-   staging table (Finding | Catalog ID | file:line | Evidence | Proposed fix | Status),
-   appended to the wave's Daily Updates entry.
+6. Run BOTH deterministic scouts over the wave-touched files (union of the wave's
+   allowlists), BEFORE ticking tasks: the perf-scout (references/perf-scout.md) and
+   the law-scout (references/law-scout.md, the bundled lawkeeper scanner scoped with
+   --paths-from). Trivial in-allowlist candidates are fixed in-wave; everything else
+   is staged for Phase 5 in each scout's staging table, appended to the wave's Daily
+   Updates entry. Every candidate carries exactly one disposition.
 7. Tick wave checkboxes; append one Daily Updates entry per task.
 8. Commit ONCE for the wave (conventional subject; body lists task IDs).
 9. Advance to wave N+1.
@@ -203,7 +214,7 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 
 ## Phase 4 (Verify)
 
-**Goal.** Prove every task and requirement landed, with real proof. Evidence before claims. Two parts, full spec in `references/review-and-verify.md`.
+**Goal.** Prove every task and requirement landed AND that the app actually runs. Evidence before claims. Three parts, full spec in `references/review-and-verify.md`.
 
 **Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
@@ -215,6 +226,8 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 | 2 Goal-drift re-check | trace every proof to the North-Star Goal + Success Signals in the anchor; a signal with no proving row = not done | all |
 | 3 Independent re-prove | re-earn the proof without trusting Layer 1, clean re-run or a fresh subagent | hackify + yolo |
 
+**Part 3. Ship gate (prove it runs).** A green triad says the code is well-formed, not that it starts. Run three legs and record one ledger row each: `ship.build` (builds clean from a cold cache, artifact on disk), `ship.boot` (starts, reaches a real ready signal, tears down clean), `ship.smoke` (the critical path this sprint touched works against the running app). **A leg is blocking whenever the diff touched something that leg's target consumes (source the build compiles, config read at startup, the touched flow); a written `⏭ skipped` row with the reason otherwise; never silently absent.** The trigger is the diff, not whether a run command exists, so a docs-only change records skips rather than booting the app. Detection table per ecosystem, readiness-probe rules, and the secrets/state guards: [references/ship-gate.md](references/ship-gate.md). Runs in every mode, quick included.
+
 **Top-level acceptance rows (each appears in the ledger):**
 
 - [ ] All tests pass, fresh test output (exit 0, 0 failures, 0 errors)
@@ -225,8 +238,10 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 - [ ] No placeholders, no `TODO` without owners, no `console.log`/`println!`, no commented-out code
 - [ ] No new lint or type-checker suppressions (inline ignore directives, file-level disables, expect-error pragmas outside test files), zero tolerance
 - [ ] No new `!` non-null assertions in production code
-- [ ] Perf-scout run on the sprint diff, every candidate dispositioned (fixed / staged / false-positive with reason)
+- [ ] Perf-scout AND law-scout run on the sprint diff, every candidate dispositioned (fixed / staged / false-positive with reason)
 - [ ] No new Critical or Important violation of `rules/performance.md` (Reviewer D confirms in Phase 5)
+- [ ] No new Critical or Important violation of the engineering law (Reviewer B confirms the law-scout rows in Phase 5)
+- [ ] Ship gate: `ship.build`, `ship.boot`, `ship.smoke` rows all present, each ✅ or `⏭ skipped` with a written reason
 - [ ] Manual smoke check (if user opted in), list steps and outcomes
 
 **On any red, do NOT advance to Phase 5.** Loop back to Phase 3 (or 3b if stuck).
@@ -235,20 +250,34 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 
 ## Phase 5, Review (parallel multi-reviewer, mandatory)
 
-**Default: dispatch FOUR foreground reviewers in parallel in ONE message.** Self-review is the floor, not the ceiling, for any diff beyond a one-line typo, multi-reviewer is on. **At Phase 5 start, re-run the perf-scout on the WHOLE sprint diff** (`references/perf-scout.md`): its surviving candidates enter the decision table beside reviewer findings, and its staging table is handed to Reviewer D as input.
+**Default: dispatch FIVE foreground reviewers in parallel in ONE message** (A, B, C, D, F), plus E as a sixth on UI-bearing diffs. Self-review is the floor, not the ceiling, for any diff beyond a one-line typo, multi-reviewer is on.
+
+**Build the three dispatcher inputs BEFORE the message goes out.** Each is the parent's job; a reviewer that receives an unfilled placeholder refuses and reports it, which costs a whole round.
+
+| Input | Goes to | Built from |
+|---|---|---|
+| `{{law_scout_report}}` | Reviewer B | law-scout re-run on the whole sprint diff (`references/law-scout.md`) |
+| `{{perf_scout_report}}` | Reviewer D | perf-scout re-run on the whole sprint diff (`references/perf-scout.md`) |
+| `{{task_file_index}}` | Reviewers C **and** F | the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. Build it once and pass the same map to both: F reads the `W<n>` prefix to find same-wave seams, C matches on `T<m>` |
+
+Surviving candidates from both scouts enter the decision table beside reviewer findings.
 
 - **Reviewer A. Security & correctness.** Auth, permissions, injection, CORS, cookies, secrets, PII, migrations, crypto, race conditions. Adversarial intent.
-- **Reviewer B. Quality & layering.** DRY, named types, layering (routes pure / services own DB), file/function caps, lint suppressions, `!` non-null, empty catches, bare `Error` throws, dead code.
+- **Reviewer B. Quality, layering & engineering law.** DRY, named types, layering (routes pure / services own DB), file/function caps, lint suppressions, `!` non-null, empty catches, bare `Error` throws, dead code. Consumes the law-scout table and re-judges every row, then applies the semantic tier no grep can reach: one-construct-per-file, folder/topology conformance, controller purity, single responsibility, reuse and magic literals, SOLID/YAGNI, and test coverage of what this diff added. Cites lawkeeper `rule_id`s (`references/law-scout.md`).
 - **Reviewer C. Plan consistency, scope & goal drift.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach. **Drift-check:** trace every changed hunk to the Primary Goal & Guardrails anchor, a hunk serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
 - **Reviewer D. Performance.** Semantic perf lens: consumes the scout report, judges every staged candidate, and hunts what greps cannot. N+1 shapes, algorithmic complexity, unbounded growth (caches, listeners, result sets), wasted parallelism, blocking I/O on request paths, render storms. Cites `perf.<domain>.<slug>` catalog IDs from `rules/performance.md` and sets final severity. Adversarial intent, a hot path is hot until proven cold.
 
-- **Reviewer E. Design conformance** *(standing 5th reviewer whenever the diff is UI-bearing)*. Audits the diff against the project's committed `docs/design/DESIGN.md`: hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, components missing documented hover/focus/press/disabled states, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, and physical properties where logical are required. Names the exact replacement token for every finding. With no spec present it falls back to the `references/frontend-design.md` visual law and reports the missing spec. Template: `references/parallel-agents/phase-5-multi-review-e-design.md`.
+- **Reviewer F. Cross-module coherence** *(standing, every wave)*. The only lens that asks whether the pieces agree with each other. For every boundary-crossing symbol it names the producer and every consumer, then checks shape agreement (fields, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error-contract agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (route registered, handler subscribed, component mounted, column actually read). Cites file:line for BOTH sides. It exists because Phase 3's parallel waves build each half blind to the other. Template: `references/parallel-agents/phase-5-multi-review-f-coherence.md`.
 
-Cap at 5 reviewers. When a diff is UI-bearing, E takes the fifth slot; otherwise a second-concern specialist may (`references/parallel-agents/phase-5-escalation.md`). **Self-review still happens** by you, against `references/review-and-verify.md`'s 16-item checklist, reviewers are *additive* defense, not replacement.
+- **Reviewer E. Design conformance** *(joins as the sixth whenever the diff is UI-bearing)*. Audits the diff against the project's committed `docs/design/DESIGN.md`: hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, components missing documented hover/focus/press/disabled states, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, and physical properties where logical are required. Names the exact replacement token for every finding. When reference screenshots of the target design exist, it compares the rendered result against them side by side. With no spec present it falls back to the `references/frontend-design.md` visual law and reports the missing spec. Template: `references/parallel-agents/phase-5-multi-review-e-design.md`.
+
+Cap at 6 reviewers. A, B, C, D and F always run; E takes the sixth slot on UI-bearing diffs, otherwise a second-concern specialist may (`references/parallel-agents/phase-5-escalation.md`). **Self-review still happens** by you, against `references/review-and-verify.md`'s checklist, reviewers are *additive* defense, not replacement.
 
 **Carve-out (skill optional).** A diff that is *purely* a one-line typo / comment / config-only change can skip multi-reviewer. When in doubt, dispatch.
 
-**Acting on feedback, address ALL findings (lawkeeper-style loop).** Build a decision table (Finding / Severity / Decision / Evidence) covering EVERY finding, work them in severity order, and **re-run review + verify to prove zero remaining**. No finding is left un-addressed.
+**Acting on feedback, address ALL findings (lawkeeper-style loop).** Build a decision table (Finding / Severity / Decision / Evidence) covering EVERY finding, **refute before you fix**, work the survivors in severity order, and **re-run review + verify to prove zero remaining**. No finding is left un-addressed.
+
+**Refute before you fix.** A reviewer's finding is a claim, not a fact. Before spending an edit on it, dispatch the adversarial refuters in one message (`references/parallel-agents/phase-5-refute.md`): two independent refuters with distinct lenses (reproduction, authority) per Critical, one batched refuter for the whole Important+Minor set. **The default is to KEEP the finding**, uncertainty is never a refutation, and a Critical dies only when BOTH refuters refute it with a file:line counter-citation. Dropping a real defect costs more than fixing a phantom, so the bias runs the opposite way from a content-generation refuter panel. Their verdicts are what let a `push-back` carry the evidence this workflow already demands.
 
 | Severity | Action |
 |---|---|
@@ -256,7 +285,7 @@ Cap at 5 reviewers. When a diff is UI-bearing, E takes the fifth slot; otherwise
 | Important | Fix before claiming Phase 6 done. |
 | Minor | Fix too, defer to Retrospective ONLY with explicit user sign-off, never by default. |
 
-Non-trivial fixes go through a batched approval wizard (propose 2-3 options, ask before writing); trivial fixes applied directly. After each batch, re-dispatch the reviewers (or re-run the verify triad) until the decision table is empty. Push back only with **technical evidence**, never performative agreement. Full loop + response pattern: [references/review-and-verify.md](references/review-and-verify.md).
+Non-trivial fixes go through a batched approval wizard (propose 2-3 options, ask before writing); trivial fixes applied directly. After each batch, re-run both scouts and re-dispatch the reviewers until the decision table is empty. **Exit only on a settled diff:** a round that changed any code mandates another round, because that round's clean result describes the pre-fix diff, not the one on disk. The loop ends when a full round finds nothing AND `git diff <base>..HEAD` is byte-identical to what that round scanned. Push back only with **technical evidence**, never performative agreement. Full loop + response pattern: [references/review-and-verify.md](references/review-and-verify.md).
 
 ---
 
@@ -298,9 +327,9 @@ If any class finds defects, fix them inline before archiving; if a defect is too
 
 **Step E, worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.
 
-**Step F. Summary table + HTML report** (1 or 2 only). **Precondition: Step D archive is done**, the work-doc must already be in `docs/work/done/` with `status: done`, and ledger item `6c` `completed`, before this step runs. If it is not, go back and archive first. Generate a concise 2-column Area/Change markdown table covering every change shipped. Print to chat. Append the same table to the archived work-doc inside Retrospective under a new `## Summary of changes shipped` subheading. Area labels are 1-4 word concept/theme tokens; Change cells ≤25 words with `backticks` for technical terms. **Then emit a styled, self-contained HTML report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc at `<slug>.report.html`, see [references/html-report.md](references/html-report.md). See `references/finish.md` "Step F. Summary table + HTML report".
+**Step F. Update log + HTML report** (1 or 2 only). **Precondition: Step D archive is done**, the work-doc must already be in `docs/work/done/` with `status: done`, and ledger item `6c` `completed`, before this step runs. If it is not, go back and archive first. Print a plain-language **update log**: one block per change the user would recognize, each with five fields in this order, **What was wrong** / **Why it happened** / **What I did about it** / **How I know it works** / **Status**, separated by a line containing exactly `----`. Write it the way you would explain the work out loud to someone who was not in the room: everyday words, no jargon they did not use, and never a phase number, task ID, reviewer letter or scout name. Append the same log to the archived work-doc inside Retrospective under a new `## Update log` subheading. **Then emit a styled, self-contained HTML report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc at `<slug>.report.html`, see [references/html-report.md](references/html-report.md). Field-by-field guidance, voice rules, and a worked example: `references/finish.md` "Step F (Update log + HTML report)".
 
-**Invoking the summary on demand.** The Area/Change table runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
+**Invoking the summary on demand.** The update log runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
 
 ---
 
@@ -340,10 +369,11 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 |---|---|---|
 | 1 | Research, different code areas, refs, questions | optional |
 | 2.5 | Spec self-review, 3 reviewers scrutinize work-doc | MANDATORY |
-| 3 | Implementation waves, one agent per task (parent runs the perf-scout at wave-end) | MANDATORY |
+| 3 | Implementation waves, one agent per task (parent runs both scouts at wave-end) | MANDATORY |
 | 3b | Debug evidence gathering, different component boundaries | optional |
 | 4 | Cross-module verification, tests in different packages | optional |
-| 5 | Multi-reviewer code review, security/quality/plan/performance lenses, plus design conformance on UI-bearing diffs | MANDATORY (non-trivial diffs) |
+| 5 | Multi-reviewer code review, security/quality-and-law/plan/performance/coherence lenses, plus design conformance on UI-bearing diffs | MANDATORY (non-trivial diffs) |
+| 5 | Adversarial refuters over the decision table, before any fix is applied | MANDATORY (non-trivial diffs) |
 
 **Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents/README.md`.
 
@@ -409,6 +439,9 @@ Hackify talks in **B2 (upper-intermediate) English** so non-native readers can f
 | `rules/performance.md` (plugin root) | canonical perf catalog, stable `perf.<domain>.<slug>` IDs + severity model (load: implementers, Reviewer D, scout triage) |
 | `rules/perf-guardrails.md` (plugin root) | always-on perf stub, injected every prompt by the `UserPromptSubmit` hook |
 | `references/perf-scout.md` | deterministic perf-scout protocol (run: every Phase 3 wave-end + Phase 5 start) |
+| `references/law-scout.md` | deterministic engineering-law scan, the bundled lawkeeper scanner scoped to touched files (same two run points) |
+| `references/ship-gate.md` | runtime proof protocol, build + boot + smoke (run: Phase 4, every mode) |
+| `references/orchestration.md` | orchestration tier (`ultracode`) + iteration driver (`/loop`), both on by default; the standing authorization and its opt-out |
 | `references/parallel-agents/` | parallel subagent dispatch templates (subdir index: `README.md`; canonical template contract: `template-contract.md`) |
 | `evals/evals.json` | optional eval harness |
 
@@ -429,12 +462,19 @@ Load reference files **only when the phase needs them**, keeps context lean.
 | "I can self-review a 600-LOC diff" | No, you can't. Escalate. |
 | "The user said 'just do X', skip the questionnaire" | If X has any ambiguity, batched questionnaire still applies. Trim it, don't skip it. |
 | "Lint suppression is fine just this once" | Zero tolerance. Fix the root cause. |
+| "Tests are green, so the app works" | Tests import modules. They do not start a server, read env, or run migrations. Run the ship gate. |
+| "Nothing to run here, skip the ship gate" | Then write the `⏭ skipped` row with the reason and the manifest you read. A missing row is a failed gate. |
+| "The re-scan was clean, we're done" | Only if the diff has not changed since. Fixes applied after a scan were never reviewed. |
+| "The reviewer said Critical, just fix it" | Refute first. A wrong Critical fix breaks working code. Two refuters, both must refute, or it stands. |
+| "Each agent's piece passed, so the feature works" | Wave agents build blind to each other. Reviewer F is the only check that the pieces agree. |
+| "I'll `/loop` this phase until it's clean" | Wrong layer. The iteration driver carries the TASK across phases; the review and debug loops stay inline inside their phase. |
+| "The gate is open, I'll loop and check back" | A gate is a question only the user can answer. Looping at one burns tokens waiting for a human. Stop and surface. |
 
 ---
 
 ## Runtime primitives (where the tool names go)
 
-This SKILL.md uses **runtime-primitive names** (wizard tool / subagent dispatcher / file-read op / file-write op / file-edit op / search / shell / todo tracker) rather than Claude-Code-specific tool names. Each target runtime maps these primitives to its own native tool via `references/runtime-adapters.md`. The mapping is the responsibility of the runtime, not the workflow, hackify's design law is identical across all 7 supported runtimes.
+This SKILL.md uses **runtime-primitive names** (wizard tool / subagent dispatcher / file-read op / file-write op / file-edit op / search / shell / todo tracker / orchestration tier / iteration driver) rather than Claude-Code-specific tool names. Each target runtime maps these primitives to its own native tool via `references/runtime-adapters.md`. The mapping is the responsibility of the runtime, not the workflow, hackify's design law is identical across all 7 supported runtimes.
 
 ## One-line summary
 

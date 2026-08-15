@@ -38,7 +38,7 @@ Create it with the **todo tracker** primitive (`runtime-adapters.md`). One item 
 7. Phase 6a. Re-verify + land choice (Steps A, C)
 8. Phase 6b. Cleanup sweep (Step C.5)
 9. **Phase 6c. Archive work-doc to `done/` (Step D)**
-10. Phase 6d. Summary table + HTML report (Step F)
+10. Phase 6d. Update log + HTML report (Step F)
 
 Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as items only when they apply, between 6c and 6d. Phase 3b (Debug) is conditional, insert it only when a wave gets stuck.
 
@@ -49,7 +49,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 3. Phase 4. Verify (lite ledger + Layers 1-2)
 4. Phase 5-lite. Single-lens address-all review
 5. Phase 6. Cleanup sweep (Step C.5)
-6. Phase 6. Summary table + HTML report
+6. Phase 6. Update log + HTML report
 
 **yolo** (7 items), no work-doc, so no archive item:
 
@@ -77,11 +77,11 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 1 Clarify | Locked Primary Goal & Guardrails anchor, all 5 parts, in the work-doc (in-chat for quick/yolo) |
 | 2 Plan | Work-doc file exists at `docs/work/<date>-<slug>.md` **and** explicit user "go" |
 | 2.5 Spec review | 3 reviewer reports aggregated; Critical + Important findings patched into the doc |
-| 3 Implement | Every Sprint Backlog checkbox ticked; each wave committed; wave-end persistence done |
-| 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0) |
-| 5 Review | Decision table empty, every finding fixed or pushed back with evidence; re-scan clean |
+| 3 Implement | Every Sprint Backlog checkbox ticked; each wave committed; wave-end persistence done; both scouts (perf + law) run on the wave-touched files with every candidate dispositioned |
+| 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0); the three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) present and each ✅ or `⏭ skipped` with a written reason |
+| 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |
 | **6c Archive** | **Work-doc physically moved to `docs/work/done/<slug>.md` with `status: done`** |
-| 6d Summary | Area/Change table printed **and** `<slug>.report.html` emitted beside the archived doc |
+| 6d Update log | Five-field update log printed (blocks separated by `----`) **and** `<slug>.report.html` emitted beside the archived doc |
 
 The archive row is the fix for the "forgot to archive" bug. The summary (6d) is the **reward** for finishing, and it is unreachable while the archive (6c) is open, so the doc lands in `done/` before you ever print the recap.
 
@@ -109,6 +109,8 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 | "The code is done. I can skip the ledger now" | The ledger is created at Phase 2, before code. It is the order-enforcer, not a trophy for the end. |
 | "This phase does not apply. I'll delete its item" | Do not delete. Mark it `completed` with `skipped: <reason>`. Silent deletion hides drift. |
 | "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (waves, reviewers), never across them. |
+| "Tests are green, that's Phase 4 done" | Phase 4's exit artifact includes the three ship-gate rows. A green triad is not a booted app. |
+| "The last re-scan came back clean, Phase 5 is done" | Only if the diff has not changed since that scan. Fixes applied after a scan were never reviewed. |
 
 ## See also
 

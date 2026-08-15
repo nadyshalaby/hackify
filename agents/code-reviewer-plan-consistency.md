@@ -37,10 +37,13 @@ task T<n>".
    that authorized the diff.
 5. `{{changelog_path}}`, absolute filesystem path to the project's
    `CHANGELOG.md`.
-6. `{{task_file_index}}`, map of Task ID → file allowlist,
-   pre-built by the dispatching agent (e.g. `T1: [src/a.ts,
-   src/b.ts]`). The reviewer MUST NOT infer this map from task
-   description prose, the dispatcher is responsible for providing it.
+6. `{{task_file_index}}`, map of wave-qualified task ID → file
+   allowlist, pre-built by the dispatching agent (e.g.
+   `W1/T1: [src/a.ts, src/b.ts]`). Reviewer F receives the SAME
+   map; the `W<n>/` prefix is F's same-wave signal and is not
+   used by you, match on the `T<m>` part. The reviewer MUST NOT
+   infer this map from task description prose, the dispatcher is
+   responsible for providing it.
 
 **OBJECTIVE**.
 A severity-tagged list of plan-consistency and scope defects between

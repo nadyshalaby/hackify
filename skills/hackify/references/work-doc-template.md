@@ -104,13 +104,17 @@ Append one entry per task as you complete (or get stuck on) it.
 
 ### Evidence Ledger (Phase 4)
 
-One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output, never a summary. The perf-scout staging table (or its "no candidates" result) is itself a row ([perf-scout.md](perf-scout.md)). See [review-and-verify.md](review-and-verify.md).
+One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample is a real, trimmed slice of output, never a summary. Each scout's staging table (or its "no candidates" result) is itself a row ([perf-scout.md](perf-scout.md), [law-scout.md](law-scout.md)), and the three ship-gate rows are mandatory ([ship-gate.md](ship-gate.md)). See [review-and-verify.md](review-and-verify.md).
 
 | Item | Type | Claim | What I ran | Proof sample | Result |
 |---|---|---|---|---|---|
 | T1 | task | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
 | AC1 | acceptance | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
-| scout | protocol | no Critical/Important candidates | perf-scout tables over the diff | `<trimmed table / none>` | ✅ |
+| scout.perf | protocol | no Critical/Important candidates | perf-scout over the diff | `<trimmed table / none>` | ✅ |
+| scout.law | protocol | no Critical/Important candidates | law-scout over the diff | `<trimmed table / none>` | ✅ |
+| ship.build | runtime | builds clean from a cold cache | `<build command>` | `<trimmed real output>` | ✅ |
+| ship.boot | runtime | boots and reports ready | `<start command>` + readiness probe | `<trimmed real output>` | ✅ |
+| ship.smoke | runtime | touched flow works against the running app | `<smoke command>` | `<trimmed real output>` | ✅ |
 
 **Three-layer re-verify:** Layer 1 fresh triad ✅ · Layer 2 goal-drift re-check (every Success Signal has a proving row) ✅ · Layer 3 independent re-prove ✅.
 

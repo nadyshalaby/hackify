@@ -16,49 +16,65 @@ Runs before any task-type bank, on every Phase 1. Sets the four cross-cutting lo
 
 **QUESTIONS**
 
-Q1. Scope check
-- Text: Is this a one-off task or part of a larger initiative I should align with?
+Every question below is a TEMPLATE. Substitute the real names, files and current behavior you found before sending it, so the user can answer without opening anything. Angle-bracket slots are yours to fill. `What happens:` lines are mandatory and are what the user reads.
+
+Q1. Is this on its own or part of something bigger
+- Text: Is `<the thing they asked for>` a standalone piece of work, or one step in something larger you already have in flight?
 - Header: Scope
 - Options:
-  - A. One-off task (Recommended)
-  - B. Part of a larger initiative, align with it
-  - C. Start of a larger initiative, set up scaffolding
-- Why-this-matters: Determines whether the work-doc is standalone or links to a parent plan, and whether Phase 2 surveys neighboring work before drafting.
+  - A. Just this, on its own (Recommended)
+    - What happens: I focus only on this and don't try to fit it into a bigger plan.
+  - B. It's part of something bigger already underway
+    - What happens: I'll look at the related work first and match how it was done, so the two fit together.
+  - C. It's the first step of something bigger
+    - What happens: I'll build it so the next pieces slot in easily, rather than as a one-off.
+- Why-this-matters: Determines whether the work-doc is standalone or links to a parent plan via the `related` frontmatter field, and whether Phase 2 surveys neighboring work before drafting.
 
-Q2. Worktree
-- Text: Work in an isolated git worktree or in-place on the current branch?
-- Header: Worktree
+Q2. Where the work should happen
+- Text: Should I do this on a separate copy of your project so your current branch stays untouched, or work directly where you are now (you're on `<current branch name>`)?
+- Header: Workspace
 - Options:
-  - A. Isolated worktree on a new branch (Recommended)
-  - B. In-place on the current branch (task <30 min, already on right branch)
-- Why-this-matters: Triggers (or skips) the worktree-creation step in Phase 2 and changes how Phase 6 finishes (merge vs. push-and-PR).
+  - A. Separate copy, keep my current branch clean (Recommended)
+    - What happens: Your current work is untouched. When it's done you review it and decide whether to bring it in.
+  - B. Work right here on this branch
+    - What happens: Changes appear in your working folder straight away. Faster, but mixed in with whatever else you have going.
+- Why-this-matters: Triggers (or skips) the worktree-creation step in Phase 2 and changes how Phase 6 finishes (merge vs push-and-PR).
 
-Q3. Tests
-- Text: Which test discipline applies for this task?
-- Header: Tests
+Q3. How much testing
+- Text: How much automated testing do you want around this? Writing the test first is slower up front but is the only way to know the test actually catches the problem.
+- Header: Testing
 - Options:
-  - A. Test-first per task (Recommended)
-  - B. Test-after acceptable
-  - C. Manual smoke acceptable (visual-only)
-- Why-this-matters: Decides whether Phase 3 fans out a RED→GREEN sub-agent or a build-then-verify sub-agent.
+  - A. Write the test first, then the code (Recommended)
+    - What happens: I write a test that fails, then make it pass. Slower to start, but you get proof it really works.
+  - B. Write the code first, then cover it with tests
+    - What happens: Quicker to see something working. The tests still get written before I call it done.
+  - C. No automated test, I'll click through it myself
+    - What happens: I'll list the exact steps for you to check by hand. Nothing guards against it breaking again later.
+- Why-this-matters: Sets each task's test mode and decides whether Phase 3 fans out a RED-GREEN implementer or a build-then-verify one.
 
-Q4. Done state
-- Text: What does "done" mean for this task?
-- Header: Done state
+Q4. What you want at the end
+- Text: When the work is finished, what should be waiting for you?
+- Header: Handover
 - Options:
-  - A. Branch left for your review (Recommended)
-  - B. PR opened, awaiting your merge
-  - C. Merged to main directly
-- Why-this-matters: Sets Phase 6's exit action (push only / open PR / merge) and whether release artifacts (CHANGELOG, tag) are generated. Recommended option A (Branch left for your review) applies when diff is ≤3 files OR ≤200 added lines; recommend B (PR opened) for larger diffs or cross-team changes; recommend C (Merged to main directly) only when the user prompt contains the literal substring `ship it`, `merge it`, `commit and push`, or `merge directly`.
+  - A. The changes ready on a branch for you to look at (Recommended)
+    - What happens: Nothing goes live. You read it over and merge when you're happy.
+  - B. A pull request opened for you or your team to review
+    - What happens: Same code, but with a written summary and a place for others to comment.
+  - C. Merged straight into the main branch
+    - What happens: It lands directly. Choose this only if you're comfortable with it going in unreviewed.
+- Why-this-matters: Sets Phase 6's exit action and whether release artifacts (CHANGELOG, tag) are generated. Recommend A when the diff is ≤3 files OR ≤200 added lines; B for larger or cross-team diffs; C ONLY when the user prompt contains the literal substring `ship it`, `merge it`, `commit and push`, or `merge directly`.
 
-Q5. Goal & guardrails
-- Text: I read the north-star goal as "[restate the goal in one sentence]". Is that the outcome to commit to, and is there anything I must NOT touch?
-- Header: Goal
+Q5. Anything I must not break
+- Text: Is there anything that must keep working exactly as it does now, no matter what? For example `<name 1-2 real things you spotted, e.g. "existing users staying logged in" or "the nightly export">`.
+- Header: Must not break
 - Options:
-  - A. Yes, that's the goal; no special exclusions (Recommended)
-  - B. That's the goal, but keep some things off-limits (I'll name the non-goals)
-  - C. Not quite, the real goal is different (I'll restate it)
-- Why-this-matters: Seeds the Primary Goal & Guardrails anchor ([../goal-anchor.md](../goal-anchor.md)) that drives every plan and implementation decision and is enforced by the Phase 2.5 + Phase 5 drift-check. A misread goal is the most expensive miss.
+  - A. Nothing specific, use your judgment (Recommended)
+    - What happens: I'll protect anything that looks important and tell you before touching something risky.
+  - B. Yes, let me name them
+    - What happens: Whatever you name becomes a hard line I won't cross, and I check against it before finishing.
+  - C. I'm not sure, tell me what you think is at risk
+    - What happens: I'll list what this change could affect and you confirm before I start.
+- Why-this-matters: Fills the Guardrails/Invariants part of the Primary Goal & Guardrails anchor ([../goal-anchor.md](../goal-anchor.md)), enforced by the Phase 2.5 and Phase 5 drift-checks. A violated guardrail is a Critical finding.
 
 **EXIT CRITERIA**
 

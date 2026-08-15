@@ -41,7 +41,7 @@ SUMMARY_CMD="commands/summary.md"
 QUICK_SKILL="skills/quick/SKILL.md"
 FINISH_REF="skills/hackify/references/finish.md"
 
-yellow "[18] commands/summary.md exists + frontmatter + Area/Change tokens"
+yellow "[18] commands/summary.md exists + frontmatter + update-log field tokens"
 if [ -f "$SUMMARY_CMD" ]; then
   green "  ok   $SUMMARY_CMD exists"
   if head -10 "$SUMMARY_CMD" | grep -qE '^description:'; then
@@ -50,7 +50,7 @@ if [ -f "$SUMMARY_CMD" ]; then
     red "  FAIL $SUMMARY_CMD missing description: frontmatter"
     FAILED=$((FAILED + 1))
   fi
-  for tok in 'Area' 'Change'; do
+  for tok in 'What was wrong' 'Why it happened' 'What I did about it' 'How I know it works' 'Status'; do
     if grep -qF "$tok" "$SUMMARY_CMD"; then
       green "  ok   $SUMMARY_CMD body contains '$tok'"
     else
@@ -63,12 +63,12 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[19] SKILL.md Phase 6 mentions Summary table + /hackify:summary"
+yellow "[19] SKILL.md Phase 6 mentions the update log + /hackify:summary"
 phase6_body=$(awk '/^## Phase 6/{flag=1; next} flag && /^## /{flag=0} flag' skills/hackify/SKILL.md)
-if echo "$phase6_body" | grep -qF 'Summary table'; then
-  green "  ok   SKILL.md Phase 6 contains 'Summary table'"
+if echo "$phase6_body" | grep -qF 'Update log'; then
+  green "  ok   SKILL.md Phase 6 contains 'Update log'"
 else
-  red "  FAIL SKILL.md Phase 6 missing 'Summary table'"
+  red "  FAIL SKILL.md Phase 6 missing 'Update log'"
   FAILED=$((FAILED + 1))
 fi
 if grep -qF '/hackify:summary' skills/hackify/SKILL.md; then
@@ -78,17 +78,21 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[20] finish.md Summary-table authoring subsection"
-if grep -qF 'Summary table' "$FINISH_REF"; then
-  green "  ok   $FINISH_REF contains 'Summary table'"
+yellow "[20] finish.md update-log authoring subsection (5 fields + the ---- separator)"
+# The five field headings are the format contract; a missing one silently
+# drops a section the user asked for (root cause and evidence most often).
+for tok in '**What was wrong**' '**Why it happened**' '**What I did about it**' '**How I know it works**' '**Status**'; do
+  if grep -qF -- "$tok" "$FINISH_REF"; then
+    green "  ok   $FINISH_REF documents the '$tok' field"
+  else
+    red "  FAIL $FINISH_REF missing the '$tok' update-log field"
+    FAILED=$((FAILED + 1))
+  fi
+done
+if grep -qE '^----$' "$FINISH_REF"; then
+  green "  ok   $FINISH_REF shows the '----' block separator"
 else
-  red "  FAIL $FINISH_REF missing 'Summary table' subsection"
-  FAILED=$((FAILED + 1))
-fi
-if grep -qF '| Area |' "$FINISH_REF"; then
-  green "  ok   $FINISH_REF contains '| Area |' worked-example header"
-else
-  red "  FAIL $FINISH_REF missing '| Area |' worked-example header"
+  red "  FAIL $FINISH_REF missing the '----' block separator"
   FAILED=$((FAILED + 1))
 fi
 

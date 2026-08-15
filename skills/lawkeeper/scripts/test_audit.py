@@ -6,9 +6,13 @@ multi-line template must NOT match), each token ban, the path carve-outs, and se
 redaction. Each test is a function that asserts; `main` runs them all and reports.
 """
 
+import os
+import shutil
 import sys
+import tempfile
 
 import re
+from types import SimpleNamespace
 
 from checks import FileContext
 from exemptions import is_generated, is_scannable, is_test, rule_exempt, scan_mode
@@ -170,6 +174,56 @@ def test_text_only_honors_project_ban():
   bans = [(re.compile(r'#\s*type:\s*ignore'), 'type: ignore in production')]
   hits = ctx.run_text_only(500, bans)
   assert len(hits) == 1 and hits[0]['rule_id'] == 'ban.custom'
+
+
+def _scoped_tree():
+  """Build a throwaway project with one touched and one untouched violating file."""
+  root = tempfile.mkdtemp()
+  os.makedirs(os.path.join(root, 'src'), exist_ok=True)
+  for name in ('touched.ts', 'untouched.ts'):
+    with open(os.path.join(root, 'src', name), 'w', encoding='utf-8') as handle:
+      handle.write('try { x() } catch (e) {}\n')
+  return root
+
+
+def _scan_scoped(root, listed):
+  from audit_scan import build_config, run_scan
+  list_path = os.path.join(root, 'paths.txt')
+  with open(list_path, 'w', encoding='utf-8') as handle:
+    handle.write('\n'.join(listed))
+  args = SimpleNamespace(max_file_lines=500, ban_patterns=None, extra_generated=[],
+                         text_only_ext=[], paths_from=list_path)
+  findings, _, _ = run_scan(root, build_config(args))
+  return sorted({f['file'] for f in findings})
+
+
+def test_paths_from_scopes_the_scan():
+  root = _scoped_tree()
+  try:
+    assert _scan_scoped(root, ['src/touched.ts']) == ['src/touched.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_ignores_deleted_and_skipped_paths():
+  root = _scoped_tree()
+  try:
+    listed = ['src/touched.ts', 'src/gone.ts', 'node_modules/dep/index.ts']
+    assert _scan_scoped(root, listed) == ['src/touched.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_no_paths_from_walks_whole_tree():
+  from audit_scan import build_config, run_scan
+  root = _scoped_tree()
+  try:
+    args = SimpleNamespace(max_file_lines=500, ban_patterns=None, extra_generated=[],
+                           text_only_ext=[], paths_from=None)
+    findings, _, _ = run_scan(root, build_config(args))
+    assert sorted({f['file'] for f in findings}) == ['src/touched.ts', 'src/untouched.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
 
 
 def _all_tests():

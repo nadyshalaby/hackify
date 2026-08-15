@@ -36,11 +36,11 @@ for tok in 'Phase 2' 'Phase 2.5' 'Phase 5' 'four-options'; do
   fi
 done
 
-yellow "[23] quick SKILL.md documents mandatory Summary table"
-if grep -qF 'Summary table' "$QUICK_SKILL" 2>/dev/null; then
-  green "  ok   $QUICK_SKILL contains 'Summary table'"
+yellow "[23] quick SKILL.md documents the mandatory update log"
+if grep -qF 'Update log' "$QUICK_SKILL" 2>/dev/null; then
+  green "  ok   $QUICK_SKILL contains 'Update log'"
 else
-  red "  FAIL $QUICK_SKILL missing 'Summary table'"
+  red "  FAIL $QUICK_SKILL missing 'Update log'"
   FAILED=$((FAILED + 1))
 fi
 

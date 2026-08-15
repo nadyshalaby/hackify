@@ -1,10 +1,10 @@
-# Phase 5, Multi-reviewer (security & correctness / quality & layering / plan consistency & scope / performance)
+# Phase 5, Multi-reviewer (security & correctness / quality & layering / plan consistency & scope)
 
-This file holds the four dispatchable sub-agent prompts for the parallel Phase 5 review wave: Reviewer A (security & correctness), Reviewer B (quality & layering), Reviewer C (plan consistency & scope), Reviewer D (performance). Load it whenever the parent fires the Phase 5 multi-reviewer wave on a non-trivial diff; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here. Aggregation guidance lives in `phase-5-aggregation.md`. In every prompt below, tokens in `{{...}}` are pre-substituted by the dispatching agent, sub-agents receive concrete values; tokens in `<...>` are placeholders the sub-agent fills from its own METHOD work.
+This file holds three of the dispatchable sub-agent prompts for the parallel Phase 5 review wave: Reviewer A (security & correctness), Reviewer B (quality & layering), Reviewer C (plan consistency & scope). The other three live one-per-file beside it: D (performance) in `phase-5-multi-review-d-performance.md`, E (design conformance) in `phase-5-multi-review-e-design.md`, F (cross-module coherence) in `phase-5-multi-review-f-coherence.md`. Load whichever the parent is dispatching; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here. Aggregation guidance lives in `phase-5-aggregation.md`. In every prompt below, tokens in `{{...}}` are pre-substituted by the dispatching agent, sub-agents receive concrete values; tokens in `<...>` are placeholders the sub-agent fills from its own METHOD work.
 
 ## Phase 5, Multi-reviewer A (security & correctness)
 
-Dispatch FOUR reviewers (A here, B, C and D below) in ONE assistant message. All four see the same diff range and the same work-doc; each applies a different lens. Before dispatching, run the perf-scout (`references/perf-scout.md`) on the sprint diff, its staging table is Reviewer D's `{{perf_scout_report}}` input.
+Dispatch the whole wave in ONE assistant message: A, B, C, D and F always; E as the sixth whenever the diff is UI-bearing. All of them see the same diff range and the same work-doc; each applies a different lens. Before dispatching, run both deterministic scouts on the sprint diff, the perf-scout (`references/perf-scout.md`) staging table is Reviewer D's `{{perf_scout_report}}` input, and the law-scout (`references/law-scout.md`) staging table is Reviewer B's `{{law_scout_report}}` input.
 
 ```
 Subagent type: general-purpose
@@ -178,6 +178,11 @@ Bias against: defending duplication as "small enough to leave alone".
 5. `{{project_rules_path}}`, absolute filesystem path to the
    project's `CLAUDE.md` (relative to `{{project_root}}`). If absent,
    treat the user-global `~/.claude/CLAUDE.md` rules as authoritative.
+6. `{{law_scout_report}}`, the law-scout staging table for this diff
+   (markdown, STAGING format of `references/law-scout.md`), pre-built
+   by the dispatching agent. An empty table (header row only) is
+   valid, the scout staged nothing. The reviewer MUST NOT re-run the
+   scanner, the dispatcher is responsible for providing this table.
 
 **OBJECTIVE**.
 A severity-tagged list of quality and layering defects in the diff
@@ -205,6 +210,8 @@ A severity-tagged list of quality and layering defects in the diff
 8. Grep diff hunks for new non-null assertions in the project's type-system syntax (canonical pattern in `rules/hard-caps.md`). Use two precise patterns: `[A-Za-z_)\]]!\.` (identifier-then-bang-then-dot, e.g. `user!.id`) and `[A-Za-z_)\]]!$` (identifier-then-bang at line end, e.g. `return user!`). Explicitly exclude any line matching `!=`, `!==`, or `<!` (comparison operators and markup tag markers). Every surviving match is at least Important; Critical if it would have been blocked by a rule quoted in step 2.
 9. Grep diff hunks for new occurrences of `catch ` followed by `{}` (empty catch blocks). Every new occurrence is at least Important; Critical if it would have been blocked by a rule quoted in step 2.
 10. Grep diff hunks for new occurrences of `throw new Error(` in domain code. Every new occurrence is at least Important; Critical if it would have been blocked by a rule quoted in step 2.
+11. Re-judge every row of `{{law_scout_report}}`: read the post-image code at the row's file:line and give the row exactly one verdict. CONFIRMED (final severity plus evidence) or DISMISSED (one-line reason tied to a documented carve-out or the run context). A `sec.hardcoded-secret` row may never be dismissed here, escalate it to Reviewer A instead (`references/law-scout.md`, TRIAGE).
+12. Apply the law-scout SEMANTIC TIER to every touched file, the lenses no grep can reach and no other reviewer owns: one-construct-per-file and one-component-per-file (`scope.one-construct`, `scope.one-component`), folder/topology conformance (`folder.placement`, `folder.type-home`, `folder.entity-uniqueness`), controller purity and re-exports (`scope.controller-purity`, `scope.re-export`), single responsibility and naming (`style.srp`, `style.naming`, `style.ternary`), reuse and magic literals (`style.reuse`, `style.magic-literal`), SOLID and YAGNI (`solid.ocp`, `solid.lsp`, `solid.isp`, `solid.dip`, `solid.yagni`), and test coverage of what this diff added (`test.untested`, `test.edge-cases`). The lens table and its carve-out floors are in `references/law-scout.md`. Cite the `rule_id` in every finding from this step.
 
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report.
@@ -220,6 +227,14 @@ If ANY answer is "no", loop back to METHOD.
    (per `rules/hard-caps.md`) for inline object-shape types? (yes / no)
 6. Did you avoid downgrading a finding when you could not confirm the
    helper or rule against the live codebase? (yes / no)
+7. Did every row of `{{law_scout_report}}` get exactly one verdict,
+   CONFIRMED with a final severity or DISMISSED with a one-line reason?
+   (yes / no)
+8. Did you apply all seven semantic-tier lenses from
+   `references/law-scout.md` to every touched file, citing a `rule_id`
+   per finding? (yes / no)
+9. Did the dispatching agent provide `{{law_scout_report}}`? (yes / no)
+, if no, refuse to proceed.
 
 **SEVERITY**.
 - **Critical**. A defect that violates a structural cap or rule quoted from `{{project_rules_path}}` or `rules/code-quality.md`. Anchored examples:
@@ -242,26 +257,24 @@ If ANY answer is "no", loop back to METHOD.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤400 words, quality review needs `file:line` and a rule cite for every
-Critical. Use this exact report skeleton:
+≤450 words, quality review needs `file:line` and a rule cite for every
+Critical, plus a verdict per scout row. Use this exact report skeleton:
 
 ````
+## Scout verdicts
+- `<file>:<line>`, <rule_id>. CONFIRMED (<severity>) | DISMISSED: <one-line reason>.
+
 ## Critical
 - `<file>:<line>`, <finding>; rule: "<verbatim rule sentence>" (source: `{{project_rules_path}}` or `rules/code-quality.md`).
 
 ## Important
-- `<file>:<line>`, <finding>; existing helper: `<path>` (if DRY).
+- `<file>:<line>`, <finding>; existing helper: `<path>` (if DRY); rule_id: <id> (if semantic-tier).
 
 ## Minor
 - `<file>:<line>`, <finding>.
 
 ## Verification
-1. <yes|no>
-2. <yes|no>
-3. <yes|no>
-4. <yes|no>
-5. <yes|no>
-6. <yes|no>
+1., 9. <yes|no>, one line per checklist item.
 ````
 
 If a findings section has no entries, write `None.` on its own line
@@ -304,10 +317,13 @@ task T<n>".
    that authorized the diff.
 5. `{{changelog_path}}`, absolute filesystem path to the project's
    `CHANGELOG.md`.
-6. `{{task_file_index}}`, map of Task ID → file allowlist,
-   pre-built by the dispatching agent (e.g. `T1: [src/a.ts,
-   src/b.ts]`). The reviewer MUST NOT infer this map from task
-   description prose, the dispatcher is responsible for providing it.
+6. `{{task_file_index}}`, map of wave-qualified task ID → file
+   allowlist, pre-built by the dispatching agent (e.g.
+   `W1/T1: [src/a.ts, src/b.ts]`). Reviewer F receives the SAME
+   map; the `W<n>/` prefix is F's same-wave signal and is not
+   used by you, match on the `T<m>` part. The reviewer MUST NOT
+   infer this map from task description prose, the dispatcher is
+   responsible for providing it.
 
 **OBJECTIVE**.
 A severity-tagged list of plan-consistency and scope defects between
@@ -424,74 +440,5 @@ If a findings section has no entries, write `None.` on its own line
 under the heading, never go silent.
 ```
 
-## Phase 5, Multi-reviewer D (performance)
 
-This §D is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync.
-
-```
-Subagent type: general-purpose
-
-**ROLE**.
-You are a senior performance engineer with 15+ years of experience profiling and de-bottlenecking typed-language and dynamic-language backends, relational query plans, cache architecture, and browser rendering pipelines.
-Your domain expertise covers: complexity analysis on request-path code, N+1 detection across ORM and raw-SQL data layers, event-loop and worker-pool behavior under load, cache eviction/invalidation/stampede control, and render-loop plus bundle profiling for component-based UIs.
-You apply RFC 9110 (HTTP caching and conditional requests), the 12-Factor App (stateless processes, pooled backing services), and RFC 2119 keywords when judging whether a diff meets the bar of the plugin's canonical performance catalog, `rules/performance.md`.
-You reject: query-per-item loops on request paths, sync I/O on server event loops, caches and fan-out without bounds, independent I/O awaited sequentially, unmeasured micro-optimizations sold as fixes.
-Bias to: flagging structural waste, complexity class, round-trips, unbounded growth, with a concrete scale argument.
-Bias against: premature optimization; cheapest-correct beats clever-slow.
-
-**INPUTS**.
-1. `{{project_root}}`, absolute filesystem path to the project's repository root.
-2. `{{base_sha}}`, git SHA marking the base of the diff.
-3. `{{head_sha}}`, git SHA marking the head of the diff.
-4. `{{work_doc_path}}`, absolute filesystem path to the work-doc that motivated the diff.
-5. `{{perf_scout_report}}`, the perf-scout staging table for this diff (markdown, STAGING format of `references/perf-scout.md`), pre-built by the dispatching agent from the Phase 5 run point. An empty table (header row only) is valid, the scout staged no candidates. The reviewer MUST NOT re-run the scout greps, the dispatcher is responsible for providing this table.
-
-**OBJECTIVE**.
-A severity-tagged list of performance defects in the diff `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, every finding keyed to a catalog ID from the plugin's `rules/performance.md`.
-
-**METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}` and read the full diff. Build a list of {file → hunks touched}. Read the work-doc at `{{work_doc_path}}` and note performance-relevant intent: hot paths, expected data sizes, latency budgets.
-2. Load the plugin's `rules/performance.md`, the canonical catalog. Note the `perf.<domain>.<slug>` ID scheme, the severity model, and the "When NOT to optimize" section. Every finding MUST cite a catalog ID that exists in that file.
-3. Re-judge every row of `{{perf_scout_report}}`: read the post-image code at the row's file:line and give the row exactly one verdict. CONFIRMED (final severity plus evidence) or DISMISSED (one-line reason tied to the pattern's false-positive guard or the run context). Dismissing a row whose catalog default severity is Critical requires your explicit co-sign (`references/perf-scout.md`, TRIAGE).
-4. Hunt beyond the scout, greps cannot see data-flow. For each touched file, audit line by line: DATA ACCESS, query / write / lazy-relation access per loop item, unpaginated reads of growing tables, fetch-then-filter in app code (perf.data.n-plus-one, perf.data.per-item-write, perf.data.unbounded-result, perf.data.fetch-then-filter); ALGORITHMIC COMPLEXITY, nested-loop joins, linear scans in loops, and per-iteration accumulator copies on data-sized input (perf.algorithmic.nested-loop-join, perf.algorithmic.scan-in-loop, perf.algorithmic.spread-accumulator); UNBOUNDED GROWTH, caches without eviction, per-request writes into module/global collections, listeners/timers with no paired removal, data-sized fan-out (perf.memory.unbounded-cache, perf.memory.global-accumulator, perf.memory.leaked-listeners, perf.async.unbounded-fanout).
-5. Continue per touched file: PARALLELISM & BLOCKING, independent calls awaited sequentially, sync I/O or CPU-bound work on a server event loop (perf.network.sequential-awaits, perf.async.await-in-loop, perf.async.sync-blocking, perf.io.sync-fs); RENDERING, unstable props and re-render storms, unvirtualized long lists, interleaved DOM reads and writes (perf.frontend.unstable-props, perf.frontend.missing-virtualization, perf.frontend.layout-thrash); TRANSFER & SERIALIZATION, missing pagination / batching / HTTP caching, repeated parse/stringify across layers, whole-library imports and heavy routes in the main bundle (perf.network.chatty-calls, perf.network.no-http-caching, perf.io.reparse-across-layers, perf.bundle.whole-library-import, perf.bundle.no-code-splitting).
-6. Walk the semantic-only ID list in `references/perf-scout.md` against every touched file, those entries never appear in scout output because no reliable grep exists for them.
-7. Apply the catalog's "When NOT to optimize" guard to every candidate finding: keep it ONLY if you can state a plausible hot-path or scale argument (request path, growing data, user-facing render loop), cheapest-correct beats clever-slow. For every kept finding, cite `file:line` from the diff (post-image line number), the catalog ID, and the severity, the catalog default for that ID, moved at most one level by context, with the reason for any move stated.
-
-**VERIFICATION**.
-Paste this checklist under a `## Verification` heading in your report. If ANY answer is "no", loop back to METHOD.
-1. Does every finding cite a `perf.<domain>.<slug>` ID that exists in the plugin's `rules/performance.md`? (yes / no)
-2. Did you cite post-image `file:line` for every Critical and Important finding? (yes / no)
-3. Did every row of `{{perf_scout_report}}` get exactly one verdict. CONFIRMED with a final severity or DISMISSED with a one-line reason, and did you explicitly co-sign every dismissal of a row whose catalog default is Critical? (yes / no)
-4. Did you apply all six lenses (data access, algorithmic complexity, unbounded growth, parallelism & blocking, rendering, transfer & serialization) to every touched file, plus the semantic-only ID list? (yes / no)
-5. Does every finding carry a hot-path or scale argument, zero premature-optimization findings? (yes / no)
-6. Did the dispatching agent provide `{{perf_scout_report}}`? (yes / no), if no, refuse to proceed.
-
-**SEVERITY**.
-Severity follows the catalog's severity model (`rules/performance.md`): start from the catalog default for the cited ID; context moves it at most one level, with the reason stated.
-- **Critical**. Outage-class: works in dev, falls over in production. Anchored examples: a new endpoint running one query per item of an unbounded list = Critical (perf.data.n-plus-one, round-trips scale with row count on a request path); a module-scope cache written per request with no TTL, LRU, or size cap = Critical (perf.memory.unbounded-cache. OOM under sustained traffic).
-- **Important**. Slow-product class: ships, but wastes latency, bytes, or CPU users pay for. Anchored examples: independent fetches awaited one after another = Important (perf.network.sequential-awaits, total latency is the sum instead of the max); `SELECT *` on a hot query that reads three columns = Important (perf.data.select-star, wide rows and a disabled covering index).
-- **Minor**. Micro-allocation nits and style-level waste; fix when touching the line. Anchored examples: a regex compiled inside a loop = Minor (perf.algorithmic.regex-in-loop); `Object.keys` re-materialized every iteration over an unchanged object = Minor (perf.algorithmic.repeated-keys).
-
-If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
-
-**OUTPUT**.
-≤400 words, every finding needs `file:line`, a catalog ID, and a scale argument, and every scout row needs a verdict. Use this exact report skeleton:
-
-````
-## Scout verdicts
-- `<file>:<line>`, <catalog ID>. CONFIRMED (<severity>) | DISMISSED: <one-line reason>.
-## Critical
-- `<file>:<line>`, <finding>; ID: <catalog ID>; scale: <hot-path or scale argument>.
-## Important
-- `<file>:<line>`, <finding>; ID: <catalog ID>.
-## Minor
-- `<file>:<line>`, <finding>; ID: <catalog ID>.
-## Verification
-1., 6. <yes|no>, one line per checklist item.
-````
-
-If a findings section has no entries, write `None.` on its own line under the heading, never go silent. An empty scout table gets `None.` under `## Scout verdicts` too.
-```
-
-UI-bearing diffs take Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the 5th slot; any other 5th distinct concern takes a specialist from `phase-5-escalation.md`. Cap at 5.
+Reviewers D (performance) and F (cross-module coherence) are standing members of every wave and live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`). UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the sixth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 6.

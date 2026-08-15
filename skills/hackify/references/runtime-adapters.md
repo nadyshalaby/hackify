@@ -2,9 +2,9 @@
 
 ## Why this file exists
 
-hackify is authored against 8 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
+hackify is authored against 10 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
 
-## The 8 primitives
+## The 10 primitives
 
 - `wizard tool`, multi-question batched interactive question prompt to the user.
 - `subagent dispatcher`, launches a foreground subagent with a self-contained prompt and waits for the result.
@@ -14,6 +14,8 @@ hackify is authored against 8 abstract primitives (wizard, subagent, file-read, 
 - `search`, pattern search across the project (regex/literal).
 - `shell`, executes a shell command (with optional timeout).
 - `todo tracker`, a trackable, ordered to-do list surfaced to the user; the substrate for the phase ledger (`phase-ledger.md`). Where a runtime has no native list, the fallback is an in-chat markdown checklist, the phase ledger degrades to visible-but-not-interactive, never absent.
+- `orchestration tier`, how much parallel machinery a mandatory fan-out gets (Phase 2.5 reviewers, Phase 3 waves, Phase 5 reviewers + refuters). Hackify runs at MAXIMUM tier by default in every mode. Contract, standing authorization, and the opt-out phrases: [orchestration.md](orchestration.md).
+- `iteration driver`, what re-enters the workflow across turns until the phase ledger is fully ticked. On by default; operates ABOVE the phases, never inside one. Same contract file.
 
 ## Per-runtime mapping table
 
@@ -27,6 +29,8 @@ hackify is authored against 8 abstract primitives (wizard, subagent, file-read, 
 | search | `Grep` | `ripgrep` (via shell) | `ripgrep` (via shell) | `grep` | `grep` | built-in codebase search | n/a, no project-wide search tool; rely on shell `grep` |
 | shell | `Bash` | `shell` | `shell` | `run_shell_command` | `bash` | built-in terminal | `shell` |
 | todo tracker | `TodoWrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, hosted UI; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist | `todowrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist |
+| orchestration tier | `ultracode` keyword in scope + the `Workflow` tool for fan-outs a flat batch serves poorly | n/a, no subagent primitive; max tier means the phases run inline and sequentially | n/a, same as Codex CLI | n/a, same as Codex CLI | largest parallel `task` dispatch the mode supports | n/a, no subagent primitive; phases run inline | n/a, no subagent primitive; phases run inline |
+| iteration driver | `/loop` in self-paced mode carrying `continue work on <slug>` | n/a, no scheduler; parent runs phases to completion in-turn, user re-prompts to resume | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry |
 
 ## Plugin model support matrix
 
@@ -88,6 +92,8 @@ no runtime adapter can conjure one:
 | Skill | Engine | Interpreter assumed | If absent, degradation |
 |---|---|---|---|
 | `lawkeeper` | `scripts/audit_scan.py` deterministic scanner (Phase 2) | `python3` | Report the gap and fall through to the interpreter-free semantic subagent pass (Phase 3). |
+| `hackify` (**core**, since v0.9.0) | the law-scout runs that same `audit_scan.py --paths-from` at every Phase 3 wave-end and at Phase 5 start ([law-scout.md](law-scout.md)) | `python3` | Record `deterministic tier unavailable (no python3)` as a staging row and run the law-scout's semantic tier only, Reviewer B's seven lenses are interpreter-free. Never drop the mechanical tier silently. |
+| `hackify` (**core**, since v0.9.0) | the ship gate starts and stops a real process and polls a readiness probe ([ship-gate.md](ship-gate.md)) | background process control + a port or HTTP probe from the shell primitive | On a runtime that cannot background a process or poll a port, run the build leg (a plain foreground command) and record `ship.boot` / `ship.smoke` as `⏭ skipped, runtime cannot supervise a background process`. Coverage degrades to a written gap, never to a silent pass. |
 | `codewalk` | `assets/serve.js` viewer server + `build-playbook.mjs` | `node` | Fall back to the documented server chain (`python3`/`python`/`npx serve`/`php`/`ruby`) for serving the already-generated `.codewalk/<slug>/` artifact. |
 
 Neither interpreter is a hackify-core requirement, only those two skills' engines need them,

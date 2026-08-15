@@ -33,15 +33,22 @@ PA_REVIEW_SINGLE_FILES=(
   "$PA_DIR/phase-2.5-spec-review-b-rules.md"
   "$PA_DIR/phase-2.5-spec-review-c-dependencies.md"
   "$PA_DIR/phase-5-escalation.md"
+  "$PA_DIR/phase-5-multi-review-d-performance.md"
+  "$PA_DIR/phase-5-multi-review-e-design.md"
+  "$PA_DIR/phase-5-multi-review-f-coherence.md"
+  "$PA_DIR/phase-5-refute.md"
 )
 
-# Multi-template file: holds 4 sub-agent templates under h2 headings.
+# Multi-template file: holds 3 sub-agent templates under h2 headings.
+# D, E and F live one-per-file in PA_REVIEW_SINGLE_FILES above; D moved out of
+# this file in v0.9.0 when Reviewer B's law-scout hookup pushed it past the
+# 500-LOC cap, and the one-file-per-reviewer layout E already used is now
+# uniform across D/E/F.
 PA_MULTI_REVIEW="$PA_DIR/phase-5-multi-review.md"
 PA_MULTI_REVIEW_HEADINGS=(
   "## Phase 5, Multi-reviewer A (security & correctness)"
   "## Phase 5, Multi-reviewer B (quality & layering)"
   "## Phase 5, Multi-reviewer C (plan consistency & scope)"
-  "## Phase 5, Multi-reviewer D (performance)"
 )
 
 # Wizard bank files in CQ_DIR (exclude README + contract + picking guide).

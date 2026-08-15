@@ -36,6 +36,9 @@ jobs:
       - name: Lawkeeper recall corpus (deterministic-tier precision/recall)
         run: python3 skills/lawkeeper/evals/corpus/run_corpus.py
 
+      - name: Question-bank clarity law
+        run: python3 scripts/check_question_clarity.py
+
       - name: Ban-blocker hook tests
         run: bash hooks/test_block_banned_tokens.sh
 

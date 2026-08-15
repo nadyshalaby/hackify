@@ -1,6 +1,8 @@
 # Phase 5, Aggregation guidance (conflict resolution + anti-patterns)
 
-This file holds the post-fan-out aggregation guidance shared by every parallel-agent wave in this directory. Load it whenever multiple parallel agents have returned and the parent must combine their findings. The per-template sub-agent prompts and the canonical 7-section sub-agent contract live in sibling files (`template-contract.md`, `phase-2.5-spec-review-*.md`, `phase-3-implementation.md`, `phase-3b-debug-evidence.md`, `phase-5-multi-review.md`).
+This file holds the post-fan-out aggregation guidance shared by every parallel-agent wave in this directory. Load it whenever multiple parallel agents have returned and the parent must combine their findings. The per-template sub-agent prompts and the canonical 7-section sub-agent contract live in sibling files (`template-contract.md`, `phase-2.5-spec-review-*.md`, `phase-3-implementation.md`, `phase-3b-debug-evidence.md`, `phase-5-multi-review.md` for reviewers A/B/C, and `phase-5-multi-review-d-performance.md`, `phase-5-multi-review-e-design.md`, `phase-5-multi-review-f-coherence.md`, `phase-5-refute.md`).
+
+The guidance below is deliberately count-agnostic: it governs N returning agents, whether that is 3 spec reviewers, a wave of implementers, or the 5-to-6 reviewer panel plus its refuters.
 
 ---
 

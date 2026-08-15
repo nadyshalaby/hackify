@@ -16,50 +16,67 @@ Use when the user wants to discuss or explore an idea before committing to build
 
 **QUESTIONS**
 
-Q1. Question shape
-- Text: How is the research question already specified?
-- Header: Question
-- Options:
-  - A. Single testable question. I'll compress the prompt to one sentence (Recommended)
-  - B. You'll dictate the question now in chat
-  - C. Several open threads, propose a question hierarchy
-- Why-this-matters: Sets the Phase 2 plan's "Question under investigation" line and gates whether sub-questions fan out into parallel research agents.
+Every question below is a TEMPLATE. Substitute the real names, files and current behavior you found before sending it, so the user can answer without opening anything. Angle-bracket slots are yours to fill. `What happens:` lines are mandatory and are what the user reads.
 
-Q2. Decision it informs
-- Text: What decision will we make differently based on the answer?
+Q1. The question behind the question
+- Text: You asked me to look into `<the topic, in their words>`. What's the one thing you most want to know at the end of it?
+- Header: The question
+- Options:
+  - A. `<state the specific question you think they mean>` (Recommended)
+    - What happens: I'll answer exactly that, with evidence, and skip anything that doesn't serve it.
+  - B. Let me phrase it myself
+    - What happens: Tell me in your own words and I'll aim at that instead.
+  - C. There are a few things, help me untangle them
+    - What happens: I'll lay out the separate questions and you say which matter most.
+- Why-this-matters: Sets the Question-under-investigation line and gates whether sub-questions fan out into parallel research agents.
+
+Q2. What you'll do with the answer
+- Text: What decision are you trying to make here? Knowing that keeps me from researching things that won't change what you do.
 - Header: Decision
 - Options:
-  - A. Build vs. don't build a specific feature (Recommended)
-  - B. Pick one of several already-named approaches
-  - C. Sizing / scoping a future work-doc
-- Why-this-matters: Frames Phase 2's Approach section and what the Phase 6 conclusions report must contain.
+  - A. Whether to build `<the thing>` at all (Recommended)
+    - What happens: I focus on the evidence that would make you say yes or no, not on general background.
+  - B. Which of a few approaches to pick
+    - What happens: I compare them head to head on the things that matter for your situation.
+  - C. How big a job it would be
+    - What happens: I come back with a realistic sense of effort and the risky parts.
+- Why-this-matters: Frames the Approach section and what the Phase 6 conclusions report must contain.
 
-Q3. Depth
-- Text: How deep should the research go?
+Q3. How deep to go
+- Text: How much time is this worth? Digging deeper gives more confidence but costs more.
 - Header: Depth
 - Options:
-  - A. Quick sketch, 1-2 hours, no code (Recommended)
-  - B. Spike, minimal prototype on a throwaway branch
-  - C. Full investigation, multiple options compared with evidence
-- Why-this-matters: Sets the Phase 1 time-box, whether a sandbox worktree is created, and how many parallel research sub-agents fan out.
+  - A. A quick read of the landscape, no code (Recommended)
+    - What happens: You get a clear answer fast, based on reading and reasoning rather than building.
+  - B. Build a rough throwaway version to see if it works
+    - What happens: Much stronger evidence, because I actually try it. The code is scratch and gets thrown away.
+  - C. A thorough comparison with evidence for each option
+    - What happens: The most complete answer, and the slowest.
+- Why-this-matters: Sets the Phase 1 time-box, whether a sandbox worktree is created, and how many parallel research agents fan out.
 
-Q4. Output
-- Text: Where should the conclusions land?
-- Header: Output
+Q4. What you get at the end
+- Text: How would you like the findings delivered?
+- Header: Deliverable
 - Options:
-  - A. Markdown summary in the work-doc only (Recommended)
-  - B. Markdown summary plus a spike branch
-  - C. Markdown summary plus a follow-up build work-doc draft
+  - A. A written summary I can read (Recommended)
+    - What happens: One document with what I found, what I recommend, and why.
+  - B. A summary plus the rough code I tried
+    - What happens: You get the write-up and can run the experiment yourself.
+  - C. A summary plus a ready-to-go plan for building it
+    - What happens: If the answer is yes, the next step is already written up and ready to start.
 - Why-this-matters: Determines whether Phase 6 commits a spike branch and whether a follow-up work-doc is scaffolded.
 
-Q5. Continuation
-- Text: After the conclusions land, what happens next?
-- Header: Continuation
+Q5. What happens after
+- Text: Once I've reported back, should I stop there or keep going?
+- Header: Next step
 - Options:
-  - A. Pause and let you decide whether to build (Recommended)
-  - B. If the answer is "yes, build", auto-roll into a `feature` doc
-  - C. Hand off to another person / team
-- Why-this-matters: Sets Phase 6's exit (pause vs. auto-dispatch a new `feature` work-doc) and the handoff format if applicable.
+  - A. Stop, I'll decide (Recommended)
+    - What happens: Nothing gets built until you say so.
+  - B. If the answer is "build it", just start
+    - What happens: I roll straight into planning and building without waiting.
+  - C. Package it up for someone else to pick up
+    - What happens: I write it so a person with no context can take it from there.
+- Why-this-matters: Sets Phase 6's exit (pause vs auto-dispatch a new `feature` work-doc) and the handoff format.
 
 **EXIT CRITERIA**
 

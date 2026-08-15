@@ -1,12 +1,12 @@
 # HTML summary report
 
-Phase 6 Step F emits a **visually styled, self-contained HTML report** so the developer can grasp what shipped at a glance, stats, charts, findings, and action items in one page. The report **augments** the Area/Change chat table (which still prints); it does not replace it.
+Phase 6 Step F emits a **visually styled, self-contained HTML report** so the developer can grasp what shipped at a glance, stats, charts, findings, and action items in one page. The report **augments** the chat update log (which still prints); it does not replace it.
 
 Load this file from Phase 6 Step F. The template is [../assets/report-template.html](../assets/report-template.html).
 
 ## When
 
-At Phase 6 Step F, after the Area/Change table is generated and the work is verified. One report per shipped task (finish options 1 and 2). Skipped for option 3 (pause) and option 4 (discard).
+At Phase 6 Step F, after the update log is generated and the work is verified. One report per shipped task (finish options 1 and 2). Skipped for option 3 (pause) and option 4 (discard).
 
 ## Where
 
@@ -45,7 +45,7 @@ Two blocks make the report readable by a non-technical person and cumulative, ev
 - **Top: "What changed & why it matters" (`{{PLAIN_SUMMARY}}`).** 3-6 short sentences, no jargon (define any term you must keep). State what the work delivers and why a reader should care, not how it was built. This sits directly under the header, above the stat cards, so it is the first thing anyone reads.
 - **Bottom: Evidence appendix (`{{EVIDENCE_APPENDIX}}`).** The full Phase 4 Evidence Ledger rendered as table rows, every task and acceptance bullet with its claim, what was run, a trimmed proof sample, and the result. This is the cumulative proof: one place where a reader confirms each item truly landed.
 
-Keep all existing technical blocks (stats, charts, findings, Area/Change) between the two. Plain summary leads; technical detail follows; evidence appendix closes.
+Keep all existing technical blocks (stats, charts, findings, update log) between the two. Plain summary leads; technical detail follows; evidence appendix closes.
 
 ## Filling the template
 
@@ -58,10 +58,10 @@ Keep all existing technical blocks (stats, charts, findings, Area/Change) betwee
    - `{{PHASE_TIMELINE}}`, the six phase pills
    - `{{FINDINGS_TABLE}}`, `<tr>` rows: finding / severity / decision / evidence
    - `{{ACTION_ITEMS}}`, `<li>` items (or an empty-state line)
-   - `{{AREA_CHANGE_TABLE}}`, the same rows as the chat Area/Change table
+   - `{{UPDATE_LOG}}`, the same blocks as the chat update log, each rendered as a `<section class="update">` with the five field headings and a rule between blocks
    - `{{EVIDENCE_APPENDIX}}`, `<tr>` rows of the cumulative Evidence Ledger: item / claim / what ran / proof sample / result
    - `{{NEXT_STEPS}}`, instructions the developer must act on (or an empty-state line)
-3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens, `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, `{{PLAIN_SUMMARY}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{AREA_CHANGE_TABLE}}` / `{{EVIDENCE_APPENDIX}}` / `{{NEXT_STEPS}}` cells (a commit subject, a type like `Promise<User>`, or a proof sample can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
+3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens, `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, `{{PLAIN_SUMMARY}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{UPDATE_LOG}}` / `{{EVIDENCE_APPENDIX}}` / `{{NEXT_STEPS}}` cells (a commit subject, a type like `Promise<User>`, or a proof sample can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
 4. Write the filled file to the path above.
 
 ## Hard rules
@@ -72,5 +72,5 @@ Keep all existing technical blocks (stats, charts, findings, Area/Change) betwee
 
 ## See also
 
-- [finish.md](finish.md). Phase 6 Step F, where this runs, and the Area/Change table it augments.
+- [finish.md](finish.md). Phase 6 Step F, where this runs, and the update log it augments.
 - [../assets/report-template.html](../assets/report-template.html), the template.

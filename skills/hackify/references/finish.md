@@ -188,13 +188,15 @@ Compare the list against the union of every task's declared file allowlist in th
 
 The touched-scope quality gate. The goal is the **best version**: files this sprint changed end with nothing a reviewer would flag, no lint error, no type error, no failing test, no dead code, whether the issue was introduced this sprint OR pre-dates it.
 
-**Baseline + detect.** Run the project's lint / typecheck / test and a dead-code scan **scoped to the touched files** (`git diff --name-only <base>..HEAD`). To attribute honestly, diff against the sprint-start state (a `<base>`-checkout run, or `git stash` before re-running) so each issue is labelled *introduced* vs *pre-existing*. Introduced issues are fixed unconditionally (Phase 4 already requires it). Pre-existing issues in touched files are **surfaced and offered**:
+**Baseline + detect.** Run the project's lint / typecheck / test, a dead-code scan, and the **law-scout** ([law-scout.md](law-scout.md)) **scoped to the touched files** (`git diff --name-only <base>..HEAD`). The law-scout is what turns "no lint errors" into "no engineering-law breaks": a 600-line file, an empty catch, an ownerless TODO, or a `// removed:` leftover that the project's linter does not configure will only surface here. To attribute honestly, diff against the sprint-start state (a `<base>`-checkout run, or `git stash` before re-running) so each issue is labelled *introduced* vs *pre-existing*. Introduced issues are fixed unconditionally (Phase 4 already requires it). Pre-existing issues in touched files are **surfaced and offered**:
 
 - **Full hackify / quick**, present the list (file:line + one-line description) and OFFER to fix via a batched wizard: *"N pre-existing issues in files you touched, fix them now so the change lands clean?"* Apply approved fixes using the project's existing patterns (a fix must read as if the original author wrote it).
 - **yolo**, auto-fix all pre-existing issues in the touched files, no prompt.
 - **Too large for this sprint**, defer to a numbered Retrospective follow-up (file:line + rationale) ONLY with explicit user sign-off. Never silently leave.
 
-Whole-repo pre-existing issues OUTSIDE the touched files stay out of scope, that is a full-codebase audit (`/hackify:lawkeeper`), not the cleanup sweep. Evidence record example: *"Class (g) touched-scope: 2 pre-existing lint errors in `lib/utils.ts` (fixed, approved); 0 dead code; touched files now clean."*
+Whole-repo pre-existing issues OUTSIDE the touched files stay out of scope, that is a full-codebase audit (`/hackify:lawkeeper`), not the cleanup sweep. The difference is scope, not engine: the sweep runs the same bundled scanner, pointed only at what this sprint touched. Evidence record example: *"Class (g) touched-scope: 2 pre-existing lint errors in `lib/utils.ts` (fixed, approved); 1 pre-existing `clean.debt-marker` in `lib/utils.ts:88` (fixed); 0 dead code; touched files now clean."*
+
+**Also sweep for leaked runtime state.** The Phase 4 ship gate starts real processes. Confirm none survived: no dev server still holding a port, no container left up, no temporary `.env.local` or fixture file staged into the diff. A leaked process is a class (d) finding and it will break the next boot.
 
 ### Class (h) (Work-doc references to file paths that just changed)
 
@@ -210,7 +212,7 @@ Substitute with the actual paths this sprint changed. Evidence record example: *
 
 ## Step D, archive the work-doc (Options 1 + 2 only)
 
-**This is phase-ledger item `6c`, and it gates the Step F summary.** The move below is the exit artifact: the work-doc physically in `done/` with `status: done`. **Do not print the summary table or emit the HTML report (Step F) until this move is complete**, the summary is the reward for archiving, not a substitute. This ordering is why "finished the work, forgot to archive" cannot happen: the summary item stays unreachable while the archive item is open.
+**This is phase-ledger item `6c`, and it gates the Step F summary.** The move below is the exit artifact: the work-doc physically in `done/` with `status: done`. **Do not print the update log or emit the HTML report (Step F) until this move is complete**, the summary is the reward for archiving, not a substitute. This ordering is why "finished the work, forgot to archive" cannot happen: the summary item stays unreachable while the archive item is open.
 
 Move the work-doc from `<project>/docs/work/<slug>.md` to `<project>/docs/work/done/<slug>.md`. Update frontmatter:
 
@@ -356,49 +358,97 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 | Worktree removal with uncommitted changes (`--force`) | User's work could vanish. Stop, ask. |
 | Picking the option for the user | They pick. Always present 4. |
 | Open-ended "what next?" question | Drift. Stick to the 4-options structure. |
-| Printing the summary while the work-doc still sits in `docs/work/` | Archive first (Step D). The summary (Step F) is gated on the doc being in `done/`. |
+| Printing the update log while the work-doc still sits in `docs/work/` | Archive first (Step D). The log (Step F) is gated on the doc being in `done/`. |
 | Ticking a phase-ledger item with no exit artifact | Untrusted tick. The item stays open until its exit artifact exists (`phase-ledger.md`). |
 
 ---
 
-## Step F (Summary table + HTML report)
+## Step F (Update log + HTML report)
 
-Phase 6 Step F (and the on-demand `/hackify:summary` slash command) emit a concise 2-column Area/Change markdown table covering every change shipped. The table is the single most-skimmable artifact of a hackify task, the user reads it to verify alignment **after** the work-doc has been archived to `done/`. Step D runs first: the summary is gated on the archive (see the Step D gate above). The one exception is a mid-flight `/hackify:summary` invocation, which just prints to chat and archives nothing.
+Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **update log**: one short block per thing that changed, written the way you would explain it to a colleague who was not in the room. This is the artifact the user actually reads, so it is the one place in the whole workflow where the writing matters more than the precision. It is gated on the archive (Step D runs first). The one exception is a mid-flight `/hackify:summary`, which prints to chat and archives nothing.
 
-**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` beside the archived work-doc. It opens with a plain-language **"What changed & why it matters"** summary (B2, for a non-technical reader), then stats, inline-SVG charts, the findings table, action items, and next steps, and **closes with a cumulative Evidence appendix** (the Phase 4 Evidence Ledger, every task/acceptance item with its trimmed proof). The Area/Change table is embedded in it AND printed to chat. Authoring + placeholder-token map: [html-report.md](html-report.md).
+**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` beside the archived work-doc. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). Authoring + placeholder-token map: [html-report.md](html-report.md).
 
-### Area-label rules (left column)
+### The shape (one block per update, `----` between them)
 
-- 1-4 words. Concept/theme labels (e.g. `Plugin manifest`, `Validator coverage`, `Slash command`).
-- NOT a file path. NOT a DoD bullet ID. NOT a Task ID.
-- Same noun-phrase shape across all rows for visual rhythm.
-- Group by conceptual theme, not by file: if three files all change to add the same feature, one row, not three.
+```
+**What was wrong**
+<the problem, in the user's terms>
 
-### Change-cell rules (right column)
+**Why it happened**
+<the actual cause, plainly>
 
-- ≤25 words. Present-tense action verbs ("bumps", "adds", "tightens", "splits").
-- Use `backticks` for every technical token: filenames, identifiers, version strings, glob patterns, regex.
-- Do not editorialize ("nicely tightens", "elegantly removes"), just state the change.
-- If a single area has multiple changes, pick the most user-visible and append a brief secondary clause; do not list >3 changes per cell.
+**What I did about it**
+<the fix, in one or two sentences>
 
-### Grouping heuristics
+**How I know it works**
+<real evidence: what was run and what came back>
 
-- File-family clustering: changes to `plugin.json` + `marketplace.json` collapse into one `Plugin manifest` row.
-- DoD-bullet clustering: changes that all serve one DoD bullet collapse into one row.
-- Severity-based ordering: most user-impactful row first; pure-internal/validator rows last.
+**Status**
+<Shipped / Not shipped, and where it is>
 
-### Worked example (5-row table)
+----
+```
 
-| Area | Change |
-|---|---|
-| Plugin manifest | `version` bumped to `0.1.4` across `plugin.json` and `marketplace.json` |
-| Quick mode | new `skills/quick/SKILL.md` registers `/hackify:quick`; skips Plan+Gate, Spec review, Multi-reviewer, 4-options finish |
-| Summary command | new `commands/summary.md` registers `/hackify:summary`; on-demand Area/Change recap |
-| SKILL.md | adds Phase 6 Step F + phrase triggers + `When to invoke` pointer to `/hackify:quick` |
-| Validator | checks `[18]`, `[23]` enforce both features cannot regress silently |
+Repeat for every update, separated by a line containing exactly `----`. No table, no heading above the first block, no preamble.
+
+### The five fields
+
+| Field | What goes in it | What kills it |
+|---|---|---|
+| **What was wrong** | The symptom as the user would have experienced it. "Invite links kept working after they should have expired." | Naming a function instead of a symptom. |
+| **Why it happened** | The real cause in one plain sentence. "Nothing ever checked the expiry date, so every link stayed valid forever." | "A missing guard clause in the validator." Same sentence in costume. |
+| **What I did about it** | The change in outcome terms. "Added the expiry check, so links stop working the moment they pass their date." | Listing files touched. Nobody reads that here. |
+| **How I know it works** | Real evidence, trimmed. "Ran the tests: 87 passed. Also made an invite, set it back 8 days, and saw the expired message." | "Verified." or "Tests pass." with nothing behind it. |
+| **Status** | Where it actually is. "Shipped, it's on your `main` branch." or "Not shipped, waiting on your review." | Vagueness. The user needs to know whether they can use it. |
+
+### Voice (this is the whole point of the format)
+
+- **Talk like a person, not a release note.** Contractions are fine. Short sentences. If a smart friend who is not an engineer could follow it, the tone is right.
+- **No jargon unless the user used it first.** If a technical word is the only honest one, use it once and add a short plain clause explaining it.
+- **Never mention the workflow's own machinery.** No phase numbers, no task IDs, no reviewer letters, no scout names, no mention of the work-doc. The user asked for working software, not a tour of the process.
+- **Say it and stop.** No "in conclusion", no restating the block you just wrote, no praise for your own work.
+- **One block per thing the user would recognize as a change.** Group by what they would notice, not by file. Three files serving one fix is one block. Typical task: 1-5 blocks; a large one: up to 12.
+- **Be honest in Status.** If something is half-done or deliberately left out, say so here rather than burying it.
+
+### Worked example (two updates)
+
+```
+**What was wrong**
+Invite links kept working forever. Someone could dig up a link from months ago and still get in.
+
+**Why it happened**
+We stored an expiry date on every invite, but nothing ever looked at it. The check was simply never written.
+
+**What I did about it**
+Added the missing check. An invite now stops working the moment it passes its date, and the person sees a clear "this link has expired" message instead of a confusing error.
+
+**How I know it works**
+Wrote a test that creates an invite, moves the clock forward 8 days, and tries it. It failed before the fix and passes now. Full suite: 87 passed, 0 failed. I also clicked through it by hand.
+
+**Status**
+Shipped, it's on your `main` branch.
+
+----
+
+**What was wrong**
+The invites page got slow once an account had a few hundred invites, taking several seconds to load.
+
+**Why it happened**
+The page asked the database one question per invite instead of one question for all of them. With 300 invites that's 300 round trips.
+
+**What I did about it**
+Changed it to fetch them all at once. The page now loads in about the same time whether you have 5 invites or 5,000.
+
+**How I know it works**
+Timed it with 500 invites: 4.2 seconds before, 0.3 seconds after.
+
+**Status**
+Shipped, same branch.
+```
 
 End the printed output with exactly one follow-up line:
 
-> Happy to walk through any of these in more detail, happy to elaborate.
+> Happy to go deeper on any of these, just say which one.
 
 Never omit the follow-up; never extend it.

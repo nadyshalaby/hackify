@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.8.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.9.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -86,9 +86,9 @@ All three skills auto-trigger from natural-language prompts, no need to invoke t
 │ Phase 2.5 Spec        parallel reviewers scrutinize the plan         │
 │ Phase 3   Implement   parallel waves of foreground subagents         │
 │   └─ 3b   Debug       4-phase root-cause hunt (only if stuck)        │
-│ Phase 4   Verify      DoD checklist + fresh evidence                 │
-│ Phase 5   Review      4 parallel reviewers (sec/quality/scope/perf)  │
-│ Phase 6   Finish      4 options → archive work-doc → summary table   │
+│ Phase 4   Verify      evidence ledger + ship gate (build/boot/smoke) │
+│ Phase 5   Review      5 parallel reviewers + refute-before-fix       │
+│ Phase 6   Finish      4 options → archive work-doc → update log      │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -101,21 +101,22 @@ A **phase ledger** (a trackable to-do list, one item per phase) enforces the ord
 - **Phase 1. Clarify.** Task is classified as `feature`, `fix`, `refactor`, `revamp`, `redesign`, `debug`, or `research`; the classification picks the right question bank. Questions ship through the `AskUserQuestion` wizard, never as plain markdown lists.
 - **Phase 2. Plan + gate.** Work-doc fills out: Original Ask (verbatim), Clarifying Q&A, Definition of Done (3-7 verifiable bullets), Approach (≤200 words), and a flat task list where each task is 5-30 minutes of work. No `TBD`, no `similar to T2`, no placeholders.
 - **Phase 2.5. Spec self-review.** Three spec reviewers in parallel (internal consistency, architectural risk, dependency/parallelism risk) patch contradictions before any code is written. Non-skippable, small docs are exactly where contradictions hide.
-- **Phase 3. Implement.** Tasks group into dependency-ordered **waves**; every task in a wave has no file overlap and no intra-wave dependency, so the wave dispatches as one parallel batch of foreground subagents. Each agent carries a strict file allowlist. At each wave-end the parent runs the deterministic **perf-scout** (`references/perf-scout.md`) over the wave-touched files; surviving findings are staged for Phase 5.
+- **Orchestration (all phases).** Every mandatory fan-out runs at the heaviest orchestration the runtime offers, and the workflow re-enters itself across turns until the phase ledger is fully ticked. On Claude Code those are `ultracode` and self-paced `/loop`; on other runtimes they degrade to the largest available parallel dispatch and an in-turn carry. Both are on by default. Hackify announces the tier once per task and honors `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point (`references/orchestration.md`).
+- **Phase 3. Implement.** Tasks group into dependency-ordered **waves**; every task in a wave has no file overlap and no intra-wave dependency, so the wave dispatches as one parallel batch of foreground subagents. Each agent carries a strict file allowlist. At each wave-end the parent runs both deterministic scouts over the wave-touched files, the **perf-scout** (`references/perf-scout.md`) and the **law-scout** (`references/law-scout.md`, the bundled lawkeeper scanner scoped to the diff); surviving findings are staged for Phase 5.
 - **Phase 3b. Debug.** Triggered by ≥2 failed fix attempts or a regression. Four-phase root-cause hunt (gather evidence → find analogue → form hypothesis → reproduce in a failing test). Circuit-breaker after 3 failed hypotheses.
-- **Phase 4. Verify.** Tests, lint, and typecheck re-run fresh; output pasted into the work-doc. Zero tolerance for new lint suppressions, new non-null `!` assertions, stray debug prints, or commented-out code.
-- **Phase 5. Review.** Four parallel reviewers (security/correctness, quality/layering, plan-consistency/scope, performance) dispatched in one message; the performance reviewer (Reviewer D) consumes the perf-scout report and cites `rules/performance.md` catalog IDs. Mandatory for any non-trivial diff. Self-review against the 16-item checklist is additive, not replacement.
-- **Phase 6. Finish.** Re-verify, present four explicit options (merge / push & PR / keep as-is / discard), archive the work-doc to `docs/work/done/`, then print the **Step F summary table**, a 2-column Area/Change recap of everything shipped. Archiving is its own phase-ledger item (`6c`) and **gates the summary** (`6d`): the recap never prints while the work-doc still sits in `docs/work/`.
+- **Phase 4. Verify.** Tests, lint, and typecheck re-run fresh; output pasted into the work-doc. Zero tolerance for new lint suppressions, new non-null `!` assertions, stray debug prints, or commented-out code. Then the **ship gate** (`references/ship-gate.md`) proves the app actually runs, not just compiles: it builds from a cold cache, boots and waits for a real ready signal, and smoke-drives the flow this sprint touched. A leg is blocking whenever the diff touched something that leg's target consumes, a written `skipped` row with the reason otherwise, never silently absent.
+- **Phase 5. Review.** Five parallel reviewers dispatched in one message (security/correctness, quality-and-engineering-law, plan-consistency/scope, performance, cross-module coherence), with design conformance joining as a sixth on UI-bearing diffs. Reviewer B consumes the law-scout report and cites lawkeeper `rule_id`s; Reviewer D consumes the perf-scout report and cites `rules/performance.md` catalog IDs. **Reviewer F** is the lens no other reviewer owns: it compares every boundary-crossing symbol's producer against every consumer for shape, units, error contract, and wiring, because Phase 3's parallel waves build each half blind to the other. Findings then go through **adversarial refuters** before a single fix is spent on them, and the loop only exits on a diff that has not changed since the scan that cleared it. Mandatory for any non-trivial diff; self-review is additive, not replacement.
+- **Phase 6. Finish.** Re-verify, present four explicit options (merge / push & PR / keep as-is / discard), archive the work-doc to `docs/work/done/`, then print the **update log**: one short block per change, written plainly, with what was wrong, why it happened, what was done, how we know it works, and whether it shipped. Archiving is its own phase-ledger item (`6c`) and **gates the log** (`6d`): the recap never prints while the work-doc still sits in `docs/work/`.
 
 ## Quick mode
 
 `/hackify:quick` is the compressed-flow sibling. It runs a compressed flow:
 
 ```
-Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify + perf-scout) → Phase 5-lite (single-lens review) → Phase 6F (summary table)
+Phase 1 (clarify if ambiguous) → Phase 3 (implement) → Phase 4 (verify + both scouts + ship gate) → Phase 5-lite (one reviewer, every lens) → Phase 6F (update log)
 ```
 
-Plan + Gate, Spec self-review, the 4-lens Multi-reviewer, and the four-options finish menu are skipped, a **single-lens address-all review** (quality, correctness, goal drift, performance) runs instead. Step C.5 (touched-scope cleanup) and Step F (the summary table + HTML report) are the Phase 6 pieces kept. At most **one** implementation subagent is dispatched.
+Plan + Gate, Spec self-review, the parallel reviewer panel, and the four-options finish menu are skipped. **One reviewer carries every lens** instead (quality, engineering law, correctness, goal drift, performance, cross-module coherence, design on UI diffs), followed by one batched refuter and the address-all loop. Quick mode drops the parallelism, never the coverage: both scouts and the ship gate run here exactly as they do in full hackify. Step C.5 (touched-scope cleanup) and Step F (the update log + HTML report) are the Phase 6 pieces kept. At most **one** implementation subagent is dispatched.
 
 ### User-initiated promotion to full hackify
 
@@ -185,7 +186,7 @@ Hackify recognizes a non-trivial build task, invokes `/hackify:hackify`, and ask
 3. Migration strategy, backfill existing tokens or treat them as never-expiring?
 4. UI surface, show the expiry timestamp in the invite UI, or only on error?
 
-You answer. Hackify drafts the work-doc, presents it, waits for sign-off. Once you say *"go"*, parallel reviewers scrutinize the plan, then dependency-ordered waves of foreground agents implement the change, verify it, run multi-reviewer code review, and finish with the four-options menu and a 2-column Area/Change summary table.
+You answer. Hackify drafts the work-doc, presents it, waits for sign-off. Once you say *"go"*, parallel reviewers scrutinize the plan, then dependency-ordered waves of foreground agents implement the change, verify it, run multi-reviewer code review, and finish with the four-options menu and a plain-language update log.
 
 You can pause at any phase by closing the terminal. Later, when you say *"continue work on invitation-token-expiry"*, hackify reads the frontmatter, finds the following unchecked task, and picks up exactly there.
 
@@ -232,7 +233,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 | `/hackify:hackify resume <slug>` | Resume a paused work-doc. |
 | `/hackify:quick <ask>` | Start the compressed-flow sibling. |
 | `/hackify:yolo <ask>` | Start the full-autopilot sibling. |
-| `/hackify:summary` | Print the current Area/Change summary table on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
+| `/hackify:summary` | Print the current update log on demand (also responds to *"show summary"*, *"summarize"*, *"summary table"*). |
 | `/hackify:designify` | Author, extract, refresh, or validate the project's design spec at `docs/design/DESIGN.md` plus its `preview.html` visual catalog. Picks a direction from the twelve-entry library, starts from a catalog spec, computes real WCAG contrast ratios, and validates against the spec contract before finishing. |
 | `/hackify:groom <topic>` | Start a Socratic pre-task refinement; graduates to full hackify Phase 1 on user signal. |
 | `/hackify:skillsmith` | Author new hackify-conformant skills via a 9-check self-validation loop. |
@@ -287,16 +288,15 @@ skills/
       clarify-questions/               per-task-type question banks (Phase 1), subdir index in README.md; canonical wizard contract in wizard-contract.md; one bank per task type (feature/fix/refactor/revamp-redesign/debug/research) + universal-preamble + picking-and-combining
       implement-and-test.md            TDD walkthrough, per-stack test commands
       debug-when-stuck.md              4-phase root-cause hunt (Phase 3b)
-      review-and-verify.md             DoD + 16-item self-review + escalation
-      perf-scout.md                    deterministic perf-scout, grep tables keyed to catalog IDs (since v0.7.0)
-      phase-ledger.md                  trackable ordered phase ledger, order-enforcer + archive gate (always-on, since v0.7.0)
-      expert-mindset.md                senior multi-hat mindset + stakes framing (always-on, since v0.7.0)
-      finish.md                        Phase 6, options, archive, summary table
+      review-and-verify.md             DoD + ship gate + 19-item self-review
+      perf-scout.md / law-scout.md / ship-gate.md  the always-on proof trio: perf candidates keyed to rules/performance.md IDs (v0.7.0), engineering-law violations from the bundled lawkeeper scanner scoped to touched files, and the runtime gate that builds, boots and smokes the touched flow before the task can finish (both v0.9.0)
+      phase-ledger.md / expert-mindset.md  ordered phase ledger (order-enforcer + archive gate) and the senior multi-hat mindset, both always-on (since v0.7.0)
+      finish.md                        Phase 6, options, archive, update log
       frontend-design.md               visual law (loaded on FE / UI / mobile-design tasks), owns the design-spec pipeline
       design-spec/                     the design artifact (since v0.8.0). README.md index; spec-contract.md (DESIGN.md schema, {token.ref} syntax, web ↔ RN / Flutter / SwiftUI mapping, validation checklist); direction-library.md (the twelve directions with palette logic, type pairing, motion, signature move, anti-tells, the plugin's only direction list); extract-protocol.md (derive a spec from code / a reference site / screenshots, plus REFRESH mode and merge rules); catalog/ (twelve complete ready-to-drop specs)
-      code-rules.md                    forwarding stub → rules/code-quality.md
-      parallel-agents/                 parallel subagent dispatch templates (cross-runtime fallback), subdir index in README.md; canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review, escalation, aggregation
-      runtime-adapters.md              primitive → per-runtime mapping table
+      code-rules.md / runtime-adapters.md  forwarding stub → rules/code-quality.md; and the primitive → per-runtime mapping table (10 primitives incl. orchestration tier + iteration driver)
+      orchestration.md                 ultracode tier + /loop iteration driver, both on by default, with the standing grant and its opt-out (v0.9.0)
+      parallel-agents/                 parallel subagent dispatch templates (cross-runtime fallback), subdir index in README.md; canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review (A/B/C inline; D, E, F one per file), adversarial refuters, escalation, aggregation
     assets/
       report-template.html             Phase 6 styled HTML report skeleton
       design-preview-template.html     self-contained design preview, swatches, type ramp, scales, elevation, live components, light/dark toggle (since v0.8.0)

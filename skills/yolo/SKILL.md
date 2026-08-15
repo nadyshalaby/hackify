@@ -7,6 +7,10 @@ description: Full-discipline-zero-waiting companion to hackify. Same phases as f
 
 Sibling to full hackify. Same workflow phases, zero gates that wait on you. No work-doc on disk, the plan lives in chat as an assistant message. The user explicitly opted into "do it autonomously"; YOLO does it.
 
+Both orchestration defaults apply ([`../hackify/references/orchestration.md`](../hackify/references/orchestration.md)) and YOLO is where they matter most: maximum tier on every fan-out, and the iteration driver carrying the task across turns with **no gate to stop at**, YOLO already auto-passes the Phase 2 sign-off and the Phase 6 menu. The loop's other two exit conditions still bind: it stops when the ledger is fully ticked, and it stops after two firings that advance nothing. Announce the tier in the in-chat plan block; `light mode` / `no ultracode` / `cheap mode` / `single agent` drop it at any point.
+
+The always-on ship bar applies in full: both deterministic scouts at every wave-end, the ship gate before Phase 5, the coherence reviewer in the wave, and adversarial refutation before any auto-fix. Autopilot removes the waiting, never the proving. Running a bundled plugin script by path (the law-scout) is not a skill call.
+
 ## Workflow shape
 
 ```
@@ -15,9 +19,11 @@ Phase 1  (clarify + exploration + wizard if ambiguous + in-chat goal anchor)
   → Phase 2.5 (3 parallel reviewers audit the in-chat plan block)
   → Phase 3  (parallel implementation waves, same discipline as full hackify)
   → Phase 3b (debug-when-stuck, only if a wave gets stuck)
-  → Phase 4  (verify: Evidence Ledger + three-layer re-verify, fresh evidence)
-  → Phase 5  (perf-scout re-run, then 4 parallel reviewers A/B/C/D; address-all: auto-fix EVERY severity in-place incl. Minor; re-scan to zero)
-  → Phase 6  (Step C.5 auto-fix pre-existing in touched files; auto-pick Option 1: commit to current branch locally, no push; print summary table + HTML report)
+  → Phase 4  (verify: Evidence Ledger + three-layer re-verify + ship gate, fresh evidence)
+  → Phase 5  (both scouts re-run, then 5 parallel reviewers A/B/C/D/F (+E on UI);
+              refute before fixing; address-all: auto-fix EVERY severity in-place
+              incl. Minor; re-scan to zero on a settled diff)
+  → Phase 6  (Step C.5 auto-fix pre-existing in touched files; auto-pick Option 1: commit to current branch locally, no push; print update log + HTML report)
 ```
 
 The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous). Phase 2 plan-gate and Phase 6 4-options menu are auto-passed, that is the YOLO contract.
@@ -51,9 +57,9 @@ Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-
 |---|---|---|
 | **1. Clarify + goal** | Classify task type → exploration step (read just enough context) → batched wizard if any ambiguity remains → capture the Primary Goal & Guardrails as an in-chat anchor. Same as full hackify Phase 1. | A misread ask is more expensive than a wizard call, even in autopilot; the anchor drives the drift-check. |
 | **2.5. Spec self-review** | Dispatch 3 parallel reviewers against the in-chat plan block (Original Ask + AC + Sprint Backlog). Audit text is the assistant message, not a work-doc on disk. | Spec defects are cheap to catch on paper; expensive after 200 LOC. |
-| **3. Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3, including the wave-end perf-scout (`../hackify/references/perf-scout.md`) over the wave-touched files, trivial in-allowlist candidates fixed in-wave, everything else staged for Phase 5. | Wave discipline is what makes parallel safe. |
-| **4. Verify** | Full hackify Phase 4: an **Evidence Ledger** (proof row per task + acceptance bullet) plus all three re-verify layers (fresh triad, goal-drift re-check, independent re-prove). Fresh output, no warm cache. | Skipping verify ships broken work, autopilot makes that worse, not better. |
-| **5. Multi-reviewer** | At Phase 5 start, re-run the perf-scout on the whole diff; staged candidates join the address-all loop. Then 4 parallel reviewers A/B/C/D (security + quality + plan-consistency/goal-drift + performance), plus **Reviewer E (design conformance) as a standing 5th whenever the diff is UI-bearing**, it audits against `<project>/docs/design/DESIGN.md`, or the `frontend-design.md` visual law when no spec exists (`skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md`). Reviewer D consumes the scout report and cites `perf.<domain>.<slug>` catalog IDs from `rules/performance.md`. Plan-consistency audits diff against the in-chat plan block. Address-all: auto-fix EVERY severity, then re-scan to zero (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
+| **3. Implement** | Parallel implementation waves with per-task file allowlists. Same as full hackify Phase 3, including BOTH wave-end scouts over the wave-touched files, perf-scout (`../hackify/references/perf-scout.md`) and law-scout (`../hackify/references/law-scout.md`), trivial in-allowlist candidates fixed in-wave, everything else staged for Phase 5. | Wave discipline is what makes parallel safe. |
+| **4. Verify** | Full hackify Phase 4: an **Evidence Ledger** (proof row per task + acceptance bullet), all three re-verify layers (fresh triad, goal-drift re-check, independent re-prove), and the **ship gate** (`../hackify/references/ship-gate.md`), `ship.build` / `ship.boot` / `ship.smoke`, blocking whenever the diff touched something that leg's target consumes, written `⏭ skipped` with the reason otherwise. Fresh output, no warm cache. | Skipping verify ships broken work, autopilot makes that worse, not better. A green triad is not a booted app. |
+| **5. Multi-reviewer** | At Phase 5 start, re-run BOTH scouts on the whole diff; staged candidates join the address-all loop. Then 5 parallel reviewers A/B/C/D/F (security + quality-and-engineering-law + plan-consistency/goal-drift + performance + cross-module coherence), plus **Reviewer E (design conformance) as a standing 6th whenever the diff is UI-bearing** (`skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md`). Reviewer B consumes the law-scout table and cites lawkeeper `rule_id`s; Reviewer D consumes the perf-scout table and cites `perf.<domain>.<slug>` IDs. Reviewer F checks producer against consumer on every boundary-crossing symbol, the lens that catches what parallel waves break (`phase-5-multi-review-f-coherence.md`). Plan-consistency audits diff against the in-chat plan block. **Refute before fixing** (`phase-5-refute.md`), then address-all: auto-fix EVERY surviving severity, then re-scan to zero on a settled diff (see severity table below). | YOLO speed comes from no gates, not from skipped reviewers. |
 
 ## What's different from full hackify
 
@@ -92,7 +98,10 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 | "Push the commit too, they'll want it on remote" | No. Phase 6 default is commit to current branch locally, no push. Pushing is user-initiated (`git push` themselves). |
 | "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer C audits diff against that list. No skip. |
 | "Auto-pass means I can skip the phase too" | Auto-pass removes the WAIT at a gate, not the phase. Every ledger item still runs in order and gets ticked `completed`. |
+| "Autopilot, so auto-fix without refuting" | Refute first. Auto-fixing a phantom Critical in autopilot breaks working code and nobody sees it until `git diff HEAD~1`. Two refuters per Critical, both must refute. |
+| "Tests are green, skip the ship gate and commit" | The ship gate is a Phase 4 exit artifact in every mode. Commit is Phase 6; you cannot reach it with an open ledger item. |
+| "The re-scan came back clean, commit it" | Only if the diff has not changed since. A round that changed code mandates another round before Phase 6. |
 
 ## One-line summary
 
-Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl → verify → multi-reviewer (address-all, auto-fix every severity) → touched-scope cleanup + commit to current branch locally + HTML report.
+Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl (both scouts at every wave-end) → verify (ledger + 3 layers + ship gate) → 5-to-6 parallel reviewers, refute, address-all auto-fix every surviving severity, re-scan on a settled diff → touched-scope cleanup + commit to current branch locally + HTML report.

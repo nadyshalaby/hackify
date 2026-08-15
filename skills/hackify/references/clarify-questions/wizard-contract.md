@@ -2,18 +2,113 @@
 
 Phase 1 builds **one batched questionnaire** drawn from the bank for the matched task type. **Drop questions whose answer is already evident** from the user's prompt or from context you've already read (codebase exploration tools, file system). Add task-specific questions if a question bank misses something obvious.
 
-## Delivery format, wizard only (mandatory)
+## Delivery format, wizard only (mandatory, every phase)
 
-**Every clarify question is delivered through the `AskUserQuestion` tool.** Plain numbered markdown lists in chat are forbidden for Phase 1, the wizard renders structured options the user can click, which is faster, less error-prone, and easier to answer on the move.
+**Every question put to the user, in every phase, is delivered through the `AskUserQuestion` tool.** Not just Phase 1 clarify: the Phase 5 fix-approval batches, the Phase 6 four-options finish menu, a Phase 3b "which branch do you want me to chase" fork, a Phase 2 re-gate after a plan change. If you are asking the user to decide something, it goes through the wizard. Plain numbered markdown lists in chat are forbidden, the wizard renders structured options the user can click, which is faster, less error-prone, and easier to answer on the move.
 
-Tool constraints to design around:
+The only things that stay plain chat are statements, not questions: progress lines, phase reflections, and the final summary.
+
+---
+
+## Clarity law (the questions must stand alone)
+
+**A question the user cannot answer without knowing how hackify works internally is a broken question.** This is the single most common defect in a bank. The user has not read the work-doc, does not know what a task ID is, and should never have to.
+
+### Two audiences, two registers
+
+| Field | Who reads it | Register |
+|---|---|---|
+| `text`, `options[].label`, `options[].description` | **the user** | plain, everyday words; no internal vocabulary, ever |
+| `why-this-matters`, COMPOSITION rules | **the model** | precise and internal; task IDs and phase names are fine here |
+
+Leaking the model register into a user-facing field is the bug. Keep `why-this-matters` exactly as technical as it needs to be, it is never shown.
+
+### Banned from user-facing text (hard list)
+
+Never put any of these in `text`, a `label`, or a `description`:
+
+- **Work-doc identifiers.** `T3`, `D5`, `AC2`, `Q7`, `W2`, "task 4", "bullet 2".
+- **Phase references.** "Phase 2", "the gate", "Phase 4 cross-package verification", "in Wave 2".
+- **Internal artifact names.** DoD, work-doc, Sprint Backlog, Daily Updates, goal anchor, wave, sub-agent, perf-scout, law-scout, ship gate, Reviewer B, decision table, phase ledger.
+- **Project-specific architecture the user never named.** "control + tenant schema", "the router layer", unless the user used that word first or you read it in their code and quote it back.
+
+If the answer genuinely changes something internal, say the *effect* in plain words instead. "This decides whether I write a database migration" is fine. "This drives the migration sub-agent in Wave 2" is not.
+
+### Every option needs a real description
+
+The `label` is the choice. The description is **what actually happens to the user if they pick it**, in one plain sentence. Not a restatement of the label, not an abstract trade-off. Concrete consequence.
+
+In a bank file it is written as an indented `What happens:` line directly under its option, and it becomes the wizard option's `description` field at dispatch time:
+
+```
+  - A. Only the login page (Recommended)
+    - What happens: I only touch the login page. Signup keeps its current look, and we can do that separately later.
+```
+
+- Bad: `What happens: Determines the scope boundary.`
+- Good: `What happens: I only touch the login page. Signup keeps its current look, and we can do that separately later.`
+
+An option with no `What happens:` line, or one that restates its label, is a bank defect and fails `scripts/check_question_clarity.py`.
+
+### Give the user the facts they need to decide
+
+A question must carry the concrete detail that makes it answerable. You have already read the code; the user has not.
+
+- Name the real files, functions, and current values you found: "Right now `checkout.ts` retries 3 times. Should it keep retrying?"
+- When you are asking the user to choose between two things that exist, name both.
+- When the choice is abstract, add a short example inside the `description` so the user can picture the result.
+- When the choice is between concrete artifacts (a layout, a schema shape, two code approaches), use `preview` and let them look.
+
+### Worked example, before and after
+
+Before, unanswerable without insider knowledge:
+
+```
+text:   How is the user-visible goal already specified?
+header: Goal
+A. Use the prompt verbatim. I'll compress to one sentence (Recommended)
+B. I'll write a one-sentence DoD now in chat
+C. Goal is ambiguous, propose 2-3 framings and pick one
+```
+
+After, answerable by anyone:
+
+```
+- Text: You asked me to "add invite expiry". Before I plan this, is my
+  understanding right, that an invite link should stop working after some
+  time and show the person a clear "this link has expired" message?
+- Header: The goal
+- Options:
+  - A. Yes, that's it (Recommended)
+    - What happens: I'll build exactly that and confirm the details with you next.
+  - B. Close, but let me correct it
+    - What happens: Tell me what I got wrong and I'll re-check before writing anything.
+  - C. I'm not sure yet, show me some options
+    - What happens: I'll sketch two or three ways this could work and you pick one.
+```
+
+The second version names the real feature, states the assumption back, and each option says what happens next. Same decision, no insider vocabulary.
+
+### Self-check before you send a batch
+
+Read every question as if you had never seen this codebase or this workflow. If any of these is true, rewrite it:
+
+1. It contains a token from the banned list.
+2. It cannot be answered without opening a file.
+3. An option's `description` restates its `label` instead of naming a consequence.
+4. It asks about hackify's process rather than the user's product.
+5. A smart friend who is not an engineer could not follow what is being asked.
+
+---
+
+## Tool constraints to design around
 
 - **1-4 questions per call.** If your batch is larger, send **multiple back-to-back `AskUserQuestion` calls in the same turn**, fire the following call as soon as the previous batch is answered, with no chat narration in between unless something needs clarifying. Aim for ≤16 total questions across all batches; if you need more, your scope is too broad, narrow first.
 - **2-4 options per question.** Mutually exclusive by default. Use `multiSelect: true` ONLY when options are genuinely combinable (e.g., "which edge cases to handle"). Never use multiSelect for "pick one approach" questions.
 - **First option is the recommendation.** Suffix its `label` with ` (Recommended)`. Even if you'd personally rank a different option higher, leading with your strongest opinion saves the user time.
 - **No "Other" option**, the tool auto-injects free-text input.
 - **`header`** ≤12 chars. Concrete chip text like `Hierarchy`, `Roles`, `Invite flow`. Not `Question 1`.
-- **`description`** explains the trade-off in one short sentence, what happens if you pick this.
+- **`description`** is MANDATORY on every option and says what happens if you pick it, see the Clarity law above.
 - **Use `preview`** for single-select questions when the choice is between concrete artifacts (UI mockups, code snippets, schema sketches). Skip preview for preference questions where labels + descriptions are enough.
 
 ## Composing the questionnaire
@@ -55,10 +150,11 @@ Each bank MUST contain these four sections, in this order, with these exact name
 
 Every question in a bank's QUESTIONS section MUST specify:
 
-- **text**, the question prompt shown to the user. One short sentence. No filler.
+- **text**, the question shown to the user. Plain words. It MUST carry the concrete detail that makes it answerable (the real file, the real current behavior, the real names), and MUST NOT contain anything from the banned list above. One or two sentences is fine when the second sentence is the detail the user needs; brevity never wins over answerability.
 - **header**, the chip text rendered in the wizard. ≤12 characters. Concrete (`Scope`, `Roles`, `Invite flow`). NOT `Question 1` or `Q3`.
 - **options**, 2-4 mutually-exclusive options labeled A / B / C / D. Option A MUST be suffixed with ` (Recommended)`. NEVER include an `Other` option, the `AskUserQuestion` tool auto-injects free-text input.
-- **why-this-matters**, one line stating what the answer changes downstream (which task-type branch is taken, which Phase 2 plan section is generated, which Phase 3 sub-agent fans out, which verification step runs). If the answer changes nothing downstream, the question MUST be cut.
+- **option descriptions**, one per option, MANDATORY. One plain sentence naming what happens to the user if they pick it. An option with no description, or a description that restates the label, is a bank defect.
+- **why-this-matters**, one line stating what the answer changes downstream (which task-type branch is taken, which plan section is generated, which sub-agent fans out, which verification step runs). **Model-facing only, never rendered.** Internal vocabulary is correct here. If the answer changes nothing downstream, the question MUST be cut.
 
 ## Composition rules
 
