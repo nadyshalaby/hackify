@@ -5,6 +5,14 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Two agent `description:` fields still advertised the pre-0.9.0 review wave, and the harness reads them at dispatch time.** `agents/code-reviewer-security.md` said "Dispatch one of these in parallel with Multi-reviewers B, C and D" and `agents/code-reviewer-performance.md` said "in parallel with Multi-reviewers A, B and C". Those strings are rendered as live agent metadata, so a model composing the Phase 5 wave from them would fan out four reviewers and never dispatch **Reviewer F**, the standing coherence lens 0.9.0 shipped as its headline. `SKILL.md` said the right thing, which made the wrong source the one closest to the dispatch decision. Both now name the five standing reviewers and note that E joins on UI-bearing diffs; the security agent's pre-fence "Dispatch FOUR reviewers" line is corrected the same way. All three edits sit outside the fenced block, so check `[75h]`'s byte-for-byte mirror comparison is unaffected.
+- **`phase-5-escalation.md` defined escalation as going beyond "the four baseline Phase 5 reviewers (A / B / C / D)".** The baseline is five (A/B/C/D/F, plus E on UI-bearing diffs), so the file understated what a specialist reviewer is additive to. `phase-5-multi-review-d-performance.md`'s pointer to its sibling reviewers omitted F for the same reason.
+- **README shipped 0.9.0 with no "New in 0.9.0" section**, still called four parallel reviewers the default under Design principles, and listed 8 of the 11 files in its `agents/` map: Reviewer E has been missing since 0.8.0, Reviewer F and the refuter since 0.9.0. The 0.8.0 and 0.7.0 blurbs were compressed to pay for the new section, keeping the file inside check `[7]`'s 250..450 line bound rather than raising it.
+
 ## [0.9.0] - 2026-08-16
 
 > **The workflow now proves the app runs, enforces the engineering law during the build, and checks that the parts agree with each other.** Before this release hackify could finish a task with a green test suite, a clean linter, and an app that does not boot; with a 600-line file and an empty catch that the project's linter never configured; and with two halves of a feature that each pass their own tests and disagree at the seam. Four mechanisms close those gaps, all always-on in full, quick and yolo, none of them asking the user to opt in.
