@@ -1,6 +1,6 @@
 # Phase 5 (Code-review escalation)
 
-This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond the four baseline Phase 5 reviewers (A / B / C / D) because the diff touches a specialist surface; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
+This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond the five baseline Phase 5 reviewers (A / B / C / D / F, plus E on UI-bearing diffs) because the diff touches a specialist surface; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
 
 Dispatch ONE escalation agent per specialist lens, all in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
 

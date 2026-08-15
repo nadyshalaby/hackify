@@ -27,27 +27,22 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
+### New in 0.9.0
+
+- **A green test suite no longer counts as done.** The **ship gate** builds from a cold cache, boots the app and waits for a real ready signal, then smoke-drives the flow this sprint touched; a leg blocks whenever the diff touched something that leg's target consumes, and a skipped leg is never silently absent. Beside it a **law-scout** runs lawkeeper's bundled scanner over just the touched files at every wave-end and again at review start, and Reviewer B judges every candidate it stages, cites the `rule_id`, and picks up the seven judgment lenses no reviewer previously owned (one construct per file, folder conformance, controller purity, single responsibility, reuse, SOLID/YAGNI, test coverage).
+- **Reviewer F, cross-module coherence, plus refute-before-fix.** Parallel waves are what make hackify fast and exactly what produces two halves of a feature that each pass their own tests and disagree at the seam; F compares every boundary-crossing symbol's producer against every consumer for shape, units, error contract and wiring. Findings then face adversarial refuters that default to **keeping** the finding, and the review loop exits only on a diff unchanged since the scan that cleared it.
+- **Maximum orchestration by default, and questions anyone can answer.** Every mandatory fan-out runs at the heaviest machinery the runtime offers (`ultracode` and self-paced `/loop` on Claude Code), announced once per task and switched off with *"light mode"* or *"no ultracode"*. Task IDs, phase numbers and internal names are now banned from anything the wizard shows you, every option says plainly what happens if you pick it, and the end-of-task recap is an **update log**: one short block per change covering what was wrong, why, what was done, how we know it works, and whether it shipped.
+
 ### New in 0.8.0
 
-- **Design work now produces an artifact, not just taste.** UI and mobile tasks emit a committed `docs/design/DESIGN.md` in your project: machine-readable tokens (colors, twelve typography roles, spacing, radius, elevation, motion, named components) plus the prose explaining them, with a self-contained `docs/design/preview.html` visual catalog beside it. Design intent stops evaporating between sessions.
-- **One spec drives web and native.** The token layer is platform-neutral, with a `platform.native` block (touch targets, safe area, elevation model, haptics, Dynamic Type) and a normative web ↔ React Native ↔ Flutter ↔ SwiftUI mapping table, including the line-height conversion the four platforms disagree about.
-- **Twelve directions, deeply specified.** `direction-library.md` is the plugin's single canonical direction list, each entry carries palette logic, type pairing, motion character, a signature move, and **anti-tells**: the specific ways that direction gets built wrong.
-- **A twelve-spec catalog you can drop in today.** Industrial Precision, Editorial Print, Retro Terminal, Warm Organic, Brutalist Mono, Neo-Luxury, Swiss Grid, Data Dense, Playful Pop, Nordic Calm, Cyber Neon, Soft Depth. All original work, all with computed and passing WCAG AA contrast, all using freely-licensed fonts with offline fallback stacks.
-- **Reviewer E, design conformance.** Phase 5 gains a standing fifth reviewer on UI-bearing diffs. It audits the diff against your spec: hardcoded literals where a token exists, off-ramp type sizes, components missing documented states, violations of the spec's own Don'ts list, contrast and focus regressions, and physical properties where logical are required. Every finding names the replacement token.
-- **`/hackify:designify`.** Author, extract, refresh, or validate a spec standalone, including recovering one from a codebase that already has tokens but never wrote them down.
-
-_The visual law in `frontend-design.md` is unchanged in spirit and now owns the pipeline: it is the law, `design-spec/` is the artifact._
+- **Design work now produces an artifact, not just taste.** UI and mobile tasks emit a committed `docs/design/DESIGN.md` in your project: machine-readable tokens (colors, twelve typography roles, spacing, radius, elevation, motion, named components) plus the prose explaining them, with a self-contained `docs/design/preview.html` catalog beside it. The token layer is platform-neutral, with a `platform.native` block and a normative web to React Native / Flutter / SwiftUI mapping table.
+- **Twelve directions, deeply specified, and twelve specs you can drop in today.** `direction-library.md` is the plugin's single canonical direction list, each entry carrying palette logic, type pairing, motion character, a signature move, and **anti-tells**: the specific ways that direction gets built wrong. The catalog ships twelve complete specs, all original, all with computed and passing WCAG AA contrast, all using freely-licensed fonts with offline fallback stacks.
+- **Reviewer E and `/hackify:designify`.** Phase 5 gains a standing design-conformance reviewer on UI-bearing diffs that audits the diff against your spec, hardcoded literals where a token exists, off-ramp type sizes, missing component states, contrast and focus regressions, and names the replacement token for every finding. The slash command authors, extracts, refreshes, or validates a spec standalone, including recovering one from a codebase that already has tokens but never wrote them down.
 
 ### New in 0.7.0
 
-- **Phase ledger, ordered, trackable, un-skippable.** Every task runs against a visible to-do list (one item per phase) with an ordering law: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. Skipping or reordering a phase becomes blocked, not silent.
-- **Archiving can't be forgotten.** Phase 6 splits into sub-items so archiving the work-doc to `done/` is its own tracked step that **gates the summary**, the recap is unreachable until the doc is filed. The old "finished, forgot to archive" miss is closed by construction.
-- **Expert mindset, always-on.** A new doctrine casts the model as a senior, multi-disciplinary engineer (problem-solver, security, performance, architect, advisor, verifier) and stresses the stakes. A tight version is injected on every prompt beside the hard caps; the fuller hat-by-hat doctrine loads from Phase 1.
-- **8th runtime primitive.** The `todo tracker` joins the seven abstract primitives, so the phase ledger maps to a native to-do tool where a runtime has one and degrades to an in-chat checklist where it does not.
-- **Performance law, always-on and enforced.** A canonical violation catalog (`rules/performance.md`, 95 stable IDs across 10 domains) distilled into a tight `rules/perf-guardrails.md` that is injected on every prompt as the third rules file. A deterministic **perf-scout** greps every diff at each implementation wave-end and again at review start; surviving findings enter the address-all decision table.
-- **Reviewer D, performance.** Phase 5's default grows to **four parallel reviewers** (security, quality, plan-consistency, performance) in full hackify and yolo; quick's single-lens review adds the performance lens. Reviewer D consumes the scout report and cites `perf.<domain>.<slug>` catalog IDs in every finding.
-
-_Built on 0.6.1's Evidence Ledger, three-layer re-verify, and B2 communication voice, see the [CHANGELOG](CHANGELOG.md)._
+- **Phase ledger, ordered, trackable, un-skippable.** Every task runs against a visible to-do list (one item per phase) with an ordering law: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. Phase 6 splits into sub-items so archiving the work-doc to `done/` is its own tracked step that **gates the summary**. The `todo tracker` joined the abstract primitives so this maps to a native mechanism on every runtime.
+- **Expert mindset and performance law, both always-on.** A doctrine casting the model as a senior, multi-disciplinary engineer is injected on every prompt beside the hard caps, with the fuller hat-by-hat version loading from Phase 1. Alongside it, a canonical violation catalog (`rules/performance.md`, 95 stable IDs across 10 domains), a distilled always-on stub, a deterministic perf-scout on every diff, and Reviewer D.
 
 ## Install
 
@@ -267,6 +262,9 @@ agents/                                formal sub-agent definitions (since v0.2.
   code-reviewer-quality.md             Phase 5 Reviewer B
   code-reviewer-plan-consistency.md    Phase 5 Reviewer C
   code-reviewer-performance.md         Phase 5 Reviewer D, performance (since v0.7.0)
+  design-conformance-reviewer.md       Phase 5 Reviewer E, design conformance, UI-bearing diffs (since v0.8.0)
+  code-reviewer-coherence.md           Phase 5 Reviewer F, cross-module coherence, standing (since v0.9.0)
+  finding-refuter.md                   Phase 5 adversarial refuter, judges findings before a fix (since v0.9.0)
   wave-task-implementer.md             Phase 3 wave-task implementer
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
@@ -279,6 +277,7 @@ commands/
   designify.md                         /hackify:designify, author / extract / refresh / validate the design spec (since v0.8.0)
 scripts/
   validate-dod.sh                      CI helper, validates the plugin's own DoD
+  check_question_clarity.py / check_design_specs.py  CI gates, the question-bank Clarity law (v0.9.0) and the design-spec contract + WCAG AA contrast (v0.8.1)
   sync-runtimes.sh                     fan canonical skills/ into dist/<runtime>/
 skills/
   hackify/
@@ -380,7 +379,8 @@ See [`rules/four-principles.md`](rules/four-principles.md) for the canonical wri
 - **One hard gate, not many.** Between Plan and Implement. Everything else runs continuously with progress reports.
 - **Parallel by default.** Wave-based dependency ordering plus file allowlists make parallel implementation safe.
 - **Evidence before claims.** No Definition-of-Done bullet is checked without fresh command output or a verifying script in the work-doc.
-- **Multi-reviewer is the floor.** A single lens always misses something. Four reviewers in parallel, security, quality, scope, performance, are the default.
+- **Multi-reviewer is the floor.** A single lens always misses something. Five reviewers in parallel, security, quality, scope, performance, cross-module coherence, are the default, with design conformance joining on UI-bearing diffs.
+- **Shipping means it runs, and findings survive a challenge first.** A green test suite is not a working app, so the ship gate builds, boots and smoke-drives the touched flow before a task may finish. Every finding faces an adversarial refuter that defaults to keeping it, because dropping a real defect costs more than fixing a phantom.
 - **The plan is the contract.** No scope creep, no cleanup of adjacent code on the side, no abstractions for hypothetical futures.
 
 ## Customization
