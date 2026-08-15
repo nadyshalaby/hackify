@@ -5,7 +5,9 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.9.1] - 2026-08-16
+
+> **Patch: 0.9.0's headline reviewer was advertised out of existence.** The release wired Reviewer F, the standing cross-module coherence lens, into `SKILL.md` and every reference file, but two sibling reviewers still described the wave as A/B/C/D in their `description:` frontmatter. That field is not prose, it is the live agent metadata a model reads when it composes the Phase 5 fan-out, so the surface closest to the dispatch decision was the one still naming four reviewers. This release corrects that surface, the escalation baseline that depended on it, and the README sections 0.9.0 left behind.
 
 ### Fixed
 
