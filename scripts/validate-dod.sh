@@ -15,6 +15,8 @@
 #   70-invariants-and-new.sh, checks [33]-[34], [37]-[39] (hook targets, perf invariants)
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
+#   78-dispatch-mandate.sh, check [78], no parent-authored diffs + orchestration
+#                   that is a tool call rather than a description
 #   80-file-size-caps.sh, check [80], file-size ≤ 500 LOC across primitives
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
 #
@@ -41,6 +43,7 @@ source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
+source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"

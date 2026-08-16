@@ -21,7 +21,16 @@ They answer different questions and belong at different layers. Conflating them 
 | Phase 3, each wave | one implementer per task |
 | Phase 5 | 5-6 reviewers, then the refuter panel |
 
-**Claude Code mapping.** These dispatches run in ultracode mode: the `ultracode` keyword is in scope for the turn, and multi-agent orchestration through the Workflow tool is available for a fan-out that a flat subagent batch would serve poorly (a wave whose tasks pipeline into per-task verification, a reviewer panel whose findings pipeline into per-finding refutation). A flat parallel batch stays correct and stays the default shape for small fan-outs; the tier raises the ceiling, it does not mandate a workflow script for three reviewers.
+**Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
+
+| Fan-out shape | What to do |
+|---|---|
+| Flat batch, every unit independent and same-shaped (3 spec reviewers, a 2-task wave) | Dispatch subagents in ONE message. This is correct and stays the default. |
+| Pipelined, each unit's output feeds a following stage (a wave whose tasks pipeline into per-task verification, a reviewer panel whose findings pipeline into per-finding refutation, a loop-until-dry sweep) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
+
+**The Workflow tool's opt-in is satisfied here.** It may only be called when the user explicitly opted into multi-agent orchestration, and one of its accepted forms is *"the user invoked a skill whose instructions tell you to call Workflow."* Invoking hackify is that invocation, and this file is that instruction. Do not ask the user for permission a second time, and do not fall back to a flat batch just because you are unsure whether you are allowed.
+
+**Raising the session tier is the user's move, so say so once.** If you want the keyword path (xhigh effort plus standing workflow orchestration for the whole session), the user types `ultracode` in a prompt or sets `"ultracode": true` in settings. Name it once in the announcement line below; never pretend it is already on.
 
 **Every other runtime.** Maximum tier means the largest parallel dispatch the runtime supports, and on the best-effort tier (no subagent primitive) it means the same phases run inline and sequentially. Coverage never drops; only concurrency does. That is the existing degradation contract in `runtime-adapters.md`, unchanged.
 
@@ -48,7 +57,7 @@ Never quietly raise the tier back after the user has lowered it.
 | Phase 3 wave loop (wave N → N+1) | inside Phase 3 | inline, never the iteration driver |
 | **Task continuation (phase N → N+1 until archived)** | **above the phases** | **the iteration driver** |
 
-**Claude Code mapping.** `/loop` in self-paced mode (no interval), carrying `continue work on <slug>` as its prompt. Each firing resumes the work-doc per the Pause / Resume contract in `SKILL.md`, advances whatever phase is open, and schedules the next wake-up. Pace the delay to what is actually being waited on: a long fallback heartbeat when a subagent wave will notify on its own, a shorter delay only when polling something external the harness cannot report (a CI run, a deploy).
+**Claude Code mapping (invoke it, do not describe it).** At the end of any turn that leaves a ledger item open, **invoke the `loop` skill** in self-paced mode (no interval), carrying `continue work on <slug>` as its prompt. Writing "the iteration driver carries this task" and then stopping is the failure this section exists to prevent: the driver is a tool call, and a turn that ends with open ledger items and no such call has dropped the task on the floor. Each firing resumes the work-doc per the Pause / Resume contract in `SKILL.md`, advances whatever phase is open, and schedules the next wake-up. Pace the delay to what is actually being waited on: a long fallback heartbeat when a subagent wave will notify on its own, a shorter delay only when polling something external the harness cannot report (a CI run, a deploy).
 
 **Every other runtime.** No scheduler means the driver degrades to what it has always been: the parent runs the phases to completion in-turn, and the user re-prompts with `continue work on <slug>` after an interruption. Same contract, manual carry.
 

@@ -9,6 +9,8 @@ Sibling to full hackify. Same workflow phases, zero gates that wait on you. No w
 
 Both orchestration defaults apply ([`../hackify/references/orchestration.md`](../hackify/references/orchestration.md)) and YOLO is where they matter most: maximum tier on every fan-out, and the iteration driver carrying the task across turns with **no gate to stop at**, YOLO already auto-passes the Phase 2 sign-off and the Phase 6 menu. The loop's other two exit conditions still bind: it stops when the ledger is fully ticked, and it stops after two firings that advance nothing. Announce the tier in the in-chat plan block; `light mode` / `no ultracode` / `cheap mode` / `single agent` drop it at any point.
 
+**The no-parent-authored-diff law applies in full** (`../hackify/SKILL.md`): every code change is written by a dispatched agent under a file allowlist, including Phase 5's auto-fixes and Step C.5's cleanup, which YOLO applies without prompting. Autopilot removes the approval, not the dispatch.
+
 The always-on ship bar applies in full: both deterministic scouts at every wave-end, the ship gate before Phase 5, the coherence reviewer in the wave, and adversarial refutation before any auto-fix. Autopilot removes the waiting, never the proving. Running a bundled plugin script by path (the law-scout) is not a skill call.
 
 ## Workflow shape

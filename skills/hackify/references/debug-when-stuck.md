@@ -173,6 +173,8 @@ ONE change. Address the root cause, not the symptom.
 
 If you patched at the symptom site during D3 to confirm the hypothesis, **revert that** and apply the real fix at the source.
 
+**Dispatch it.** The hypothesis hunt is yours to run, the fix is not: it is a code change, so it goes to an implementer agent under a file allowlist, carrying the root cause and the failing test as its inputs (the no-parent-authored-diff law in `../SKILL.md`). Same for the throwaway symptom-site patch in D3, and for reverting it.
+
 ### Step 3 (verify)
 
 - The new failing test passes.

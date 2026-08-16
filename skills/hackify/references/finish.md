@@ -194,6 +194,8 @@ The touched-scope quality gate. The goal is the **best version**: files this spr
 - **yolo**, auto-fix all pre-existing issues in the touched files, no prompt.
 - **Too large for this sprint**, defer to a numbered Retrospective follow-up (file:line + rationale) ONLY with explicit user sign-off. Never silently leave.
 
+**Whoever approves it, the parent does not write it.** Cleanup edits are code changes, so they go through dispatched agents under a file allowlist like every other change (the no-parent-authored-diff law in `SKILL.md`). Group the approved fixes into file-disjoint clusters and dispatch one agent per cluster in a single message; the parent runs the detection, holds the wizard, and re-verifies afterwards.
+
 Whole-repo pre-existing issues OUTSIDE the touched files stay out of scope, that is a full-codebase audit (`/hackify:lawkeeper`), not the cleanup sweep. The difference is scope, not engine: the sweep runs the same bundled scanner, pointed only at what this sprint touched. Evidence record example: *"Class (g) touched-scope: 2 pre-existing lint errors in `lib/utils.ts` (fixed, approved); 1 pre-existing `clean.debt-marker` in `lib/utils.ts:88` (fixed); 0 dead code; touched files now clean."*
 
 **Also sweep for leaked runtime state.** The Phase 4 ship gate starts real processes. Confirm none survived: no dev server still holding a port, no container left up, no temporary `.env.local` or fixture file staged into the diff. A leaked process is a class (d) finding and it will break the next boot.

@@ -17,7 +17,7 @@ Every mode ends with work that is **proven to run**, not merely proven to compil
 - **The ship gate in Phase 4** (`references/ship-gate.md`). Build, boot, smoke the touched flow. A leg is blocking whenever the diff touched something that leg's target consumes, a written skip otherwise, never silently absent.
 - **A coherence reviewer in every review wave** (Reviewer F). Parallel waves are what make hackify fast and also what let two halves of a feature disagree; F is the only lens that checks producer against consumer.
 - **Refute before you fix, and exit on a settled diff.** Findings are judged by adversarial refuters before a fix is spent on them, and the review loop may only exit when a clean round scanned the diff that is actually on disk.
-- **Maximum orchestration tier and a self-driving task loop** ([references/orchestration.md](references/orchestration.md)). Every mandatory fan-out runs at the heaviest orchestration the runtime offers (Claude Code: `ultracode` in scope plus the Workflow tool), and the workflow re-enters itself across turns until the phase ledger is fully ticked (Claude Code: `/loop` self-paced on `continue work on <slug>`). Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
+- **Maximum orchestration tier and a self-driving task loop** ([references/orchestration.md](references/orchestration.md)). Both are **tool calls you make**, not a posture you describe. A pipelined fan-out (a wave that feeds per-task verification, a reviewer panel that feeds per-finding refutation) is dispatched through the **Workflow tool**, whose opt-in these very instructions satisfy; a flat same-shaped batch stays a single parallel subagent message. And any turn that ends with a phase-ledger item still open **invokes the `loop` skill** self-paced on `continue work on <slug>`. A turn that leaves work open without that call has dropped the task. Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
 
 ## When to invoke
 
@@ -319,7 +319,7 @@ Non-trivial fixes go through a batched approval wizard (propose 2-3 options, ask
 | g | Pre-existing errors + dead code in touched files (lint/type/test failures, dead code) | detect against the sprint-start baseline; surface and **offer to fix** so touched files end with nothing a reviewer would flag (auto-fix in yolo). Defer only if too large, with explicit user sign-off. |
 | h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
 
-If any class finds defects, fix them inline before archiving; if a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. The touched-scope goal is the **best version**, zero outstanding lint/type/test/dead-code issues in files this sprint changed; whole-repo pre-existing issues stay out of scope (that is `/hackify:lawkeeper`'s job). Detailed audit + baseline commands per class: `references/finish.md`.
+If any class finds defects, **dispatch a cleanup agent per file-disjoint group, in one message**, to fix them before archiving; the parent audits and aggregates, it does not edit. If a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. The touched-scope goal is the **best version**, zero outstanding lint/type/test/dead-code issues in files this sprint changed; whole-repo pre-existing issues stay out of scope (that is `/hackify:lawkeeper`'s job). Detailed audit + baseline commands per class: `references/finish.md`.
 
 **Step D, archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory, 3-8 bullets on what surprised, what to remember. This is phase-ledger item **6c**; its exit artifact (the doc physically in `done/` with `status: done`) is the **hard precondition for Step F**. **Do not print the summary or emit the report until this move is complete**, the summary is the reward for archiving, not a substitute.
 
@@ -355,11 +355,13 @@ If any class finds defects, fix them inline before archiving; if a defect is too
 
 ---
 
-## Parallel agents (the default, not the exception)
+## Parallel agents (mandatory on code, never a judgment call)
 
-Whenever 2+ pieces of work are independent, **dispatch foreground subagents in parallel in a single message**. Never sequential when independent.
+**The parent never authors a diff.** Every change to code, in every phase and every mode, is written by a dispatched implementer agent under a file allowlist. The parent plans, dispatches, aggregates, verifies and reviews; it does not type the change itself. This binds for a one-line typo exactly as it binds for a new module. It is not conditional on task size, wave width, diff size, or how obvious the fix looks, and it is never something to ask the user to turn on.
 
-**Runtime caveat (honest about degradation).** Parallel dispatch needs a subagent primitive. On the **native tier** (Claude Code, OpenCode) these phases fan out concurrently. On the **best-effort tier** (Codex CLI/App, Gemini CLI, Cursor, no subagent primitive, see `references/runtime-adapters.md`) the *same mandatory phases still run*, but **inline and sequentially**, you keep the rigor, you lose the wall-clock win. The workflow degrades concurrency, never coverage; it does not silently skip a phase on a runtime that can't parallelize. Runtimes with structured-output subagents may return reviewer/scout findings as machine-readable data instead of prose tables, see `references/runtime-adapters.md`.
+Whenever 2+ pieces of work are independent, **dispatch foreground subagents in parallel in a single message**. Never sequential when independent. A wave that looks like one task gets split first; only a genuinely atomic change dispatches alone, and the wave log records why it could not be split.
+
+**Runtime caveat (honest about degradation).** Parallel dispatch needs a subagent primitive. On the **native tier** (Claude Code, OpenCode) these phases fan out concurrently. On the **best-effort tier** (Codex CLI/App, Gemini CLI, Cursor, no subagent primitive, see `references/runtime-adapters.md`) the *same mandatory phases still run*, but **inline and sequentially**, you keep the rigor, you lose the wall-clock win. The workflow degrades concurrency, never coverage; it does not silently skip a phase on a runtime that can't parallelize. **This is the only carve-out to the no-parent-authored-diff law, and it degrades the machinery, not the discipline:** with no subagent primitive the parent executes the implementer prompt itself, against the same file allowlist and the same Template Contract, and records `dispatch degraded, no subagent primitive` in the wave log. Never a free-hand edit. Runtimes with structured-output subagents may return reviewer/scout findings as machine-readable data instead of prose tables, see `references/runtime-adapters.md`.
 
 **Every sub-agent prompt conforms to the canonical Template Contract** in `references/parallel-agents/template-contract.md`, the 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY [review-only] / OUTPUT) with `{{snake_case}}` placeholders. Binding because Haiku-class models read these prompts; the structure prevents soft-language / missing-verification / unanchored-severity failure modes from the v0.1.0 post-mortem. New templates MUST conform.
 
@@ -370,12 +372,15 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 | 1 | Research, different code areas, refs, questions | optional |
 | 2.5 | Spec self-review, 3 reviewers scrutinize work-doc | MANDATORY |
 | 3 | Implementation waves, one agent per task (parent runs both scouts at wave-end) | MANDATORY |
-| 3b | Debug evidence gathering, different component boundaries | optional |
-| 4 | Cross-module verification, tests in different packages | optional |
+| 3b | Debug evidence gathering, different component boundaries | optional (read-only) |
+| 3b | The fix that closes the winning hypothesis | MANDATORY (it is a code change) |
+| 4 | Cross-module verification, tests in different packages | optional (read-only) |
 | 5 | Multi-reviewer code review, security/quality-and-law/plan/performance/coherence lenses, plus design conformance on UI-bearing diffs | MANDATORY (non-trivial diffs) |
 | 5 | Adversarial refuters over the decision table, before any fix is applied | MANDATORY (non-trivial diffs) |
+| 5 | Applying every surviving finding in the address-all loop | MANDATORY (it is a code change) |
+| 6 C.5 | Cleanup edits inside the touched files | MANDATORY (it is a code change) |
 
-**Do NOT use parallel agents for:** tasks sharing a file in the same wave (wave planner splits them); tightly-coupled investigations where each finding informs the next; one-line typo fixes (overhead exceeds value). Templates in `references/parallel-agents/README.md`.
+**Do NOT use parallel agents for:** tasks sharing a file in the same wave (the wave planner splits them across waves); tightly-coupled investigations where each finding informs the next. Both are constraints on how agents are batched, neither is licence to write the code yourself. Templates in `references/parallel-agents/README.md`.
 
 ---
 
@@ -460,6 +465,9 @@ Load reference files **only when the phase needs them**, keeps context lean.
 | "Tests after will be fine, I know what I'm building" | Tests-after pass immediately and prove nothing. |
 | "One more fix attempt before debug mode" | The 2-attempt limit is the circuit breaker. Honor it. |
 | "I can self-review a 600-LOC diff" | No, you can't. Escalate. |
+| "It's a one-line fix, dispatching an agent is overkill" | The no-parent-authored-diff law has no size threshold. Dispatch it. |
+| "This wave only has one task, so there's nothing to parallelize" | Try to split it first. Only a genuinely atomic change dispatches alone, and the wave log says why. |
+| "I'll write this one myself and have an agent review it" | Backwards. The agent writes, you review. The parent never authors a diff. |
 | "The user said 'just do X', skip the questionnaire" | If X has any ambiguity, batched questionnaire still applies. Trim it, don't skip it. |
 | "Lint suppression is fine just this once" | Zero tolerance. Fix the root cause. |
 | "Tests are green, so the app works" | Tests import modules. They do not start a server, read env, or run migrations. Run the ship gate. |
