@@ -7,7 +7,7 @@ description: One unified end-to-end dev workflow for ANY substantive task, featu
 
 Hackify replaces plan/spec/brainstorm/execute/verify/review/finish ceremony with **one workflow + one markdown work-doc per task**. The work-doc is spec, plan, progress tracker, review log, and post-mortem in one file. Resume across sessions via "continue work on `<slug>`".
 
-Self-contained. **Never call other skills**, third-party plugins may not be installed. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined here or in `references/`. Running a **script bundled inside this plugin** by path (the lawkeeper scanner behind the law-scout, `references/law-scout.md`) is not a skill call: no sibling skill is invoked, no sibling workflow is entered, and the file ships with hackify.
+Self-contained. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined here or in `references/`. **Three tiers govern what may be invoked, and only the third is banned.** (a) **Runtime-native skills** (`loop`) are allowed, but only where `references/runtime-adapters.md` maps them to a primitive with a written degrade cell, and the phase must still complete when the skill is absent. (b) **Skills that ship inside this plugin** (`/codewalk` at Phase 6 Step D.5, `/hackify:summary`) are allowed, they install together. Running a **bundled script** by path (the lawkeeper scanner behind the law-scout, `references/law-scout.md`) is not a skill call at all. (c) **Third-party plugin skills are never invoked**, they may not be installed. When in doubt, inline the behavior.
 
 ## The ship bar (always-on, no opt-in)
 
@@ -17,7 +17,7 @@ Every mode ends with work that is **proven to run**, not merely proven to compil
 - **The ship gate in Phase 4** (`references/ship-gate.md`). Build, boot, smoke the touched flow. A leg is blocking whenever the diff touched something that leg's target consumes, a written skip otherwise, never silently absent.
 - **A coherence reviewer in every review wave** (Reviewer F). Parallel waves are what make hackify fast and also what let two halves of a feature disagree; F is the only lens that checks producer against consumer.
 - **Refute before you fix, and exit on a settled diff.** Findings are judged by adversarial refuters before a fix is spent on them, and the review loop may only exit when a clean round scanned the diff that is actually on disk.
-- **Maximum orchestration tier and a self-driving task loop** ([references/orchestration.md](references/orchestration.md)). Both are **tool calls you make**, not a posture you describe. A pipelined fan-out (a wave that feeds per-task verification, a reviewer panel that feeds per-finding refutation) is dispatched through the **Workflow tool**, whose opt-in these very instructions satisfy; a flat same-shaped batch stays a single parallel subagent message. And any turn that ends with a phase-ledger item still open **invokes the `loop` skill** self-paced on `continue work on <slug>`. A turn that leaves work open without that call has dropped the task. Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
+- **Maximum orchestration tier, a self-driving task loop, and an independent completion sentinel** ([references/orchestration.md](references/orchestration.md)). The first two are **tool calls you make**, not a posture you describe. A pipelined fan-out (a wave that feeds per-task verification, a reviewer panel that feeds per-finding refutation) is dispatched through the **Workflow tool**, whose opt-in these very instructions satisfy; a flat same-shaped batch stays a single parallel subagent message. And any turn that ends with a phase-ledger item still open **invokes the `loop` skill** self-paced on `continue work on <slug>`. A turn that leaves work open without that call has dropped the task. And every task hands the user a paste-ready `/goal <condition>` line so a **separate evaluator**, not you, rules on whether the task is finished; you can print that line but you can never set it yourself, and the driver's stop conditions outrank the evaluator. Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
 
 ## When to invoke
 
@@ -103,7 +103,7 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 3. **Task granularity.** Each task independently testable and committable. Break "Add invitation expiry" into "Add `expires_at` column + migration", "Reject expired tokens in invitations service", "Show 'expired' state in UI", "Backend test", "Frontend test". Default: one commit per task.
 4. **No placeholders.** No "TBD", no "implement error handling later", no "similar to T2". Decompose vague tasks now.
 5. **Show the doc.** Paste rendered doc in chat or summarize and link. Ask: *"Sign off on this plan or call out anything to change?"*
-6. **GATE.** Wait for explicit "go" / "approved" / "yes" before Phase 3.
+6. **GATE.** Wait for explicit "go" / "approved" / "yes" before Phase 3. The turn ends here; Phase 2.5 opens the next one.
 
 **On pushback,** edit doc, show diff, re-ask. Iterate until signed off. See `references/work-doc-template.md`.
 
@@ -112,6 +112,8 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 ## Phase 2.5, Spec Self-Review (parallel, mandatory)
 
 **Goal.** Catch inconsistent or conflicting logic in the work-doc *before* code is written. Cheap on paper; expensive after 200 LOC against a flawed spec.
+
+**First line of this turn, print the completion sentinel.** Sign-off just landed, so this is the first turn where a finish line can be stated and the first where the native tool is not blocked by plan mode. Emit one fenced `/goal <condition>` line (≤500 chars) naming the archived work-doc plus the green triad and the ship-gate rows, so an evaluator outside this conversation can rule on "done" instead of you. **You print it; only the user can set it**, so never claim a goal is active, never propose one from a subagent, never wait on the answer, and never soften the condition later to make it pass. Shape, the per-mode wording, and who wins when the sentinel and the iteration driver disagree: [references/orchestration.md](references/orchestration.md).
 
 1. **Dispatch 3 foreground reviewers in parallel in ONE message.** Each gets a self-contained prompt + absolute work-doc path:
    - **Reviewer A. Internal consistency + goal drift.** Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach. **Drift-check:** trace every Sprint Backlog task + DoD bullet to the Primary Goal & Guardrails anchor, a task serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
@@ -446,7 +448,7 @@ Hackify talks in **B2 (upper-intermediate) English** so non-native readers can f
 | `references/perf-scout.md` | deterministic perf-scout protocol (run: every Phase 3 wave-end + Phase 5 start) |
 | `references/law-scout.md` | deterministic engineering-law scan, the bundled lawkeeper scanner scoped to touched files (same two run points) |
 | `references/ship-gate.md` | runtime proof protocol, build + boot + smoke (run: Phase 4, every mode) |
-| `references/orchestration.md` | orchestration tier (`ultracode`) + iteration driver (`/loop`), both on by default; the standing authorization and its opt-out |
+| `references/orchestration.md` | orchestration tier (`ultracode`) + iteration driver (`/loop`) + completion sentinel (`/goal`), all on by default; the standing authorization, its opt-out, and who wins when the sentinel and the driver disagree |
 | `references/parallel-agents/` | parallel subagent dispatch templates (subdir index: `README.md`; canonical template contract: `template-contract.md`) |
 | `evals/evals.json` | optional eval harness |
 
@@ -477,12 +479,14 @@ Load reference files **only when the phase needs them**, keeps context lean.
 | "Each agent's piece passed, so the feature works" | Wave agents build blind to each other. Reviewer F is the only check that the pieces agree. |
 | "I'll `/loop` this phase until it's clean" | Wrong layer. The iteration driver carries the TASK across phases; the review and debug loops stay inline inside their phase. |
 | "The gate is open, I'll loop and check back" | A gate is a question only the user can answer. Looping at one burns tokens waiting for a human. Stop and surface. |
+| "I set the session goal, so completion is now checked" | You cannot set it. Print the `/goal` line and let the user press the key. Claiming an evaluator is watching when none is is worse than having no sentinel at all. |
+| "The goal condition passed, so we're done" | Only if the ledger agrees. A condition that passes with phases still open was written too loose. Finish them and say the condition under-specified the work. |
 
 ---
 
 ## Runtime primitives (where the tool names go)
 
-This SKILL.md uses **runtime-primitive names** (wizard tool / subagent dispatcher / file-read op / file-write op / file-edit op / search / shell / todo tracker / orchestration tier / iteration driver) rather than Claude-Code-specific tool names. Each target runtime maps these primitives to its own native tool via `references/runtime-adapters.md`. The mapping is the responsibility of the runtime, not the workflow, hackify's design law is identical across all 7 supported runtimes.
+This SKILL.md uses **runtime-primitive names** (wizard tool / subagent dispatcher / file-read op / file-write op / file-edit op / search / shell / todo tracker / orchestration tier / iteration driver / completion sentinel) rather than Claude-Code-specific tool names. Each target runtime maps these primitives to its own native tool via `references/runtime-adapters.md`. The mapping is the responsibility of the runtime, not the workflow, hackify's design law is identical across all 7 supported runtimes.
 
 ## One-line summary
 

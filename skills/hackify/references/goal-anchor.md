@@ -48,9 +48,16 @@ The anchor has teeth. Work is traced back to it at three points.
 
 A clean pass means every unit of work traces to an In-Scope bullet and no unit violates a Guardrail or Non-Goal.
 
+### The fourth point: an evaluator that is not you
+
+The three points above are all self-checks, the workflow grading its own work. The **completion sentinel** ([orchestration.md](orchestration.md)) adds a fourth that is not: the anchor's Success Signals are distilled into one ≤500-character condition, printed as a paste-ready `/goal <condition>` line, and re-checked after every turn by an evaluator outside this conversation.
+
+Distilling is the skill. The anchor lists every signal; the sentinel names only the **exit artifact** that cannot be true unless the signals are. Prefer files, exit codes and artifacts over adjectives: `docs/work/done/<date>-<slug>.md exists with status: done` is rulable, "the refactor is complete" is not. Print the line; only the user can set it, and only the user clears it (`/goal clear`). Never propose one from a subagent, and never soften a condition later to make it pass.
+
 ## See also
 
 - [work-doc-template.md](work-doc-template.md), the `## Primary Goal & Guardrails` section skeleton.
 - [parallel-agents/phase-2.5-spec-review-a-consistency.md](parallel-agents/phase-2.5-spec-review-a-consistency.md). Reviewer A drift-check.
 - [parallel-agents/phase-5-multi-review.md](parallel-agents/phase-5-multi-review.md). Reviewer C drift-check.
 - [clarify-questions/universal-preamble.md](clarify-questions/universal-preamble.md), the Phase 1 goal-anchor question.
+- [orchestration.md](orchestration.md), the completion sentinel this anchor's Success Signals distil into, plus who wins when it and the iteration driver disagree.

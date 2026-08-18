@@ -2,9 +2,9 @@
 
 ## Why this file exists
 
-hackify is authored against 10 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
+hackify is authored against 11 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver, completion sentinel) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
 
-## The 10 primitives
+## The 11 primitives
 
 - `wizard tool`, multi-question batched interactive question prompt to the user.
 - `subagent dispatcher`, launches a foreground subagent with a self-contained prompt and waits for the result.
@@ -16,6 +16,7 @@ hackify is authored against 10 abstract primitives (wizard, subagent, file-read,
 - `todo tracker`, a trackable, ordered to-do list surfaced to the user; the substrate for the phase ledger (`phase-ledger.md`). Where a runtime has no native list, the fallback is an in-chat markdown checklist, the phase ledger degrades to visible-but-not-interactive, never absent.
 - `orchestration tier`, how much parallel machinery a mandatory fan-out gets (Phase 2.5 reviewers, Phase 3 waves, Phase 5 reviewers + refuters). Hackify runs at MAXIMUM tier by default in every mode. Contract, standing authorization, and the opt-out phrases: [orchestration.md](orchestration.md).
 - `iteration driver`, what re-enters the workflow across turns until the phase ledger is fully ticked. On by default; operates ABOVE the phases, never inside one. Same contract file.
+- `completion sentinel`, a one-line completion condition an INDEPENDENT evaluator re-checks after every turn, so "done" is not the parent's own opinion. On by default in every mode; parent-only, never proposed from a subagent. Unlike the other two it has no reliable tool call, the parent always prints a paste-ready line and calls the native tool only when it is genuinely in scope. Same contract file.
 
 ## Per-runtime mapping table
 
@@ -31,6 +32,7 @@ hackify is authored against 10 abstract primitives (wizard, subagent, file-read,
 | todo tracker | `TodoWrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, hosted UI; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist | `todowrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist |
 | orchestration tier | `ultracode` keyword in scope + the `Workflow` tool for fan-outs a flat batch serves poorly | n/a, no subagent primitive; max tier means the phases run inline and sequentially | n/a, same as Codex CLI | n/a, same as Codex CLI | largest parallel `task` dispatch the mode supports | n/a, no subagent primitive; phases run inline | n/a, no subagent primitive; phases run inline |
 | iteration driver | `/loop` in self-paced mode carrying `continue work on <slug>` | n/a, no scheduler; parent runs phases to completion in-turn, user re-prompts to resume | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry |
+| completion sentinel | conditional, `/goal <condition>` printed for the user to paste (needs a trusted workspace and unrestricted hooks); the `ProposeGoal` tool only when it is in scope, parent-only, blocked in plan mode | n/a, no session-goal primitive; degrades to the anchor's Success Signals + Phase 4 acceptance rows | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no session-goal primitive; same degrade | n/a, no session-goal primitive; same degrade | n/a, no session-goal primitive; same degrade |
 
 ## Plugin model support matrix
 
@@ -46,9 +48,11 @@ hackify is authored against 10 abstract primitives (wizard, subagent, file-read,
 
 ## Native-tier enhancements (optional, never load-bearing)
 
-The 8 primitives above are the only load-bearing contract: every workflow phase runs on them alone,
-on every tier. The enhancements below upgrade ergonomics or wall-clock time on runtimes that support
-them, nothing more. Each one carries a stated degrade path, and no workflow phase may hard-require
+The first 8 primitives above (wizard through todo tracker) are the only load-bearing contract: every
+workflow phase runs on them alone, on every tier. The last 3 (orchestration tier, iteration driver,
+completion sentinel) raise the ceiling where a runtime supports them and degrade to a stated fallback
+where it does not, so no phase may hard-require one. The enhancements below upgrade ergonomics or
+wall-clock time on runtimes that support them, nothing more. Each one carries a stated degrade path, and no workflow phase may hard-require
 an enhancement; a phase that cannot run without one is a portability bug. (The deterministic
 perf-scout is deliberately absent from this list: it rides the `shell` primitive and runs identically
 on every tier.)
@@ -84,8 +88,8 @@ inside the table cells, per this file's convention:
 
 ## Host-interpreter dependencies (skills that ship an executable engine)
 
-The eight primitives are interpreter-free: the core hackify workflow is pure markdown and runs
-wherever the `shell` primitive runs. Two companion skills ship an executable engine that rides
+The eight load-bearing primitives are interpreter-free: the core hackify workflow is pure markdown
+and runs wherever the `shell` primitive runs. Two companion skills ship an executable engine that rides
 the `shell` primitive and therefore assumes a host interpreter on PATH, honest to state, since
 no runtime adapter can conjure one:
 

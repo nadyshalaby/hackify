@@ -76,15 +76,16 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[75e] SKILL.md carves out bundled-script execution from the no-skill-calls rule"
-# SKILL.md says "Never call other skills". Running the bundled lawkeeper
-# scanner by path is not a skill call, and the exemption must be stated
-# where the rule is, or a future reader resolves the conflict by dropping
-# the scout.
+yellow "[75e] SKILL.md carves out bundled-script execution from the skill-call rule"
+# SKILL.md's three-tier skill-call rule (v0.9.4, formerly a blanket "Never
+# call other skills") bans third-party plugin skills. Running the bundled
+# lawkeeper scanner by path is not a skill call at all, and the exemption
+# must be stated where the rule is, or a future reader resolves the conflict
+# by dropping the scout.
 if grep -qF 'is not a skill call' skills/hackify/SKILL.md; then
   green "  ok   skills/hackify/SKILL.md states the bundled-script carve-out"
 else
-  red "  FAIL skills/hackify/SKILL.md does not carve bundled-script execution out of 'Never call other skills'"
+  red "  FAIL skills/hackify/SKILL.md does not carve bundled-script execution out of the three-tier skill-call rule"
   FAILED=$((FAILED + 1))
 fi
 
@@ -144,13 +145,16 @@ done <<MIRROR_EOF
 $MIRROR_PAIRS
 MIRROR_EOF
 
-yellow "[75i] orchestration tier + iteration driver are wired as defaults in every mode"
-# `ultracode` and `/loop` became workflow DEFAULTS in v0.9.0. Both are
-# Claude-Code-native tokens, so they live behind the two abstract primitives
-# in runtime-adapters.md rather than in the workflow body. Three ways this
-# can silently rot: a mode stops citing the contract, the runtime mapping
-# loses one of the native tokens, or the standing authorization loses its
-# opt-out (which would make a default grant unrevocable).
+yellow "[75i] orchestration tier + iteration driver + completion sentinel are wired as defaults in every mode"
+# `ultracode` and `/loop` became workflow DEFAULTS in v0.9.0, `/goal` joined
+# them in v0.9.4. All three are Claude-Code-native tokens, so they live behind
+# abstract primitives in runtime-adapters.md rather than in the workflow body.
+# Four ways this can silently rot: a mode stops citing the contract, the
+# runtime mapping loses one of the native tokens, the standing authorization
+# loses its opt-out (which would make a default grant unrevocable), or the
+# sentinel drifts from "print a line the user presses" into a claim that the
+# workflow sets the goal itself (it cannot, ProposeGoal is absent from most
+# sessions and throws in agent contexts).
 ORCH_REF="skills/hackify/references/orchestration.md"
 ADAPTERS_REF="skills/hackify/references/runtime-adapters.md"
 
@@ -171,7 +175,7 @@ for m in $SHIP_BAR_MODES; do
 done
 
 # The native tokens must resolve through the adapter table, not float free.
-for tok in 'ultracode' '/loop'; do
+for tok in 'ultracode' '/loop' '/goal <condition>'; do
   if grep -qF -- "$tok" "$ADAPTERS_REF"; then
     green "  ok   $ADAPTERS_REF maps '$tok' to a primitive"
   else
@@ -179,7 +183,7 @@ for tok in 'ultracode' '/loop'; do
     FAILED=$((FAILED + 1))
   fi
 done
-for prim in 'orchestration tier' 'iteration driver'; do
+for prim in 'orchestration tier' 'iteration driver' 'completion sentinel'; do
   if grep -qF -- "$prim" "$ADAPTERS_REF"; then
     green "  ok   $ADAPTERS_REF declares the '$prim' primitive"
   else
@@ -198,6 +202,45 @@ for m in $SHIP_BAR_MODES; do
     FAILED=$((FAILED + 1))
   fi
 done
+
+# The completion sentinel must appear in EVERY mode, and it must appear as a
+# line the parent PRINTS for the user, never as something the workflow claims
+# to set. 'paste-ready' is the honesty token; 'from a subagent' is the
+# parent-only fence the runtime enforces by throwing.
+for m in $SHIP_BAR_MODES; do
+  for tok in '/goal <condition>' 'paste-ready' 'from a subagent'; do
+    if grep -qF -- "$tok" "$m"; then
+      green "  ok   $m carries the completion sentinel token '$tok'"
+    else
+      red "  FAIL $m missing '$tok' (completion sentinel not wired, or wired as a claim the parent sets the goal)"
+      FAILED=$((FAILED + 1))
+    fi
+  done
+done
+
+# Anchor the instruction to the turn that actually runs it: Phase 2.5, the
+# first turn after the Phase 2 gate. It must NOT live under the gate's numbered
+# steps, a step placed after a blocking wait is never reached. Matching on
+# '/goal <condition>' rather than a bare '/goal' is load-bearing twice over: a
+# bare match is satisfied by the file-map row (green on a workflow that never
+# prints the line) and by 'references/goal-anchor.md', which is linked twice
+# inside this very region and contains that substring.
+SENTINEL_REGION="$(awk '/^## Phase 2.5,/{f=1} /^## Phase 3, Implement/{f=0} f' skills/hackify/SKILL.md)"
+if printf '%s' "$SENTINEL_REGION" | grep -qF -- '/goal <condition>'; then
+  green "  ok   skills/hackify/SKILL.md prints the sentinel inside Phase 2.5 (the post-gate turn)"
+else
+  red "  FAIL skills/hackify/SKILL.md does not print the '/goal <condition>' line in Phase 2.5; a sentinel placed under the Phase 2 gate's numbered steps is never reached"
+  FAILED=$((FAILED + 1))
+fi
+
+# Sentinel and iteration driver can disagree; without a stated precedence they
+# fight and the token budget loses. The contract must settle it explicitly.
+if grep -qF -- 'Precedence, when the sentinel and the driver disagree' "$ORCH_REF"; then
+  green "  ok   $ORCH_REF settles sentinel-vs-driver precedence"
+else
+  red "  FAIL $ORCH_REF does not settle precedence between the completion sentinel and the iteration driver"
+  FAILED=$((FAILED + 1))
+fi
 
 # The iteration driver must never be pointed at an intra-phase loop.
 if grep -qF 'never the iteration driver' "$ORCH_REF"; then
