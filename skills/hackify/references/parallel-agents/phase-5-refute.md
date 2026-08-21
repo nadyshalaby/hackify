@@ -90,9 +90,11 @@ counter-citation.
    in one line as a falsifiable claim ("calling X with Y produces Z").
    A finding you cannot restate as a falsifiable claim is itself a
    defect, report it as REFUTED with reason `unfalsifiable as written`.
-2. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}`
-   and open the post-image of every file:line the batch cites. Read
-   the surrounding function end-to-end, not the cited line alone.
+2. From `{{project_root}}`, open the post-image of every file:line the
+   batch cites, scoping the diff to those paths
+   (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
+   reading the whole range. Read the surrounding function end-to-end,
+   not the cited line alone.
 3. On the `reproduction` lens (and inside `batched`): trace the real
    call path to the cited line. Name the entry point, the inputs that
    would reach it, and every guard, early return, validation, or type

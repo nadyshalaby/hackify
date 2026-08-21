@@ -38,28 +38,47 @@ Bias against: deferring to author intent on "it works in practice".
 4. `{{work_doc_path}}`, absolute filesystem path to the work-doc that
    motivated the diff.
 
+5. `{{repo_brief}}`, the sprint's shared repo-context brief (stack, test
+/ lint / typecheck commands, layering rules, where things live). Treat
+it as given and do NOT re-derive it; spend your reads on the diff
+   instead.
+6. `{{review_scope}}`, the git pathspec list the dispatcher assigned
+   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
+   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
+   A value starting with `settle ` marks the settle round; strip that word
+   and use the rest as pathspecs. The scope bounds what you DIFF, not what
+   you may READ, open a file outside it when a finding needs the contract
+   around it and say why. Echo the value verbatim as the first line of your
+   report. Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of security and correctness defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`.
 
 **METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}`
+1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}`
    and read the full diff. Build a list of {file → hunks touched}.
-2. Read the work-doc at `{{work_doc_path}}`. Note any security-relevant
-   intent (auth, session handling, CORS, secrets, migrations) so you
-   can compare the diff against stated intent.
-3. For each touched file, audit AUTH FLOWS line by line: cookies,
+   **Read the hunks and the context around them, not whole files.** Open a
+   file in full only when a candidate finding needs the contract around it
+   (the function's other branches, the type it returns, the guard above it),
+   and say in the finding why you opened it.
+2. Read `## 2. Clarifying Q&A`, `## 3. Acceptance Criteria` and
+   `## 4. Approach` from the work-doc at `{{work_doc_path}}`, and only
+   those. Note any security-relevant intent (auth, session handling,
+   CORS, secrets, migrations) so you can compare the diff against
+   stated intent. Daily Updates, Sprint Review and Retrospective grow
+   all sprint and hold nothing your lens checks, skip them.
+3. For each touched hunk, audit AUTH FLOWS line by line: cookies,
    sessions, OAuth `state`, invitation tokens, and role checks.
-4. For each touched file, audit PERMISSION BOUNDARIES line by line:
+4. For each touched hunk, audit PERMISSION BOUNDARIES line by line:
    every new route or endpoint has the correct guard.
-5. For each touched file, audit INJECTION risks line by line: SQL
+5. For each touched hunk, audit INJECTION risks line by line: SQL
    string concatenation, path traversal, and command injection.
-6. For each touched file, audit PII AND SECRETS line by line: no
+6. For each touched hunk, audit PII AND SECRETS line by line: no
    hardcoded secrets, no PII in logs, no leaked tokens.
-7. For each touched file, audit MIGRATIONS line by line: idempotent,
+7. For each touched hunk, audit MIGRATIONS line by line: idempotent,
    guarded by existence checks, reversible or explicitly OK to roll
    forward.
-8. For each touched file, audit RACE CONDITIONS line by line:
+8. For each touched hunk, audit RACE CONDITIONS line by line:
    concurrent writes, cache invalidation, and transaction boundaries.
 9. For every defect, cite `file:line` from the diff (use the
    post-image line number). Quote the offending snippet inline if it
@@ -83,6 +102,9 @@ If ANY answer is "no", loop back to METHOD.
    not verify the safe path against live docs or live code? (yes / no)
 6. Are all Critical findings reproducible from the diff alone, without
    reference to private knowledge or guesses? (yes / no)
+
+7. Did you echo the `{{review_scope}}` value you received as the
+   first line of your report? (yes / no)
 
 **SEVERITY**.
 - **Critical**. A defect that ships exploitable risk, data loss, or
@@ -119,6 +141,8 @@ Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verb
 Use this exact report skeleton:
 
 ````
+Scope: <the `{{review_scope}}` value you received, verbatim>
+
 ## Critical
 - `<file>:<line>`, <finding>; standard: <OWASP/CWE/NIST/RFC ref>.
 
@@ -135,6 +159,7 @@ Use this exact report skeleton:
 4. <yes|no>
 5. <yes|no>
 6. <yes|no>
+7. <yes|no>
 ````
 
 If a findings section has no entries, write `None.` on its own line

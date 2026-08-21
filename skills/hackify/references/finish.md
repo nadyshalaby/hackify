@@ -369,7 +369,7 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 
 Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **update log**: one short block per thing that changed, written the way you would explain it to a colleague who was not in the room. This is the artifact the user actually reads, so it is the one place in the whole workflow where the writing matters more than the precision. It is gated on the archive (Step D runs first). The one exception is a mid-flight `/hackify:summary`, which prints to chat and archives nothing.
 
-**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` beside the archived work-doc. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). Authoring + placeholder-token map: [html-report.md](html-report.md).
+**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` beside the archived work-doc. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). **You do not write that HTML by hand**, you emit a JSON payload and `skills/hackify/scripts/render-report.py` renders the page, charts and all. Payload shape and the command: [html-report.md](html-report.md).
 
 ### The shape (one block per update, `----` between them)
 

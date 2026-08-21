@@ -55,14 +55,30 @@ Bias against: accepting "they are close enough" between two shapes.
    reviewer MUST NOT infer this map from task prose, the dispatcher is
    responsible for providing it.
 
+6. `{{repo_brief}}`, the sprint's shared repo-context brief (stack, test
+/ lint / typecheck commands, layering rules, where things live). Treat
+it as given and do NOT re-derive it; spend your reads on the diff
+   instead.
+7. `{{review_scope}}`, the git pathspec list the dispatcher assigned
+   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
+   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
+   A value starting with `settle ` marks the settle round; strip that word
+   and use the rest as pathspecs. The scope bounds what you DIFF, not what
+   you may READ, open a file outside it when a finding needs the contract
+   around it and say why. Echo the value verbatim as the first line of your
+   report. Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of cross-module coherence defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, each naming both
 sides of the disagreement.
 
 **METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}`
-   and read the full diff. Read `{{work_doc_path}}` for the intended
+1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}`
+   and read the full diff.
+   **Read the hunks and the context around them, not whole files.** Open a
+   file in full only when a candidate finding needs the contract around it
+   (the function's other branches, the type it returns, the guard above it),
+   and say in the finding why you opened it. Read `{{work_doc_path}}` for the intended
    shape of the feature. Build a list of {file → symbols added,
    changed, or removed}.
 2. Build the SEAM LIST. For every symbol from step 1 that crosses a
@@ -122,6 +138,9 @@ If ANY answer is "no", loop back to METHOD.
 7. Did the dispatching agent provide `{{task_file_index}}`? (yes / no)
 , if no, refuse to proceed.
 
+8. Did you echo the `{{review_scope}}` value you received as the
+   first line of your report? (yes / no)
+
 **SEVERITY**.
 - **Critical**. A disagreement that ships broken behavior or corrupt
   data the type checker cannot catch. Anchored examples:
@@ -156,6 +175,8 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 stated in one line. Use this exact report skeleton:
 
 ````
+Scope: <the `{{review_scope}}` value you received, verbatim>
+
 ## Seam list
 - <symbol>, producer `<file>:<line>` → consumers `<file>:<line>`, … [same-wave: yes|no]
 
@@ -172,7 +193,7 @@ stated in one line. Use this exact report skeleton:
 - <symbol> `<file>:<line>`, zero consumers; work-doc task: <T<n> | none>.
 
 ## Verification
-1., 7. <yes|no>, one line per checklist item.
+1., 8. <yes|no>, one line per checklist item.
 ````
 
 If a section has no entries, write `None.` on its own line under the

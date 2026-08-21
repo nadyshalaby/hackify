@@ -42,6 +42,9 @@ jobs:
       - name: Ban-blocker hook tests
         run: bash hooks/test_block_banned_tokens.sh
 
+      - name: Context-injector hook tests
+        run: bash hooks/test_inject_context.sh
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 

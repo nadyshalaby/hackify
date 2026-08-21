@@ -65,13 +65,17 @@ reference.
 **METHOD**.
 1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}`
    and read the diff in full. Build a list of `{file → hunks touched}`.
+   **Read the hunks and the context around them, not whole files.** Open a
+   file in full only when a candidate finding needs the contract around it
+   (the function's other branches, the type it returns, the guard above it),
+   and say in the finding why you opened it.
 2. Read `{{work_doc_path}}`. Note every Definition-of-Done bullet
    and every locked Q&A answer that bears on `{{specialist_lens}}`.
    Quote each bullet/answer verbatim for citation use.
 3. Read `{{project_rules_path}}` and `{{user_global_rules_path}}`
    (when each exists). Quote verbatim every rule sentence relevant
    to `{{specialist_lens}}`. On conflict, apply the stricter rule.
-4. For each touched file, apply the `{{specialist_lens}}` checklist
+4. For each touched hunk, apply the `{{specialist_lens}}` checklist
    line by line and record every defect with its `file:line` from
    the diff post-image and a ≤3-line quoted snippet.
 5. For every Critical and Important finding, name the standard

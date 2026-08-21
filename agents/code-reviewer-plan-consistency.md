@@ -45,6 +45,18 @@ task T<n>".
    infer this map from task description prose, the dispatcher is
    responsible for providing it.
 
+7. `{{repo_brief}}`, the sprint's shared repo-context brief (stack, test
+/ lint / typecheck commands, layering rules, where things live). Treat
+it as given and do NOT re-derive it; spend your reads on the diff
+   instead.
+8. `{{review_scope}}`, the git pathspec list the dispatcher assigned
+   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
+   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
+   A value starting with `settle ` marks the settle round; strip that word
+   and use the rest as pathspecs. The scope bounds what you DIFF, not what
+   you may READ, open a file outside it when a finding needs the contract
+   around it and say why. Echo the value verbatim as the first line of your
+   report. Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of plan-consistency and scope defects between
 the diff `{{base_sha}}..{{head_sha}}` and the plan in
@@ -53,8 +65,12 @@ the diff `{{base_sha}}..{{head_sha}}` and the plan in
 **METHOD**.
 1. From `{{project_root}}`, run `git diff --stat
    {{base_sha}}..{{head_sha}}` to enumerate every file in the diff.
-   Then run `git diff {{base_sha}}..{{head_sha}}` for full content.
-2. Read the work-doc at `{{work_doc_path}}`. Extract three lists,
+   Then run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}` for full content.
+2. Read `## 1. Original ask` with its `## Primary Goal & Guardrails`
+   block, `## 2. Clarifying Q&A`, `## 3. Acceptance Criteria` and
+   `## 5. Sprint Backlog` from the work-doc at `{{work_doc_path}}`, and
+   only those. Approach, Daily Updates, Sprint Review and Retrospective
+   carry nothing you check. Extract three lists,
    verbatim where the work-doc allows: (a) every DoD bullet (D1, D2,
    …); (b) every Task (T1, T2, …) with its file-allowlist if stated;
    (c) every locked Q&A answer that constrains scope (e.g. "soft
@@ -104,6 +120,9 @@ If ANY answer is "no", loop back to METHOD.
 8. Did you trace every changed hunk to the Primary Goal & Guardrails
    anchor and flag drift? (yes / no)
 
+9. Did you echo the `{{review_scope}}` value you received as the
+   first line of your report? (yes / no)
+
 **SEVERITY**.
 - **Critical**. Plan-vs-diff defects that block release. Anchored
   examples:
@@ -134,6 +153,8 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 skeleton:
 
 ````
+Scope: <the `{{review_scope}}` value you received, verbatim>
+
 ## Critical
 - <finding>, work-doc anchor: <D<n> | T<n> | Q&A answer #<n>>;
   diff anchor: `<file>:<line>` or `<file>` (new).
@@ -153,6 +174,7 @@ skeleton:
 6. <yes|no>
 7. <yes|no>
 8. <yes|no>
+9. <yes|no>
 ````
 
 If a findings section has no entries, write `None.` on its own line

@@ -33,21 +33,20 @@ PA_REVIEW_SINGLE_FILES=(
   "$PA_DIR/phase-2.5-spec-review-b-rules.md"
   "$PA_DIR/phase-2.5-spec-review-c-dependencies.md"
   "$PA_DIR/phase-5-escalation.md"
+  "$PA_DIR/phase-5-multi-review-b-quality.md"
   "$PA_DIR/phase-5-multi-review-d-performance.md"
   "$PA_DIR/phase-5-multi-review-e-design.md"
   "$PA_DIR/phase-5-multi-review-f-coherence.md"
   "$PA_DIR/phase-5-refute.md"
 )
 
-# Multi-template file: holds 3 sub-agent templates under h2 headings.
-# D, E and F live one-per-file in PA_REVIEW_SINGLE_FILES above; D moved out of
-# this file in v0.9.0 when Reviewer B's law-scout hookup pushed it past the
-# 500-LOC cap, and the one-file-per-reviewer layout E already used is now
-# uniform across D/E/F.
+# Multi-template file: holds 2 sub-agent templates under h2 headings.
+# B, D, E and F live one-per-file in PA_REVIEW_SINGLE_FILES above. D moved out
+# in v0.9.0 and B in v0.11.0, both times because a new input pushed this file
+# past the 500-LOC cap. Only A and C remain here.
 PA_MULTI_REVIEW="$PA_DIR/phase-5-multi-review.md"
 PA_MULTI_REVIEW_HEADINGS=(
   "## Phase 5, Multi-reviewer A (security & correctness)"
-  "## Phase 5, Multi-reviewer B (quality & layering)"
   "## Phase 5, Multi-reviewer C (plan consistency & scope)"
 )
 

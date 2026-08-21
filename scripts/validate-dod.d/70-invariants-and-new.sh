@@ -96,6 +96,208 @@ else
   FAILED=$((FAILED + 1))
 fi
 
+yellow "[38b] the always-on injector is session-aware, not per-prompt"
+# v0.11.0. additionalContext persists in the transcript, so re-injecting the
+# same rules text every prompt cost ~64k tokens over a long session and bought
+# nothing. The injector now sends the full text on the first prompt, a pointer
+# after, and a full refresh every Nth prompt. Two ways this rots: the companion
+# disappears (silently reverting to per-prompt injection via the jq degrade
+# path), or a failure path starts emitting NOTHING instead of the full text.
+INJECT_PY="hooks/inject_context.py"
+check_file "$INJECT_PY"
+for tok in 'session_id' 'is_refresh_turn' 'pointer_text'; do
+  check_token_present "$tok" "$INJECT_PY"
+done
+check_token_present "inject_context.py" "hooks/inject-context.sh"
+# The degrade contract: no session identity, unreadable state, or unparseable
+# stdin must fall back to the FULL body, never to an empty injection.
+if grep -qF 'return body' "$INJECT_PY"; then
+  green "  ok   $INJECT_PY degrades to the full rules body"
+else
+  red "  FAIL $INJECT_PY has no full-body degrade path (a failure would drop the law)"
+  FAILED=$((FAILED + 1))
+fi
+check_file "hooks/test_inject_context.sh"
+
 yellow "[39] performance review surfaces registered (Reviewer D agent + perf-scout wiring)"
 check_file "agents/code-reviewer-performance.md"
 check_token_present "perf-scout.md" "skills/hackify/SKILL.md"
+
+yellow "[38c] the v0.11.0 token-reduction changes keep their mechanism"
+# Four behaviours landed in v0.11.0 to cut fan-out cost. Each one is a
+# saving that turns into a silent LOSS of coverage if its mechanism drifts
+# out while the prose that promises it stays. Prose nothing checks is prose
+# that drifts back, so each is pinned here to the artifact that carries it.
+P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
+REVIEWER_B_AGENT="agents/code-reviewer-quality.md"
+REVIEWER_B_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality.md"
+WORK_DOC_TPL="skills/hackify/references/work-doc-template.md"
+
+# (1) The reviewer gate MOVES a lens to B, it never drops one. Reviewer B must
+# take {{folded_lenses}} as an input and actually run the inherited checklist,
+# in BOTH copies of the prompt, or gating A/D off deletes their coverage.
+for f in "$REVIEWER_B_AGENT" "$REVIEWER_B_TPL"; do
+  check_token_present '{{folded_lenses}}' "$f"
+  check_token_present 'residual checklist' "$f"
+  check_token_present '[folded:' "$f"
+done
+check_token_present 'Folding moves a lens, it never removes one.' "$P5_REVIEW"
+check_token_present '{{folded_lenses}}' "$P5_REVIEW"
+
+# (2) The address-all loop may only CLOSE on a full round over the full range.
+# Scoped middle rounds are the saving; letting one of them end the loop would
+# hand back a "settled diff" that no full panel ever saw.
+check_token_present 'The loop may only end on a FULL round' "$P5_REVIEW"
+
+# (3) {{repo_brief}} is a required input on 14 prompts, so it needs a PRODUCER.
+# Phase 2 builds it and the work-doc template holds it; without both, every
+# dispatched agent receives an unfilled placeholder and refuses.
+check_token_present '### Repo Brief' "$WORK_DOC_TPL"
+check_token_present 'Build the Repo Brief' "skills/hackify/SKILL.md"
+
+# (4) Dispatch by registered agent type, do NOT paste the template. Pasting a
+# prompt the agent already carries charges the same text twice, which is the
+# single largest avoidable cost in a review wave.
+check_token_present 'Do not open the template file to paste the prompt' "$P5_REVIEW"
+
+# The companion modes must not describe the pre-0.11.0 world. quick and yolo
+# dispatch the same agents; prose that still says "paste the template" or
+# "5 parallel reviewers" sends two of three modes down the old path.
+check_token_present 'by registered agent type' "skills/yolo/SKILL.md"
+check_token_present 'by registered agent type' "skills/quick/SKILL.md"
+check_token_present 'repo-brief.md' "skills/yolo/SKILL.md"
+check_token_present 'repo-brief.md' "skills/quick/SKILL.md"
+check_token_present 'evidence-gated panel' "skills/yolo/SKILL.md"
+
+# The pointer must carry the law, not merely point at it. This harness
+# summarises long conversations, and a summary can drop the turn that held the
+# full injection; a bare "scroll up" pointer would leave the caps unstated.
+check_token_present 'digest_of' "$INJECT_PY"
+check_token_present 'Core, still binding in full' "$INJECT_PY"
+# "40 lines" and "500 lines" are the same phrase without their subject, so the
+# digest carries the qualifying clause; and a file it cannot digest at all
+# falls back to the full body rather than shipping a bare reference.
+check_token_present 'def qualifier' "$INJECT_PY"
+check_token_present 'if not digest_of(body):' "$INJECT_PY"
+
+# {{folded_lenses}} is refuse-on-absent, so EVERY dispatch site of Reviewer B
+# has to name it, middle rounds and the settle round included. One missing
+# site costs a whole round in a live sprint.
+check_token_present 'Every dispatch of Reviewer B carries' "$P5_REVIEW"
+check_token_present '{{folded_lenses}}' "skills/hackify/references/review-and-verify.md"
+check_token_present 'every round' "skills/yolo/SKILL.md"
+
+yellow "[38d] every routing trigger phrase survives in its skill description"
+# v0.11.0 trimmed all eight skill descriptions to cut always-on cost. The
+# description IS the router: the model picks a skill by matching the user's
+# words against these literals, and the eight skills discriminate against each
+# other on them. Trimming prose is safe; trimming a trigger silently re-routes
+# real user phrases to the wrong skill, and nothing else in CI would notice.
+# Every phrase below was verified present when the trim landed. Removing one
+# is a routing change, so it has to be a deliberate edit here, not a casualty
+# of the next round of compression.
+trigger_check() {
+  local skill="$1"; shift
+  local file="skills/${skill}/SKILL.md"
+  local desc
+  # Read the description field only, folded scalars included, so a trigger that
+  # survives in the skill BODY cannot mask one deleted from the routing surface.
+  # Stop at the closing --- as well as at the next frontmatter key. Without the
+  # --- guard, a description that is the LAST key prints to EOF and the check
+  # would read the whole skill BODY, where a trigger deleted from the routing
+  # surface can still appear and mask its own removal.
+  desc=$(awk 'NR>1 && /^---[ \t]*$/{exit} /^description:/{f=1; print; next} f && /^[a-z-]+:[ \t]/{exit} f{print}' "$file" 2>/dev/null)
+  local missing=0
+  for phrase in "$@"; do
+    case "$desc" in
+      *"$phrase"*) ;;
+      *) red "  FAIL ${skill} description lost trigger '${phrase}'"; FAILED=$((FAILED + 1)); missing=1 ;;
+    esac
+  done
+  [ "$missing" = "0" ] && green "  ok   ${skill} keeps all $# trigger phrases"
+}
+
+trigger_check hackify "use the workflow" "add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit" "auth, crypto, migration, secret, token, password"
+trigger_check quick "quick fix" "small change" "just fix the" "one-line fix" "tiny edit" "small fix" "small bug" "quick patch" "minor tweak" "just rename" "fix typo" "/hackify:quick" "switch to full" "promote to full"
+trigger_check yolo "/hackify:yolo" "/yolo" "yolo it" "go yolo" "just do it" "don't ask me" "no questions" "fully autonomous" "auto mode" "go full auto" "Does NOT trigger on" "just fix it"
+trigger_check lawkeeper "audit my code against our rules" "does this follow CLAUDE.md" "find all rule violations" "validate the architecture"
+trigger_check codewalk "/codewalk" "walk this code" "walk me through" "walk through this" "trace this call stack" "trace this flow" "trace from" "explain this flow" "explain how this works" "what happens when" "onboard me to" "call-stack viewer" "code walkthrough"
+trigger_check review-triage "/hackify:review-triage" "respond to the review" "respond to PR feedback" "respond to reviewer comments" "address review findings"
+trigger_check groom "/hackify:groom" "let's discuss" "let's think" "what if" "explore the idea" "what do you think" "considering" "thinking about"
+trigger_check skillsmith "/hackify:skillsmith" "author a hackify skill" "create a new skill for hackify" "make a hackify-style skill" "new hackify skill"
+
+yellow "[38e] the v0.11.0 diff-slicing and carry-over changes keep their mechanism"
+# Same discipline as [38c]. Each of these is a token saving that becomes a
+# silent LOSS of review coverage the moment its mechanism drifts out while the
+# prose promising it stays. Pin every one to the artifact that carries it.
+
+SCOPE_REF="skills/hackify/references/review-scope.md"
+P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
+RAV_REF="skills/hackify/references/review-and-verify.md"
+PA="skills/hackify/references/parallel-agents"
+
+# (1) The five sliced reviewers take {{review_scope}}, in BOTH copies of each
+# prompt. A reviewer that never learned to scope its diff silently ignores the
+# input, which costs tokens but keeps coverage; the real risk is the reverse,
+# so the pairing is what is checked.
+for f in "agents/code-reviewer-security.md" "agents/code-reviewer-plan-consistency.md" \
+         "agents/code-reviewer-performance.md" "agents/design-conformance-reviewer.md" \
+         "agents/code-reviewer-coherence.md" \
+         "$PA/phase-5-multi-review.md" "$PA/phase-5-multi-review-d-performance.md" \
+         "$PA/phase-5-multi-review-e-design.md" "$PA/phase-5-multi-review-f-coherence.md"; do
+  check_token_present '{{review_scope}}' "$f"
+done
+
+# (2) Reviewer B is NEVER sliced. B applies the semantic tier to every touched
+# file and re-judges every law-scout row, so any subset withheld from B is
+# coverage deleted outright. Both copies of B's prompt must stay scope-free.
+for f in "agents/code-reviewer-quality.md" "$PA/phase-5-multi-review-b-quality.md"; do
+  if grep -qF '{{review_scope}}' "$f" 2>/dev/null; then
+    red "  FAIL $f takes {{review_scope}}, Reviewer B must never be sliced"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $f is not sliced (correct, B reads every touched file)"
+  fi
+  check_token_present '{{metrics_table}}' "$f"
+done
+
+# (3) The scope grammar and the carry-over rules live in ONE file, so the A
+# block and the C block cannot drift apart on what `settle ` means.
+check_file "$SCOPE_REF"
+check_token_present 'settle all' "$SCOPE_REF"
+check_token_present 'F never carries over' "$SCOPE_REF"
+
+# (4) Carry-over is keyed on the BLOB HASH, never the path. A path-keyed ledger
+# would carry a verdict across a file that changed twice in one sprint, which
+# is a clean round over content no reviewer ever read.
+check_token_present 'git rev-parse' "$SCOPE_REF"
+check_token_present 'git rev-parse HEAD:<path>' "$P5_REVIEW"
+
+# (5) An unclassifiable file defaults to B, so slicing can never leave a path
+# uncovered, and a lens with an empty slice is a written-down gate decision.
+check_token_present 'goes to B' "$P5_REVIEW"
+check_token_present 'B is never sliced' "$P5_REVIEW"
+
+# (6) A FULL round is now "every byte covered by a live verdict", not "the
+# panel re-read everything". The settle prefix is what makes a carried-over
+# round distinguishable from one the dispatcher never scoped at all.
+check_token_present 'settle ' "$P5_REVIEW"
+check_token_present 'settle all' "$RAV_REF"
+
+# (6b) BOTH new dispatcher inputs have a PRODUCER, not just a consumer. This is
+# the defect class the {{repo_brief}} work hit in 0.11.0: prose requires an
+# artifact, every reviewer is told to read it, and nothing anywhere builds it.
+# {{review_scope}}'s producer is the work-doc's scope ledger; {{metrics_table}}'s
+# is the recipe in the dispatcher protocol. Without them the saving never fires
+# (metrics, which degrades to `unavailable`) or the carry-over rule becomes
+# uncheckable (scope, which is coverage).
+check_token_present '### Scope ledger (Phase 5)' "$WORK_DOC_TPL"
+check_token_present 'git rev-parse HEAD:<path>' "$WORK_DOC_TPL"
+check_token_present 'Build `{{metrics_table}}` before you dispatch B' "$P5_REVIEW"
+check_token_present 'max-lines-per-function' "$P5_REVIEW"
+check_token_present 'unavailable' "$P5_REVIEW"
+
+# (7) The Phase 6 report is rendered from JSON, never typed out by hand.
+check_file "skills/hackify/scripts/render-report.py"
+check_token_present 'Do not hand-write the HTML' "skills/hackify/references/html-report.md"
+check_token_present 'render-report.py' "skills/hackify/references/finish.md"

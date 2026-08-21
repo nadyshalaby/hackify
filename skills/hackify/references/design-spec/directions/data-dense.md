@@ -1,0 +1,23 @@
+# Data Dense (`data-dense`)
+
+One direction from the canonical picker, [../direction-library.md](../direction-library.md). Load this file only when this is the direction in play; the picker's table is enough to choose.
+
+## Data Dense (`data-dense`)
+
+> Maximum information per square inch, without becoming unreadable.
+
+**Feels like.** A professional instrument. Small type, tight rows, and no wasted space, because the user's job is to compare many things at once.
+
+**Palette logic.** Deep neutral field with two or three surface values for row banding and panel separation. Color is reserved almost entirely for **data encoding**: positive, negative, and a small categorical set. Chrome stays achromatic so the data is the only colored thing on screen.
+
+**Surface & depth.** Hairlines and value shifts only. Panels are separated by 1px borders, never gaps. Sticky headers and frozen columns replace visual elevation.
+
+**Type pairing.** `IBM Plex Sans` for labels and chrome, `IBM Plex Mono` with `tnum` for every figure. Body sizes run small (12-14px) with tight line-height (1.35) and the type must stay crisp at that size.
+
+**Motion.** Nearly none. Sorting and filtering apply instantly. The only animation permitted is a 75ms row-highlight on hover and a brief flash on a value that just changed.
+
+**Signature move.** The comparison-ready table: monospaced right-aligned figures, a subtle in-cell bar or sparkline encoding magnitude, sticky header, no zebra striping, and hover that shifts surface value rather than color.
+
+**Anti-tells.** Generous padding (it destroys the density that justifies this direction). Card grids where a table belongs. Decorative color on chrome. Pagination that hides the comparison. Charts with more color than data series.
+
+**Best for.** Analytics platforms, trading and risk tools, observability, logistics and inventory, admin consoles for power users.

@@ -120,13 +120,14 @@ PA="skills/hackify/references/parallel-agents"
 extract_fenced() {
   awk '/^```$/{n++} n>=1 && n<=2 {print} n==2{exit}' "$1"
 }
-# "<agent file>|<canonical source>" pairs.
-MIRROR_PAIRS="
-agents/code-reviewer-performance.md|$PA/phase-5-multi-review-d-performance.md
-agents/design-conformance-reviewer.md|$PA/phase-5-multi-review-e-design.md
-agents/code-reviewer-coherence.md|$PA/phase-5-multi-review-f-coherence.md
-agents/finding-refuter.md|$PA/phase-5-refute.md
-"
+# "<agent file>|<canonical source>" pairs, read from the sync script so the set
+# lives in exactly one place. A second hand-maintained copy here would be the
+# very duplication this check exists to catch.
+MIRROR_PAIRS=$(python3 scripts/sync_agent_mirrors.py --list 2>/dev/null)
+if [ -z "$MIRROR_PAIRS" ]; then
+  red "  FAIL scripts/sync_agent_mirrors.py --list produced no pairs"
+  FAILED=$((FAILED + 1))
+fi
 while IFS='|' read -r mirror canonical; do
   [ -n "$mirror" ] || continue
   if [ ! -f "$mirror" ] || [ ! -f "$canonical" ]; then

@@ -1,18 +1,6 @@
 ---
 name: lawkeeper
-description: >-
-  Audit an existing or new codebase against its engineering laws, hard caps
-  (function/file/param/nesting), zero-tolerance bans (lint suppressions, non-null `!`, empty
-  catches, bare Error throws, secrets, inline types in scoped modules), plus DRY, naming,
-  layering, single-responsibility, folder-structure, and file-scoping rules. Reads the rule
-  set at audit time from the project's OWN harness (.claude/rules, ban-patterns.txt,
-  CLAUDE.md/AGENTS.md), stricter-wins fallback to global doctrine; runs a deterministic
-  scanner plus semantic subagents; reports every finding with file:line by category/severity,
-  then fixes them one at a time with your approval. Use when the user wants to check, audit,
-  validate, or enforce engineering rules/standards/conventions across a project, e.g.
-  "audit my code against our rules", "does this follow CLAUDE.md", "find all rule violations",
-  "validate the architecture". FULL-CODEBASE sweep. NOT for generating a project's
-  CLAUDE.md/rules, NOT for a single PR diff (use code-review).
+description: Audit an existing or new codebase against its engineering laws, hard caps (function/file/param/nesting), zero-tolerance bans (lint suppressions, non-null `!`, empty catches, bare Error throws, secrets, inline types in scoped modules), plus DRY, naming, layering, single-responsibility, folder-structure, and file-scoping rules. Reads the rule set at audit time from the project's OWN harness (.claude/rules, ban-patterns.txt, CLAUDE.md/AGENTS.md), stricter-wins fallback to global doctrine; runs a deterministic scanner plus semantic subagents; reports every finding with file:line by category/severity, then fixes them one at a time with your approval. Use when the user wants to check, audit, validate, or enforce engineering rules/standards/conventions across a project, e.g. "audit my code against our rules", "does this follow CLAUDE.md", "find all rule violations", "validate the architecture". FULL-CODEBASE sweep. NOT for generating a project's CLAUDE.md/rules, NOT for a single PR diff (use code-review).
 ---
 
 # lawkeeper

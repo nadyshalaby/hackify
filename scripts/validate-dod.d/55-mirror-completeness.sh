@@ -29,13 +29,13 @@ MANIFEST_LIST=$(
 #                                       only to score the scanner in CI. Mirroring
 #                                       deliberately-broken code (incl. a planted
 #                                       hardcoded secret) into dist/ would be wrong.
-#   hooks/test_block_banned_tokens.sh, dev-only test harness for
-#                                       block-banned-tokens.sh. The claude-code
+#   hooks/test_*.sh,                   dev-only test harnesses for the hook
+#                                       scripts. The claude-code
 #                                       emitter copies only the explicit
 #                                       CLAUDE_CODE_EXTRA enumeration, which omits
 #                                       test files by design, no runtime ships it.
 TRACKED_SORTED=$(git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/null \
-  | grep -v -e '/evals/corpus/' -e '^hooks/test_block_banned_tokens\.sh$' \
+  | grep -v -e '/evals/corpus/' -e '^hooks/test_[a-z_]*\.sh$' \
   | sort -u)
 MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 

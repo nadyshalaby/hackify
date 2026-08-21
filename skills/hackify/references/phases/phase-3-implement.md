@@ -1,0 +1,66 @@
+# Phase 3, Implement (parallel waves, mandatory)
+
+Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
+
+**Goal.** Ship the Sprint Backlog as fast as wall-clock allows by dispatching each wave to foreground parallel subagents in one message.
+
+**Pre-flight, build the wave plan.**
+
+```
+1. List every task. For each: files CREATED/MODIFIED; earlier tasks required.
+2. Sort by priority (DoD load-bearing first) and topological dependency.
+3. Group into WAVES. NO file overlap, NO inter-task dep within a wave; wave N may depend on 1..N-1.
+4. Write wave plan into work-doc Approach as "Execution waves". Show user before wave 1.
+```
+
+**Per-wave loop:**
+
+```
+1. Set frontmatter: status: implementing, current_task: W<n>:T<a>+T<b>+…
+2. Dispatch ONE subagent per task in a SINGLE assistant message. Each agent prompt
+   self-contained: work-doc path, task ID, exact files, test mode, rules summary,
+   "do NOT touch any other files".
+3. Wait for all agents. Aggregate reports. Verify each touched only its declared files.
+4. Run full project verification (test + lint + typecheck) ONCE for the wave.
+5. On red: classify, agent failure (re-dispatch sharper prompt) vs. plan failure
+   (drop to Phase 3b). Never paper over.
+6. Run BOTH deterministic scouts over the wave-touched files (union of the wave's
+   allowlists), BEFORE ticking tasks: the perf-scout (references/perf-scout.md) and
+   the law-scout (references/law-scout.md, the bundled lawkeeper scanner scoped with
+   --paths-from). Trivial in-allowlist candidates are fixed in-wave; everything else
+   is staged for Phase 5 in each scout's staging table, appended to the wave's Daily
+   Updates entry. Every candidate carries exactly one disposition.
+7. Tick wave checkboxes; append one Daily Updates entry per task.
+8. Commit ONCE for the wave (conventional subject; body lists task IDs).
+9. Advance to wave N+1.
+```
+
+**Per-task safety constraints (in each agent's prompt):**
+
+| Constraint | Wording |
+|---|---|
+| File allowlist | "Modify only these files: `<list>`. If another file is needed, STOP and report, do not edit." |
+| Repo brief | The `### Repo Brief` block from the work-doc, verbatim, as `{{repo_brief}}`. "Treat it as given, do NOT re-derive it, spend your reads on your own files." Unfilled means the agent refuses. |
+| Command allowlist | "Run only these commands: `<list scoped to your files>`. The parent runs repo-wide checks." |
+| TDD | "If test mode is test-first, watch the test fail before writing impl. Refuse to ship without a watched RED." |
+| Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |
+| Word cap | ≤200 words per agent report. |
+
+Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task waves are fine**, dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
+
+**Test mode per task:**
+
+| Mode | When | Discipline |
+|---|---|---|
+| **Test-first (mandatory)** | Business logic, services, validators, auth/permission, bug fixes, branching behavior | RED → GREEN → REFACTOR. Watch the test fail. *"If you didn't watch it fail, you don't know it tests the right thing."* |
+| **Test-after (acceptable)** | Integration/E2E with heavy setup, framework wiring, glue code | Test required; order is flexible. |
+| **Manual smoke (user opt-in)** | UI cosmetics, copy edits, color/spacing, doc edits, config-only | Log steps in Daily Updates. Offer an automated test; never *replace* automated tests when behavior is testable. |
+| **No tests** | Purely additive scaffolding ("create empty file") or pure documentation | Note `no test (rationale: …)` in the log. |
+
+**If stuck** (tests still red after 2 honest fix attempts, or behavior surprising), **switch to Phase 3b: Debug**. No third blind fix.
+
+**No scope creep.** No cleanup, no refactoring adjacent code, no abstractions for hypothetical futures. The plan is the contract. See `references/implement-and-test.md`.
+
+### Wave-end persistence (mandatory)
+
+**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug, interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.

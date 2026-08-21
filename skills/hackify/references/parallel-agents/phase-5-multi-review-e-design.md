@@ -33,11 +33,23 @@ Bias against: personal taste. You audit conformance to the spec that exists, nev
 5. `{{work_doc_path}}`, absolute path to the work-doc that motivated the diff.
 6. `{{reference_images}}`, comma-separated absolute paths to reference frames of the intended design (target screenshots, design-tool exports, prior-version captures), or the literal string `NONE` when the project has none.
 
+7. `{{repo_brief}}`, the sprint's shared repo-context brief (stack, test
+/ lint / typecheck commands, layering rules, where things live). Treat
+it as given and do NOT re-derive it; spend your reads on the diff
+   instead.
+8. `{{review_scope}}`, the git pathspec list the dispatcher assigned
+   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
+   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
+   A value starting with `settle ` marks the settle round; strip that word
+   and use the rest as pathspecs. The scope bounds what you DIFF, not what
+   you may READ, open a file outside it when a finding needs the contract
+   around it and say why. Echo the value verbatim as the first line of your
+   report. Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of design-conformance defects in the diff `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, every finding naming the token or spec rule it violates and the concrete replacement.
 
 **METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}}` and read the full diff. Build a list of {file → hunks touched}, then filter to UI-bearing files: stylesheets, style/theme modules, components, pages, route and screen modules, native view files, and utility-framework config. If that filtered list is empty, report zero findings and state that the diff is not UI-bearing.
+1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}` and read the full diff. Build a list of {file → hunks touched}, then filter to UI-bearing files: stylesheets, style/theme modules, components, pages, route and screen modules, native view files, and utility-framework config. If that filtered list is empty, report zero findings and state that the diff is not UI-bearing. **Read the hunks and the context around them, not whole files.** Open a file in full only when a candidate finding needs the contract around it (the function's other branches, the type it returns, the guard above it), and say in the finding why you opened it.
 2. If `{{design_spec_path}}` is `NONE`, skip to step 9 and audit against the visual law only. Otherwise read the spec end to end and build a token index from its frontmatter: every `colors`, `typography`, `spacing`, `rounded`, `elevation`, `motion`, `components` and `platform` value. Record the `direction` and read the `## Do's and Don'ts` section verbatim, those Don'ts are project-specific rules you will enforce literally.
 3. HARDCODED VALUES, scan every touched hunk's post-image for color literals (`#rgb`, `#rrggbb`, `rgb(`, `rgba(`, `hsl(`), `box-shadow` literals, and raw pixel values on font-size, padding, margin, gap, and border-radius. For each, check the token index: if a token holds that value, or a value within 2px or one scale step of it, the literal is a finding and you name the token that should replace it. A literal with no nearby token is a separate finding: the value is off-scale.
 4. TYPE RAMP, every new or changed font-size, font-weight, line-height, and letter-spacing must match one of the spec's twelve typography roles exactly. A size between two steps is an Important finding. A new font-family not present in the spec's `fonts` block is Critical.
@@ -60,6 +72,9 @@ Paste this checklist under a `## Verification` heading in your report. If ANY an
 7. Are all findings conformance defects against the committed spec, with zero findings that are only your own design preference? (yes / no)
 8. If `{{reference_images}}` was not `NONE`, did you capture the rendered screen and compare it against every reference frame, rather than reading the source? (yes / no)
 
+9. Did you echo the `{{review_scope}}` value you received as the
+   first line of your report? (yes / no)
+
 **SEVERITY**.
 - **Critical**. Ships a broken or inaccessible interface, or silently changes the brand direction. Anchored examples: new body text at 3.1:1 against its background = Critical (WCAG 1.4.3); `outline: none` on a focusable control with no replacement indicator = Critical (WCAG 2.4.7); a font-family absent from the spec's `fonts` block introduced as the display face = Critical (direction change without sign-off).
 - **Important**. Real drift that will compound. Anchored examples: `#141719` hardcoded where `{colors.surface}` holds the same value = Important (the next palette change will miss it); a button shipped without its documented `-disabled` variant = Important; `font-size: 15px` where the ramp offers 14px and 16px = Important (off-ramp size).
@@ -71,6 +86,8 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 ≤400 words, every finding needs `file:line`, the violated token or rule, and the replacement. Use this exact report skeleton:
 
 ````
+Scope: <the `{{review_scope}}` value you received, verbatim>
+
 ## Conformance summary
 - Spec: <path or NONE>, direction `<slug>`, <n> UI-bearing files reviewed.
 - Reference comparison: <n> frames compared | skipped (no reference images).
@@ -85,7 +102,7 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 - `<file>:<line>`, <rule or token violated> → `<token/value>`.
 
 ## Verification
-1., 8. <yes|no>, one line per checklist item.
+1., 9. <yes|no>, one line per checklist item.
 ````
 
 If a severity bucket is empty, print the heading followed by `- none`. Never omit a heading.

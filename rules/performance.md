@@ -4,6 +4,19 @@ The canonical catalog of performance violations hackify scans for. Every entry c
 
 **Canonical direction.** THIS file is canonical. `rules/perf-guardrails.md` is the tight always-on stub injected on every prompt, distilled FROM this catalog. Note the direction is the INVERSE of the caps pair: for caps, the always-on `rules/hard-caps.md` is canonical and `rules/code-quality.md` is the deep doctrine; for performance, the deep file (this one) is canonical and the always-on file is the distillation.
 
+## How to load this file
+
+The catalog is deliberately deep, every row carries why it hurts, how to detect it, and the fix direction, because a finding without those is not actionable. That depth costs tokens, so load by role rather than reading the whole file by reflex:
+
+| Who | What to load |
+|---|---|
+| **Phase 3 implementer** | the **severity model + ID scheme above, plus only the domain sections your task actually touches** (data access, algorithmic, frontend, ...). A task adding a list endpoint does not need the bundle or logging domains. |
+| **Phase 5 Reviewer D** | the whole catalog. It judges every staged candidate and hunts what greps miss, so it needs every domain and every fix direction. |
+| **perf-scout** | nothing from here at scan time; its grep table lives in `skills/hackify/references/perf-scout.md`. It cites these IDs, it does not read these rows. |
+| **Anyone else** | the always-on distillation `rules/perf-guardrails.md`, which is already in context. Come here only to cite an ID or read a fix direction. |
+
+Domain sections: Algorithmic · Memory / allocation · Data access / N+1 · Network / API · Async / concurrency · Frontend / rendering · Caching · I/O / serialization · Build / bundle · Logging / observability.
+
 ## Severity model
 
 | Severity | Meaning | Classes it covers |

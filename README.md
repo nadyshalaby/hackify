@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.4-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.11.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -27,22 +27,18 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
+### New in 0.11.0
+
+- **Same discipline, far fewer tokens.** The always-on rules used to be re-injected into every single prompt, so a long session carried one copy per turn of text that never left the context window. They now arrive in full on the first prompt, then as a one-line reminder, with a full refresh every 25 prompts. Reviewers and implementers read the changed hunks and the context around them instead of opening whole files, and they all receive one shared repo brief instead of each rediscovering the stack on its own.
+- **Reviewers stop reading each other's homework.** Each reviewer now receives only the part of the diff its own lens can act on, and the round that closes a review skips any file that has not changed since it was already judged clean. The quality reviewer is the deliberate exception: its checks apply to every touched file, so it still reads all of them, and any file nobody else claims goes to it as well. Slicing can never leave a change unreviewed. It also stops counting function lengths and nesting depth by reading, because the project's own linter already knows those numbers.
+- **The review panel sizes itself to the diff.** Quality, plan-consistency and cross-module coherence still review every change. Security and performance join whenever the diff touches their surface or a scout stages a candidate, and a folded lens hands its own checklist to the quality reviewer, who runs it, so folding moves a lens rather than dropping one. After a fix batch only the reviewers whose findings you just fixed run again, scoped to the fix; the loop still cannot close until a full panel clears the whole diff exactly as it sits on disk.
+- **Nothing loads before it is needed.** `SKILL.md` is now a router: every phase states its goal, its hard gates and its exit artifact, and that phase's protocol loads when the phase opens. On Claude Code the reviewer prompts are dispatched by agent type instead of pasted out of a template, so the same text is no longer paid for twice.
+- **The finish report is generated, not typed.** Phase 6 used to write the whole HTML page out by hand, charts and all. It now emits a small block of data and a script renders the page. That is the cheapest kind of saving there is, because writing output costs several times what reading costs.
+
 ### New in 0.9.4
 
 - **Something other than Claude now decides when your task is finished.** Every mode hands you a ready-to-paste `/goal` line built from the task's own finish line: the archived work-doc, a green test-lint-typecheck run, and the ship gate's build, boot and smoke rows. Press one key and a separate evaluator re-checks that condition after every turn, so "done" stops being the workflow's opinion of its own homework. Hackify prints the line and never claims to have set it, because it cannot: the tool behind it is missing from most sessions and throws inside a sub-agent.
 - **The three orchestration defaults now say who wins when they disagree.** This completion sentinel joins the `ultracode` tier and the self-paced `/loop` driver as a standing default in hackify, quick and yolo alike. When the evaluator says "not finished" while a question is sitting there waiting for you, or after two runs in a row that moved nothing, the loop's stop rules win and the workflow hands back instead of spending against a wall. The old blanket "never call other skills" rule is now three tiers: runtime-native skills are allowed where the adapter table maps them and the phase still finishes without them, skills that ship inside this plugin are allowed, third-party plugin skills stay out.
-
-### New in 0.9.0
-
-- **A green test suite no longer counts as done.** The **ship gate** builds from a cold cache, boots the app and waits for a real ready signal, then smoke-drives the flow this sprint touched; a leg blocks whenever the diff touched something that leg's target consumes, and a skipped leg is never silently absent. Beside it a **law-scout** runs lawkeeper's bundled scanner over just the touched files at every wave-end and again at review start, and Reviewer B judges every candidate it stages, cites the `rule_id`, and picks up the seven judgment lenses no reviewer previously owned (one construct per file, folder conformance, controller purity, single responsibility, reuse, SOLID/YAGNI, test coverage).
-- **Reviewer F, cross-module coherence, plus refute-before-fix.** Parallel waves are what make hackify fast and exactly what produces two halves of a feature that each pass their own tests and disagree at the seam; F compares every boundary-crossing symbol's producer against every consumer for shape, units, error contract and wiring. Findings then face adversarial refuters that default to **keeping** the finding, and the review loop exits only on a diff unchanged since the scan that cleared it.
-- **Maximum orchestration by default, and questions anyone can answer.** Every mandatory fan-out runs at the heaviest machinery the runtime offers (`ultracode` and self-paced `/loop` on Claude Code), announced once per task and switched off with *"light mode"* or *"no ultracode"*. Task IDs, phase numbers and internal names are now banned from anything the wizard shows you, every option says plainly what happens if you pick it, and the end-of-task recap is an **update log**: one short block per change covering what was wrong, why, what was done, how we know it works, and whether it shipped.
-
-### New in 0.8.0
-
-- **Design work now produces an artifact, not just taste.** UI and mobile tasks emit a committed `docs/design/DESIGN.md` in your project: machine-readable tokens (colors, twelve typography roles, spacing, radius, elevation, motion, named components) plus the prose explaining them, with a self-contained `docs/design/preview.html` catalog beside it. The token layer is platform-neutral, with a `platform.native` block and a normative web to React Native / Flutter / SwiftUI mapping table.
-- **Twelve directions, deeply specified, and twelve specs you can drop in today.** `direction-library.md` is the plugin's single canonical direction list, each entry carrying palette logic, type pairing, motion character, a signature move, and **anti-tells**: the specific ways that direction gets built wrong. The catalog ships twelve complete specs, all original, all with computed and passing WCAG AA contrast, all using freely-licensed fonts with offline fallback stacks.
-- **Reviewer E and `/hackify:designify`.** Phase 5 gains a standing design-conformance reviewer on UI-bearing diffs that audits the diff against your spec, hardcoded literals where a token exists, off-ramp type sizes, missing component states, contrast and focus regressions, and names the replacement token for every finding. The slash command authors, extracts, refreshes, or validates a spec standalone, including recovering one from a codebase that already has tokens but never wrote them down.
 
 ## Install
 
@@ -82,7 +78,7 @@ All three skills auto-trigger from natural-language prompts, no need to invoke t
 │ Phase 3   Implement   parallel waves of foreground subagents         │
 │   └─ 3b   Debug       4-phase root-cause hunt (only if stuck)        │
 │ Phase 4   Verify      evidence ledger + ship gate (build/boot/smoke) │
-│ Phase 5   Review      5 parallel reviewers + refute-before-fix       │
+│ Phase 5   Review      gated reviewer panel + refute-before-fix       │
 │ Phase 6   Finish      4 options → archive work-doc → update log      │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -268,7 +264,8 @@ agents/                                formal sub-agent definitions (since v0.2.
   wave-task-implementer.md             Phase 3 wave-task implementer
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
-  inject-context.sh                    injects the 3 always-on rules files (hard-caps, expert-mindset, perf-guardrails) every prompt
+  inject-context.sh                    injects the 3 always-on rules files, full on the first prompt, pointer after (since v0.11.0)
+  inject_context.py                    session-aware injector companion, counts turns per session (since v0.11.0)
   block-banned-tokens.sh               PreToolUse (Write|Edit|Bash), blocks banned tokens in JS/TS (since v0.4.2)
   scan_edit.py                         Write/Edit detector reused by the hook (lawkeeper lexer + check regexes)
   scan_bash.py                         Bash detector, scans heredoc/echo writes to JS/TS files
@@ -281,8 +278,9 @@ scripts/
   sync-runtimes.sh                     fan canonical skills/ into dist/<runtime>/
 skills/
   hackify/
-    SKILL.md                           the full workflow
+    SKILL.md                           the router: each phase's goal, hard gates and exit artifact (v0.11.0)
     references/
+      phases/ + repo-brief.md          per-phase protocol, one file per phase, loaded when that phase opens; and the sprint's shared repo-context brief handed to every agent (both v0.11.0)
       work-doc-template.md             markdown skeleton for every task
       clarify-questions/               per-task-type question banks (Phase 1), subdir index in README.md; canonical wizard contract in wizard-contract.md; one bank per task type (feature/fix/refactor/revamp-redesign/debug/research) + universal-preamble + picking-and-combining
       implement-and-test.md            TDD walkthrough, per-stack test commands
@@ -292,15 +290,14 @@ skills/
       phase-ledger.md / expert-mindset.md  ordered phase ledger (order-enforcer + archive gate) and the senior multi-hat mindset, both always-on (since v0.7.0)
       finish.md                        Phase 6, options, archive, update log
       frontend-design.md               visual law (loaded on FE / UI / mobile-design tasks), owns the design-spec pipeline
-      design-spec/                     the design artifact (since v0.8.0). README.md index; spec-contract.md (DESIGN.md schema, {token.ref} syntax, web ↔ RN / Flutter / SwiftUI mapping, validation checklist); direction-library.md (the twelve directions with palette logic, type pairing, motion, signature move, anti-tells, the plugin's only direction list); extract-protocol.md (derive a spec from code / a reference site / screenshots, plus REFRESH mode and merge rules); catalog/ (twelve complete ready-to-drop specs)
+      design-spec/                     the design artifact (since v0.8.0). README.md index; spec-contract.md (DESIGN.md schema, {token.ref} syntax, web ↔ RN / Flutter / SwiftUI mapping, validation checklist); direction-library.md (the picker table + load rule, the plugin's only direction list) with directions/<slug>.md holding each profile's palette logic, type pairing, motion, signature move and anti-tells, loaded one at a time (v0.11.0); extract-protocol.md (derive a spec from code / a reference site / screenshots, plus REFRESH mode and merge rules); catalog/ (twelve complete ready-to-drop specs)
       code-rules.md / runtime-adapters.md  forwarding stub → rules/code-quality.md; and the primitive → per-runtime mapping table (11 primitives incl. orchestration tier, iteration driver, completion sentinel)
       orchestration.md                 ultracode tier + /loop iteration driver (v0.9.0) + /goal completion sentinel (v0.9.4), all on by default, with the standing grant, its opt-out, and sentinel-vs-driver precedence
-      parallel-agents/                 parallel subagent dispatch templates (cross-runtime fallback), subdir index in README.md; canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review (A/B/C inline; D, E, F one per file), adversarial refuters, escalation, aggregation
+      parallel-agents/                 dispatch index in README.md (on Claude Code dispatch by agent type and pass only INPUTS; the templates are the fallback for runtimes with no agent registry); canonical 7-section sub-agent contract in template-contract.md; per-phase templates for research, spec review (3), implementation, debug evidence, cross-package verification, multi-review (A/B/C inline; D, E, F one per file), adversarial refuters, escalation, aggregation
     assets/
       report-template.html             Phase 6 styled HTML report skeleton
       design-preview-template.html     self-contained design preview, swatches, type ramp, scales, elevation, live components, light/dark toggle (since v0.8.0)
-    evals/
-      evals.json                       optional eval harness
+    evals/evals.json                   optional eval harness
   quick/
     SKILL.md                           /hackify:quick compressed flow
   yolo/

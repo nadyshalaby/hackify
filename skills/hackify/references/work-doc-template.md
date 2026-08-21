@@ -70,6 +70,18 @@ A short, verifiable checklist. Each item must be testable or observable.
 
 **Architectural touchpoints.** [files/modules this will modify]
 
+### Repo Brief
+
+Built at the end of Phase 2, before the gate. ≤200 words. Passed verbatim as `{{repo_brief}}` to every implementer and every reviewer so no agent re-derives it. Every fact here must be one you verified this session. See [repo-brief.md](repo-brief.md).
+
+- **Stack:** [language / runtime / framework / package manager]
+- **Commands:** test `[verbatim]`, lint `[verbatim]`, typecheck `[verbatim]`
+- **Layout:** [where each layer lives, one line]
+- **Layering rule:** [the one boundary that matters here]
+- **Rules source:** [which rule file governs, and who wins on conflict]
+- **Test convention:** [where tests live, what they are named]
+- **Landmines:** [facts an agent would get wrong on its own]
+
 ## 5. Sprint Backlog
 
 Flat checklist. One commit per task. Each task is 5-30 minutes of focused work.
@@ -137,6 +149,15 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
   ```
 - [ ] **[DoD bullet 1]**, [evidence: command, output, screenshot reference, or short script]
 - [ ] **[DoD bullet 2]**, [evidence]
+
+### Scope ledger (Phase 5)
+
+One row per changed path, written BEFORE the reviewer wave is dispatched. This is the artifact that makes "every file was covered" checkable instead of asserted, and it is what a carried-over verdict is checked against in the settle round. `blob` is `git rev-parse HEAD:<path>`, the content hash, never the path alone: a file touched in round 1, fixed in round 2 and touched again would otherwise carry a verdict that was never about the bytes now on disk. Mandatory whenever carry-over is used. See [review-scope.md](review-scope.md).
+
+| path | blob | lenses | round 1 | settle |
+|---|---|---|---|---|
+| src/auth/session.ts | a3f91c2 | A B F | clean | carried |
+| src/ui/Button.tsx | 7d20e14 | B E | 2 findings | re-read |
 
 ### Self-review (Phase 5)
 

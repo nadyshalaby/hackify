@@ -1,6 +1,6 @@
 ---
 name: hackify
-description: One unified end-to-end dev workflow for ANY substantive task, feature, bug fix, refactor, redesign, design, debug, migration, or research-then-build, driven by a single per-task markdown work-doc at <project>/docs/work/. Replaces multi-skill ceremony (no separate spec/plan files). Asks every clarifying question up-front in one batched questionnaire, holds a hard gate before code is written, file-driven pause/resume across sessions, mandatory evidence-before-claims, baked-in self-review checklist, parallel multi-reviewer code review on non-trivial diffs, explicit definition-of-done verified end-to-end. Ships an always-on ship bar in every mode with no opt-in: a deterministic engineering-law scan and a performance scan at every wave-end and at review start, a runtime gate that proves the app builds, boots and serves the touched flow before the task can finish, a standing cross-module coherence reviewer that checks the parts agree with each other, and adversarial refutation of every finding before a fix is spent on it. The default route for any substantive prompt, auto-fires on broad-spectrum verbs (add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit) AND on architecture/scope/security surface (auth, crypto, migration, secret, token, password, schema, data model, API surface, refactor everywhere, across all). Invoke even when the user does not say "use the workflow", carve-outs are trivial factual Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill, escalation to full ceremony is free, demotion is not.
+description: One unified end-to-end dev workflow for ANY substantive task, feature, bug fix, refactor, redesign, design, debug, migration, or research-then-build. Driven by one markdown work-doc at <project>/docs/work/, with every clarifying question asked up front in one batched questionnaire, a hard gate before code is written, parallel implementation and review waves, mandatory evidence before claims, an always-on ship bar that proves the app builds and boots and serves the touched flow, and file-driven pause/resume across sessions. The default route for any substantive prompt, auto-fires on broad-spectrum verbs (add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit) AND on architecture/scope/security surface (auth, crypto, migration, secret, token, password, schema, data model, API surface, refactor everywhere, across all). Invoke even when the user does not say "use the workflow", carve-outs are trivial factual Q&A, single-line typo fixes, and pure read-only inspection. When in doubt, invoke this skill, escalation to full ceremony is free, demotion is not.
 ---
 
 # Hackify (One Workflow For Every Dev Task)
@@ -79,16 +79,15 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 
 ## Phase 1 (Clarify)
 
-**Goal.** Groom the ask into a locked **Primary Goal & Guardrails** anchor, maximum understanding before any code. Phase 1 is a grooming session that drives every downstream plan and implementation decision and is enforced by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal. See [references/goal-anchor.md](references/goal-anchor.md).
+**Goal.** Groom the ask into a locked **Primary Goal & Guardrails** anchor, five parts, North-Star Goal / In-Scope / Out-of-Scope and Non-Goals / Guardrails and Invariants / Success Signals. Maximum understanding before any code. Enforced downstream by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal.
 
-1. **Load the always-on trio:** `references/communication-voice.md` (voice), `references/expert-mindset.md` (mindset), and `references/phase-ledger.md` (ledger contract), they govern every phase from here on. Create the phase ledger at its declared point: full hackify at the **start of Phase 2**, before drafting the work-doc; quick/yolo at task start, right after Phase 1 (see phase-ledger.md "When to create it").
-2. **Classify task type:** `feature` | `fix` | `refactor` | `revamp` | `redesign` | `debug` | `research`. Drives questionnaire choice (`references/clarify-questions/README.md`).
-3. **Read just enough context.** Broad architecture → scan entry points + follow imports; blast radius → grep symbol usages; single-module onboarding → read top-to-bottom; trivial single-file edits → skip exploration.
-4. **Build ONE batched questionnaire.** Pull the relevant question bank from `references/clarify-questions/README.md` (per-task-type files: `feature.md`, `fix.md`, `refactor.md`, `revamp-redesign.md`, `debug.md`, `research.md`; combine via `picking-and-combining.md`; always prepend `universal-preamble.md`). Each bank conforms to the canonical 4-section Wizard Contract (SCENARIO / COMPOSITION / QUESTIONS / EXIT CRITERIA) at `references/clarify-questions/wizard-contract.md`. Strip questions whose answer is evident from ask or context. Add task-specific questions if the bank misses something. Recommended option is the **first** in each question, suffixed `(Recommended)`. The ~16-question target is a floor, not a ceiling, keep asking (across back-to-back wizard calls) until the anchor's five parts are all pinned: North-Star Goal, In-Scope, Out-of-Scope/Non-Goals, Guardrails/Invariants, Success Signals. Every question must fork a real decision; never pad with vanity questions.
-5. **Send the questionnaire as a wizard, NEVER as plain markdown.** Every question you put to the user, in EVERY phase (clarify, a Phase 5 fix-approval batch, the Phase 6 finish menu), goes through the wizard tool; plain numbered lists in chat are forbidden. Questions must also obey the **Clarity law** in `references/clarify-questions/wizard-contract.md`: written so the user can answer without knowing how this workflow works. No task IDs, no phase numbers, no internal artifact names; name the real files and current behavior you found; and give every option a one-line "what happens if you pick this". Lead the first wizard message with a one-paragraph "What I heard you ask for" recap so misreadings surface early. Wizard takes 1-4 questions per call, 2-4 options per question, split longer questionnaires across **multiple back-to-back wizard-tool calls in the same turn** (fire the following batch as soon as prior answers land). Use `multiSelect: true` only for non-exclusive options; never for "pick one approach". "Other" free-text is auto-provided, never add one yourself.
-6. **Wait.** Do not start Phase 2 until every wizard question is answered. One ambiguous answer → one targeted follow-up wizard call. No iterative interrogation.
+**Load the always-on trio first:** `references/communication-voice.md` (voice), `references/expert-mindset.md` (mindset), `references/phase-ledger.md` (ledger contract). They govern every phase from here on.
 
-**Hard rule.** No code, no file edits, no test runs in Phase 1. Output is a locked answer set **and** a complete Primary Goal & Guardrails anchor recorded in the work-doc (in-chat block for quick/yolo). See [references/goal-anchor.md](references/goal-anchor.md) and `references/clarify-questions/README.md`.
+**Hard rule.** No code, no file edits, no test runs in Phase 1. Every question you put to the user, in EVERY phase, goes through the wizard tool; a plain numbered list in chat is forbidden. Every question also obeys the Clarity law in the canonical Wizard Contract (`references/clarify-questions/wizard-contract.md`), written so the user can answer without knowing how this workflow works.
+
+**Exit artifact.** A locked answer set **and** a complete anchor recorded in the work-doc (an in-chat block for quick/yolo).
+
+Full protocol, task-type classification, questionnaire assembly, and the anchor shape: [references/phases/phase-1-clarify.md](references/phases/phase-1-clarify.md).
 
 ---
 
@@ -102,8 +101,9 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 2. **Fill from template** (`references/work-doc-template.md`). Required now: Original Ask (verbatim), Clarifying Q&A (verbatim), Acceptance Criteria (3-7 verifiable bullets), Approach (≤200 words; chosen path + 1-2 sentence rationale), Sprint Backlog (flat checklist, each task 5-30 min).
 3. **Task granularity.** Each task independently testable and committable. Break "Add invitation expiry" into "Add `expires_at` column + migration", "Reject expired tokens in invitations service", "Show 'expired' state in UI", "Backend test", "Frontend test". Default: one commit per task.
 4. **No placeholders.** No "TBD", no "implement error handling later", no "similar to T2". Decompose vague tasks now.
-5. **Show the doc.** Paste rendered doc in chat or summarize and link. Ask: *"Sign off on this plan or call out anything to change?"*
-6. **GATE.** Wait for explicit "go" / "approved" / "yes" before Phase 3. The turn ends here; Phase 2.5 opens the next one.
+5. **Build the Repo Brief.** Fill the `### Repo Brief` block under Approach: stack, verbatim test/lint/typecheck commands, layout, the one layering rule, rules source, test convention, landmines. ≤200 words, facts only, every one verified this session. You already know all of it from Phase 1. This block is passed verbatim as `{{repo_brief}}` to every implementer in Phase 3 and every reviewer in Phase 5, so none of them re-derives the repo one agent at a time. Skipping it means a dispatched agent receives an unfilled placeholder, refuses, and costs a whole round. See [references/repo-brief.md](references/repo-brief.md).
+6. **Show the doc.** Paste rendered doc in chat or summarize and link. Ask: *"Sign off on this plan or call out anything to change?"*
+7. **GATE.** Wait for explicit "go" / "approved" / "yes" before Phase 3. The turn ends here; Phase 2.5 opens the next one.
 
 **On pushback,** edit doc, show diff, re-ask. Iterate until signed off. See `references/work-doc-template.md`.
 
@@ -111,85 +111,27 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 
 ## Phase 2.5, Spec Self-Review (parallel, mandatory)
 
-**Goal.** Catch inconsistent or conflicting logic in the work-doc *before* code is written. Cheap on paper; expensive after 200 LOC against a flawed spec.
+**First line of this turn, print the completion sentinel.** Sign-off just landed, so this is the first turn where a finish line can be stated and the first where the native tool is not blocked by plan mode. Emit one fenced `/goal <condition>` line (≤500 chars) naming the archived work-doc plus the green triad and the ship-gate rows, so an evaluator outside this conversation rules on "done" instead of you. The line is **paste-ready**: you print it, only the user can set it. Never claim a goal is active, never propose one **from a subagent**, never wait on the answer, and never soften the condition later to make it pass. Shape, per-mode wording, and who wins when the sentinel and the iteration driver disagree: [references/orchestration.md](references/orchestration.md).
 
-**First line of this turn, print the completion sentinel.** Sign-off just landed, so this is the first turn where a finish line can be stated and the first where the native tool is not blocked by plan mode. Emit one fenced `/goal <condition>` line (≤500 chars) naming the archived work-doc plus the green triad and the ship-gate rows, so an evaluator outside this conversation can rule on "done" instead of you. **You print it; only the user can set it**, so never claim a goal is active, never propose one from a subagent, never wait on the answer, and never soften the condition later to make it pass. Shape, the per-mode wording, and who wins when the sentinel and the iteration driver disagree: [references/orchestration.md](references/orchestration.md).
+**Then dispatch three spec reviewers in ONE message, by agent type** (`hackify:spec-reviewer-consistency`, `hackify:spec-reviewer-rules`, `hackify:spec-reviewer-dependencies`), passing only their INPUTS. Do not open the templates to paste them (`references/parallel-agents/README.md`). A audits internal consistency and goal drift, B architectural and cross-cutting risk against the project's rules, C the dependency, ordering and wave plan.
 
-1. **Dispatch 3 foreground reviewers in parallel in ONE message.** Each gets a self-contained prompt + absolute work-doc path:
-   - **Reviewer A. Internal consistency + goal drift.** Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach. **Drift-check:** trace every Sprint Backlog task + DoD bullet to the Primary Goal & Guardrails anchor, a task serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
-   - **Reviewer B. Architectural / cross-cutting risks.** Match plan against project code-quality rules, if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation. Also flag plan-time performance risk: a plan item that would bake in a `rules/performance.md` Critical before code exists, an N+1-shaped task, unbounded fan-out, a list endpoint with no pagination.
-   - **Reviewer C. Dependency / ordering / parallelism risks.** Build a quick dependency graph from Sprint Backlog. Flag tasks sharing a file (parallel conflict), missing prerequisites, ordering bugs (consuming a helper before its task), tasks too coarse to be 5-30 min.
-2. **Aggregate findings.** Critical (plan bug forcing rework) / Important (fixable gap) / Minor (nit).
-3. **Patch the work-doc.** Apply Critical + Important in place; record Minor in Retrospective.
-4. **Re-gate ONLY if user's signed-off invariants changed** (Critical finding widened scope). Else straight to Phase 3.
+**Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
 
-Templates: `references/parallel-agents/phase-2.5-spec-review-a-consistency.md`, `references/parallel-agents/phase-2.5-spec-review-b-rules.md`, `references/parallel-agents/phase-2.5-spec-review-c-dependencies.md` (subdir index: `references/parallel-agents/README.md`). **Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
+Full protocol, per-reviewer scope, the drift-check wording, and the conflict-resolution pass: [references/phases/phase-2.5-spec-review.md](references/phases/phase-2.5-spec-review.md).
 
 ---
 
 ## Phase 3, Implement (parallel waves, mandatory)
 
-**Goal.** Ship the Sprint Backlog as fast as wall-clock allows by dispatching each wave to foreground parallel subagents in one message.
+**Goal.** Land the Sprint Backlog as a minimal, test-anchored diff, one dispatched implementer per task.
 
-**Pre-flight, build the wave plan.**
+Order tasks by dependency into waves, same-file tasks split across waves. Dispatch each wave in ONE message by agent type (`hackify:wave-task-implementer`), one agent per task, each under a strict file allowlist. **Pass every agent the `{{repo_brief}}` you built at the end of Phase 2** (the `### Repo Brief` block in the work-doc, [references/repo-brief.md](references/repo-brief.md)), so N implementers stop rediscovering the same stack, test command and layering rules N times over. If the block is empty, fill it now before dispatching, an agent that receives an unfilled placeholder refuses.
 
-```
-1. List every task. For each: files CREATED/MODIFIED; earlier tasks required.
-2. Sort by priority (DoD load-bearing first) and topological dependency.
-3. Group into WAVES. NO file overlap, NO inter-task dep within a wave; wave N may depend on 1..N-1.
-4. Write wave plan into work-doc Approach as "Execution waves". Show user before wave 1.
-```
+**At every wave-end, before ticking any task,** run both deterministic scouts over the wave's touched files: the perf-scout (`references/perf-scout.md`) and the law-scout (`references/law-scout.md`, the bundled lawkeeper scanner scoped to those paths). Every candidate gets one written disposition, no silent drops.
 
-**Per-wave loop:**
+**No scope creep.** No cleanup, no refactoring adjacent code, no abstractions for hypothetical futures. The plan is the contract.
 
-```
-1. Set frontmatter: status: implementing, current_task: W<n>:T<a>+T<b>+…
-2. Dispatch ONE subagent per task in a SINGLE assistant message. Each agent prompt
-   self-contained: work-doc path, task ID, exact files, test mode, rules summary,
-   "do NOT touch any other files".
-3. Wait for all agents. Aggregate reports. Verify each touched only its declared files.
-4. Run full project verification (test + lint + typecheck) ONCE for the wave.
-5. On red: classify, agent failure (re-dispatch sharper prompt) vs. plan failure
-   (drop to Phase 3b). Never paper over.
-6. Run BOTH deterministic scouts over the wave-touched files (union of the wave's
-   allowlists), BEFORE ticking tasks: the perf-scout (references/perf-scout.md) and
-   the law-scout (references/law-scout.md, the bundled lawkeeper scanner scoped with
-   --paths-from). Trivial in-allowlist candidates are fixed in-wave; everything else
-   is staged for Phase 5 in each scout's staging table, appended to the wave's Daily
-   Updates entry. Every candidate carries exactly one disposition.
-7. Tick wave checkboxes; append one Daily Updates entry per task.
-8. Commit ONCE for the wave (conventional subject; body lists task IDs).
-9. Advance to wave N+1.
-```
-
-**Per-task safety constraints (in each agent's prompt):**
-
-| Constraint | Wording |
-|---|---|
-| File allowlist | "Modify only these files: `<list>`. If another file is needed, STOP and report, do not edit." |
-| Command allowlist | "Run only these commands: `<list scoped to your files>`. The parent runs repo-wide checks." |
-| TDD | "If test mode is test-first, watch the test fail before writing impl. Refuse to ship without a watched RED." |
-| Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |
-| Word cap | ≤200 words per agent report. |
-
-Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task waves are fine**, dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
-
-**Test mode per task:**
-
-| Mode | When | Discipline |
-|---|---|---|
-| **Test-first (mandatory)** | Business logic, services, validators, auth/permission, bug fixes, branching behavior | RED → GREEN → REFACTOR. Watch the test fail. *"If you didn't watch it fail, you don't know it tests the right thing."* |
-| **Test-after (acceptable)** | Integration/E2E with heavy setup, framework wiring, glue code | Test required; order is flexible. |
-| **Manual smoke (user opt-in)** | UI cosmetics, copy edits, color/spacing, doc edits, config-only | Log steps in Daily Updates. Offer an automated test; never *replace* automated tests when behavior is testable. |
-| **No tests** | Purely additive scaffolding ("create empty file") or pure documentation | Note `no test (rationale: …)` in the log. |
-
-**If stuck** (tests still red after 2 honest fix attempts, or behavior surprising), **switch to Phase 3b: Debug**. No third blind fix.
-
-**No scope creep.** No cleanup, no refactoring adjacent code, no abstractions for hypothetical futures. The plan is the contract. See `references/implement-and-test.md`.
-
-### Wave-end persistence (mandatory)
-
-**Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug, interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
+Full protocol, wave planning, the allowlist contract, and the wave log: [references/phases/phase-3-implement.md](references/phases/phase-3-implement.md). TDD walkthrough and per-stack test commands: `references/implement-and-test.md`.
 
 ---
 
@@ -216,122 +158,46 @@ Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task 
 
 ## Phase 4 (Verify)
 
-**Goal.** Prove every task and requirement landed AND that the app actually runs. Evidence before claims. Three parts, full spec in `references/review-and-verify.md`.
+**Goal.** Prove every task and requirement landed AND that the app actually runs. Evidence before claims, fresh real output per item, never a summary and never a memory.
 
-**Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
+Three parts: the **Evidence Ledger** (one row per acceptance item, each carrying real output), the **three-layer re-verify**, and the **ship gate**.
 
-**Part 2. Three-layer re-verify (prove it without drifting).** Run in order; re-run any layer on demand when the user says "prove it again".
+**Ship gate (prove it runs).** A green triad says the code is well-formed, not that it starts. Run three legs and record one ledger row each: `ship.build` (builds clean from a cold cache, artifact on disk), `ship.boot` (starts, reaches a real ready signal, tears down clean), `ship.smoke` (the critical path this sprint touched works against the running app). **A leg is blocking whenever the diff touched something that leg's target consumes (source the build compiles, config read at startup, the touched flow); a written `⏭ skipped` row with the reason otherwise; never silently absent.** The trigger is the diff, not whether a run command exists. Detection table per ecosystem, readiness-probe rules, and the secrets/state guards: [references/ship-gate.md](references/ship-gate.md).
 
-| Layer | What | Runs in |
-|---|---|---|
-| 1 Fresh triad | test + lint + typecheck from a clean state (all packages, no warm cache) | all |
-| 2 Goal-drift re-check | trace every proof to the North-Star Goal + Success Signals in the anchor; a signal with no proving row = not done | all |
-| 3 Independent re-prove | re-earn the proof without trusting Layer 1, clean re-run or a fresh subagent | hackify + yolo |
-
-**Part 3. Ship gate (prove it runs).** A green triad says the code is well-formed, not that it starts. Run three legs and record one ledger row each: `ship.build` (builds clean from a cold cache, artifact on disk), `ship.boot` (starts, reaches a real ready signal, tears down clean), `ship.smoke` (the critical path this sprint touched works against the running app). **A leg is blocking whenever the diff touched something that leg's target consumes (source the build compiles, config read at startup, the touched flow); a written `⏭ skipped` row with the reason otherwise; never silently absent.** The trigger is the diff, not whether a run command exists, so a docs-only change records skips rather than booting the app. Detection table per ecosystem, readiness-probe rules, and the secrets/state guards: [references/ship-gate.md](references/ship-gate.md). Runs in every mode, quick included.
-
-**Top-level acceptance rows (each appears in the ledger):**
-
-- [ ] All tests pass, fresh test output (exit 0, 0 failures, 0 errors)
-- [ ] Linter clean, fresh lint output (0 errors)
-- [ ] Typecheck clean, fresh typecheck output (0 errors)
-- [ ] All `Sprint Backlog` checkboxes ticked
-- [ ] Every Phase 2 acceptance bullet has a ledger row with a proof sample
-- [ ] No placeholders, no `TODO` without owners, no `console.log`/`println!`, no commented-out code
-- [ ] No new lint or type-checker suppressions (inline ignore directives, file-level disables, expect-error pragmas outside test files), zero tolerance
-- [ ] No new `!` non-null assertions in production code
-- [ ] Perf-scout AND law-scout run on the sprint diff, every candidate dispositioned (fixed / staged / false-positive with reason)
-- [ ] No new Critical or Important violation of `rules/performance.md` (Reviewer D confirms in Phase 5)
-- [ ] No new Critical or Important violation of the engineering law (Reviewer B confirms the law-scout rows in Phase 5)
-- [ ] Ship gate: `ship.build`, `ship.boot`, `ship.smoke` rows all present, each ✅ or `⏭ skipped` with a written reason
-- [ ] Manual smoke check (if user opted in), list steps and outcomes
-
-**On any red, do NOT advance to Phase 5.** Loop back to Phase 3 (or 3b if stuck).
+Full protocol: [references/phases/phase-4-verify.md](references/phases/phase-4-verify.md). DoD and the self-review checklist: `references/review-and-verify.md`.
 
 ---
 
 ## Phase 5, Review (parallel multi-reviewer, mandatory)
 
-**Default: dispatch FIVE foreground reviewers in parallel in ONE message** (A, B, C, D, F), plus E as a sixth on UI-bearing diffs. Self-review is the floor, not the ceiling, for any diff beyond a one-line typo, multi-reviewer is on.
+**Goal.** Every non-trivial diff faces a parallel reviewer panel before it can finish, and every finding gets a written disposition.
 
-**Build the three dispatcher inputs BEFORE the message goes out.** Each is the parent's job; a reviewer that receives an unfilled placeholder refuses and reports it, which costs a whole round.
+**Dispatch the wave in ONE message, by registered agent type**, passing only each reviewer's INPUTS. **Do not open the template files to paste prompts**, the agent already carries its prompt and reading it charges you the same text twice (type-to-INPUTS table: `references/parallel-agents/README.md`).
 
-| Input | Goes to | Built from |
-|---|---|---|
-| `{{law_scout_report}}` | Reviewer B | law-scout re-run on the whole sprint diff (`references/law-scout.md`) |
-| `{{perf_scout_report}}` | Reviewer D | perf-scout re-run on the whole sprint diff (`references/perf-scout.md`) |
-| `{{task_file_index}}` | Reviewers C **and** F | the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. Build it once and pass the same map to both: F reads the `W<n>` prefix to find same-wave seams, C matches on `T<m>` |
+**B (quality, layering & engineering law), C (plan consistency, scope & drift) and F (cross-module coherence) are standing members of every wave.** A (security & correctness) and D (performance) are gated on evidence that their lens has something to look at, the scouts already know what surface the diff touched. E (design conformance) joins on UI-bearing diffs. **A folded lens is written down with the evidence that let it fold, never silently absent, and when the evidence is ambiguous the reviewer runs.** F is standing because Phase 3's parallel waves build each half of a feature blind to the other, it is the only lens that checks producer against consumer (`references/parallel-agents/phase-5-multi-review-f-coherence.md`).
 
-Surviving candidates from both scouts enter the decision table beside reviewer findings.
+**Slice the diff before you dispatch.** Each reviewer takes `{{review_scope}}`, the pathspec list its lens can actually act on, and diffs only that; a lens whose list comes out empty is not dispatched and the reason goes on the gate line. Anything you cannot confidently classify goes to B, so an unclassifiable file is never an uncovered file. **B is never sliced**, its semantic tier applies to every touched file, and it takes `{{metrics_table}}` instead so it judges precomputed size numbers rather than counting them by reading (`references/review-scope.md`).
 
-- **Reviewer A. Security & correctness.** Auth, permissions, injection, CORS, cookies, secrets, PII, migrations, crypto, race conditions. Adversarial intent.
-- **Reviewer B. Quality, layering & engineering law.** DRY, named types, layering (routes pure / services own DB), file/function caps, lint suppressions, `!` non-null, empty catches, bare `Error` throws, dead code. Consumes the law-scout table and re-judges every row, then applies the semantic tier no grep can reach: one-construct-per-file, folder/topology conformance, controller purity, single responsibility, reuse and magic literals, SOLID/YAGNI, and test coverage of what this diff added. Cites lawkeeper `rule_id`s (`references/law-scout.md`).
-- **Reviewer C. Plan consistency, scope & goal drift.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach. **Drift-check:** trace every changed hunk to the Primary Goal & Guardrails anchor, a hunk serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
-- **Reviewer D. Performance.** Semantic perf lens: consumes the scout report, judges every staged candidate, and hunts what greps cannot. N+1 shapes, algorithmic complexity, unbounded growth (caches, listeners, result sets), wasted parallelism, blocking I/O on request paths, render storms. Cites `perf.<domain>.<slug>` catalog IDs from `rules/performance.md` and sets final severity. Adversarial intent, a hot path is hot until proven cold.
+**Refute before you fix.** A reviewer's finding is a claim, not a fact. Adversarial refuters judge every finding before an edit is spent on it, two per Critical with distinct lenses and one batched for the Important+Minor set, each receiving the finding verbatim plus the hunk it names rather than the whole range. **The default is to KEEP the finding**, uncertainty is never a refutation (`references/parallel-agents/phase-5-refute.md`).
 
-- **Reviewer F. Cross-module coherence** *(standing, every wave)*. The only lens that asks whether the pieces agree with each other. For every boundary-crossing symbol it names the producer and every consumer, then checks shape agreement (fields, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error-contract agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (route registered, handler subscribed, component mounted, column actually read). Cites file:line for BOTH sides. It exists because Phase 3's parallel waves build each half blind to the other. Template: `references/parallel-agents/phase-5-multi-review-f-coherence.md`.
+**Exit only on a settled diff.** The loop may only end on a FULL round, the full gated panel over the full range, that finds nothing AND leaves every byte of `git diff <base>..HEAD` covered by a live verdict, one recorded against the blob hash the file still carries. Every lens on that round is dispatched with a `settle `-prefixed scope. Middle rounds are scoped to the fix diff and can never close the loop, no matter how clean.
 
-- **Reviewer E. Design conformance** *(joins as the sixth whenever the diff is UI-bearing)*. Audits the diff against the project's committed `docs/design/DESIGN.md`: hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, components missing documented hover/focus/press/disabled states, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, and physical properties where logical are required. Names the exact replacement token for every finding. When reference screenshots of the target design exist, it compares the rendered result against them side by side. With no spec present it falls back to the `references/frontend-design.md` visual law and reports the missing spec. Template: `references/parallel-agents/phase-5-multi-review-e-design.md`.
-
-Cap at 6 reviewers. A, B, C, D and F always run; E takes the sixth slot on UI-bearing diffs, otherwise a second-concern specialist may (`references/parallel-agents/phase-5-escalation.md`). **Self-review still happens** by you, against `references/review-and-verify.md`'s checklist, reviewers are *additive* defense, not replacement.
-
-**Carve-out (skill optional).** A diff that is *purely* a one-line typo / comment / config-only change can skip multi-reviewer. When in doubt, dispatch.
-
-**Acting on feedback, address ALL findings (lawkeeper-style loop).** Build a decision table (Finding / Severity / Decision / Evidence) covering EVERY finding, **refute before you fix**, work the survivors in severity order, and **re-run review + verify to prove zero remaining**. No finding is left un-addressed.
-
-**Refute before you fix.** A reviewer's finding is a claim, not a fact. Before spending an edit on it, dispatch the adversarial refuters in one message (`references/parallel-agents/phase-5-refute.md`): two independent refuters with distinct lenses (reproduction, authority) per Critical, one batched refuter for the whole Important+Minor set. **The default is to KEEP the finding**, uncertainty is never a refutation, and a Critical dies only when BOTH refuters refute it with a file:line counter-citation. Dropping a real defect costs more than fixing a phantom, so the bias runs the opposite way from a content-generation refuter panel. Their verdicts are what let a `push-back` carry the evidence this workflow already demands.
-
-| Severity | Action |
-|---|---|
-| Critical | Fix immediately, before merging. |
-| Important | Fix before claiming Phase 6 done. |
-| Minor | Fix too, defer to Retrospective ONLY with explicit user sign-off, never by default. |
-
-Non-trivial fixes go through a batched approval wizard (propose 2-3 options, ask before writing); trivial fixes applied directly. After each batch, re-run both scouts and re-dispatch the reviewers until the decision table is empty. **Exit only on a settled diff:** a round that changed any code mandates another round, because that round's clean result describes the pre-fix diff, not the one on disk. The loop ends when a full round finds nothing AND `git diff <base>..HEAD` is byte-identical to what that round scanned. Push back only with **technical evidence**, never performative agreement. Full loop + response pattern: [references/review-and-verify.md](references/review-and-verify.md).
+Full protocol, the reviewer gate table, the per-round scope table, the dispatcher inputs, and the address-all loop: [references/phases/phase-5-review.md](references/phases/phase-5-review.md).
 
 ---
 
 ## Phase 6 (Finish)
 
-**Goal.** Land the work cleanly and archive the doc.
+**Goal.** Close the task: present the finish options, execute the chosen one, archive the work-doc, clean the touched scope, and hand the user a plain-language account of what changed.
 
-**Step A, re-run verification.** Even if Phase 4 passed. Pre-merge state drifts.
+Present **4 options** (1 commit locally, 2 commit + push, 3 open a PR, 4 hold), execute the choice, then work the steps in order:
 
-**Step B, present exactly 4 options, no open-ended choice:**
+- **Step C.5, touched-scope cleanup.** The goal is the best version of the files this sprint changed, zero outstanding lint, type, test or dead-code issues in them. Whole-repo pre-existing issues stay out of scope (that is `/hackify:lawkeeper`'s job). Cleanup edits are dispatched per file-disjoint group, never parent-authored; the parent audits and aggregates.
+- **Step D, archive.** Move the work-doc to `docs/work/done/` with `status: done`, and tick ledger item `6c`.
+- **Step D.5, codewalk follow-up** *(options 1 or 2 only)*. If the task touched an entry-point file, ask whether to update an existing `.codewalk/<slug>/` trace, create a new one, or skip. Silent skip when no entry point was touched.
+- **Step F, update log + HTML report.** **Precondition: Step D archive is done.** Print a plain-language update log, one block per change the user would recognize, five fields in this order, **Problem** / **Root cause** / **Solution** / **Verification evidence** / **Deployment status**, separated by a line containing exactly `----`. The HTML report beside it is rendered from a JSON payload by `skills/hackify/scripts/render-report.py`, never typed out by hand. Everyday words, no jargon they did not use, and never a phase number, task ID, reviewer letter or scout name. Append the same log to the archived work-doc under a new `## Update log` subheading, then emit the styled self-contained report beside it at `<slug>.report.html` ([references/html-report.md](references/html-report.md)). Standalone entry point: `/hackify:summary`.
 
-| # | Option | Default for |
-|---|---|---|
-| 1 | Merge to base branch locally | Small in-place changes |
-| 2 | Push and create a PR | Cross-team or larger changes |
-| 3 | Keep the branch as-is | Work pauses; no cleanup |
-| 4 | Discard this work | Requires user typing "discard" verbatim, no shortcut |
-
-**Step C, execute the choice.** **1 or 2:** Commit follows project convention; ends with Claude Code Co-Authored-By trailer. PRs include Summary, Test plan, and link to work-doc. **3:** Stop. Leave everything in place. **4:** Confirm, then `git checkout` base branch and remove worktree if any. Never `git reset --hard` without explicit user instruction.
-
-**Step C.5. Cleanup sweep** (mandatory; runs before archive). Sweep for 8 classes of leftover/abandoned/stale state introduced or surfaced during the sprint. Each class needs a one-line evidence record in the work-doc Phase 6 archive (0 findings counts).
-
-| # | Cleanup class | Audit |
-|---|---|---|
-| a | Stale cross-references | grep for references to files/sections that no longer exist after this sprint. |
-| b | Broken internal anchor links | scan markdown anchor links inside touched files. |
-| c | TODO/FIXME without owners | grep diff for new `TODO`/`FIXME` lacking an explicit owner or follow-up issue. |
-| d | Empty directories left after file moves | `find` for empty dirs under primitives. |
-| e | Dead branches | local + remote branches created during the sprint that won't be merged. |
-| f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD` cross-checked against work-doc Sprint Backlog file allowlists. |
-| g | Pre-existing errors + dead code in touched files (lint/type/test failures, dead code) | detect against the sprint-start baseline; surface and **offer to fix** so touched files end with nothing a reviewer would flag (auto-fix in yolo). Defer only if too large, with explicit user sign-off. |
-| h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
-
-If any class finds defects, **dispatch a cleanup agent per file-disjoint group, in one message**, to fix them before archiving; the parent audits and aggregates, it does not edit. If a defect is too large for this sprint, file a follow-up Retrospective entry and link to it. The touched-scope goal is the **best version**, zero outstanding lint/type/test/dead-code issues in files this sprint changed; whole-repo pre-existing issues stay out of scope (that is `/hackify:lawkeeper`'s job). Detailed audit + baseline commands per class: `references/finish.md`.
-
-**Step D, archive the work-doc** (1 or 2): move `<project>/docs/work/<slug>.md` → `<project>/docs/work/done/<slug>.md`. Update `status: done`. Retrospective is mandatory, 3-8 bullets on what surprised, what to remember. This is phase-ledger item **6c**; its exit artifact (the doc physically in `done/` with `status: done`) is the **hard precondition for Step F**. **Do not print the summary or emit the report until this move is complete**, the summary is the reward for archiving, not a substitute.
-
-**Step D.5. Codewalk follow-up** *(since v0.3.2; 1 or 2 only)*: if the task touched an entry-point file (controller, CLI command, queue/Inngest function, UI action, route handler), ask the user via `AskUserQuestion` whether to *update an existing* `.codewalk/<slug>/` trace, *create a new codewalk* for the touched entry, or *skip*. On Update/Create, invoke `/codewalk <entry-point>` immediately, codewalk runs in update-by-default mode so a re-invoke preserves manual edits and produces an amber diff callout. Skip silently when no entry-point files were touched. Details + the file-pattern detection list + the exact AskUserQuestion shape: `references/finish.md` Step D.5.
-
-**Step E, worktree cleanup** (1, 2, or 4): `git worktree remove <path>`; delete the local branch if merged. NOT for option 3.
-
-**Step F. Update log + HTML report** (1 or 2 only). **Precondition: Step D archive is done**, the work-doc must already be in `docs/work/done/` with `status: done`, and ledger item `6c` `completed`, before this step runs. If it is not, go back and archive first. Print a plain-language **update log**: one block per change the user would recognize, each with five fields in this order, **Problem** / **Root cause** / **Solution** / **Verification evidence** / **Deployment status**, separated by a line containing exactly `----`. Write it the way you would explain the work out loud to someone who was not in the room: everyday words, no jargon they did not use, and never a phase number, task ID, reviewer letter or scout name. Append the same log to the archived work-doc inside Retrospective under a new `## Update log` subheading. **Then emit a styled, self-contained HTML report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc at `<slug>.report.html`, see [references/html-report.md](references/html-report.md). Field-by-field guidance, voice rules, and a worked example: `references/finish.md` "Step F (Update log + HTML report)".
-
-**Invoking the summary on demand.** The update log runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
+Full protocol, the 4-options table, the cleanup classes, the codewalk detection list, and a worked update-log example: [references/phases/phase-6-finish.md](references/phases/phase-6-finish.md) and `references/finish.md`.
 
 ---
 
@@ -433,6 +299,9 @@ Hackify talks in **B2 (upper-intermediate) English** so non-native readers can f
 | `references/communication-voice.md` | B2 + self-explanatory chat voice (load Phase 1; always-on) |
 | `references/phase-ledger.md` | trackable ordered phase ledger, order-enforcer + archive gate (load Phase 1; always-on) |
 | `references/expert-mindset.md` | senior multi-hat mindset + stakes framing (load Phase 1; always-on) |
+| `references/phases/` | the per-phase protocol, one file per phase (1, 2.5, 3, 4, 5, 6). **Load the file for the phase you are opening, not the set.** SKILL.md above states each phase's goal, hard gates and exit artifact; these hold the how |
+| `references/review-scope.md` | how the sprint diff is sliced per reviewer and when a verdict carries into the settle round; the `{{review_scope}}` grammar, the classification table and the scope ledger (load: Phase 5) |
+| `references/repo-brief.md` | the sprint's shared repo-context brief, built once in Phase 2 and passed to every implementer and reviewer so they stop rediscovering the repo one agent at a time |
 | `references/work-doc-template.md` | markdown skeleton for every task |
 | `references/clarify-questions/` | per-task-type question banks for Phase 1 (subdir index: `README.md`; canonical wizard contract: `wizard-contract.md`) |
 | `references/implement-and-test.md` | TDD walkthrough, per-stack test commands |

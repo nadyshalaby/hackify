@@ -1,0 +1,96 @@
+# Review scope, slicing the diff and carrying verdicts
+
+Loaded from Phase 5. This file defines `{{review_scope}}`, the one input that decides **which part of the sprint diff each reviewer reads**. It carries two savings at once: a reviewer only reads the files its lens can judge, and the settle round only re-reads what actually moved.
+
+Both savings are coverage-neutral by construction. A file no reviewer claims goes to Reviewer B, and a verdict is only carried when the file's bytes are provably unchanged. Nothing is dropped; the reading is redistributed.
+
+## Why this exists
+
+Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in six separate contexts, twice (first round and settle round). The security reviewer read stylesheets. The design reviewer read migrations. Then both read them again to close the loop. The diff was the single largest line item in a sprint and most of it was being read by someone who could not act on it.
+
+## The grammar
+
+`{{review_scope}}` is a single string. It is one of four forms:
+
+| Value | Means |
+|---|---|
+| `.` | the whole diff is yours |
+| `<pathspec list>` | your assigned slice, space-separated git pathspecs relative to `{{project_root}}` |
+| `settle all` | settle round, nothing carried over, review your whole assigned slice |
+| `settle <pathspec list>` | settle round, review only these, the rest hold a live verdict |
+
+Append it to the diff command: `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}`. Strip a leading `settle ` first, it is a marker for you, not a pathspec.
+
+**An absent or empty value means `.`.** This is deliberate and it is the safe direction: a dispatcher that forgets to slice buys nothing and loses nothing, because the reviewer falls back to the whole diff. A missing slice is recoverable. A silently narrowed one is not.
+
+**On a settle round the value is never absent.** The `settle` prefix is what makes a carried-over round distinguishable from a round the dispatcher simply did not scope. Without it, "narrowed on purpose" and "never set" look identical, and a round with no scope at all could call itself FULL.
+
+**Every reviewer echoes the value it received**, verbatim, on the first line of its report:
+
+```
+Scope: settle src/auth/ src/db/migrations/
+```
+
+That echo is what lets the parent prove the settle round was properly scoped instead of taking its own word for it.
+
+## Reading outside your scope
+
+The scope bounds what you **diff**, not what you may **read**. When a finding needs the contract around a change (the caller, the type it returns, the guard above it), open that file even if it sits outside your pathspecs, and say in the finding why you opened it. Never widen the diff itself.
+
+## Who gets sliced
+
+| Reviewer | Sliced | Why |
+|---|---|---|
+| **A** security & correctness | yes | its lens is auth, network, storage, process and dependency surfaces, a stylesheet cannot carry a finding it can act on |
+| **C** plan consistency | yes | works from `--stat` plus the task-to-file index, needs full content only for the files it must map to a task |
+| **D** performance | yes | the perf catalog applies to code paths, not to docs or fixtures |
+| **E** design conformance | yes | it already filtered the diff to UI-bearing files as its own step 1, so the dispatcher is doing that filter one context earlier, behaviour is unchanged |
+| **F** cross-module coherence | yes | scoped to the boundary set, the files that export or import across a module edge, plus their counterparts |
+| **B** quality & engineering law | **never** | B applies the semantic tier to *every* touched file and re-judges *every* law-scout row. There is no subset of the diff B does not need. B is the floor under this optimisation and pretending otherwise would delete coverage |
+
+## Building the manifest
+
+Do this once, at Phase 5 dispatch, before the message goes out. The scouts already walked the whole diff to build their tables, so the classification costs no extra reads.
+
+1. List every changed path: `git diff --name-only <base>..<head>`.
+2. Assign each path to every lens whose surface it touches, using the table above. A path may go to several. Most go to at least two.
+3. **Any path you cannot confidently classify goes to B**, which is already reading everything, so an unclassifiable file is never an uncovered file.
+4. Write the scope ledger (below) into the work-doc Sprint Review.
+5. Pass each reviewer its own pathspec list as `{{review_scope}}`. Pass B `.`.
+
+**When a lens's list comes out empty, that lens has nothing to review.** Do not dispatch it, and record why in the gate line, exactly as you would for a folded lens. An empty slice is a gate decision and it is written down like one.
+
+## The scope ledger
+
+One row per changed path. This is the artifact that makes "every file was covered" checkable instead of asserted.
+
+```
+| path | blob | lenses | round 1 | settle |
+|---|---|---|---|---|
+| src/auth/session.ts | a3f91c2 | A B F | clean | carried |
+| src/ui/Button.tsx   | 7d20e14 | B E   | 2 findings | re-read |
+```
+
+**`blob` is `git rev-parse <head>:<path>`, the content hash, not the path.** Keying on the path alone is unsound: a file touched in round 1, fixed in round 2 and touched again would carry a verdict that was never about the bytes now on disk. The hash is the only thing that proves the reviewed content and the shipped content are the same content.
+
+## Carrying verdicts into the settle round
+
+A file carries its verdict into the settle round when **all** of these hold:
+
+- a lens gave it a verdict in an earlier round of this same wave, and
+- its blob hash is identical to the hash recorded with that verdict, and
+- the lens is not F.
+
+**F never carries over.** Every other lens judges a file against itself, so an unchanged file means an unchanged judgement. F judges a file against its counterparts, and a counterpart moving is enough to break coherence while both files' own hashes stay put. F re-reads its whole boundary set on every settle round, which is why `settle all` is F's normal value.
+
+Everything that fails any of the three conditions goes back into `{{review_scope}}` and is read again.
+
+## What a FULL round now means
+
+The old definition was "the panel re-read every byte". The new one is:
+
+> **every byte of the diff is covered by a live verdict, and F re-read the boundary set.**
+
+A verdict is live when the blob hash it was recorded against still matches the file on disk. This is a different guarantee from the old one, not a weaker one, but it is only as good as the ledger, so the ledger is mandatory whenever carry-over is used.
+
+The parent may only declare a round FULL when every dispatched lens echoed a scope beginning with `settle `, and F's echo was `settle all`. A lens that echoed a bare pathspec list was running a middle round, and **a middle round can never close the loop** no matter how clean it came back.

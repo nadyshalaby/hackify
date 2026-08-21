@@ -49,20 +49,43 @@ Keep all existing technical blocks (stats, charts, findings, update log) between
 
 ## Filling the template
 
-1. Copy [../assets/report-template.html](../assets/report-template.html).
-2. Replace every `{{TOKEN}}` with computed content. Token map:
-   - `{{TITLE}}`, `{{SLUG}}`, `{{GENERATED_AT}}` (ISO date-time), `{{SPRINT_GOAL}}`
-   - `{{PLAIN_SUMMARY}}`, 3-6 plain-language (B2) sentences: what changed and why it matters, for a non-technical reader
-   - `{{STAT_TASKS}}`, `{{STAT_FILES}}`, `{{STAT_LOC_ADD}}`, `{{STAT_LOC_DEL}}`, `{{STAT_COMMITS}}`
-   - `{{SEVERITY_CHART_SVG}}`, the inline `<svg>…</svg>` markup
-   - `{{PHASE_TIMELINE}}`, the six phase pills
-   - `{{FINDINGS_TABLE}}`, `<tr>` rows: finding / severity / decision / evidence
-   - `{{ACTION_ITEMS}}`, `<li>` items (or an empty-state line)
-   - `{{UPDATE_LOG}}`, the same blocks as the chat update log, each rendered as a `<section class="update">` whose five field headings are `<h3>` elements (Problem / Root cause / Solution / Verification evidence / Deployment status), the template draws the rule between blocks
-   - `{{EVIDENCE_APPENDIX}}`, `<tr>` rows of the cumulative Evidence Ledger: item / claim / what ran / proof sample / result
-   - `{{NEXT_STEPS}}`, instructions the developer must act on (or an empty-state line)
-3. **Entity-encode text fillers.** HTML-entity-encode (`&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`) the free-text tokens, `{{TITLE}}`, `{{SLUG}}`, `{{SPRINT_GOAL}}`, `{{PLAIN_SUMMARY}}`, and the text inside the `{{FINDINGS_TABLE}}` / `{{ACTION_ITEMS}}` / `{{UPDATE_LOG}}` / `{{EVIDENCE_APPENDIX}}` / `{{NEXT_STEPS}}` cells (a commit subject, a type like `Promise<User>`, or a proof sample can carry a stray `<` or `&`). Emit raw markup ONLY for the tokens you author yourself: `{{SEVERITY_CHART_SVG}}`, `{{PHASE_TIMELINE}}`, and the `<tr>`/`<li>` wrappers.
-4. Write the filled file to the path above.
+**Do not hand-write the HTML.** Emit a JSON payload and let the renderer build the page:
+
+```bash
+python3 <skill-dir>/scripts/render-report.py \
+  --data /tmp/report.json \
+  --out <project>/docs/work/done/<slug>.report.html \
+  --repo <project> --base <base-sha>
+```
+
+The script does the mechanical half: it derives files changed, LOC added and removed and commit count from `--base`, draws the severity chart as inline SVG, renders the phase pills and every table row, HTML-escapes all prose, strips the template's authoring comments, and refuses to write a page that still holds an unfilled token. You supply only what you alone know. Writing this markup by hand cost roughly 5.5k output tokens a report, which bills several times what input does; the payload is about a quarter of that.
+
+Payload. Every key is optional, and a missing key renders an honest empty state rather than a fabricated row:
+
+```json
+{
+  "title": "...", "slug": "...", "generated_at": "2026-08-22T10:00:00Z",
+  "sprint_goal": "...",
+  "plain_summary": "3-6 B2 sentences, what changed and why it matters",
+  "stats": {"tasks_done": 5, "tasks_total": 5},
+  "severity": {"critical":  {"found": 2, "fixed": 2},
+               "important": {"found": 5, "fixed": 4},
+               "minor":     {"found": 3, "fixed": 1}},
+  "phases": [{"name": "Clarify", "state": "done"}],
+  "findings": [{"finding": "...", "severity": "Critical",
+                "decision": "fixed", "evidence": "path:line"}],
+  "action_items": ["..."], "next_steps": ["..."],
+  "update_log": [{"title": "...", "problem": "...", "root_cause": "...",
+                  "solution": "...", "verification": "...",
+                  "deployment": "..."}],
+  "evidence": [{"item": "D1", "claim": "...", "ran": "...",
+                "sample": "...", "result": "pass"}]
+}
+```
+
+- **Anything in `stats` beats the git-derived value**, so quick and yolo can report a working-tree diff with no base SHA to diff against.
+- **The five update-log headings are fixed wording** and the renderer emits them for you: Problem, Root cause, Solution, Verification evidence, Deployment status. They mirror the chat update log and are never paraphrased.
+- **Escaping is the script's job.** Pass raw text. A commit subject carrying `&`, a type like `Promise<User>`, a proof sample with a stray `<`, all safe.
 
 ## Hard rules
 

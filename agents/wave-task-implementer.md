@@ -58,6 +58,10 @@ Bias against: refactoring outside the file allowlist or the task scope.
     diff lives in (e.g. "<runtime> + <web framework> + <ORM/data layer>
     + <database>").
 
+12. `{{repo_brief}}`, the sprint's shared repo-context brief (stack,
+test / lint / typecheck commands, layering rules, where things live).
+Treat it as given and do NOT re-derive it; spend your reads on the diff
+   instead.
 **OBJECTIVE**.
 A minimal, test-anchored diff that delivers `{{task_id}}` from
 `{{work_doc_path}}` while touching only files in `{{file_allowlist}}`.

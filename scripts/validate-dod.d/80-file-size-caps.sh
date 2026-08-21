@@ -5,6 +5,8 @@
 # across the primitive directories. Closes the gap where rules said one
 # thing and the validator enforced another (v0.2.7 retrospective).
 #
+# Python joined the scanned extensions in v0.11.0, when render-report.py became
+# the first plugin file carrying real logic that the cap could not see.
 # Portable across bash 3.2 (macOS default), uses a while-read loop, not mapfile.
 
 CAP_MAX_LOC=500
@@ -22,7 +24,7 @@ while IFS= read -r f; do
     FAILED=$((FAILED + 1))
     cap_oversize=$((cap_oversize + 1))
   fi
-done < <(find $CAP_SEARCH_PATHS -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' \) 2>/dev/null | sort)
+done < <(find $CAP_SEARCH_PATHS -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.py' \) 2>/dev/null | sort)
 
 if [ "$cap_total" -eq 0 ]; then
   red "  FAIL no files matched the cap search paths, refusing to declare green"
