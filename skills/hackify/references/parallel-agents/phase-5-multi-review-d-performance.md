@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer D (performance)
 
-This file holds the dispatchable sub-agent prompt for Reviewer D, the performance lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync. The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Reviewers A and C live in `phase-5-multi-review.md`, B in `phase-5-multi-review-b-quality.md` and F in `phase-5-multi-review-f-coherence.md`; dispatch all of them in ONE assistant message, with E joining on UI-bearing diffs.
+This file holds the dispatchable sub-agent prompt for Reviewer D, the performance lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync. The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Reviewer A lives in `phase-5-multi-review-a-security.md`, B in `phase-5-multi-review-b-quality-plan.md` and F in `phase-5-multi-review-f-coherence.md`; dispatch all of them in ONE assistant message, with E joining on UI-bearing diffs.
 
 ```
 Subagent type: general-purpose

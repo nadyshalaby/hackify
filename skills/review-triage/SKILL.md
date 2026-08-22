@@ -70,7 +70,7 @@ Reviewer findings batch (from a Phase 5 multi-reviewer dispatch on a small auth-
 2. Reviewer A: `src/auth/token.service.ts:142`, refresh-token rotation path does not invalidate the old token before issuing the new one. Critical.
 3. Reviewer B: `src/auth/types.ts:8`, inline object type `{ userId: string; exp: number }` on the `TokenPayload` field; extract to a named interface.
 4. Reviewer B: `src/auth/token.service.ts`, file is 480 LOC, close to the 500-LOC cap; consider splitting now.
-5. Reviewer C: work-doc DoD bullet D3 (CSRF cookie rotation) has no corresponding diff hunk.
+5. Reviewer B: work-doc DoD bullet D3 (CSRF cookie rotation) has no corresponding diff hunk.
 6. Reviewer D: `src/auth/token.service.ts:118`, refresh-history lookup loads every row for the user, then filters in app code (perf.data.fetch-then-filter). Important.
 
 Response table:
@@ -106,7 +106,7 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the response-table engine)
 ```
 
-This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the escalation reviewer template, `skills/hackify/references/parallel-agents/phase-5-multi-review.md` for the Phase 5 multi-reviewer dispatch templates that feed this skill on Path A.
+This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the escalation reviewer template, `skills/hackify/references/parallel-agents/README.md` for the Phase 5 multi-reviewer dispatch table that feeds this skill on Path A.
 
 ## One-line summary
 

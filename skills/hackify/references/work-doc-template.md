@@ -30,7 +30,7 @@ sprint_goal: |
 
 ## Primary Goal & Guardrails
 
-The north-star this task is measured against. Captured in Phase 1, enforced by the drift-check in Phase 2.5 (Reviewer A) and Phase 5 (Reviewer C). See [goal-anchor.md](goal-anchor.md).
+The north-star this task is measured against. Captured in Phase 1, enforced by the drift-check in Phase 2.5 (the spec reviewer) and Phase 5 (Reviewer B). See [goal-anchor.md](goal-anchor.md).
 
 - **North-Star Goal.** [one sentence, the single outcome this task commits to]
 - **In-Scope.** [bullets of work this task WILL do, the boundary]

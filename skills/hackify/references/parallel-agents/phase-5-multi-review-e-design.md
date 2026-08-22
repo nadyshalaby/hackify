@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer E (design conformance)
 
-The **standing sixth reviewer** for UI-bearing diffs. Dispatch alongside A (security), B (quality), C (plan consistency), D (performance) and F (cross-module coherence) in a single parent message whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome.
+The **standing fifth reviewer** for UI-bearing diffs. Dispatch alongside A (security), B (quality and plan consistency), D (performance) and F (cross-module coherence) in a single parent message whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome.
 
 **Boundary against `phase-5-escalation.md`.** Reviewer E is the *standing* design lens, keyed to the project's committed `DESIGN.md`. The escalation reviewer stays for ad-hoc specialist surfaces the baseline roster does not cover (infrastructure, data migration, domain compliance, and deep accessibility audits beyond E's conformance checks). Dispatch E for design conformance; dispatch an escalation reviewer for anything else. They do not overlap, and the reviewer cap of 6 counts E.
 

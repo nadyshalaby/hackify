@@ -23,32 +23,28 @@ PA_NON_TEMPLATE=(README.md template-contract.md phase-5-aggregation.md)
 
 # Single-template files: each file body IS one sub-agent template.
 PA_BUILD_FILES=(
-  "$PA_DIR/phase-1-research.md"
+  "$PA_DIR/investigation.md"
   "$PA_DIR/phase-3-implementation.md"
-  "$PA_DIR/phase-3b-debug-evidence.md"
   "$PA_DIR/phase-4-cross-package-verification.md"
 )
 PA_REVIEW_SINGLE_FILES=(
-  "$PA_DIR/phase-2.5-spec-review-a-consistency.md"
-  "$PA_DIR/phase-2.5-spec-review-b-rules.md"
-  "$PA_DIR/phase-2.5-spec-review-c-dependencies.md"
+  "$PA_DIR/phase-2.5-spec-reviewer.md"
   "$PA_DIR/phase-5-escalation.md"
-  "$PA_DIR/phase-5-multi-review-b-quality.md"
+  "$PA_DIR/phase-5-multi-review-a-security.md"
+  "$PA_DIR/phase-5-multi-review-b-quality-plan.md"
   "$PA_DIR/phase-5-multi-review-d-performance.md"
   "$PA_DIR/phase-5-multi-review-e-design.md"
   "$PA_DIR/phase-5-multi-review-f-coherence.md"
   "$PA_DIR/phase-5-refute.md"
 )
 
-# Multi-template file: holds 2 sub-agent templates under h2 headings.
-# B, D, E and F live one-per-file in PA_REVIEW_SINGLE_FILES above. D moved out
-# in v0.9.0 and B in v0.11.0, both times because a new input pushed this file
-# past the 500-LOC cap. Only A and C remain here.
-PA_MULTI_REVIEW="$PA_DIR/phase-5-multi-review.md"
-PA_MULTI_REVIEW_HEADINGS=(
-  "## Phase 5, Multi-reviewer A (security & correctness)"
-  "## Phase 5, Multi-reviewer C (plan consistency & scope)"
-)
+# There is no multi-template file any more. phase-5-multi-review.md carried A, B
+# and C under h2 headings and needed its own extractor here, plus a matching
+# blind spot in scripts/sync_agent_mirrors.py, which splits on the FIRST fenced
+# block and so could never enforce a file holding three. D moved out in v0.9.0
+# and B in v0.11.0, both times because a new input pushed the file past the
+# 500-LOC cap; v0.13.0 folded C into B and gave A its own file, which retired
+# the extractor and made every agent mirror enforceable at once.
 
 # Wizard bank files in CQ_DIR (exclude README + contract + picking guide).
 CQ_BANK_FILES=(
@@ -63,14 +59,6 @@ CQ_BANK_FILES=(
 
 CANONICAL_SEVERITY='If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.'
 ALLOWLIST='OWASP|SANS|NIST|RFC|WCAG|ARIA|Clean Code|SOLID|12-Factor|Conventional Commits|Semantic Versioning|Keep a Changelog|ISO 8601|Postel|expand-then-contract'
-
-# Extract one sub-template body from the multi-template file by h2 heading.
-# Boundary is the NEXT h2 heading starting with the multi-review prefix
-# this avoids prematurely terminating at `## Critical` lines inside the
-# OUTPUT report skeleton.
-multi_review_body() {
-  awk -v h="$1" '$0 == h {flag=1; next} flag && /^## Phase 5, Multi-reviewer/ {flag=0} flag' "$PA_MULTI_REVIEW"
-}
 
 # Extract the OUTPUT subsection out of a template body. Terminates on the
 # next bolded section header (`**SOMETHING**`).
@@ -118,16 +106,10 @@ yellow "[9] template structural conformance (per-file in $PA_DIR)"
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
   check_template_anchors "$(cat "$f")" "$(basename "$f")"
 done
-for h in "${PA_MULTI_REVIEW_HEADINGS[@]}"; do
-  check_template_anchors "$(multi_review_body "$h")" "$(basename "$PA_MULTI_REVIEW"):$h"
-done
 
 yellow "[10] SEVERITY conditional (review templates have it; build/research don't)"
 for f in "${PA_REVIEW_SINGLE_FILES[@]}"; do
   check_severity_presence "$(cat "$f")" "$(basename "$f")" "review"
-done
-for h in "${PA_MULTI_REVIEW_HEADINGS[@]}"; do
-  check_severity_presence "$(multi_review_body "$h")" "$(basename "$PA_MULTI_REVIEW"):$h" "review"
 done
 for f in "${PA_BUILD_FILES[@]}"; do
   check_severity_presence "$(cat "$f")" "$(basename "$f")" "build"
@@ -151,14 +133,6 @@ for f in "${PA_REVIEW_SINGLE_FILES[@]}"; do
     FAILED=$((FAILED + 1))
   fi
 done
-for h in "${PA_MULTI_REVIEW_HEADINGS[@]}"; do
-  if multi_review_body "$h" | grep -qF -- "$CANONICAL_SEVERITY"; then
-    green "  ok   $(basename "$PA_MULTI_REVIEW"):$h has canonical SEVERITY line"
-  else
-    red "  FAIL $(basename "$PA_MULTI_REVIEW"):$h missing canonical SEVERITY line"
-    FAILED=$((FAILED + 1))
-  fi
-done
 if grep -qF -- "$CANONICAL_SEVERITY" "$RAV_FILE"; then
   green "  ok   review-and-verify.md has canonical SEVERITY line"
 else
@@ -169,9 +143,6 @@ fi
 yellow "[12] ROLE substance check (5 elements per template)"
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
   check_role "$(cat "$f")" "$(basename "$f")"
-done
-for h in "${PA_MULTI_REVIEW_HEADINGS[@]}"; do
-  check_role "$(multi_review_body "$h")" "$(basename "$PA_MULTI_REVIEW"):$h"
 done
 check_role "$(cat "$RAV_FILE")" "review-and-verify.md"
 
@@ -223,15 +194,6 @@ for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
     green "  ok   $(basename "$f") OUTPUT has word cap"
   else
     red "  FAIL $(basename "$f") OUTPUT missing word cap (looked for: ≤NN words / word cap / Total cap)"
-    FAILED=$((FAILED + 1))
-  fi
-done
-for h in "${PA_MULTI_REVIEW_HEADINGS[@]}"; do
-  out=$(output_subsection "$(multi_review_body "$h")")
-  if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
-    green "  ok   $(basename "$PA_MULTI_REVIEW"):$h OUTPUT has word cap"
-  else
-    red "  FAIL $(basename "$PA_MULTI_REVIEW"):$h OUTPUT missing word cap"
     FAILED=$((FAILED + 1))
   fi
 done
@@ -288,3 +250,49 @@ if [ "$AGENT_FILES_FOUND" -eq 0 ]; then
   red "  FAIL agents/*.md glob matched no files"
   FAILED=$((FAILED + 1))
 fi
+
+yellow "[36b] agents/*.md frontmatter 'tools:' names are real, and read-only agents stay read-only"
+# NOTHING else validates these strings, not the plugin loader and not any other
+# check here. A typo or a retired name does not error, it silently changes what
+# the agent may do, and the failure is invisible because the agent still runs.
+# v0.13.0 shipped 'NotebookRead' in two agents before this check existed; that
+# name does not exist (Read handles notebooks), so it was doing nothing while
+# looking deliberate. An allowlist is the only thing between a one-character
+# slip and an agent with the wrong reach. When Claude Code adds a tool, add the
+# name here; that edit IS the review.
+KNOWN_TOOLS=" Agent Bash BashOutput Edit ExitPlanMode Glob Grep KillShell NotebookEdit Read SlashCommand Task TodoWrite WebFetch WebSearch Write "
+TOOLS_DECLARED=0
+for f in agents/*.md; do
+  [ -f "$f" ] || continue
+  tools_line=$(grep -m1 '^tools:' "$f" 2>/dev/null | sed 's/^tools:[[:space:]]*//')
+  [ -n "$tools_line" ] || continue
+  TOOLS_DECLARED=$((TOOLS_DECLARED + 1))
+  unknown=""
+  for t in $(printf '%s' "$tools_line" | tr ',' ' '); do
+    case "$KNOWN_TOOLS" in
+      *" $t "*) ;;
+      *) unknown="$unknown $t" ;;
+    esac
+  done
+  if [ -z "$unknown" ]; then
+    green "  ok   $(basename "$f") declares only known tools"
+  else
+    red "  FAIL $(basename "$f") declares unknown tool(s):$unknown"
+    FAILED=$((FAILED + 1))
+  fi
+done
+green "  ok   $TOOLS_DECLARED agent file(s) declare a tools: line"
+
+# The investigator exists to gather evidence, never to change it, in either of
+# its two modes. The tool list cannot enforce that on its own (Bash can write,
+# and the prompt needs it for `git grep`), but it CAN keep the file-editing
+# tools off the surface entirely, which is the half a check can hold.
+for f in agents/codebase-investigator.md; do
+  [ -f "$f" ] || continue
+  if grep -m1 '^tools:' "$f" | grep -qE '(^|[ ,:])(Edit|Write|NotebookEdit)([ ,]|$)'; then
+    red "  FAIL $(basename "$f") is read-oriented but declares a file-writing tool"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $(basename "$f") declares no file-writing tool"
+  fi
+done

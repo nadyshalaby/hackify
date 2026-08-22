@@ -16,19 +16,19 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 
 ## Orchestration tier (ultracode)
 
-**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's three spec reviewers, each Phase 3 wave, Phase 5's five-to-six reviewers plus the refuters. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
+**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's single spec reviewer, each Phase 3 wave, Phase 5's four-to-five reviewers plus the refuters. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
 
 | Run point | What fans out |
 |---|---|
-| Phase 2.5 | 3 spec reviewers |
+| Phase 2.5 | 2 spec reviewers |
 | Phase 3, each wave | one implementer per task |
-| Phase 5 | 5-6 reviewers, then the refuter panel |
+| Phase 5 | 4-5 reviewers, then the refuter panel |
 
 **Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
 
 | Fan-out shape | What to do |
 |---|---|
-| Flat batch, every unit independent and same-shaped (3 spec reviewers, a 2-task wave) | Dispatch subagents in ONE message. This is correct and stays the default. |
+| Flat batch, every unit independent and same-shaped (2 spec reviewers, a 2-task wave) | Dispatch subagents in ONE message. This is correct and stays the default. |
 | Pipelined, each unit's output feeds a following stage (a wave whose tasks pipeline into per-task verification, a reviewer panel whose findings pipeline into per-finding refutation, a loop-until-dry sweep) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
 
 **The Workflow tool's opt-in is satisfied here.** It may only be called when the user explicitly opted into multi-agent orchestration, and one of its accepted forms is *"the user invoked a skill whose instructions tell you to call Workflow."* Invoking hackify is that invocation, and this file is that instruction. Do not ask the user for permission a second time, and do not fall back to a flat batch just because you are unsure whether you are allowed.

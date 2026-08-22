@@ -11,6 +11,7 @@
 #   40-quick-skill.sh, checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh, checks [24]-[26], [28]
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
+#   57-doc-links.sh, check [57], every cited .md link and prose path resolves to a real file
 #   60-primitives.sh, checks [29]-[32]
 #   70-invariants-and-new.sh, checks [33]-[34], [37]-[39] (hook targets, perf invariants)
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
@@ -40,6 +41,7 @@ source "$DOD_MODULES_DIR/30-version-and-summary.sh"
 source "$DOD_MODULES_DIR/40-quick-skill.sh"
 source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
 source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
+source "$DOD_MODULES_DIR/57-doc-links.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"

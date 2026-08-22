@@ -129,8 +129,8 @@ yellow "[38c] the v0.11.0 token-reduction changes keep their mechanism"
 # out while the prose that promises it stays. Prose nothing checks is prose
 # that drifts back, so each is pinned here to the artifact that carries it.
 P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
-REVIEWER_B_AGENT="agents/code-reviewer-quality.md"
-REVIEWER_B_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality.md"
+REVIEWER_B_AGENT="agents/code-reviewer-quality-plan.md"
+REVIEWER_B_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
 WORK_DOC_TPL="skills/hackify/references/work-doc-template.md"
 
 # (1) The reviewer gate MOVES a lens to B, it never drops one. Reviewer B must
@@ -226,6 +226,117 @@ trigger_check review-triage "/hackify:review-triage" "respond to the review" "re
 trigger_check groom "/hackify:groom" "let's discuss" "let's think" "what if" "explore the idea" "what do you think" "considering" "thinking about"
 trigger_check skillsmith "/hackify:skillsmith" "author a hackify skill" "create a new skill for hackify" "make a hackify-style skill" "new hackify skill"
 
+yellow "[38g] the v0.13.0 agent-merge changes keep their mechanism"
+# Same discipline as [38c], [38e] and [38f], with one difference worth stating:
+# every earlier pin guards a saving that a drifting guard rail turns into lost
+# rigor. This one also guards a COUNT, because the merge shipped with six live
+# files still saying Phase 2.5 runs three reviewers and no check noticed. A stale
+# count is not cosmetic here, it is the number an orchestrator dispatches on.
+PA="skills/hackify/references/parallel-agents"
+LEDGER="skills/hackify/references/phase-ledger.md"
+CONTRACT="$PA/template-contract.md"
+P25_PHASE="skills/hackify/references/phases/phase-2.5-spec-review.md"
+
+# (1) Phase 2.5 dispatches ONE reviewer, in every file that states a count.
+check_token_present '1 reviewer scrutinizes work-doc' "skills/hackify/SKILL.md"
+check_token_present '1 reviewer, patch the doc' "$LEDGER"
+check_token_present '1 reviewer on the plan block' "$LEDGER"
+check_token_present '1 reviewer report aggregated' "$LEDGER"
+check_token_present 'one reviewer, three lenses' "$CONTRACT"
+check_token_present 'Dispatch the 1 reviewer' "skills/yolo/SKILL.md"
+for f in "skills/hackify/SKILL.md" "$LEDGER" "$CONTRACT" "skills/yolo/SKILL.md"; do
+  check_no_token '3 reviewers' "$f"
+  check_no_token '2 reviewers' "$f"
+done
+
+# (2) The letter C is retired, not reassigned. Reusing it would silently point a
+# work-doc or a transcript at a lens that no longer exists, and Phase 5 has its
+# own Reviewer C, so the collision would read as plausible instead of wrong.
+check_token_present 'The letter C is retired, not reassigned' "$P25_PHASE"
+check_no_token 'spec-reviewer-dependencies' "agents"
+check_no_token 'spec-reviewer-consistency' "agents"
+check_no_token 'spec-reviewer-rules' "agents"
+
+# (3) The merged A carries BOTH lenses, and leads with the plan Phase 3 consumes.
+for f in "agents/spec-reviewer.md" "$PA/phase-2.5-spec-reviewer.md"; do
+  check_token_present '{{wave_size_target}}' "$f"
+done
+
+# (4) Both Reviewer Bs load the deep doctrine they audit against. This is the pin
+# that matters most: both agent copies had ALREADY drifted behind their templates
+# and lost this step, and because the registered agent copy is what runs on Claude
+# Code, both reviewers were auditing without it while the docs said otherwise. A
+# missing load step costs nothing visible, it just returns a thinner report.
+for f in "agents/spec-reviewer.md" "$PA/phase-2.5-spec-reviewer.md" \
+         "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
+  check_token_present 'rules/code-quality.md' "$f"
+done
+
+# (5) The Phase 5 panel is FOUR standing reviewers plus E on UI-bearing diffs,
+# since Reviewer C folded into B. Same reasoning as (1): the count is what an
+# orchestrator dispatches on, and the Phase 2.5 merge proved these go stale in
+# files nobody thinks to grep. Every file that states the number is pinned here.
+P5_PHASE_G="skills/hackify/references/phases/phase-5-review.md"
+RAV_G="skills/hackify/references/review-and-verify.md"
+ORCH_G="skills/hackify/references/orchestration.md"
+ESC_G="$PA/phase-5-escalation.md"
+check_token_present 'Cap at 5' "$P5_PHASE_G"
+check_token_present 'FOUR foreground reviewers' "$RAV_G"
+check_token_present 'four baseline Phase 5 reviewers' "$ESC_G"
+check_token_present '4-5 reviewers' "$ORCH_G"
+check_token_present 'A, B, D and F always' "$PA/phase-5-multi-review-a-security.md"
+QUICK_G="skills/quick/SKILL.md"
+# The five agent frontmatter descriptions are pinned here too. A description is
+# NOT inside the fenced block, so the mirror check in [75h] cannot see it, and it
+# is the line an orchestrator reads when deciding who to dispatch. All three of
+# D, E and F still named a retired Reviewer C after the fold, and nothing failed.
+for f in "$P5_PHASE_G" "$RAV_G" "$ORCH_G" "$ESC_G" "$QUICK_G" \
+         "$PA/phase-5-multi-review-a-security.md" "$PA/phase-5-multi-review-f-coherence.md" \
+         "agents/code-reviewer-security.md" "agents/code-reviewer-quality-plan.md" \
+         "agents/code-reviewer-performance.md" "agents/design-conformance-reviewer.md" \
+         "agents/code-reviewer-coherence.md"; do
+  check_no_token 'A, B, C, D and F' "$f"
+  check_no_token 'A, B, C and F' "$f"
+  check_no_token 'A, B, C and D' "$f"
+  check_no_token 'B, C, D and F' "$f"
+  check_no_token 'as a sixth' "$f"
+  check_no_token 'Cap at 6' "$f"
+done
+check_no_token 'five baseline Phase 5 reviewers' "$ESC_G"
+check_no_token 'FIVE foreground reviewers' "$RAV_G"
+check_no_token 'five-to-six reviewers' "$ORCH_G"
+check_no_token 'five-to-six-parallel' "$QUICK_G"
+check_no_token '5-6 reviewers' "$ORCH_G"
+
+# (6) The merged Reviewer B actually carries C's lens. These four inputs are the
+# ones C owned and B never had, so their absence is the signature of a merge that
+# renamed a file and dropped a lens. task_file_index in particular is the one C
+# refused to proceed without.
+for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
+  check_token_present '{{task_file_index}}' "$f"
+  check_token_present '{{changelog_path}}' "$f"
+  check_token_present 'Primary Goal & Guardrails' "$f"
+  check_token_present 'scope-creep' "$f"
+done
+# (7) The merged investigator carries BOTH modes. A prompt that lost its mode
+# tags is a prompt applying debug steps to a research question, which is the
+# specific failure a mode-switched agent risks and the reason each METHOD step
+# carries its tag in the text rather than in a note somewhere else.
+for f in "agents/codebase-investigator.md" "$PA/investigation.md"; do
+  check_token_present '{{mode}}' "$f"
+  check_token_present '[research]' "$f"
+  check_token_present '[debug]' "$f"
+  check_token_present 'FALSIFY' "$f"
+  check_token_present 'Patterns to mirror' "$f"
+done
+
+# (8) No retired agent name survives anywhere in agents/. On Claude Code that
+# directory IS the registry, so a leftover name is a dispatchable ghost, and a
+# leftover mention inside a description reads as a live sibling that is not there.
+for dead in code-reviewer-plan-consistency codebase-researcher debug-evidence-gatherer; do
+  check_no_token "$dead" "agents"
+done
+
 yellow "[38f] the v0.12.0 fan-out changes keep their mechanism"
 # Same discipline as [38c] and [38e]. Each of these trades an agent for tokens, and
 # each becomes a LOSS of rigor the moment its guard rail drifts out while the prose
@@ -235,7 +346,7 @@ P3_PHASE="skills/hackify/references/phases/phase-3-implement.md"
 P5_PHASE="skills/hackify/references/phases/phase-5-review.md"
 PA="skills/hackify/references/parallel-agents"
 REFUTE_TPL="skills/hackify/references/parallel-agents/phase-5-refute.md"
-DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-review-c-dependencies.md"
+DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 
 # (1) Implementers batch by MODULE and are capped at 3. An uncapped batch is one
 # agent holding more context than it can apply carefully, and a batch grouped by
@@ -246,7 +357,7 @@ for f in "agents/wave-task-implementer.md" "skills/hackify/references/parallel-a
 done
 check_token_present 'Cap a batch at 3 tasks' "$P3_PHASE"
 check_token_present 'Group by module, never by count' "$P3_PHASE"
-for f in "agents/spec-reviewer-dependencies.md" "$DEPS_TPL"; do
+for f in "agents/spec-reviewer.md" "$DEPS_TPL"; do
   check_token_present 'Cap a batch at 3 tasks' "$f"
 done
 
@@ -270,7 +381,7 @@ check_token_present 'identical either way' "$REFUTE_TPL"
 check_token_present 'the diff crosses a module boundary' "$P5_PHASE"
 check_token_present 'F folds when the diff has no SEAM' "$P5_PHASE"
 check_token_present '[folded: F]' "$P5_PHASE"
-for f in "agents/code-reviewer-quality.md" "$PA/phase-5-multi-review-b-quality.md"; do
+for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
   check_token_present 'F folded (cross-module coherence)' "$f"
 done
 
@@ -288,14 +399,15 @@ P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
 RAV_REF="skills/hackify/references/review-and-verify.md"
 PA="skills/hackify/references/parallel-agents"
 
-# (1) The five sliced reviewers take {{review_scope}}, in BOTH copies of each
+# (1) The four sliced reviewers take {{review_scope}}, in BOTH copies of each
 # prompt. A reviewer that never learned to scope its diff silently ignores the
 # input, which costs tokens but keeps coverage; the real risk is the reverse,
-# so the pairing is what is checked.
-for f in "agents/code-reviewer-security.md" "agents/code-reviewer-plan-consistency.md" \
+# so the pairing is what is checked. It was five until v0.13.0 folded Reviewer C
+# into B, and C's lens gave up slicing in the move because B is never sliced.
+for f in "agents/code-reviewer-security.md" \
          "agents/code-reviewer-performance.md" "agents/design-conformance-reviewer.md" \
          "agents/code-reviewer-coherence.md" \
-         "$PA/phase-5-multi-review.md" "$PA/phase-5-multi-review-d-performance.md" \
+         "$PA/phase-5-multi-review-a-security.md" "$PA/phase-5-multi-review-d-performance.md" \
          "$PA/phase-5-multi-review-e-design.md" "$PA/phase-5-multi-review-f-coherence.md"; do
   check_token_present '{{review_scope}}' "$f"
 done
@@ -303,7 +415,7 @@ done
 # (2) Reviewer B is NEVER sliced. B applies the semantic tier to every touched
 # file and re-judges every law-scout row, so any subset withheld from B is
 # coverage deleted outright. Both copies of B's prompt must stay scope-free.
-for f in "agents/code-reviewer-quality.md" "$PA/phase-5-multi-review-b-quality.md"; do
+for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
   if grep -qF '{{review_scope}}' "$f" 2>/dev/null; then
     red "  FAIL $f takes {{review_scope}}, Reviewer B must never be sliced"
     FAILED=$((FAILED + 1))

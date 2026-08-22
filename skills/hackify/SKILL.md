@@ -113,9 +113,9 @@ Full protocol, task-type classification, questionnaire assembly, and the anchor 
 
 **First line of this turn, print the completion sentinel.** Sign-off just landed, so this is the first turn where a finish line can be stated and the first where the native tool is not blocked by plan mode. Emit one fenced `/goal <condition>` line (≤500 chars) naming the archived work-doc plus the green triad and the ship-gate rows, so an evaluator outside this conversation rules on "done" instead of you. The line is **paste-ready**: you print it, only the user can set it. Never claim a goal is active, never propose one **from a subagent**, never wait on the answer, and never soften the condition later to make it pass. Shape, per-mode wording, and who wins when the sentinel and the iteration driver disagree: [references/orchestration.md](references/orchestration.md).
 
-**Then dispatch three spec reviewers in ONE message, by agent type** (`hackify:spec-reviewer-consistency`, `hackify:spec-reviewer-rules`, `hackify:spec-reviewer-dependencies`), passing only their INPUTS. Do not open the templates to paste them (`references/parallel-agents/README.md`). A audits internal consistency and goal drift, B architectural and cross-cutting risk against the project's rules, C the dependency, ordering and wave plan.
+**Then dispatch the spec reviewer by agent type** (`hackify:spec-reviewer`), passing only its INPUTS. Do not open the template to paste it (`references/parallel-agents/README.md`). It carries three lenses over one read: internal consistency and goal drift; the dependency, ordering and wave plan that Phase 3 dispatches off; and architectural and cross-cutting risk against the project's rules. **Its report leads with the wave plan and the dispatch batches**, so read those out before Phase 3 rather than rebuilding them.
 
-**Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap each reviewer at ≤300 words.
+**Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap B at ≤300 words and A at ≤600, A carrying two lenses; A's wave plan and dispatch batches are enumerations and sit outside that budget.
 
 Full protocol, per-reviewer scope, the drift-check wording, and the conflict-resolution pass: [references/phases/phase-2.5-spec-review.md](references/phases/phase-2.5-spec-review.md).
 
@@ -238,7 +238,7 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 | Phase | Use | Status |
 |---|---|---|
 | 1 | Research, different code areas, refs, questions | optional |
-| 2.5 | Spec self-review, 3 reviewers scrutinize work-doc | MANDATORY |
+| 2.5 | Spec self-review, 1 reviewer scrutinizes work-doc | MANDATORY |
 | 3 | Implementation waves, one agent per task (parent runs both scouts at wave-end) | MANDATORY |
 | 3b | Debug evidence gathering, different component boundaries | optional (read-only) |
 | 3b | The fix that closes the winning hypothesis | MANDATORY (it is a code change) |
@@ -271,7 +271,7 @@ Contract, schema, and the web↔native token mapping: `references/design-spec/sp
 
 ## Code quality (always-on)
 
-Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable, headline: ≤40 LOC per function, ≤3 params, ≤500 LOC per file, 0 lint suppressions; full list: `rules/hard-caps.md` (canonical, injected every prompt). The `UserPromptSubmit` hook injects THREE rules files into every prompt, `rules/hard-caps.md` (caps), `rules/expert-mindset.md` (mindset), `rules/perf-guardrails.md` (performance), so all three laws are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from Phase 2.5 Reviewer B and Phase 5 Reviewer B.
+Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable, headline: ≤40 LOC per function, ≤3 params, ≤500 LOC per file, 0 lint suppressions; full list: `rules/hard-caps.md` (canonical, injected every prompt). The `UserPromptSubmit` hook injects THREE rules files into every prompt, `rules/hard-caps.md` (caps), `rules/expert-mindset.md` (mindset), `rules/perf-guardrails.md` (performance), so all three laws are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from the Phase 2.5 spec reviewer and Phase 5 Reviewer B.
 
 **Performance law.** `rules/perf-guardrails.md` is the always-on tier; the canonical catalog is `rules/performance.md` (stable `perf.<domain>.<slug>` IDs + severity model), loaded by implementers, Reviewer D, and the scout; the deterministic scan protocol lives in `references/perf-scout.md`.
 

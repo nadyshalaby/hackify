@@ -2,19 +2,19 @@
 
 User preference (default): **always spawn foreground parallel agents to speed development, code reviews, spec self-reviews, and verification.** When 2+ pieces of work are independent, dispatch them in parallel in **one message** so they run concurrently.
 
-This file is the canonical 7-section contract every per-task template in this directory conforms to. Load it alongside any per-phase template file (`phase-2.5-spec-review-*.md`, `phase-3-implementation.md`, `phase-3b-debug-evidence.md`, `phase-5-multi-review.md`) to verify the dispatched prompt carries every required anchor.
+This file is the canonical 7-section contract every per-task template in this directory conforms to. Load it alongside any per-phase template file (`investigation.md`, `phase-2.5-spec-reviewer.md`, `phase-3-implementation.md`, `phase-5-multi-review-a-security.md`, `phase-5-multi-review-b-quality-plan.md`) to verify the dispatched prompt carries every required anchor.
 
 ---
 
 ## When to fan out (yes)
 
 - **Phase 1 research**, different parts of the codebase, different reference docs, different open questions. One agent per question.
-- **Phase 2.5 spec self-review**, three reviewers in parallel scrutinize the work-doc for inconsistent / conflicting logic before code is written (consistency / architectural risk / dependency-and-parallelism). MANDATORY before Phase 3.
+- **Phase 2.5 spec self-review**, one reviewer, three lenses over one read of the work-doc, checking it for inconsistent / conflicting logic before code is written (internal consistency + execution-wave plan + architectural risk). MANDATORY before Phase 3.
 - **Phase 3 implementation waves**, group tasks by dependency, dispatch each wave's tasks to one agent each in a single message. **Tasks in the same wave MUST NOT share files.** This is what makes parallel implementation safe.
 - **Phase 4 verification across packages**, backend + frontend + shared package; one agent per package runs `test && lint && typecheck` in parallel.
 - **Phase 5 multi-reviewer**, five foreground reviewers in parallel: security/correctness, quality-and-engineering-law, plan-consistency/scope, performance, cross-module coherence; design conformance joins as a sixth on UI-bearing diffs. MANDATORY for any non-trivial diff.
 - **Phase 5 adversarial refuters**, one per Critical finding (reproduction lens) plus one batched agent for the Important+Minor set, dispatched together before any fix is applied, and a second refuter (authority lens) only for Criticals whose first refuter refuted. MANDATORY for any non-trivial diff.
-- **Phase 3b debug evidence**, multi-component bug; one agent per boundary instruments + logs.
+- **Phase 3b debug evidence**, multi-component bug; one agent per boundary instruments + logs. Same prompt as Phase 1 research, `investigation.md`, run in `debug` mode.
 - **Multi-project work**, task touches multiple sibling projects (e.g. a backend repo AND a frontend repo); one agent per repo runs the same investigation or implementation wave in its own scope.
 
 ## When NOT to fan out

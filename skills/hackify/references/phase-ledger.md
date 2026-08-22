@@ -31,7 +31,7 @@ Create it with the **todo tracker** primitive (`runtime-adapters.md`). One item 
 
 1. Phase 1. Clarify (lock the goal anchor)
 2. Phase 2. Plan + Gate (work-doc + user "go")
-3. Phase 2.5. Spec review (3 reviewers, patch the doc)
+3. Phase 2.5. Spec review (1 reviewer, patch the doc)
 4. Phase 3. Implement (all waves committed)
 5. Phase 4. Verify (Evidence Ledger + triad green)
 6. Phase 5. Review (decision table empty)
@@ -55,7 +55,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 
 1. Phase 1. Clarify + goal anchor
 2. Phase 2. In-chat plan (no gate)
-3. Phase 2.5. Spec review (3 reviewers on the plan block)
+3. Phase 2.5. Spec review (1 reviewer on the plan block)
 4. Phase 3. Implement (waves)
 5. Phase 4. Verify (full ledger + 3 layers)
 6. Phase 5. Multi-reviewer (address-all, auto-fix)
@@ -76,7 +76,7 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 |---|---|
 | 1 Clarify | Locked Primary Goal & Guardrails anchor, all 5 parts, in the work-doc (in-chat for quick/yolo) |
 | 2 Plan | Work-doc file exists at `docs/work/<date>-<slug>.md` **and** explicit user "go" |
-| 2.5 Spec review | 3 reviewer reports aggregated; Critical + Important findings patched into the doc |
+| 2.5 Spec review | 1 reviewer report aggregated; Critical + Important findings patched into the doc |
 | 3 Implement | Every Sprint Backlog checkbox ticked; each wave committed; wave-end persistence done; both scouts (perf + law) run on the wave-touched files with every candidate dispositioned |
 | 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0); the three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) present and each ✅ or `⏭ skipped` with a written reason |
 | 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |

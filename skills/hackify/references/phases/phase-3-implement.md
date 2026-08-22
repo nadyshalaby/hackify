@@ -57,7 +57,7 @@ same conventions, and an agent per task pays for those reads once per task. Wors
 every implementer re-reads the rule files and re-quotes the same six rule sentences,
 a fixed cost that has nothing to do with how big the task is.
 
-The wave planner emits the batches ([references/parallel-agents/phase-2.5-spec-review-c-dependencies.md](../parallel-agents/phase-2.5-spec-review-c-dependencies.md)). Dispatch one agent per batch:
+The wave planner emits the batches, at the TOP of the Phase 2.5 spec reviewer's report ([references/parallel-agents/phase-2.5-spec-reviewer.md](../parallel-agents/phase-2.5-spec-reviewer.md), agent type `hackify:spec-reviewer`). Read them out of that report rather than rebuilding them here. Dispatch one agent per batch:
 
 1. **Group only within a wave.** Batching across waves would break the dependency
    order the plan exists to enforce.

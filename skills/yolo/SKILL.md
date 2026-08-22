@@ -96,10 +96,10 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 | Thought | Reality |
 |---|---|
 | "The user said yolo, skip Phase 1 wizard too" | YOLO skips GATES (Phase 2, Phase 6), not CLARIFY. Run the wizard if the ask has any ambiguity, a misread ask in autopilot costs more, not less. |
-| "Phase 2.5 has no work-doc, skip it" | The in-chat plan block IS the audit subject. Dispatch the 3 reviewers against the assistant message text. Same rigor, different surface. |
+| "Phase 2.5 has no work-doc, skip it" | The in-chat plan block IS the audit subject. Dispatch the 1 reviewer against the assistant message text. Same rigor, different surface. |
 | "Critical finding came back, ask the user" | YOLO contract: address-all, auto-fix EVERY severity in-place (Critical, Important, AND Minor), then re-scan to zero. The user inspects via `git diff HEAD~1` after commit, that is the inspection point. |
 | "Push the commit too, they'll want it on remote" | No. Phase 6 default is commit to current branch locally, no push. Pushing is user-initiated (`git push` themselves). |
-| "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer C audits diff against that list. No skip. |
+| "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer B audits diff against that list. No skip. |
 | "Auto-pass means I can skip the phase too" | Auto-pass removes the WAIT at a gate, not the phase. Every ledger item still runs in order and gets ticked `completed`. |
 | "Autopilot, so auto-fix without refuting" | Refute first. Auto-fixing a phantom Critical in autopilot breaks working code and nobody sees it until `git diff HEAD~1`. A Critical still needs two refutations to die; the second refuter is dispatched only when the first one votes to refute, because an upheld first verdict already settles it. |
 | "Tests are green, skip the ship gate and commit" | The ship gate is a Phase 4 exit artifact in every mode. Commit is Phase 6; you cannot reach it with an open ledger item. |

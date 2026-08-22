@@ -136,13 +136,13 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FIVE foreground reviewers in parallel in a single message: A security/correctness, B quality/layering, C plan-consistency, D performance, F cross-module coherence. On a UI-bearing diff, E design-conformance joins as the sixth. Cap at 6.
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FOUR foreground reviewers in parallel in a single message: A security/correctness, B quality/layering **and plan-consistency**, D performance, F cross-module coherence. On a UI-bearing diff, E design-conformance joins as the fifth. Cap at 5. (Reviewer C folded into B in v0.13.0: both ran on every wave and neither ever folded, so a permanent merge took a saving no evidence gate could reach.)
 
 Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs. Reviewer B also takes `{{folded_lenses}}` on every dispatch, every round, `none` when the full panel ran: it names any reviewer the gate folded off this wave, and B runs that lens's residual checklist so folding moves a lens instead of dropping one ([phases/phase-5-review.md](phases/phase-5-review.md)). Every reviewer except B also takes `{{review_scope}}`, the git pathspec list for its lens, and diffs only that. **B is never sliced**, its semantic tier applies to every touched file and it re-judges every scout row, so no subset of the diff is safe to withhold; B takes `{{metrics_table}}` instead, so it judges precomputed size numbers rather than counting them by reading ([review-scope.md](review-scope.md)).
 
 Reviewer F is the lens no other reviewer owns: it compares every boundary-crossing symbol's **producer** against every **consumer** for shape, semantic, error-contract, duplicate-concept, and wiring agreement. It exists because Phase 3 builds in parallel waves, separate agents write separate files blind to each other, which is precisely how two independently-correct halves of a feature end up disagreeing.
 
-Dispatch templates: `parallel-agents/phase-5-multi-review.md` (A, B, C), `phase-5-multi-review-d-performance.md`, `phase-5-multi-review-e-design.md`, `phase-5-multi-review-f-coherence.md`. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E.
+Dispatch templates: `parallel-agents/phase-5-multi-review-a-security.md`, `phase-5-multi-review-b-quality-plan.md`, `phase-5-multi-review-d-performance.md`, `phase-5-multi-review-e-design.md`, `phase-5-multi-review-f-coherence.md`. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E.
 
 The self-review still happens, the parent walks the diff (`git diff <BASE_SHA>..HEAD`) and ticks each checklist item below. Note pass/fail and a 1-line note in the work-doc Sprint Review → Self-review table. **Self-review is the floor, the parallel reviewers are the ceiling.** Both run for non-trivial diffs.
 
@@ -238,22 +238,21 @@ Bias against: paraphrasing a prior reviewer's claim without quoting it.
 9. `{{reviewer_a_report}}`, verbatim text of the Phase 5 Reviewer A
    (security & correctness) report.
 10. `{{reviewer_b_report}}`, verbatim text of the Phase 5 Reviewer B
-    (quality & layering) report.
-11. `{{reviewer_c_report}}`, verbatim text of the Phase 5 Reviewer C
-    (plan consistency & scope) report.
-12. `{{reviewer_d_report}}`, verbatim text of the Phase 5 Reviewer D
+    (quality, layering & plan consistency) report, covering both of the
+    lenses B carries since Reviewer C folded into it.
+11. `{{reviewer_d_report}}`, verbatim text of the Phase 5 Reviewer D
     (performance) report, including the perf-scout staging table it
     consumed.
-13. `{{user_claude_md_path}}`, absolute filesystem path to the
+12. `{{user_claude_md_path}}`, absolute filesystem path to the
     user-global CLAUDE.md (typically `~/.claude/CLAUDE.md`), or the
     string `none` if absent.
-14. `{{project_claude_md_path}}`, absolute filesystem path to the
+13. `{{project_claude_md_path}}`, absolute filesystem path to the
     project CLAUDE.md (typically `<project>/CLAUDE.md`), or `none`.
 
 **OBJECTIVE**
 
 A severity-tagged adjudication report that concurs or rebuts every finding
-raised by Reviewer A, B, C, and D, with a file:line citation per item
+raised by Reviewer A, B and D, with a file:line citation per item
 and adds any net-new findings the prior reviewers missed.
 
 **METHOD**
@@ -328,15 +327,16 @@ before producing OUTPUT.
 - **Important**. A defect that risks rework, scope drift, or quality
   regression but will not by itself ship a broken release. Anchored
   examples:
-  - Reviewer B and Reviewer C disagree on whether a helper duplicates an
-    existing utility; the diff is correct but the duplication will
-    surface as a refactor cost. Important.
+  - Reviewer B flags a helper as duplicating an existing utility and
+    Reviewer F reads the same code as two deliberate module-local
+    copies; the diff is correct but the duplication will surface as a
+    refactor cost. Important.
   - A new public-method signature uses three positional parameters where
     a named DTO would be clearer (Clean Code (Martin), long parameter
     list); behavior is correct, design is brittle. Important.
 - **Minor**. Editorial or stylistic issues that do not change behavior.
   Anchored examples:
-  - Reviewer C noted a TODO comment with no owner; behavior unaffected
+  - Reviewer B noted a TODO comment with no owner; behavior unaffected
     Minor.
   - A variable name uses an abbreviation where the codebase convention
     is the full word; no functional impact. Minor.
@@ -356,10 +356,6 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 - ...
 
 ### Reviewer B findings
-- <finding wording, verbatim>. CONCUR | REBUT, <file:line>, <one-line reason>
-- ...
-
-### Reviewer C findings
 - <finding wording, verbatim>. CONCUR | REBUT, <file:line>, <one-line reason>
 - ...
 

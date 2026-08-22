@@ -1,6 +1,6 @@
 ---
 name: code-reviewer-coherence
-description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear when parallel wave agents build each half of a feature blind to the other. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Dispatched whenever the diff crosses a module boundary, which is most non-trivial waves; folds into Reviewer B when the diff stays inside a single module and there is no counterpart to compare against. Dispatch in parallel with Multi-reviewers A, B, C and D in a single parent assistant message.
+description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear when parallel wave agents build each half of a feature blind to the other. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Dispatched whenever the diff crosses a module boundary, which is most non-trivial waves; folds into Reviewer B when the diff stays inside a single module and there is no counterpart to compare against. Dispatch in parallel with Multi-reviewers A, B and D in a single parent assistant message.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -48,7 +48,7 @@ Bias against: accepting "they are close enough" between two shapes.
    allowlist, pre-built by the dispatching agent (e.g.
    `W2/T4: [src/invitations/invitations.service.ts]`,
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
-   the SAME map Reviewer C receives; the `W<n>/` prefix is what you
+   the SAME map Reviewer B receives; the `W<n>/` prefix is what you
    use and C ignores. Files sharing a `W<n>` prefix were written by
    agents blind to each other and are the highest-risk seams. The
    reviewer MUST NOT infer this map from task prose, the dispatcher is

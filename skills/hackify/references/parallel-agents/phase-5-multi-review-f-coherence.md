@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer F (cross-module coherence)
 
-The **standing sixth lens**, dispatched on every non-trivial diff alongside A, B, C and D (E joins on UI-bearing diffs). Reviewer F exists because Phase 3 builds in **parallel waves**: separate agents write separate files with no sight of each other. That is what makes hackify fast, and it is exactly what produces two halves of a feature that each look correct and do not agree.
+The **standing fifth lens**, dispatched on every non-trivial diff alongside A, B and D (E joins on UI-bearing diffs). Reviewer F exists because Phase 3 builds in **parallel waves**: separate agents write separate files with no sight of each other. That is what makes hackify fast, and it is exactly what produces two halves of a feature that each look correct and do not agree.
 
 Nobody else owns this. A checks whether the code is safe, B whether it is well-built, C whether it matches the plan, D whether it is fast. None of them asks whether the **producer and the consumer describe the same thing**. F does, and only that.
 
@@ -49,7 +49,7 @@ Bias against: accepting "they are close enough" between two shapes.
    allowlist, pre-built by the dispatching agent (e.g.
    `W2/T4: [src/invitations/invitations.service.ts]`,
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
-   the SAME map Reviewer C receives; the `W<n>/` prefix is what you
+   the SAME map Reviewer B receives; the `W<n>/` prefix is what you
    use and C ignores. Files sharing a `W<n>` prefix were written by
    agents blind to each other and are the highest-risk seams. The
    reviewer MUST NOT infer this map from task prose, the dispatcher is
@@ -202,13 +202,13 @@ heading, never go silent.
 
 ## Dispatch notes
 
-- **Standing member.** F runs on every non-trivial diff, in the same single message as A, B, C and D. It is not conditional on diff size or file count. The carve-out is the same as the rest of the wave: a purely one-line typo / comment / config-only diff.
+- **Standing member.** F runs on every non-trivial diff, in the same single message as A, B and D. It is not conditional on diff size or file count. The carve-out is the same as the rest of the wave: a purely one-line typo / comment / config-only diff.
 - **`{{task_file_index}}` is the dispatcher's job, and it is built ONCE for the whole wave.** Reviewers C and F both receive it, so build it once from the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. F reads the `W<n>` prefix to find same-wave seams; C ignores it. In quick mode there is one implementation agent, so pass a single-entry map (`W1/T1: [...]`); in yolo, build it from the in-chat plan block. A reviewer that receives an unfilled placeholder must refuse and report `unfilled placeholder: task_file_index`.
-- **Findings feed the address-all loop** in `review-and-verify.md` like every other reviewer's. An `Unwired symbols` row with a named work-doc task is also a Reviewer C plan-consistency signal, expect the two reports to overlap there; that agreement is a confirmation, not a duplicate to drop.
+- **Findings feed the address-all loop** in `review-and-verify.md` like every other reviewer's. An `Unwired symbols` row with a named work-doc task is also a Reviewer B plan-consistency signal, expect the two reports to overlap there; that agreement is a confirmation, not a duplicate to drop.
 
 ## See also
 
 - [template-contract.md](template-contract.md), the 7-section contract this template conforms to.
-- [phase-5-multi-review.md](phase-5-multi-review.md), Reviewers A, B and C, dispatched in the same message.
+- [phase-5-multi-review-a-security.md](phase-5-multi-review-a-security.md) and [phase-5-multi-review-b-quality-plan.md](phase-5-multi-review-b-quality-plan.md), Reviewers A and B, dispatched in the same message.
 - [phase-5-aggregation.md](phase-5-aggregation.md), the count-agnostic guidance for merging N returning reports into one decision table.
 - [review-and-verify.md](../review-and-verify.md), the address-all loop these findings enter.

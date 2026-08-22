@@ -1,11 +1,10 @@
----
-name: code-reviewer-security
-description: Phase 5 Multi-reviewer A, audits a base..head git diff for security & correctness defects (auth flows, permission boundaries, injection, PII/secrets, migration safety, race conditions), citing OWASP Top 10 / CWE / NIST / RFC 6749 / RFC 7519 standards and post-image file:line for every finding. Dispatch one of these in parallel with Multi-reviewers B, D and F in a single parent assistant message; E joins as a fifth on UI-bearing diffs.
----
+# Phase 5, Multi-reviewer A (security & correctness)
 
-Dispatch FOUR reviewers (A here, plus B, D and F in the sibling agent files) in ONE assistant message, with E joining as a fifth whenever the diff is UI-bearing. They all see the same diff range and the same work-doc; each applies a different lens.
+This file holds the dispatchable sub-agent prompt for Reviewer A, the security and correctness lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer A prompt (portable across runtimes); `agents/code-reviewer-security.md` mirrors its fenced block byte-for-byte. B (quality, layering and plan consistency) lives in `phase-5-multi-review-b-quality-plan.md`, D in `phase-5-multi-review-d-performance.md`, E in `phase-5-multi-review-e-design.md`, F in `phase-5-multi-review-f-coherence.md`. The canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here. Aggregation guidance lives in `phase-5-aggregation.md`.
 
-Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
+Dispatch the whole wave in ONE assistant message: A, B, D and F always; E as the fifth whenever the diff is UI-bearing. All of them see the same diff range and the same work-doc; each applies a different lens. Before dispatching, run both deterministic scouts on the sprint diff, the perf-scout (`references/perf-scout.md`) staging table is Reviewer D's `{{perf_scout_report}}` input, and the law-scout (`references/law-scout.md`) staging table is Reviewer B's `{{law_scout_report}}` input.
+
+**This file used to hold three prompts.** Until v0.13.0 it carried A, B and C, which is why the mirror script could never enforce `agents/code-reviewer-security.md` against it: the script splits on the first fenced block and a three-prompt file has three. C folded into B in v0.13.0 and B already lived in its own file, so A is alone here now and the pair is enforced like every other one.
 
 ```
 Subagent type: general-purpose
@@ -171,3 +170,5 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 If a findings section has no entries, write `None.` on its own line
 under the heading, never go silent.
 ```
+
+Reviewers D (performance) and F (cross-module coherence) are standing members of every wave and live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`). UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the fifth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 5.

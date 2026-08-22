@@ -1,10 +1,38 @@
 #!/usr/bin/env python3
 """Regenerate the agent files that mirror a parallel-agents template block.
 
-Four agent definitions promise byte-for-byte identity with the fenced prompt
-block of a canonical template, and check [75h] in scripts/validate-dod.sh
-enforces that promise. Editing one side by hand and forgetting the other is a
-build break, so this script copies canonical -> mirror for every pair.
+EVERY agent definition in agents/ promises byte-for-byte identity with the
+fenced prompt block of a canonical template, and check [75h] in
+scripts/validate-dod.sh enforces that promise. Editing one side by hand and
+forgetting the other is a build break, so this script copies canonical ->
+mirror for every pair. As of v0.13.0 there are no exceptions left: the list
+below and the contents of agents/ are the same nine things.
+
+Getting to zero exceptions took splitting one file. phase-5-multi-review.md
+used to carry Reviewers A, B and C in three fenced blocks, and this script
+splits on the FIRST block, so neither A nor C could ever be enforced against
+it. v0.13.0 folded C into B and moved A into its own
+phase-5-multi-review-a-security.md, which left every canonical file with
+exactly one prompt in it.
+
+Both of those long-unenforced pairs had drifted, in both directions, which is
+the argument for the check rather than against it:
+
+  - Reviewer A's agent copy held two instructions its template never got (skip
+    the Execution waves block when reading Approach, and the {{...}} vs <...>
+    placeholder explainer). Its template held a broader phrasing of two ROLE
+    clauses. Neither side was uniformly newer, so the merge took the union by
+    hand instead of letting this script pick a winner.
+  - Reviewer C's agent copy had gained the Execution-waves clause and LOST the
+    goal-anchor pointer sentence its template still carried. Same treatment.
+
+The earlier lesson still stands and is worth keeping: code-reviewer-quality's
+agent copy had drifted BEHIND its template, having lost the step that loads
+rules/code-quality.md, so that reviewer was auditing without the doctrine file
+SKILL.md says it loads. It LOOKED like the newer side because its file was
+longer, but the extra length was hard-wrapping plus three suppression-grep
+steps the template had consolidated into one pointer step. Size never settles
+drift direction; reading both sides does.
 
     python3 scripts/sync_agent_mirrors.py           # rewrite drifted mirrors
     python3 scripts/sync_agent_mirrors.py --check   # report drift, change nothing
@@ -20,6 +48,11 @@ import sys
 PA = "skills/hackify/references/parallel-agents"
 
 MIRROR_PAIRS = (
+    ("agents/codebase-investigator.md", f"{PA}/investigation.md"),
+    ("agents/spec-reviewer.md", f"{PA}/phase-2.5-spec-reviewer.md"),
+    ("agents/wave-task-implementer.md", f"{PA}/phase-3-implementation.md"),
+    ("agents/code-reviewer-security.md", f"{PA}/phase-5-multi-review-a-security.md"),
+    ("agents/code-reviewer-quality-plan.md", f"{PA}/phase-5-multi-review-b-quality-plan.md"),
     ("agents/code-reviewer-performance.md", f"{PA}/phase-5-multi-review-d-performance.md"),
     ("agents/design-conformance-reviewer.md", f"{PA}/phase-5-multi-review-e-design.md"),
     ("agents/code-reviewer-coherence.md", f"{PA}/phase-5-multi-review-f-coherence.md"),

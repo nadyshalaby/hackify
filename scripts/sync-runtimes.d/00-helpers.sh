@@ -92,17 +92,14 @@ MIRROR_SOURCES=(
   "skills/hackify/references/phases/phase-5-review.md"
   "skills/hackify/references/phases/phase-6-finish.md"
   "skills/hackify/references/parallel-agents/README.md"
-  "skills/hackify/references/parallel-agents/phase-1-research.md"
-  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-a-consistency.md"
-  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-b-rules.md"
-  "skills/hackify/references/parallel-agents/phase-2.5-spec-review-c-dependencies.md"
+  "skills/hackify/references/parallel-agents/investigation.md"
+  "skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
   "skills/hackify/references/parallel-agents/phase-3-implementation.md"
-  "skills/hackify/references/parallel-agents/phase-3b-debug-evidence.md"
   "skills/hackify/references/parallel-agents/phase-4-cross-package-verification.md"
   "skills/hackify/references/parallel-agents/phase-5-aggregation.md"
   "skills/hackify/references/parallel-agents/phase-5-escalation.md"
-  "skills/hackify/references/parallel-agents/phase-5-multi-review.md"
-  "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality.md"
+  "skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md"
+  "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
   "skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md"
   "skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md"
   "skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md"
@@ -175,12 +172,10 @@ MIRROR_SOURCES=(
 CLAUDE_CODE_EXTRA=(
   ".claude-plugin/plugin.json"
   ".claude-plugin/marketplace.json"
-  "agents/spec-reviewer-consistency.md"
-  "agents/spec-reviewer-rules.md"
-  "agents/spec-reviewer-dependencies.md"
+  "agents/codebase-investigator.md"
+  "agents/spec-reviewer.md"
   "agents/code-reviewer-security.md"
-  "agents/code-reviewer-quality.md"
-  "agents/code-reviewer-plan-consistency.md"
+  "agents/code-reviewer-quality-plan.md"
   "agents/code-reviewer-performance.md"
   "agents/code-reviewer-coherence.md"
   "agents/design-conformance-reviewer.md"
@@ -264,13 +259,23 @@ mirror_canonical_files() {
 }
 
 prune_runtime_dist() {
-  # Remove stale skill directories before mirroring so renamed/deleted
-  # source slugs do not leave orphaned destinations.
+  # Remove stale skill and agent directories before mirroring so renamed or
+  # deleted sources do not leave orphaned destinations.
+  #
+  # agents/ is pruned for a sharper reason than skills/. A leftover agent file
+  # in dist/claude-code/agents/ is not dead weight, it is a REGISTERED AGENT
+  # TYPE: the runtime loads whatever sits in that directory, so a retired agent
+  # keeps being dispatchable for anyone installing from dist long after the
+  # source stopped shipping it. v0.13.0 retired three spec reviewers and all
+  # three survived the resync here until this line existed.
   local runtime="$1"
   [ "$DRY_RUN" -eq 1 ] && return 0
-  if [ -d "dist/${runtime}/skills" ]; then
-    rm -rf "dist/${runtime}/skills"
-  fi
+  local dir
+  for dir in skills agents; do
+    if [ -d "dist/${runtime}/${dir}" ]; then
+      rm -rf "dist/${runtime}/${dir}"
+    fi
+  done
 }
 
 # --- summary -----------------------------------------------------------------

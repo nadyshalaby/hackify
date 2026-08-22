@@ -14,12 +14,10 @@ for f in "rules/hard-caps.md" "rules/code-quality.md"; do
 done
 
 AGENTS_EXPECTED=(
-  "spec-reviewer-consistency"
-  "spec-reviewer-rules"
-  "spec-reviewer-dependencies"
+  "codebase-investigator"
+  "spec-reviewer"
   "code-reviewer-security"
-  "code-reviewer-quality"
-  "code-reviewer-plan-consistency"
+  "code-reviewer-quality-plan"
   "code-reviewer-performance"
   "code-reviewer-coherence"
   "design-conformance-reviewer"

@@ -2,7 +2,7 @@
 
 The **Primary Goal & Guardrails** anchor is the north-star that drives every plan and implementation decision for a task. It is captured once in Phase 1, persisted in the work-doc, and enforced by a drift-check in Phase 2.5 and Phase 5. Its job is to convert a fuzzy ask into a fixed target so no later phase silently wanders off it.
 
-Load this file from Phase 1 (to capture the anchor), Phase 2.5 Reviewer A, and Phase 5 Reviewer C (to enforce it).
+Load this file from Phase 1 (to capture the anchor), the Phase 2.5 spec reviewer, and Phase 5 Reviewer B (to enforce it).
 
 ## The anchor shape
 
@@ -39,7 +39,7 @@ The anchor has teeth. Work is traced back to it at three points.
 
 - **Phase 2.5 Reviewer A (spec consistency)**, trace every Sprint Backlog task and every Acceptance-Criteria bullet to the anchor.
 - **Phase 4 Layer 2 (goal-drift re-check)**, trace every Evidence Ledger proof to the North-Star Goal and the Success Signals; a Success Signal with no proving row means the goal is not met yet ([review-and-verify.md](review-and-verify.md)).
-- **Phase 5 Reviewer C (plan consistency & scope)**, trace every changed hunk in the diff to the anchor.
+- **Phase 5 Reviewer B (plan-consistency lens)**, trace every changed hunk in the diff to the anchor.
 
 **Verdicts (identical wording in both reviewers):**
 
@@ -57,7 +57,7 @@ Distilling is the skill. The anchor lists every signal; the sentinel names only 
 ## See also
 
 - [work-doc-template.md](work-doc-template.md), the `## Primary Goal & Guardrails` section skeleton.
-- [parallel-agents/phase-2.5-spec-review-a-consistency.md](parallel-agents/phase-2.5-spec-review-a-consistency.md). Reviewer A drift-check.
-- [parallel-agents/phase-5-multi-review.md](parallel-agents/phase-5-multi-review.md). Reviewer C drift-check.
+- [parallel-agents/phase-2.5-spec-reviewer.md](parallel-agents/phase-2.5-spec-reviewer.md). Phase 2.5 drift-check.
+- [parallel-agents/phase-5-multi-review-b-quality-plan.md](parallel-agents/phase-5-multi-review-b-quality-plan.md). Reviewer B drift-check.
 - [clarify-questions/universal-preamble.md](clarify-questions/universal-preamble.md), the Phase 1 goal-anchor question.
 - [orchestration.md](orchestration.md), the completion sentinel this anchor's Success Signals distil into, plus who wins when it and the iteration driver disagree.

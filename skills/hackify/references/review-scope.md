@@ -6,7 +6,7 @@ Both savings are coverage-neutral by construction. A file no reviewer claims goe
 
 ## Why this exists
 
-Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in six separate contexts, twice (first round and settle round). The security reviewer read stylesheets. The design reviewer read migrations. Then both read them again to close the loop. The diff was the single largest line item in a sprint and most of it was being read by someone who could not act on it.
+Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in six separate contexts, twice (first round and settle round). The panel is five now, and B carries two lenses, but the arithmetic that motivated slicing is unchanged. The security reviewer read stylesheets. The design reviewer read migrations. Then both read them again to close the loop. The diff was the single largest line item in a sprint and most of it was being read by someone who could not act on it.
 
 ## The grammar
 
@@ -42,11 +42,12 @@ The scope bounds what you **diff**, not what you may **read**. When a finding ne
 | Reviewer | Sliced | Why |
 |---|---|---|
 | **A** security & correctness | yes | its lens is auth, network, storage, process and dependency surfaces, a stylesheet cannot carry a finding it can act on |
-| **C** plan consistency | yes | works from `--stat` plus the task-to-file index, needs full content only for the files it must map to a task |
 | **D** performance | yes | the perf catalog applies to code paths, not to docs or fixtures |
 | **E** design conformance | yes | it already filtered the diff to UI-bearing files as its own step 1, so the dispatcher is doing that filter one context earlier, behaviour is unchanged |
 | **F** cross-module coherence | yes | scoped to the boundary set, the files that export or import across a module edge, plus their counterparts |
-| **B** quality & engineering law | **never** | B applies the semantic tier to *every* touched file and re-judges *every* law-scout row. There is no subset of the diff B does not need. B is the floor under this optimisation and pretending otherwise would delete coverage |
+| **B** quality, engineering law & plan consistency | **never** | B applies the semantic tier to *every* touched file and re-judges *every* law-scout row. There is no subset of the diff B does not need. B is the floor under this optimisation and pretending otherwise would delete coverage |
+
+**Reviewer C used to be sliced and is not on this table any more.** v0.13.0 folded it into B, so its lens inherited B's terms: it now sees the whole diff every round instead of a task-mapped slice. Coverage goes up, the wave drops a diff read, and the settle-round saving on that lens is what the merge gave back. That trade is written down here rather than left to be rediscovered from the table's missing row.
 
 ## Building the manifest
 
