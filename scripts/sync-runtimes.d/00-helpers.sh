@@ -114,6 +114,7 @@ MIRROR_SOURCES=(
   "skills/hackify/references/orchestration.md"
   "skills/hackify/references/phase-ledger.md"
   "skills/hackify/references/review-and-verify.md"
+  "skills/hackify/references/review-scope.md"
   "skills/hackify/references/runtime-adapters.md"
   "skills/hackify/references/work-doc-template.md"
   "skills/hackify/references/goal-anchor.md"

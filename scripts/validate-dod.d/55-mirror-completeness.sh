@@ -19,9 +19,15 @@ MANIFEST_LIST=$(
   printf '%s\n' "${MIRROR_SOURCES[@]}" "${CLAUDE_CODE_EXTRA[@]}"
 )
 
-# The canonical source set IS the git-tracked set, using git ls-files (not
-# find) excludes dist/ and __pycache__/*.pyc for free, so build artifacts can
-# never masquerade as unmirrored canonical files.
+# The canonical source set is the git-tracked set PLUS untracked-but-not-ignored
+# files, using git ls-files (not find) excludes __pycache__/*.pyc for free, so
+# build artifacts can never masquerade as unmirrored canonical files.
+#
+# --others --exclude-standard is what makes this check useful BEFORE the commit.
+# Tracked-only, a brand-new reference file is invisible here and the validator
+# goes green, then CI fails the moment it is committed. That is exactly how
+# references/review-scope.md shipped absent from all six runtime distributions
+# in v0.11.0. .gitignore still governs, so ignored artifacts stay excluded.
 #
 # Exclusions, tracked files that legitimately never ship:
 #   */evals/corpus/*, the lawkeeper recall corpus is a synthetic
@@ -34,16 +40,17 @@ MANIFEST_LIST=$(
 #                                       emitter copies only the explicit
 #                                       CLAUDE_CODE_EXTRA enumeration, which omits
 #                                       test files by design, no runtime ships it.
-TRACKED_SORTED=$(git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/null \
+TRACKED_SORTED=$( { git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/null; \
+    git ls-files --others --exclude-standard skills/ commands/ rules/ agents/ hooks/ 2>/dev/null; } \
   | grep -v -e '/evals/corpus/' -e '^hooks/test_[a-z_]*\.sh$' \
   | sort -u)
 MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 
 UNMIRRORED=$(comm -23 <(printf '%s\n' "$TRACKED_SORTED") <(printf '%s\n' "$MANIFEST_SORTED"))
 if [ -z "$UNMIRRORED" ]; then
-  green "  ok   every tracked skills/ commands/ rules/ agents/ hooks/ file is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA"
+  green "  ok   every skills/ commands/ rules/ agents/ hooks/ file (tracked + untracked, gitignore respected) is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA"
 else
-  red "  FAIL tracked canonical files absent from the sync manifest (would ship missing from dist/):"
+  red "  FAIL canonical files absent from the sync manifest (would ship missing from dist/):"
   printf '%s\n' "$UNMIRRORED" | sed 's/^/         - /'
   FAILED=$((FAILED + 1))
 fi

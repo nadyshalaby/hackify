@@ -5,6 +5,13 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-08-22
+
+### Fixed
+
+- **`references/review-scope.md` was missing from the runtime sync manifest**, so the six non-Claude-Code distributions in `dist/` shipped without it while five reviewer prompts pointed at it for the scope grammar and the carry-over rules. On the runtimes with no agent registry, where the templates are pasted by hand, that file is the only place the four `{{review_scope}}` value forms are defined. Claude Code installs were unaffected, they carry the whole repo.
+- **Check `[55]` now sees untracked files too** (`git ls-files --others --exclude-standard`, so `.gitignore` still governs). Reading only the tracked set made the check useless at the moment it was needed most: a brand-new reference file is invisible to it, the validator goes green, and CI fails as soon as the file is committed. That false green is exactly how the manifest gap above reached a tagged release.
+
 ## [0.11.0] - 2026-08-22
 
 > **The workflow was paying for the same text over and over.** Three always-on rules files were re-injected on every single prompt, and because injected context stays in the transcript, a thirty-turn session carried thirty copies of rules that never left the context window. Six reviewers each opened every touched file in full, and then the settle round sent all of them back over files nobody had touched since they were last judged clean. Fifteen implementers each rediscovered the same stack. The parent read a reviewer's prompt out of a template to build a message for an agent that already carried that prompt. None of it bought rigor; all of it bought repetition. This release removes the repetition and redistributes the reading: the rules arrive once and stay in force, every lens gets the part of the diff it can actually act on, a verdict survives as long as the bytes it was recorded against, and the one reviewer that genuinely needs everything keeps getting everything. Every gate, every lens and every proof stays exactly where it was. Measured against real sprint diffs from this repo's own history, the reviewer changes alone cut a typical sprint by about a third and a large one by about half.
