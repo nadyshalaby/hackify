@@ -232,6 +232,8 @@ yellow "[38f] the v0.12.0 fan-out changes keep their mechanism"
 # promising the saving stays. Pin the guard rail, not the saving.
 
 P3_PHASE="skills/hackify/references/phases/phase-3-implement.md"
+P5_PHASE="skills/hackify/references/phases/phase-5-review.md"
+PA="skills/hackify/references/parallel-agents"
 REFUTE_TPL="skills/hackify/references/parallel-agents/phase-5-refute.md"
 DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-review-c-dependencies.md"
 
@@ -261,6 +263,16 @@ done
 check_token_present 'dies only when' "$REFUTE_TPL"
 check_token_present 'only if the 1st refutes' "$REFUTE_TPL"
 check_token_present 'identical either way' "$REFUTE_TPL"
+
+# (3b) F is gated on a SEAM, not on risk, and B inherits its checklist when it folds.
+# F is the only lens that compares a producer against its consumers, so a fold that is
+# not carried is how a half-built feature ships with both halves looking fine alone.
+check_token_present 'the diff crosses a module boundary' "$P5_PHASE"
+check_token_present 'F folds when the diff has no SEAM' "$P5_PHASE"
+check_token_present '[folded: F]' "$P5_PHASE"
+for f in "agents/code-reviewer-quality.md" "$PA/phase-5-multi-review-b-quality.md"; do
+  check_token_present 'F folded (cross-module coherence)' "$f"
+done
 
 # (4) The panel does not read Phase 3 dispatch bookkeeping. That block just grew a
 # batch list, so a reviewer still reading it pays for the batching twice over.

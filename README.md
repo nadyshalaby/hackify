@@ -30,6 +30,7 @@ For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a c
 ### New in 0.12.0
 
 - **Fewer agents doing the same work.** Tasks that touch the same part of the code now go to one implementer together instead of one each, so the shared reading happens once rather than three times. Each task keeps its own file boundary, and a batch stops at the first task it cannot finish, so a bad task costs one task and not the batch. Tasks in unrelated areas still go separately, because there is nothing shared to save.
+- **The cross-module reviewer runs when there is something to compare.** It checks that the pieces of a feature still agree with each other, which needs two sides. On a change that stays inside one area there is no second side, so its checklist passes to the quality reviewer instead. The bar to skip it is deliberately hard to clear: two areas touched is enough to run it, and so is one file that anything outside its area uses.
 - **The second opinion is only bought when it can change the answer.** A serious finding is only dropped when two independent checkers both reject it. So once the first one keeps it, the finding is already safe and the second checker was answering a settled question. It now runs only when the first one votes to drop, which leaves the outcome exactly as it was.
 
 ### New in 0.11.0

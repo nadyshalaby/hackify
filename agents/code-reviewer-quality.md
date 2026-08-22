@@ -151,7 +151,8 @@ A severity-tagged list of quality and layering defects in the diff
 15. For every lens named in `{{folded_lenses}}`, run its residual
     checklist over the same hunks, because a folded lens is one you
     inherited, not one the wave dropped. Tag each finding from this
-    step with the lens it came from (`[folded: A]`, `[folded: D]`).
+    step with the lens it came from (`[folded: A]`, `[folded: D]`,
+    `[folded: F]`).
     - **A folded (security & correctness)**, check the hunks for
       injection through string-built queries / commands / paths,
       secrets or PII in source or logs, a permission check that the
@@ -167,6 +168,15 @@ A severity-tagged list of quality and layering defects in the diff
       `perf.<domain>.<slug>` ID from `rules/performance.md`. Any hit
       is at least Important, and a hit contradicting the evidence
       line is Critical.
+    - **F folded (cross-module coherence)**, F folds only when
+      the diff stayed inside one module, so first confirm that is
+      actually true. Then check every symbol the diff changed that
+      anything outside its module imports, and every route, handler,
+      subscription or column the diff added, for a counterpart that
+      was never wired up. Any seam you find means the gate decision
+      was wrong, and that is Critical, not Important: F folded
+      because the dispatcher judged there was no second side to
+      compare against.
     You are the last lens on these; nothing downstream re-checks
     them. Do not downgrade a folded-lens finding because it was
     "not your area", it is your area for this wave.

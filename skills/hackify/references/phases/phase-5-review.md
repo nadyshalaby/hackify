@@ -44,20 +44,33 @@ B used to establish function length, parameter count and nesting depth by readin
 
 ### Who is on the panel (evidence-gated, never silently absent)
 
-**B, C and F are standing members of every wave.** A and D are gated on evidence that their lens has something to look at, because the scouts already know what surface the diff touched. **E joins on UI-bearing diffs.**
+**B and C are standing members of every wave.** A, D and F are gated on evidence that their lens has something to look at, because the scouts already know what surface the diff touched. **E joins on UI-bearing diffs.**
 
 | Reviewer | Runs when | When it does not run |
 |---|---|---|
 | **B** quality, layering & engineering law | always | never |
 | **C** plan consistency, scope & goal drift | always | never |
-| **F** cross-module coherence | always | never |
+| **F** cross-module coherence | the diff crosses a module boundary: two or more modules, packages or layers are touched, **OR** any one touched file is imported by a file outside its own module | its residual checklist is handed to B via `{{folded_lenses}}` and B runs it |
 | **A** security & correctness | the diff touches auth / session / token / permission / crypto, a network boundary, a database or migration, the filesystem or a shell, deserialization of untrusted input, or a dependency manifest **OR** the law-scout staged any `sec.*` row | its residual checklist is handed to B via `{{folded_lenses}}` and B runs it |
 | **D** performance | the perf-scout staged any candidate **OR** the diff touches a loop over a collection, a query or ORM call, a cache, a fan-out, a list endpoint, or a render path | its residual checklist is handed to B via `{{folded_lenses}}` and B runs it |
 | **E** design conformance | the diff is UI-bearing | omitted |
 
+**F is gated because it is the one lens that needs two things to compare.** F asks whether a
+producer and its consumers still agree. On a diff confined to one module there is no second
+side: nothing crossed a boundary, so F spends a full reviewer's budget proving a negative it
+was never given the material to prove. That is different from A and D, which fold when the
+diff has no risky surface; F folds when the diff has no SEAM.
+
+**The bar is deliberately low, and errs toward running F.** Two touched modules is enough. So
+is one touched file that anything outside its module imports, because that import IS the seam
+even when only one side of it moved. A diff you cannot classify in one sentence is a diff that
+crosses a boundary, and F runs. The failure this gate must never produce is a half-built
+feature shipping because both halves looked fine alone, which is the exact defect F exists to
+catch.
+
 **A gate decision is written down, never assumed.** One line in the work-doc Sprint Review names any lens that folded and the evidence that let it fold ("A folded into B, no auth/network/db/fs/crypto hunks, law-scout `sec.*` empty"). That same line is what you pass to B as `{{folded_lenses}}`, so the decision and the mechanism are one artifact and a fold can never quietly become a drop. **When the evidence is ambiguous, the reviewer runs.** A folded lens you cannot justify in one sentence is a lens you owed the diff.
 
-**Folding moves a lens, it never removes one.** B's report carries a `## Folded lenses` section confirming it ran each inherited checklist, and every finding from one is tagged `[folded: A]` or `[folded: D]`. A B report that names a folded lens without that section is an incomplete round, dispatch the real reviewer and re-run. A folded-lens finding that contradicts your evidence line means the gate decision was wrong, and B reports it Critical.
+**Folding moves a lens, it never removes one.** B's report carries a `## Folded lenses` section confirming it ran each inherited checklist, and every finding from one is tagged `[folded: A]`, `[folded: D]` or `[folded: F]`. A B report that names a folded lens without that section is an incomplete round, dispatch the real reviewer and re-run. A folded-lens finding that contradicts your evidence line means the gate decision was wrong, and B reports it Critical.
 
 ### The lenses
 
@@ -66,7 +79,7 @@ B used to establish function length, parameter count and nesting depth by readin
 - **Reviewer C. Plan consistency, scope & goal drift.** Diff vs. work-doc DoD + Sprint Backlog. Missing items, scope creep, anything contradicting a Q&A answer or the Approach. **Drift-check:** trace every changed hunk to the Primary Goal & Guardrails anchor, a hunk serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](references/goal-anchor.md)).
 - **Reviewer D. Performance.** Consumes the scout report, judges every staged candidate, and hunts what greps cannot. N+1 shapes, algorithmic complexity, unbounded growth, wasted parallelism, blocking I/O on request paths, render storms. Cites `perf.<domain>.<slug>` IDs from `rules/performance.md` and sets final severity. A hot path is hot until proven cold.
 - **Reviewer E. Design conformance** *(UI-bearing diffs)*. Audits the diff against the project's committed `docs/design/DESIGN.md`: hardcoded literals where a token exists, off-ramp type sizes, missing hover/focus/press/disabled states, the spec's own Don'ts, WCAG AA contrast and focus regressions, physical properties where logical are required. Names the exact replacement token per finding, and compares against reference frames when they exist. With no spec it falls back to `references/frontend-design.md` and reports the missing spec. Template: `references/parallel-agents/phase-5-multi-review-e-design.md`.
-- **Reviewer F. Cross-module coherence** *(standing)*. The only lens that asks whether the pieces agree with each other. Per boundary-crossing symbol it names producer and every consumer, then checks shape (fields, optionality, nullability, enum sets), semantics (units, timezones, identifier space, ordering, bounds), error contract (throw vs null vs result object), duplicate concepts, and wiring completeness (route registered, handler subscribed, component mounted, column read). Cites file:line for BOTH sides. It exists because Phase 3's parallel waves build each half blind to the other. Template: `references/parallel-agents/phase-5-multi-review-f-coherence.md`.
+- **Reviewer F. Cross-module coherence** *(gated on a cross-module diff)*. The only lens that asks whether the pieces agree with each other. Per boundary-crossing symbol it names producer and every consumer, then checks shape (fields, optionality, nullability, enum sets), semantics (units, timezones, identifier space, ordering, bounds), error contract (throw vs null vs result object), duplicate concepts, and wiring completeness (route registered, handler subscribed, component mounted, column read). Cites file:line for BOTH sides. It exists because Phase 3's parallel waves build each half blind to the other. Template: `references/parallel-agents/phase-5-multi-review-f-coherence.md`.
 
 Cap at 6. Beyond the gate table, a second-concern specialist may take a free slot (`references/parallel-agents/phase-5-escalation.md`). **Self-review still happens** by you, against `references/review-and-verify.md`'s checklist, reviewers are *additive* defense, not replacement.
 
