@@ -226,6 +226,46 @@ trigger_check review-triage "/hackify:review-triage" "respond to the review" "re
 trigger_check groom "/hackify:groom" "let's discuss" "let's think" "what if" "explore the idea" "what do you think" "considering" "thinking about"
 trigger_check skillsmith "/hackify:skillsmith" "author a hackify skill" "create a new skill for hackify" "make a hackify-style skill" "new hackify skill"
 
+yellow "[38f] the v0.12.0 fan-out changes keep their mechanism"
+# Same discipline as [38c] and [38e]. Each of these trades an agent for tokens, and
+# each becomes a LOSS of rigor the moment its guard rail drifts out while the prose
+# promising the saving stays. Pin the guard rail, not the saving.
+
+P3_PHASE="skills/hackify/references/phases/phase-3-implement.md"
+REFUTE_TPL="skills/hackify/references/parallel-agents/phase-5-refute.md"
+DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-review-c-dependencies.md"
+
+# (1) Implementers batch by MODULE and are capped at 3. An uncapped batch is one
+# agent holding more context than it can apply carefully, and a batch grouped by
+# count rather than module pays the focus cost while saving no reads at all.
+for f in "agents/wave-task-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+  check_token_present '{{task_ids}}' "$f"
+  check_token_present '{{task_descriptions}}' "$f"
+done
+check_token_present 'Cap a batch at 3 tasks' "$P3_PHASE"
+check_token_present 'Group by module, never by count' "$P3_PHASE"
+for f in "agents/spec-reviewer-dependencies.md" "$DEPS_TPL"; do
+  check_token_present 'Cap a batch at 3 tasks' "$f"
+done
+
+# (2) A batch STOPS at the first task it cannot finish. Without this a batched
+# failure cascades: one bad task takes the rest of the batch down with it, which is
+# the whole reason one-agent-per-task felt safe.
+for f in "agents/wave-task-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+  check_token_present 'STOP there' "$f"
+done
+
+# (3) The second refuter is conditional ONLY because a Critical needs both refuters
+# to die. If that rule ever weakens to "one refutation kills a Critical", skipping
+# the second refuter stops being free and starts deleting real defects.
+check_token_present 'dies only when' "$REFUTE_TPL"
+check_token_present 'only if the 1st refutes' "$REFUTE_TPL"
+check_token_present 'identical either way' "$REFUTE_TPL"
+
+# (4) The panel does not read Phase 3 dispatch bookkeeping. That block just grew a
+# batch list, so a reviewer still reading it pays for the batching twice over.
+check_token_present 'Execution waves' "skills/hackify/references/work-doc-template.md"
+
 yellow "[38e] the v0.11.0 diff-slicing and carry-over changes keep their mechanism"
 # Same discipline as [38c]. Each of these is a token saving that becomes a
 # silent LOSS of review coverage the moment its mechanism drifts out while the

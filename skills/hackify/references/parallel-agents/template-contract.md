@@ -13,7 +13,7 @@ This file is the canonical 7-section contract every per-task template in this di
 - **Phase 3 implementation waves**, group tasks by dependency, dispatch each wave's tasks to one agent each in a single message. **Tasks in the same wave MUST NOT share files.** This is what makes parallel implementation safe.
 - **Phase 4 verification across packages**, backend + frontend + shared package; one agent per package runs `test && lint && typecheck` in parallel.
 - **Phase 5 multi-reviewer**, five foreground reviewers in parallel: security/correctness, quality-and-engineering-law, plan-consistency/scope, performance, cross-module coherence; design conformance joins as a sixth on UI-bearing diffs. MANDATORY for any non-trivial diff.
-- **Phase 5 adversarial refuters**, two per Critical finding (reproduction and authority lenses) plus one batched agent for the Important+Minor set, dispatched together before any fix is applied. MANDATORY for any non-trivial diff.
+- **Phase 5 adversarial refuters**, one per Critical finding (reproduction lens) plus one batched agent for the Important+Minor set, dispatched together before any fix is applied, and a second refuter (authority lens) only for Criticals whose first refuter refuted. MANDATORY for any non-trivial diff.
 - **Phase 3b debug evidence**, multi-component bug; one agent per boundary instruments + logs.
 - **Multi-project work**, task touches multiple sibling projects (e.g. a backend repo AND a frontend repo); one agent per repo runs the same investigation or implementation wave in its own scope.
 

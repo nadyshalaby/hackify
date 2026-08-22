@@ -51,6 +51,18 @@ ordering, and parallelism risks in the Sprint Backlog list of `{{work_doc_path}}
    every task whose dependencies are all in Waves 1..k. Within a
    wave, partition further so no two tasks share a file (conflict
    edge). Cap each wave at `{{wave_size_target}}` tasks.
+3b. Batch each wave for dispatch. A wave is already file-disjoint, so
+   its tasks CAN all run at once; they are not context-disjoint, and an
+   agent per task re-reads the same module and re-quotes the same rule
+   sentences once per task. Using the file lists from step 1, group the
+   tasks WITHIN each wave that share a directory, a module or a file
+   neighbourhood. **Cap a batch at 3 tasks.** **Leave a task alone when
+   it shares nothing with a sibling**, because batching unrelated tasks
+   costs the agent its focus and saves no reads. A batch of one is the
+   normal result for an isolated task, not a failure to optimise. Emit
+   the batches in the wave plan, and give each batch its tasks in
+   dependency-safe order.
+
 4. For every task, estimate effort from the description (count
    distinct files touched, count distinct verification commands).
    Flag any task whose estimate exceeds 30 minutes of focused work
@@ -79,6 +91,8 @@ If ANY answer is "no", loop back to METHOD.
    that actually exists in the Sprint Backlog list? (yes / no)
 6. Is your proposed wave plan a strict topological order, with no
    task scheduled before a task it depends on? (yes / no)
+7. Does every batch you propose hold at most 3 tasks, all from the
+   SAME wave, and does every batch of 2+ share a module? (yes / no)
 
 **SEVERITY**.
 - **Critical**. A planned wave will fail or corrupt state if dispatched
@@ -110,6 +124,13 @@ skeleton:
 Wave 1: T<a> + T<b> + T<c>
 Wave 2: T<d> + T<e>
 Wave 3: T<f>
+(…)
+
+## Dispatch batches
+One line per batch, one dispatched implementer each. `solo` marks a task
+with no module sibling.
+Wave 1: [T<a>, T<b>] <shared module>; [T<c>] solo
+Wave 2: [T<d>] solo; [T<e>] solo
 (…)
 
 ## Critical

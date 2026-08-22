@@ -67,6 +67,8 @@ A severity-tagged list of security and correctness defects in the diff
    CORS, secrets, migrations) so you can compare the diff against
    stated intent. Daily Updates, Sprint Review and Retrospective grow
    all sprint and hold nothing your lens checks, skip them.
+   Skip the `Execution waves` block inside Approach: it is Phase 3
+   dispatch bookkeeping and carries nothing your lens checks.
 3. For each touched hunk, audit AUTH FLOWS line by line: cookies,
    sessions, OAuth `state`, invitation tokens, and role checks.
 4. For each touched hunk, audit PERMISSION BOUNDARIES line by line:

@@ -5,6 +5,23 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-08-22
+
+> **Fewer agents, same rigor.** v0.11.0 stopped six reviewers reading the same diff. This release goes after what is left: agents that exist because the work was split one way rather than another. Fourteen implementers each re-read the same module and re-quoted the same six rule sentences. Every Critical finding got two refuters even when the first one had already settled it. Reviewers read a block of the work-doc that only Phase 3 uses. None of that bought a better answer. Measured on real sprint diffs from this repo's history, a typical sprint drops another 10%, and about 19% when the diff touches a single module.
+
+### Added
+
+- **Dispatch batches in the wave plan.** The wave planner already knew every task's files and already built the waves; it now also groups the tasks WITHIN a wave that share a module, capped at 3, and emits those groups. Phase 3 dispatches one implementer per batch instead of one per task. A task with no module sibling is a batch of one, which is the normal result and not a failure to optimise.
+- **Check `[38f]`**, pinning every guard rail this release depends on: batches are grouped by module and capped at 3, a batch stops at the first task it cannot finish, and the conditional second refuter stays tied to the rule that makes it free.
+
+### Changed
+
+- **One implementer per task batch, not per task.** Same-module tasks share types, neighbours and conventions, so one agent reads them once instead of three agents reading them three times. It also pays the rule-file reads once: every implementer quotes the same six rule sentences from `CLAUDE.md`, a fixed cost that has nothing to do with task size. Each task keeps its OWN file allowlist and the union is only an outer bound, so batching never widens what a task may touch. **A batch runs its tasks in order and stops at the first one it cannot finish**, so a bad task costs one task rather than the batch, and the parent re-dispatches just that one. **Tasks in different modules are never batched**, because there are no shared reads to save and grouping them would only cost the agent its focus. This trades wall-clock for tokens on purpose: nine agents instead of fourteen is about twice the duration for about a third less, and the 3-task cap is what stops that becoming ten times.
+- **The second refuter on a Critical is now conditional, and the verdicts are identical.** A Critical dies only when BOTH of its refuters refute it. So once the first refuter upholds or escalates, the finding survives and no verdict the second could return would change that. The first refuter now runs on every Critical with the reproduction lens, and the second runs with the authority lens only where the first came back REFUTED. **The bar to kill a Critical is untouched**, and the second opinion still arrives in exactly the case it exists for, when one agent is about to delete a real defect. Reproduction goes first on the merits: a failure that genuinely reproduces is a real defect whether or not the finding cited the perfect rule.
+- **Reviewers A, C and D skip the `Execution waves` block.** It is Phase 3 dispatch bookkeeping, it just grew a batch list, and no reviewer lens reads it.
+- **The Phase 5 self-review table is retired.** Every row it carried is checked by a reviewer that cites file:line and a verbatim rule sentence. A hand-ticked table beside that was the same audit run twice, once with evidence and once without.
+- **The update log has a budget**, one block per user-visible change and 120 words per block. It had none, so it grew. The cap is a writing instruction rather than a token trick: the length that serves a person deciding whether the work is done is short, and every field still has to earn its line with something real.
+
 ## [0.11.1] - 2026-08-22
 
 ### Fixed

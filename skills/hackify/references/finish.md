@@ -394,6 +394,12 @@ Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **u
 
 Repeat for every update, separated by a line containing exactly `----`. No table, no heading above the first block, no preamble.
 
+**Budget: one block per user-visible change, and ≤120 words per block.** A sprint that
+changed one thing prints one block. The five fields are each one or two sentences, not
+a paragraph. This log is read by a person deciding whether the work is done, and the
+length that serves them is short, so the cap is a writing instruction, not a token
+trick: every field still has to earn its line with something real.
+
 ### The five fields
 
 | Field | What goes in it | What kills it |

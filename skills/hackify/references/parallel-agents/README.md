@@ -18,7 +18,7 @@ Open a template on Claude Code for exactly two reasons: you are **authoring or a
 | `hackify:spec-reviewer-consistency` | 2.5 A, internal consistency + goal drift | `work_doc_path` | `phase-2.5-spec-review-a-consistency.md` |
 | `hackify:spec-reviewer-rules` | 2.5 B, architectural / cross-cutting risk | `work_doc_path`, `project_root` | `phase-2.5-spec-review-b-rules.md` |
 | `hackify:spec-reviewer-dependencies` | 2.5 C, dependency / ordering / parallelism | `work_doc_path` | `phase-2.5-spec-review-c-dependencies.md` |
-| `hackify:wave-task-implementer` | 3, one implementer per task | `task_id`, `task_text`, `file_allowlist`, `test_mode`, `project_root`, `repo_brief` | `phase-3-implementation.md` |
+| `hackify:wave-task-implementer` | 3, one implementer per task BATCH | `task_ids`, `task_descriptions`, `file_allowlist` (union), `test_mode`, `project_root`, `repo_brief` | `phase-3-implementation.md` |
 | `hackify:code-reviewer-security` | 5 A, security & correctness | `project_root`, `base_sha`, `head_sha`, `work_doc_path`, `repo_brief` | `phase-5-multi-review.md` |
 | `hackify:code-reviewer-quality` | 5 B, quality, layering & engineering law | + `law_scout_report`, `folded_lenses` | `phase-5-multi-review-b-quality.md` |
 | `hackify:code-reviewer-plan-consistency` | 5 C, plan consistency, scope & drift | + `task_file_index` | `phase-5-multi-review.md` |

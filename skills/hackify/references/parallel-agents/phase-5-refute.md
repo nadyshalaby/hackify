@@ -19,18 +19,36 @@ This is deliberately the opposite bias from an adversarial-verification prompt a
 
 | Finding severity | Refuters | Why |
 |---|---|---|
-| **Critical** | 2 independent, distinct lenses, one per finding | A wrong Critical fix is the most expensive edit in the sprint, and a real Critical must survive scrutiny |
+| **Critical** | 1 first; a 2nd **only if the 1st refutes** | A wrong Critical fix is the most expensive edit in the sprint, and a real Critical must survive scrutiny. The 2nd refuter can only ever change the outcome when the 1st voted to kill, see below |
 | **Important** | 1 batched agent for the whole Important set | Cheap enough to check, not worth an agent each |
 | **Minor** | 1 batched agent, shared with the Important batch | Same |
 | **Scout rows already CONFIRMED by Reviewer B or D** | none | The reviewer's re-judge step already did this pass; refuting again is theatre |
 | **Findings two reviewers independently raised** | none | Independent agreement is stronger evidence than a third opinion |
 
-Dispatch every refuter for a round in ONE assistant message, in parallel, after aggregation and before the first fix. In quick mode, run the single batched refuter only. In yolo, the same schedule as full hackify, no user prompt at any point.
+Dispatch the batched Important+Minor agent and the FIRST refuter for every Critical together in ONE assistant message, in parallel, after aggregation and before the first fix. Dispatch second refuters, if any are owed, in one follow-up message. In quick mode, run the single batched refuter only. In yolo, the same schedule as full hackify, no user prompt at any point.
 
-**The two lenses for a Critical** (assign one each, never two of the same):
+**The two lenses for a Critical** (assign one each, never two of the same, and in this order):
 
-1. **Reproduction lens.** Can the claimed failure actually be produced from the code as written? Trace the real call path, real inputs, real guards.
-2. **Authority lens.** Is the cited rule, standard, or catalog ID real, and does it actually say what the finding says it says? Open the cited file, quote the line.
+1. **Reproduction lens, always first.** Can the claimed failure actually be produced from the code as written? Trace the real call path, real inputs, real guards.
+2. **Authority lens, only if reproduction refuted.** Is the cited rule, standard, or catalog ID real, and does it actually say what the finding says it says? Open the cited file, quote the line.
+
+### Why the second refuter is conditional, and why that costs nothing
+
+A Critical dies only when **both** of its refuters refute it. So the moment the first
+refuter upholds or escalates, the finding survives, and no verdict the second refuter
+could return would change that. Running it anyway buys a second opinion on a question
+that is already settled.
+
+So: run the first refuter on every Critical, and run the second **only** on the
+Criticals whose first refuter came back REFUTED. **The set of surviving findings is
+identical either way.** This is arithmetic, not a relaxed bar: the rule that a Critical
+needs two refutations to die is untouched, and the second opinion still arrives in
+exactly the situation it was invented for, when one agent is about to delete a real
+defect.
+
+Reproduction runs first on the merits, not just for cost. A failure that genuinely
+reproduces is a real defect whether or not the finding cited the perfect rule, so
+"can this happen" is the question that actually decides whether the finding lives.
 
 ## The template
 

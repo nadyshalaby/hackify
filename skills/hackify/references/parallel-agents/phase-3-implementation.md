@@ -2,7 +2,7 @@
 
 This file is the dispatchable sub-agent prompt for one Phase 3 implementer agent. Load it whenever the parent fires a wave of parallel implementers; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT`, `SEVERITY` is omitted because this is a build template, not a review template) lives in `template-contract.md`, do not restate it here.
 
-Dispatch ONE agent per task in the wave, in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
+Dispatch ONE agent per task BATCH in the wave, in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained. A batch is the set of same-wave tasks that share a module, grouped by the wave planner ([phase-2.5-spec-review-c-dependencies.md](phase-2.5-spec-review-c-dependencies.md)); a task with no module sibling is a batch of one. Batching exists because same-module tasks read the same types, neighbours and conventions, so one agent reads them once instead of three agents reading them three times. Tasks in DIFFERENT modules share nothing and are never batched, grouping those would cost context and buy nothing.
 
 ```
 Subagent type: general-purpose
@@ -35,12 +35,17 @@ Bias against: refactoring outside the file allowlist or the task scope.
 
 **INPUTS**.
 1. `{{work_doc_path}}`, absolute filesystem path to the work-doc.
-2. `{{task_id}}`, single task identifier from the Sprint Backlog list
-   (e.g. `T7`).
-3. `{{task_description}}`, verbatim task text copied from the
-   work-doc's Sprint Backlog list.
+2. `{{task_ids}}`, the ordered list of Sprint Backlog task IDs this
+   dispatch owns (e.g. `T7, T9`). Usually one. Implement them in the
+   order given.
+3. `{{task_descriptions}}`, one block per ID in `{{task_ids}}`, in the
+   same order, each carrying the verbatim task text from the work-doc's
+   Sprint Backlog list AND that task's own file allowlist.
 4. `{{file_allowlist}}`, newline-separated list of absolute paths the
-   sub-agent may CREATE or MODIFY (and ONLY these). Every other path in
+   sub-agent may CREATE or MODIFY (and ONLY these), the union of every
+   task's allowlist. This is the OUTER bound for the dispatch. Each task
+   stays bounded by its OWN allowlist from `{{task_descriptions}}`, and
+   the union never widens what one task may touch. Every other path in
    the repository is read-only for this dispatch.
 5. `{{test_mode}}`, one of `test-first` | `test-after` |
    `manual smoke` | `none`, with a one-sentence justification.
@@ -62,13 +67,14 @@ test / lint / typecheck commands, layering rules, where things live).
 Treat it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 **OBJECTIVE**.
-A minimal, test-anchored diff that delivers `{{task_id}}` from
-`{{work_doc_path}}` while touching only files in `{{file_allowlist}}`.
+A minimal, test-anchored diff that delivers every task in `{{task_ids}}`
+from `{{work_doc_path}}`, each touching only the files in its own
+allowlist, and none touching anything outside `{{file_allowlist}}`.
 
 **METHOD**.
-1. Read `{{work_doc_path}}` end-to-end. Re-read `{{task_description}}`
-   verbatim. List the acceptance signals you will be verifying against
-   before writing any code.
+1. Read `{{work_doc_path}}` end-to-end. Re-read every block of
+   `{{task_descriptions}}` verbatim. List the acceptance signals you
+   will be verifying against, one set per task, before writing any code.
 2. Read `{{project_rules_path}}` and `{{user_global_rules_path}}` (when
    each exists). On conflict, apply the stricter rule. From those
    files, quote verbatim the LINT SUPPRESSION rule sentence (the bans
@@ -92,9 +98,22 @@ A minimal, test-anchored diff that delivers `{{task_id}}` from
 7. From the same rule files (applying the stricter rule on conflict),
    quote verbatim the SIZE CAPS rule sentence (≤40 LOC/fn, ≤3 params,
    ≤3 nesting, ≤500 LOC/file).
-8. Read every existing file in `{{file_allowlist}}` end-to-end and
-   `git grep` for existing helpers in the surrounding module BEFORE
-   writing new code. Reuse over reinvention.
+**Steps 2-7 run ONCE for the whole dispatch.** The rule files do not
+change between tasks, so quote them once and carry those quotes across
+every task in the batch. That saving is the reason batching exists.
+
+**Steps 8-11 repeat for EACH task in `{{task_ids}}`, in the given
+order.** Finish one task completely, its scoped triad included, before
+starting the next. **If a task cannot be finished, STOP there:** report
+what you completed, report why you stopped, and do NOT start the next
+task. A batch that runs on past a failure turns one bad task into
+several, and the parent can re-dispatch a stopped task cheaply.
+
+8. For the current task, read every existing file in ITS allowlist
+   end-to-end and `git grep` for existing helpers in the surrounding
+   module BEFORE writing new code. Reuse over reinvention. Files you
+   already read for an earlier task in this batch do not need re-reading;
+   that is the point of the batch.
 9. If `{{test_mode}}` is `test-first`, execute RED → GREEN → REFACTOR
    in this order:
    (a) RED: write the failing test in the test file inside
@@ -112,9 +131,12 @@ A minimal, test-anchored diff that delivers `{{task_id}}` from
 10. Run `{{lint_command}}` scoped to the touched files. Run
     `{{typecheck_command}}` scoped to the touched files. Capture exit
     codes. Do not run any repo-wide command.
-11. Do NOT modify any file outside `{{file_allowlist}}`. If you discover
-    you need to, STOP and report under "Deviations", do not edit it.
-    Do NOT commit; the parent commits the wave.
+11. Do NOT modify any file outside the CURRENT task's own allowlist. A
+    path that belongs to a different task in this batch is not yours
+    while you are on this task, and `{{file_allowlist}}` is the outer
+    bound, never a licence to widen one task's reach. If you discover you
+    need a file outside, STOP and report under "Deviations", do not edit
+    it. Do NOT commit; the parent commits the wave.
 
 **VERIFICATION**.
 
@@ -144,7 +166,10 @@ OUTPUT.
 **OUTPUT**.
 Per-section budget. Files touched: 1 line each; Test mode + RED→GREEN:
 1 line per test; Self-review: compact ✓/✗ table; Deviations: ≤80 words.
-Total cap ≤200 words.
+Cap ≤200 words PER TASK. Repeat the whole skeleton once per task in
+`{{task_ids}}`, in order, each under its own `## <task id>` heading, so
+the parent can tick each task and re-dispatch just the one that failed.
+A batch that reports its tasks merged into one block is unusable.
 
 Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verbatim. Tokens in `<...>` are placeholders YOU fill in with content you produced during METHOD.
 

@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.11.1-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.12.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -27,6 +27,11 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a compressed flow that stays in quick mode until you explicitly promote to full hackify. When you trust the pipeline enough to skip the plan-gate and finish menu, `/hackify:yolo` runs the same workflow on full autopilot.
 
+### New in 0.12.0
+
+- **Fewer agents doing the same work.** Tasks that touch the same part of the code now go to one implementer together instead of one each, so the shared reading happens once rather than three times. Each task keeps its own file boundary, and a batch stops at the first task it cannot finish, so a bad task costs one task and not the batch. Tasks in unrelated areas still go separately, because there is nothing shared to save.
+- **The second opinion is only bought when it can change the answer.** A serious finding is only dropped when two independent checkers both reject it. So once the first one keeps it, the finding is already safe and the second checker was answering a settled question. It now runs only when the first one votes to drop, which leaves the outcome exactly as it was.
+
 ### New in 0.11.0
 
 - **Same discipline, far fewer tokens.** The always-on rules used to be re-injected into every single prompt, so a long session carried one copy per turn of text that never left the context window. They now arrive in full on the first prompt, then as a one-line reminder, with a full refresh every 25 prompts. Reviewers and implementers read the changed hunks and the context around them instead of opening whole files, and they all receive one shared repo brief instead of each rediscovering the stack on its own.
@@ -34,11 +39,6 @@ For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a c
 - **The review panel sizes itself to the diff.** Quality, plan-consistency and cross-module coherence still review every change. Security and performance join whenever the diff touches their surface or a scout stages a candidate, and a folded lens hands its own checklist to the quality reviewer, who runs it, so folding moves a lens rather than dropping one. After a fix batch only the reviewers whose findings you just fixed run again, scoped to the fix; the loop still cannot close until a full panel clears the whole diff exactly as it sits on disk.
 - **Nothing loads before it is needed.** `SKILL.md` is now a router: every phase states its goal, its hard gates and its exit artifact, and that phase's protocol loads when the phase opens. On Claude Code the reviewer prompts are dispatched by agent type instead of pasted out of a template, so the same text is no longer paid for twice.
 - **The finish report is generated, not typed.** Phase 6 used to write the whole HTML page out by hand, charts and all. It now emits a small block of data and a script renders the page. That is the cheapest kind of saving there is, because writing output costs several times what reading costs.
-
-### New in 0.9.4
-
-- **Something other than Claude now decides when your task is finished.** Every mode hands you a ready-to-paste `/goal` line built from the task's own finish line: the archived work-doc, a green test-lint-typecheck run, and the ship gate's build, boot and smoke rows. Press one key and a separate evaluator re-checks that condition after every turn, so "done" stops being the workflow's opinion of its own homework. Hackify prints the line and never claims to have set it, because it cannot: the tool behind it is missing from most sessions and throws inside a sub-agent.
-- **The three orchestration defaults now say who wins when they disagree.** This completion sentinel joins the `ultracode` tier and the self-paced `/loop` driver as a standing default in hackify, quick and yolo alike. When the evaluator says "not finished" while a question is sitting there waiting for you, or after two runs in a row that moved nothing, the loop's stop rules win and the workflow hands back instead of spending against a wall. The old blanket "never call other skills" rule is now three tiers: runtime-native skills are allowed where the adapter table maps them and the phase still finishes without them, skills that ship inside this plugin are allowed, third-party plugin skills stay out.
 
 ## Install
 

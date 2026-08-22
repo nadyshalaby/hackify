@@ -70,7 +70,8 @@ the diff `{{base_sha}}..{{head_sha}}` and the plan in
    block, `## 2. Clarifying Q&A`, `## 3. Acceptance Criteria` and
    `## 5. Sprint Backlog` from the work-doc at `{{work_doc_path}}`, and
    only those. Approach, Daily Updates, Sprint Review and Retrospective
-   carry nothing you check. Extract three lists,
+   carry nothing you check, and that includes the `Execution waves` block
+   with its task batches. Extract three lists,
    verbatim where the work-doc allows: (a) every DoD bullet (D1, D2,
    …); (b) every Task (T1, T2, …) with its file-allowlist if stated;
    (c) every locked Q&A answer that constrains scope (e.g. "soft

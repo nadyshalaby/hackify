@@ -92,6 +92,19 @@ Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate 
 - [ ] **T2**, [task name]: ...
 - [ ] **T3**, ...
 
+After Phase 2.5 the Approach section carries an **Execution waves** block: one line
+per wave, each naming its dispatch batches. A batch is the set of same-module tasks
+one implementer takes together, capped at 3; a task with no module sibling is a batch
+of one. Phase 5 builds `{{task_file_index}}` from this block plus each task's Files
+list, so the block is what makes both the implementer dispatch and the reviewer
+scope checkable.
+
+```
+Execution waves
+W1: [T1, T3] auth module; [T2] solo
+W2: [T4, T5, T6] billing; [T7] solo
+```
+
 ## 6. Daily Updates
 
 Append one entry per task as you complete (or get stuck on) it.
@@ -161,24 +174,12 @@ One row per changed path, written BEFORE the reviewer wave is dispatched. This i
 
 ### Self-review (Phase 5)
 
-| Item | Pass | Notes |
-|---|---|---|
-| DRY | ✓ | … |
-| Layering | ✓ | … |
-| Named types | ✓ | … |
-| No lint suppressions | ✓ | … |
-| File-size caps (≤500 LOC) | ✓ | … |
-| Function caps (≤40 LOC, ≤3 params, ≤3 nesting) | ✓ | … |
-| Dead code removed | ✓ | … |
-| Edge cases covered | ✓ | … |
-| Naming for intent | ✓ | … |
-| Error handling explicit | ✓ | … |
-| No security regressions | ✓ | … |
-| No new `!` non-null assertions | ✓ | … |
-| No empty catches | ✓ | … |
-| No bare `Error` throws in domain code | ✓ | … |
-| No perf violations (`rules/performance.md`) | ✓ | … |
-| Perf-scout candidates dispositioned | ✓ | … |
+The reviewer panel replaces this section. Every row the old self-review table carried
+(DRY, layering, named types, lint suppressions, size caps, dead code, edge cases,
+error handling, security, perf) is checked by a reviewer that cites file:line and a
+verbatim rule sentence for each finding. A hand-ticked table beside that is the same
+audit done twice, once with evidence and once without. Record the panel's outcome in
+the decision table and the scope ledger above; do not restate it here.
 
 ### Reviewer subagent feedback (if escalated)
 

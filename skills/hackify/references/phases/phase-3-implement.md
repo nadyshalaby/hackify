@@ -10,16 +10,17 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 1. List every task. For each: files CREATED/MODIFIED; earlier tasks required.
 2. Sort by priority (DoD load-bearing first) and topological dependency.
 3. Group into WAVES. NO file overlap, NO inter-task dep within a wave; wave N may depend on 1..N-1.
-4. Write wave plan into work-doc Approach as "Execution waves". Show user before wave 1.
+4. Write wave plan into work-doc Approach as "Execution waves", each wave listing its dispatch batches (`W1: [T1, T3] auth; [T2] solo`). Show user before wave 1.
 ```
 
 **Per-wave loop:**
 
 ```
 1. Set frontmatter: status: implementing, current_task: W<n>:T<a>+T<b>+…
-2. Dispatch ONE subagent per task in a SINGLE assistant message. Each agent prompt
-   self-contained: work-doc path, task ID, exact files, test mode, rules summary,
-   "do NOT touch any other files".
+2. Dispatch ONE subagent per task BATCH in a SINGLE assistant message. Each agent
+   prompt self-contained: work-doc path, the batch's task IDs in order, each task's
+   exact files, the union allowlist, test mode, rules summary, "do NOT touch any
+   other files".
 3. Wait for all agents. Aggregate reports. Verify each touched only its declared files.
 4. Run full project verification (test + lint + typecheck) ONCE for the wave.
 5. On red: classify, agent failure (re-dispatch sharper prompt) vs. plan failure
@@ -47,6 +48,32 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 | Word cap | ≤200 words per agent report. |
 
 Template: `references/parallel-agents/phase-3-implementation.md`. **Single-task waves are fine**, dispatch a single agent; discipline (self-contained prompt, declared files, scoped commands) still applies.
+
+### Batch the wave before you dispatch
+
+A wave's tasks are already file-disjoint, so they can all run at once. They are not
+context-disjoint: same-module tasks read the same types, the same neighbours and the
+same conventions, and an agent per task pays for those reads once per task. Worse,
+every implementer re-reads the rule files and re-quotes the same six rule sentences,
+a fixed cost that has nothing to do with how big the task is.
+
+The wave planner emits the batches ([references/parallel-agents/phase-2.5-spec-review-c-dependencies.md](../parallel-agents/phase-2.5-spec-review-c-dependencies.md)). Dispatch one agent per batch:
+
+1. **Group only within a wave.** Batching across waves would break the dependency
+   order the plan exists to enforce.
+2. **Group by module, never by count.** Tasks that share a directory, a module or a
+   file neighbourhood go together. Tasks in unrelated areas stay separate: batching
+   them costs an agent its focus and saves no reads, because there were no shared
+   reads to save.
+3. **Cap a batch at 3 tasks.** Past that the agent is holding more context than it
+   can apply carefully, and a failure late in the batch wastes everything before it.
+4. **A batch of one is normal**, and is what a task with no module sibling gets.
+5. **The batch runs its tasks in order and stops at the first one it cannot finish**,
+   so a bad task costs one task, not the batch.
+
+**This trades wall-clock for tokens, and the trade is bounded on purpose.** Nine
+agents instead of fourteen means Phase 3 takes about twice as long and costs about a
+third less. The 3-task cap is what keeps that from becoming ten times as long.
 
 **Test mode per task:**
 
