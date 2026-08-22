@@ -287,12 +287,13 @@ green "  ok   $TOOLS_DECLARED agent file(s) declare a tools: line"
 # its two modes. The tool list cannot enforce that on its own (Bash can write,
 # and the prompt needs it for `git grep`), but it CAN keep the file-editing
 # tools off the surface entirely, which is the half a check can hold.
-for f in agents/codebase-investigator.md; do
-  [ -f "$f" ] || continue
-  if grep -m1 '^tools:' "$f" | grep -qE '(^|[ ,:])(Edit|Write|NotebookEdit)([ ,]|$)'; then
-    red "  FAIL $(basename "$f") is read-oriented but declares a file-writing tool"
-    FAILED=$((FAILED + 1))
-  else
-    green "  ok   $(basename "$f") declares no file-writing tool"
-  fi
-done
+INVESTIGATOR="agents/codebase-investigator.md"
+if [ ! -f "$INVESTIGATOR" ]; then
+  red "  FAIL $INVESTIGATOR missing, the read-oriented tool surface cannot be checked"
+  FAILED=$((FAILED + 1))
+elif grep -m1 '^tools:' "$INVESTIGATOR" | grep -qE '(^|[ ,:])(Edit|Write|NotebookEdit)([ ,]|$)'; then
+  red "  FAIL $(basename "$INVESTIGATOR") is read-oriented but declares a file-writing tool"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   $(basename "$INVESTIGATOR") declares no file-writing tool"
+fi

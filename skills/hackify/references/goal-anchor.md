@@ -37,7 +37,7 @@ Phase 1 is a grooming session, not a formality. Its exit condition is a complete
 
 The anchor has teeth. Work is traced back to it at three points.
 
-- **Phase 2.5 Reviewer A (spec consistency)**, trace every Sprint Backlog task and every Acceptance-Criteria bullet to the anchor.
+- **The Phase 2.5 spec reviewer (consistency lens)**, trace every Sprint Backlog task and every Acceptance-Criteria bullet to the anchor.
 - **Phase 4 Layer 2 (goal-drift re-check)**, trace every Evidence Ledger proof to the North-Star Goal and the Success Signals; a Success Signal with no proving row means the goal is not met yet ([review-and-verify.md](review-and-verify.md)).
 - **Phase 5 Reviewer B (plan-consistency lens)**, trace every changed hunk in the diff to the anchor.
 

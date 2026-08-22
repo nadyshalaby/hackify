@@ -5,6 +5,14 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2026-08-22
+
+### Fixed
+
+- **Quick mode was dispatching an agent type that had been retired for three merges.** Its Phase 5-lite row named `hackify:code-reviewer-quality`, which stopped existing when Reviewer C folded into B, and its `description` still advertised a five-to-six-reviewer panel. A dead type in a live dispatch line fails at dispatch, not at validation, which is why a green validator and a tagged release both went past it. The sweep that found it also found `references/goal-anchor.md` still addressing "Phase 2.5 Reviewer A" after the three spec reviewers became one; that file is the one both surviving reviewers load for their verdict wording, so the stale name was being read by the agent that enforces the anchor.
+- **The retired-type check now scans directories, not a list of files.** The first version of it named four skill files by hand, which is the same shape as the bug it was meant to prevent: nothing had looked outside the hackify skill, and a hand-kept list of places to check is what goes stale next. It now sweeps every skill, command and agent file, excluding by path the two files that name the retired types in order to record the retirement. Planting a dead type in groom, codewalk, lawkeeper and the summary command, four places the file list would have missed, is caught.
+- **Two pieces of dead validator code.** `20-templates.sh` carried a `for` loop over exactly one item, left behind when the read-oriented tool check narrowed to the single investigator in 0.13.0, and it silently skipped rather than failing when the file was absent; it is now a direct check that fails loudly. `75-ship-bar.sh` assigned a path variable that nothing reads, since the only module that reads it runs earlier and sets its own. That one predates the 0.13.0 merges.
+
 ## [0.13.0] - 2026-08-22
 
 > **Twelve agent types become nine, by merging the ones no gate could ever reach.** v0.11.0 sliced the reviewer panel and v0.12.0 batched the builders, both by gating work that did not need doing. What was left is the work gating cannot touch: agents that run unconditionally on overlapping inputs. Phase 2.5 is non-skippable by design, so its three reviewers ran on every sprint whatever the diff looked like, and two of them read the same work-doc. Phase 5's Reviewers B and C were the only two on the panel that always ran and never folded, both reading the same diff. Those are the shape a merge fixes and a gate cannot, and both are now one agent. A third merge, the Phase 1 researcher and the Phase 3b debug gatherer into one mode-switched investigator, saves nothing at runtime and says so; it buys one prompt to maintain instead of two.

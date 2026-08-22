@@ -306,7 +306,38 @@ check_no_token 'five baseline Phase 5 reviewers' "$ESC_G"
 check_no_token 'FIVE foreground reviewers' "$RAV_G"
 check_no_token 'five-to-six reviewers' "$ORCH_G"
 check_no_token 'five-to-six-parallel' "$QUICK_G"
+check_no_token '5-to-6-reviewer' "$QUICK_G"
 check_no_token '5-6 reviewers' "$ORCH_G"
+
+# No retired agent type may be named in a live instruction, in ANY mode. A dead
+# type fails at dispatch, not at validation, and quick kept dispatching
+# `hackify:code-reviewer-quality` through three merges because nothing looked
+# outside the hackify skill. Hence whole directories: a hand-kept list of files
+# to check is precisely the thing that goes stale. Two files name the retired
+# types to record the retirement and are excluded by path, which is safe in a
+# way that an allowlist of files to check would not be. The [^-] guard catches
+# the retired type without catching the live code-reviewer-quality-plan.
+RETIRED_TYPES='hackify:code-reviewer-quality([^-]|$)|hackify:code-reviewer-plan-consistency'
+RETIRED_TYPES="$RETIRED_TYPES"'|hackify:codebase-researcher|hackify:debug-evidence-gatherer'
+RETIRED_TYPES="$RETIRED_TYPES"'|hackify:spec-reviewer-(rules|dependencies|consistency)'
+RETIREMENT_NOTES="$PA/README.md|$PA/phase-2.5-spec-reviewer.md"
+DEAD_TYPE_HITS=$(grep -rnE -- "$RETIRED_TYPES" skills/ commands/ agents/ 2>/dev/null \
+  | grep -vE "^($RETIREMENT_NOTES):" || true)
+if [ -z "$DEAD_TYPE_HITS" ]; then
+  green "  ok   no retired agent type is named outside the two files that record the retirement"
+else
+  red "  FAIL retired agent type named in a live instruction:"
+  printf '%s\n' "$DEAD_TYPE_HITS" | sed 's/^/         - /'
+  FAILED=$((FAILED + 1))
+fi
+
+# Phase 2.5's letters are retired, not reassigned, and goal-anchor.md still
+# addressed "Reviewer A" after the three spec reviewers became one. It is the
+# file both surviving reviewers load for their verdict wording, so a stale
+# name here is read by the agent that enforces the anchor.
+check_no_token 'Phase 2.5 Reviewer A' "skills/hackify/references/goal-anchor.md"
+check_token_present 'The Phase 2.5 spec reviewer (consistency lens)' \
+  "skills/hackify/references/goal-anchor.md"
 
 # (6) The merged Reviewer B actually carries C's lens. These four inputs are the
 # ones C owned and B never had, so their absence is the signature of a merge that

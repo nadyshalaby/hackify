@@ -116,7 +116,6 @@ yellow "[75h] agent mirrors are byte-identical to the canonical source they clai
 #
 # Extraction: the outer fence is a line of exactly three backticks; the
 # OUTPUT report skeletons inside use four, so they never terminate the block.
-PA="skills/hackify/references/parallel-agents"
 extract_fenced() {
   awk '/^```$/{n++} n>=1 && n<=2 {print} n==2{exit}' "$1"
 }
