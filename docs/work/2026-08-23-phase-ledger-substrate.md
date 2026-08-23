@@ -1262,10 +1262,29 @@ Running the scout over the six re-scoped paths returned `scoped_paths: 6`, `file
 `.github/workflows/ci.yml` is the one. Proven by scanning each path alone: every other file returns
 `1 0`, that one returns `0 0`.
 
-**Root cause.** `.yml` is not in `SCAN_EXTS` (`exemptions.py`), so `scan_mode` returns falsy, and
-`_iter_listed_files` (`audit_scan.py:105`) does a bare `continue` with no counter behind it. The
-skipped tally only counts files that were considered and rejected for a reason, so a file rejected
-for having the wrong extension is invisible in both columns.
+**Root cause, and the first one I wrote here was wrong on every specific.** I recorded that `.yml`
+is absent from `SCAN_EXTS` in `audit_scan.py:105` and that `--text-only-ext` does not extend it.
+`SCAN_EXTS` lives in `exemptions.py`, `--text-only-ext` does extend coverage as a `text` mode that
+runs the file-cap and ban checks, and `.yml` passed to that flag classifies as `text` perfectly well.
+Three claims, three wrong, and the entry read as a finished diagnosis.
+
+The real cause is one line. `load_paths_from` (`audit_scan.py:87`) normalises every listed path with
+`raw.strip().replace(os.sep, '/').lstrip('./')`. Python's `lstrip` takes a SET OF CHARACTERS, not a
+prefix, so it strips every leading `.` and `/` it finds. `.github/workflows/ci.yml` becomes
+`github/workflows/ci.yml` and `.claude-plugin/plugin.json` becomes `claude-plugin/plugin.json`.
+Neither mangled path exists, `os.path.isfile` fails, and `_iter_listed_files` drops it through a bare
+`continue` that touches no counter. The intent was plainly to strip a leading `./`, which is what
+`removeprefix('./')` does.
+
+Reproduced directly against the loader: four paths handed in, two of them under dot-directories, and
+`_iter_listed_files` yields zero. `run_scan` then counts `scanned` and `skipped` only over what the
+iterator yields, so `scoped_paths` can exceed `scanned + skipped` with nothing in the report saying
+so.
+
+**Every dotfile and dot-directory is affected, not just this one file.** `.github/`,
+`.claude-plugin/`, `.claude/`, a bare `.env`: any of them handed to the law scout is silently
+discarded. `.github/workflows/` is where CI supply-chain problems live, which makes this a security
+blind spot rather than a cosmetic miscount.
 
 **Why the walk is fine and the list is not.** During a tree walk, dropping unscannable files silently
 is correct, nobody wants a finding for every PNG. But `--paths-from` is the caller asserting intent
