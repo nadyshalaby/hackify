@@ -452,7 +452,21 @@ Every row run fresh on the settled tree at commit `54b56de`. No row is a memory 
 
 ### Scope ledger (Phase 5)
 
-_(filled during Phase 5)_
+Panel gated on evidence, per the contract this sprint just corrected. **B standing** (never sliced). **A** ran because `hooks.json` gained a fourth entry, and a hook entry is a command line executed on every prompt in every install; an ambiguous surface runs the reviewer. **D** ran on a measured signal (validator wall-clock moved). **F** ran because the diff crosses 19 directories and was written by 17 agents across 7 waves, each blind to the others. **E folded**, with evidence: the diff contains no UI, component, stylesheet or design token; its residual checklist went to B.
+
+### Reviewer D (performance), and it corrected MY premise with measurements
+
+**I briefed D that validator wall-clock "roughly doubled, 3s to 5s". That was wrong.** D measured n=3 at each end: base `dabc333` **4.19s**, head **5.10s**, +0.91s, **+22%**. The 23x18 ban loop accounts for 0.867s of it, essentially the whole regression. A single `grep -oFinIH -f patternfile` pass does the same work in 0.0857s, a 10x improvement.
+
+**D then declined to file it**, correctly: `validate-dod.sh` is a cold gate run a handful of times a day, so there is no hot-path or scale argument, and its own METHOD forbids filing on that basis. It named the two real costs of the faster shape (it loses the 414 green "0 occurrences" lines, and `-o` reports non-overlapping matches so a future token that is a substring of another would be silently masked, which the per-token loop cannot do) and named the trigger to revisit: if it moves to a pre-commit or per-turn path, or passes ~3s.
+
+**It also corrected my framing on the fourth pointer.** I implied the new rules file's 550 chars might not earn their place. D measured the UNIQUE content: phase-discipline is **306 chars, the second cheapest of the four** (hard-caps 574, perf-guardrails 375, expert-mindset 252). My 550 included the shared wrapper. Cutting the new rule saves 306; cutting the duplication saves 732.
+
+**IMPORTANT finding, filed with numbers:** `hooks.json:14-21` invokes `inject-context.sh` four times, once per rules file, and **each invocation emits its own 244-char wrapper**. Measured steady state **2483 chars per prompt, 976 of it wrapper, 732 pure duplication (29%)**. Because `additionalContext` is appended and stays, a 30-turn session holds roughly 18.6k tokens of pointer, about 5.5k of it one sentence repeated four times, **in every session in every repo where the plugin is installed**. Catalog ID `perf.network.chatty-calls` (`rules/performance.md:92`). The fix is coalescing: one invocation taking all four paths, one wrapper, four digests, which also drops 3 of 4 `python3` spawns and 3 of 4 `prune()` passes. **Constraint:** check `[38]` at `70-invariants-and-new.sh:88` loops over four separate `hooks.json` commands, and that file is at 498 of 500, so the rework must be net-neutral there.
+
+**Process honesty from D, unprompted:** I substituted a measured brief for the `{{perf_scout_report}}` input rather than supplying the scout table. It proceeded because the brief carried concrete measurements, and flagged the omission so it stays visible. It also refused to stand on a number it could not verify (whether the harness runs same-matcher hooks sequentially or in parallel), resting the finding only on token cost, which is harness-independent.
+
+
 
 ## 8. Retrospective
 
