@@ -6,7 +6,7 @@ Both savings are coverage-neutral by construction. A file no reviewer claims goe
 
 ## Why this exists
 
-Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in six separate contexts, twice (first round and settle round). The panel is five now, and B carries two lenses, but the arithmetic that motivated slicing is unchanged. The security reviewer read stylesheets. The design reviewer read migrations. Then both read them again to close the loop. The diff was the single largest line item in a sprint and most of it was being read by someone who could not act on it.
+Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in six separate contexts, twice (first round and settle round). The panel is narrower now and evidence-gated, and B carries two lenses, but the arithmetic that motivated slicing is unchanged. The security reviewer read stylesheets. The design reviewer read migrations. Then both read them again to close the loop. The diff was the single largest line item in a sprint and most of it was being read by someone who could not act on it.
 
 ## The grammar
 

@@ -4,6 +4,8 @@ This file is the dispatchable sub-agent prompt for one Phase 5 specialist escala
 
 Dispatch ONE escalation agent per specialist lens, all in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
 
+**Fires when** the diff needs findings nobody has filed yet, on a lens the dispatcher pins by name at dispatch time. That lens name is its whole review input and it never receives a reviewer report, so it cannot rule on findings another reviewer already filed. That job belongs to the adjudication reviewer written inline in `../review-and-verify.md`.
+
 ```
 Subagent type: general-purpose
 

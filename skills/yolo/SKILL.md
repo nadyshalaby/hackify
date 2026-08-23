@@ -111,4 +111,4 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 
 ## One-line summary
 
-Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl (both scouts at every wave-end) → verify (ledger + 3 layers + ship gate) → 4-to-5 parallel reviewers, refute, address-all auto-fix every surviving severity, re-scan on a settled diff → touched-scope cleanup + commit to current branch locally + HTML report.
+Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl (both scouts at every wave-end) → verify (ledger + 3 layers + ship gate) → the evidence-gated parallel Multi-reviewer panel, refute, address-all auto-fix every surviving severity, re-scan on a settled diff → touched-scope cleanup + commit to current branch locally + HTML report.

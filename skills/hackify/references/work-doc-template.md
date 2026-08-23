@@ -34,7 +34,7 @@ sprint_goal: |
 - [ ] Phase 3. Implement (all waves committed)
 - [ ] Phase 4. Verify (Evidence Ledger + triad green)
 - [ ] Phase 5. Review (decision table empty)
-- [ ] Phase 6a. Re-verify + land choice (Steps A, C)
+- [ ] Phase 6a. Re-verify + land choice (Steps A, B, C)
 - [ ] Phase 6b. Cleanup sweep (Step C.5)
 - [ ] **Phase 6c. Archive work-doc to `done/` (Step D)**
 - [ ] Phase 6d. Update log + HTML report (Step F)

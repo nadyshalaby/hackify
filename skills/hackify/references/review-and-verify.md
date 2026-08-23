@@ -136,7 +136,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches the panel as foreground reviewers in parallel in a single message. **The panel is evidence-gated, so its width is a decision you write down, not a constant.** B quality/layering **and plan-consistency** is the standing member and runs on every wave. A security/correctness, D performance and F cross-module coherence each run when the diff gives their lens something to look at, and fold into B when it does not. E design-conformance joins on a UI-bearing diff. Cap at 5. The gate table, naming the evidence each lens is gated on, is in [phases/phase-5-review.md](phases/phase-5-review.md). (Reviewer C folded into B in v0.13.0: both ran on every wave and neither ever folded, so a permanent merge took a saving no evidence gate could reach.)
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches the panel as foreground reviewers in parallel in a single message. **The panel is evidence-gated, so its width is a decision you write down, not a constant.** B quality/layering **and plan consistency** is the standing member and runs on every wave. A security/correctness, D performance and F cross-module coherence each run when the diff gives their lens something to look at, and fold into B when it does not. E design-conformance joins on a UI-bearing diff. Cap at 5. The gate table, naming the evidence each lens is gated on, is in [phases/phase-5-review.md](phases/phase-5-review.md). (Reviewer C folded into B in v0.13.0: both ran on every wave and neither ever folded, so a permanent merge took a saving no evidence gate could reach.)
 
 Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs. Reviewer B also takes `{{folded_lenses}}` on every dispatch, every round, `none` when the full panel ran: it names any reviewer the gate folded off this wave, and B runs that lens's residual checklist so folding moves a lens instead of dropping one ([phases/phase-5-review.md](phases/phase-5-review.md)). Every reviewer except B also takes `{{review_scope}}`, the git pathspec list for its lens, and diffs only that. **B is never sliced**, its semantic tier applies to every touched file and it re-judges every scout row, so no subset of the diff is safe to withhold; B takes `{{metrics_table}}` instead, so it judges precomputed size numbers rather than counting them by reading ([review-scope.md](review-scope.md)).
 
@@ -188,9 +188,11 @@ Spawn a **foreground** general-purpose reviewer subagent when ANY of:
 
 When you escalate, **also** complete the self-review, escalation is *additive* defense, not replacement.
 
-### Reviewer subagent prompt template
+### Reviewer subagent prompt template (the adjudication reviewer)
 
-This template is the **escalation reviewer**, the specialist fired when the default Phase 5 multi-reviewer pass (security/correctness + quality/layering + plan-consistency + performance) surfaces a finding that needs a deeper second opinion, or when the diff trips one of the escalation triggers above. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
+This template is the **adjudication reviewer**, the agent that reads the Phase 5 reviewer reports a wave actually produced, however many the evidence gate let run, and returns CONCUR or REBUT on every finding in them. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
+
+**Fires when** finished reviewer reports are in hand and findings already filed need a verdict. Reports are its whole review input, so with none in hand it has nothing to rule on. When the diff instead needs findings nobody has filed yet, on a lens the dispatcher pins by name at fire-time, the specialist in `parallel-agents/phase-5-escalation.md` is the prompt that answers, and it takes no reviewer report at all. The triggers listed above decide whether to escalate; they never decide which of the two prompts you dispatch.
 
 ```
 Subagent type: general-purpose
@@ -235,33 +237,30 @@ Bias against: paraphrasing a prior reviewer's claim without quoting it.
    component library + utility-CSS framework").
 8. `{{sensitive_surfaces}}`, comma-separated list of sensitive areas the
    diff touches (e.g. "auth, migrations, public API contracts").
-9. `{{reviewer_a_report}}`, verbatim text of the Phase 5 Reviewer A
-   (security & correctness) report.
-10. `{{reviewer_b_report}}`, verbatim text of the Phase 5 Reviewer B
-    (quality, layering & plan consistency) report, covering both of the
-    lenses B carries since Reviewer C folded into it.
-11. `{{reviewer_d_report}}`, verbatim text of the Phase 5 Reviewer D
-    (performance) report, including the perf-scout staging table it
-    consumed.
-12. `{{user_claude_md_path}}`, absolute filesystem path to the
+9. `{{reviewer_reports}}`, the verbatim text of every Phase 5 reviewer
+   report produced on this wave, each labelled with the reviewer letter
+   that produced it. The panel width varies by wave, so adjudicate
+   however many reports arrive, never a fixed roster, and never a
+   summary in place of the verbatim text.
+10. `{{user_claude_md_path}}`, absolute filesystem path to the
     user-global CLAUDE.md (typically `~/.claude/CLAUDE.md`), or the
     string `none` if absent.
-13. `{{project_claude_md_path}}`, absolute filesystem path to the
+11. `{{project_claude_md_path}}`, absolute filesystem path to the
     project CLAUDE.md (typically `<project>/CLAUDE.md`), or `none`.
 
 **OBJECTIVE**
 
 A severity-tagged adjudication report that concurs or rebuts every finding
-raised by Reviewer A, B and D, with a file:line citation per item
+in every supplied reviewer report, with a file:line citation per item,
 and adds any net-new findings the prior reviewers missed.
 
 **METHOD**
 
 1. Read `{{work_doc_path}}` end-to-end. Build a mental index of every
    Definition-of-Done bullet (D1, D2, …) and every Task ID (T1, T2, …).
-2. Read `{{reviewer_a_report}}`, `{{reviewer_b_report}}` and
-   `{{reviewer_d_report}}` in full. List every finding (Critical /
-   Important / Minor) each reviewer raised.
+2. Read every report in `{{reviewer_reports}}` in full, however many
+   there are. List every finding (Critical / Important / Minor) each
+   reviewer raised, keyed by the reviewer letter that raised it.
    Do not summarise, keep the original wording so you can quote it
    later.
 3. Run `git diff {{base_sha}}..{{head_sha}}` inside `{{project_path}}` to
@@ -351,17 +350,13 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 ````
 ## Adjudication of prior reviewers
 
-### Reviewer A findings
+### Reviewer <letter> findings
 - <finding wording, verbatim>. CONCUR | REBUT, <file:line>, <one-line reason>
 - ...
 
-### Reviewer B findings
-- <finding wording, verbatim>. CONCUR | REBUT, <file:line>, <one-line reason>
-- ...
-
-### Reviewer D findings
-- <finding wording, verbatim>. CONCUR | REBUT, <file:line>, <one-line reason>
-- ...
+<repeat that sub-section once per report in `{{reviewer_reports}}`, keyed
+on the reviewer letter, in the order the reports were supplied. Open no
+sub-section for a reviewer that did not run on this wave.>
 
 ## Net-new findings
 
@@ -383,7 +378,7 @@ and Critical findings get lost in prose. Use this exact report skeleton:
 6. <yes|no>
 ````
 
-If a sub-section has no findings, write `None.` on its own line under the heading, never go silent.
+If a sub-section has no findings, write `None.` on its own line under the heading, never go silent. That binds every sub-section you opened, the fixed ones and each per-reviewer one alike, so a report that raised nothing still gets its heading and its `None.`
 ```
 
 If the diff has BOTH a large security/auth surface AND a large UX/visual surface, **dispatch two reviewers in parallel**, one focused on security/correctness, one on architecture/design. They'll independently flag different issues.

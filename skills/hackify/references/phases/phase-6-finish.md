@@ -4,7 +4,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Land the work cleanly and archive the doc.
 
-**Ledger, at phase open.** Phase 6 is **four** ledger items, not one, so the archive cannot hide inside a finished-looking phase. Set `Phase 6a. Re-verify + land choice (Steps A, C)` to in-progress and re-print the whole block, never while `Phase 5. Review` is still open, then work the items in order.
+**Ledger, at phase open.** Phase 6 is **four** ledger items, not one, so the archive cannot hide inside a finished-looking phase. Set `Phase 6a. Re-verify + land choice (Steps A, B, C)` to in-progress and re-print the whole block, never while `Phase 5. Review` is still open, then work the items in order.
 
 | Ledger item | Steps below |
 |---|---|

@@ -220,6 +220,6 @@ A `push-back` row still gets recorded in the work-doc Sprint Review with its cou
 ## See also
 
 - [template-contract.md](template-contract.md), the 7-section contract this template conforms to.
-- [review-and-verify.md](../review-and-verify.md), the address-all loop and decision table these verdicts feed.
+- [review-and-verify.md](../review-and-verify.md), the address-all loop and decision table these verdicts feed, and the file carrying the **adjudication reviewer** inline, the prompt to dispatch when a finding is still contested after refutation and needs a verdict on the reports already filed.
 - [phase-5-aggregation.md](phase-5-aggregation.md), the count-agnostic aggregation step that runs immediately before this one.
-- [phase-5-escalation.md](phase-5-escalation.md), the adjudication reviewer for findings still contested after refutation.
+- [phase-5-escalation.md](phase-5-escalation.md), the specialist reviewer, dispatched when a contested finding needs fresh findings on a lens nobody on the panel owns rather than a verdict on reports already filed.

@@ -2,7 +2,7 @@
 
 This file holds the post-fan-out aggregation guidance shared by every parallel-agent wave in this directory. Load it whenever multiple parallel agents have returned and the parent must combine their findings. The per-template sub-agent prompts and the canonical 7-section sub-agent contract live in sibling files (`template-contract.md`, `investigation.md`, `phase-2.5-spec-reviewer.md`, `phase-3-implementation.md`, `phase-5-multi-review-a-security.md`, `phase-5-multi-review-b-quality-plan.md`, `phase-5-multi-review-d-performance.md`, `phase-5-multi-review-e-design.md`, `phase-5-multi-review-f-coherence.md`, `phase-5-refute.md`). Every one of them holds exactly one prompt; no file in this directory carries two any more.
 
-The guidance below is deliberately count-agnostic: it governs N returning agents, whether that is 2 spec reviewers, a wave of implementers, or the 5-to-6 reviewer panel plus its refuters.
+The guidance below is deliberately count-agnostic: it governs N returning agents, whether that is a wave of implementers or the reviewer panel plus its refuters.
 
 ---
 

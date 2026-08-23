@@ -56,7 +56,7 @@ Create it with the **todo tracker** primitive when the runtime exposes one, othe
 4. Phase 3. Implement (all waves committed)
 5. Phase 4. Verify (Evidence Ledger + triad green)
 6. Phase 5. Review (decision table empty)
-7. Phase 6a. Re-verify + land choice (Steps A, C)
+7. Phase 6a. Re-verify + land choice (Steps A, B, C)
 8. Phase 6b. Cleanup sweep (Step C.5)
 9. **Phase 6c. Archive work-doc to `done/` (Step D)**
 10. Phase 6d. Update log + HTML report (Step F)
@@ -101,6 +101,8 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 3 Implement | Every Sprint Backlog checkbox ticked; each wave committed; wave-end persistence done; both scouts (perf + law) run on the wave-touched files with every candidate dispositioned |
 | 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0); the three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) present and each ✅ or `⏭ skipped` with a written reason |
 | 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |
+| 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
+| 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick/yolo), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
 | **6c Archive** | **Work-doc physically moved to `docs/work/done/<slug>.md` with `status: done`** |
 | 6d Update log | Five-field update log printed (blocks separated by `----`) **and** `<slug>.report.html` emitted beside the archived doc |
 

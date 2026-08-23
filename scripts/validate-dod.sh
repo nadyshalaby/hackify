@@ -20,6 +20,8 @@
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
 #   76-phase-ledger-substrate.sh, check [76], where the phase ledger lives, the
 #                   per-phase tick lines, and the always-on phase laws
+#   77-reviewer-roster.sh, check [77], reviewer-roster and panel-count drift
+#                   in the files the [70] ban loop does not cover
 #   78-dispatch-mandate.sh, check [78], no parent-authored diffs + orchestration
 #                   that is a tool call rather than a description
 #   80-file-size-caps.sh, check [80], file-size ≤ 500 LOC across primitives
@@ -52,6 +54,7 @@ source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
 source "$DOD_MODULES_DIR/76-phase-ledger-substrate.sh"
+source "$DOD_MODULES_DIR/77-reviewer-roster.sh"
 source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"

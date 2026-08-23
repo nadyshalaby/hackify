@@ -30,7 +30,8 @@ Open a template on Claude Code for exactly two reasons: you are **authoring or a
 | Template | What it is | When to load |
 |---|---|---|
 | `phase-4-cross-package-verification.md` | one faithful exit-code reporter per project root | Phase 4 with 2+ independent roots |
-| `phase-5-escalation.md` | one specialist reviewer, lens pinned at dispatch | Phase 5 on a specialist surface beyond A/B/D/F, never design (that is E) |
+| `phase-5-escalation.md` | one specialist reviewer, lens pinned at dispatch, takes no reviewer report | Phase 5 when the diff needs fresh findings on a specialist surface beyond A/B/D/F, never design (that is E) |
+| `../review-and-verify.md` | one adjudication reviewer, written inline in that file rather than as a standalone template in this directory, rules CONCUR or REBUT on the reviewer reports a wave produced | Phase 5 when finished reviewer reports are in hand and a finding already filed needs a verdict |
 
 ## Contracts
 
