@@ -3239,6 +3239,61 @@ relearning held again, and this time the silent filter was in the instrument rat
 a script that drops what it cannot parse reports the same clean number as one that parsed everything.
 The re-measure paragraph above already says to print the rejected tokens. It says so because of this.
 
+## 7ab. The confirmation round came back with two Criticals, and both are mine
+
+Nine findings, every cited line verified against disk before anything was touched.
+
+**C1 (B, verified).** `CHANGELOG.md:36`, a bullet I wrote three commits ago, says "a source that fails
+to parse now lands in `lines_malformed`". Both halves are false. `lines_malformed` is a **path-list**
+parse bucket for an input line that normalizes to `''` or `'.'` (`audit_scan.py:150-156`), and the
+behaviour it replaced was `paths_not_found`, which the code comment states verbatim. Nothing about an
+unparseable source file. `porting-scanner.md:38` ships in the same diff and describes it correctly, so
+one release contains two accounts of one bucket and the release note is the wrong one. The severity is
+set by this very entry: four bullets earlier it retracts a false `[80b]` reason with "Corrected here
+rather than left standing, since the claim shipped in these release notes as well as in the comment."
+Same class, and I reintroduced it while documenting the fix for it.
+
+**C2 (F, verified).** The FULL-round scope-echo rule is stated at **four** sites and I amended one.
+`review-scope.md:123` carries the fix; `SKILL.md:189`, `phases/phase-5-review.md:110` and
+`review-and-verify.md:431` still say every lens is dispatched with a `settle `-prefixed scope, which is
+the unsatisfiable wording. A runner reads whichever it reaches first. This is the four-site `docs/work/`
+literal all over again, and `[76g]` exists precisely because that literal had the same problem, so the
+mechanism to catch it was already in the repo and was not extended to this rule.
+
+**C3 (F, verified).** B's scope contract disagrees three ways: `phase-5-review.md:18` says B "gets `.`",
+`review-scope.md:80` says "Pass B `.`", `review-scope.md:126` says B takes none at all, and
+`71-release-mechanism-pins.sh:346` fails the build if B's prompt gains the placeholder. My exemption
+paragraph introduced the contradiction inside a single file without reconciling the other two sites.
+
+**I1 (B, verified).** `CHANGELOG.md:21` says three files at the cap were split. Four were:
+`test_scoping.py` is new in `4a71a41` at 432 lines, conceded by `test_audit.py:12`, mirrored at
+`sync-runtimes.d/00-helpers.sh:156`, and carries no bullet anywhere.
+
+**I2 (B).** The exemption's justification at `review-scope.md:134` is a category error, not a wording
+nit. The pin is a universal over **templates**; an echo is an existential over **runs**. Neither implies
+the other, and a dispatcher can narrow B in prose without touching the placeholder. My own dispatch
+handed B a 17-path weighting, which is compliant and still proves the mechanism is reachable. B's
+remedy is placeholder-free and keeps the pin green: have B echo a bare round marker. Second half: the
+gate change itself has no CHANGELOG bullet, which answers the question I put to B about whether anything
+else lacked one.
+
+**I3 (F, verified).** `review-scope.md:86` teaches that `CHANGELOG.md` and `README.md` "sit outside"
+the cap scan. The same diff pulled both in (`80-file-size-caps.sh:52` and `:80`). The narrow reading
+survives; as written it teaches a coverage class that no longer exists.
+
+**M1 (B).** `[80]`'s cross-check compares the scanner's basenames against the shell's repo-relative
+paths by string equality. Documented, and it fails red, so it is a latent false-red the day either list
+gains a non-root entry.
+
+**M2 (B).** `10-required-files.sh:85-87` justifies a production shape partly by a test pin that
+inventories batched call sites. A test should not constrain production shape; the adjacent reason
+carries it alone.
+
+**P1, process.** I dispatched B with no `{{law_scout_report}}`, so its scout-verdict items are unmet
+and it declined to print `None.` over a table that was never handed to it. B is right, and the
+distinction it drew is the sprint's own rule turned back on my dispatch: "found nothing" and "measured
+nothing" are not the same verdict. The round cannot close until a scanner run reaches B.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
