@@ -14,6 +14,7 @@ import tempfile
 import re
 from types import SimpleNamespace
 
+from audit_scan import load_paths_from
 from checks import FileContext
 from exemptions import is_generated, is_scannable, is_test, rule_exempt, scan_mode
 
@@ -176,25 +177,43 @@ def test_text_only_honors_project_ban():
   assert len(hits) == 1 and hits[0]['rule_id'] == 'ban.custom'
 
 
-def _scoped_tree():
-  """Build a throwaway project with one touched and one untouched violating file."""
+def _scoped_tree(extra=()):
+  """Throwaway project: one touched and one untouched violating file, plus `extra` rel-paths."""
   root = tempfile.mkdtemp()
-  os.makedirs(os.path.join(root, 'src'), exist_ok=True)
-  for name in ('touched.ts', 'untouched.ts'):
-    with open(os.path.join(root, 'src', name), 'w', encoding='utf-8') as handle:
+  for rel in ('src/touched.ts', 'src/untouched.ts', *extra):
+    abs_path = os.path.join(root, rel)
+    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+    with open(abs_path, 'w', encoding='utf-8') as handle:
       handle.write('try { x() } catch (e) {}\n')
   return root
 
 
-def _scan_scoped(root, listed):
-  from audit_scan import build_config, run_scan
+def _write_list(root, listed):
+  """Write a path list the way a `git diff --name-only` dump arrives; return its path."""
   list_path = os.path.join(root, 'paths.txt')
   with open(list_path, 'w', encoding='utf-8') as handle:
     handle.write('\n'.join(listed))
+  return list_path
+
+
+def _scoped_report(root, listed):
+  """Full report dict for a scoped run, so tests can assert on stats as well as findings."""
+  from audit_scan import build_config, build_report, run_scan
   args = SimpleNamespace(max_file_lines=500, ban_patterns=None, extra_generated=[],
-                         text_only_ext=[], paths_from=list_path)
-  findings, _, _ = run_scan(root, build_config(args))
-  return sorted({f['file'] for f in findings})
+                         text_only_ext=[], paths_from=_write_list(root, listed))
+  config = build_config(args)
+  return build_report(root, config, run_scan(root, config))
+
+
+def _accounted(stats):
+  """scanned + skipped + every drop bucket; discovers new `paths_*` buckets on its own."""
+  dropped = sum(value for key, value in stats.items()
+                if key.startswith('paths_') and key != 'paths_unaccounted')
+  return stats['files_scanned'] + stats['files_skipped'] + dropped
+
+
+def _scan_scoped(root, listed):
+  return sorted({f['file'] for f in _scoped_report(root, listed)['findings']})
 
 
 def test_paths_from_scopes_the_scan():
@@ -220,8 +239,105 @@ def test_no_paths_from_walks_whole_tree():
   try:
     args = SimpleNamespace(max_file_lines=500, ban_patterns=None, extra_generated=[],
                            text_only_ext=[], paths_from=None)
-    findings, _, _ = run_scan(root, build_config(args))
+    findings, _tally = run_scan(root, build_config(args))
     assert sorted({f['file'] for f in findings}) == ['src/touched.ts', 'src/untouched.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_load_paths_from_preserves_leading_dots():
+  """`str.lstrip` takes a character set, so it ate the dot off every dot-path. It must not."""
+  root = tempfile.mkdtemp()
+  try:
+    listed = ['.github/workflows/ci.yml', '.env', './src/a.ts', 'src/b.ts']
+    parsed = load_paths_from(_write_list(root, listed))
+    assert parsed == frozenset({'.github/workflows/ci.yml', '.env', 'src/a.ts', 'src/b.ts'})
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_keeps_dot_directory():
+  root = _scoped_tree(extra=('.github/actions/run.ts',))
+  try:
+    assert _scan_scoped(root, ['.github/actions/run.ts']) == ['.github/actions/run.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_keeps_bare_dotfile():
+  root = _scoped_tree(extra=('.eslintrc.ts',))
+  try:
+    assert _scan_scoped(root, ['.eslintrc.ts']) == ['.eslintrc.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_strips_one_leading_dot_slash():
+  root = _scoped_tree()
+  try:
+    assert _scan_scoped(root, ['./src/touched.ts']) == ['src/touched.ts']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_scoped_stats_reconcile_against_handed_paths():
+  """The regression guard: every handed path lands in exactly one counter, none vanish."""
+  root = _scoped_tree(extra=('.github/actions/run.ts', 'docs/notes.md'))
+  listed = ['.github/actions/run.ts', 'src/touched.ts', 'src/gone.ts',
+            'node_modules/dep/index.ts', 'docs/notes.md']
+  try:
+    report = _scoped_report(root, listed)
+    stats = report['stats']
+    assert 'paths_unaccounted' in stats, f'no reconciliation counters in stats: {sorted(stats)}'
+    assert stats['files_scanned'] == 2
+    assert stats['paths_not_found'] == 1
+    assert stats['paths_in_skipped_dir'] == 1
+    assert stats['paths_unsupported'] == 1
+    assert stats['paths_unaccounted'] == 0
+    assert report['config']['scoped_paths'] == len(listed)
+    assert _accounted(stats) == report['config']['scoped_paths']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_counts_paths_outside_root():
+  """A listed path that escapes the scan root is contained AND counted, never scanned."""
+  root = _scoped_tree(extra=('sub/inner.ts', 'escape.ts'))
+  try:
+    scan_root = os.path.join(root, 'sub')
+    listed = ['inner.ts', '../escape.ts', os.path.join(root, 'escape.ts')]
+    stats = _scoped_report(scan_root, listed)['stats']
+    assert 'paths_outside_root' in stats, f'no containment counter in stats: {sorted(stats)}'
+    assert stats['paths_outside_root'] == 2
+    assert stats['files_scanned'] == 1
+    assert _accounted(stats) == len(listed)
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_unaccounted_reports_a_path_that_left_uncounted():
+  """The guard must BITE. A drop path that forgets its bucket has to surface, not read 0."""
+  from audit_scan import ScanTally, build_stats
+  tally = ScanTally()
+  tally.scanned = 1
+  config = SimpleNamespace(only_paths=frozenset({'a.ts', 'b.ts', 'c.ts'}))
+  stats = build_stats(config, tally, 0)
+  assert stats['paths_unaccounted'] == 2
+  assert _accounted(stats) == 1
+
+
+def test_walked_scan_reports_zero_drop_buckets():
+  """Whole-tree mode hands the scanner no path list, so every drop bucket stays empty."""
+  from audit_scan import build_config, build_report, run_scan
+  root = _scoped_tree()
+  try:
+    args = SimpleNamespace(max_file_lines=500, ban_patterns=None, extra_generated=[],
+                           text_only_ext=[], paths_from=None)
+    config = build_config(args)
+    stats = build_report(root, config, run_scan(root, config))['stats']
+    assert 'paths_unaccounted' in stats, f'no reconciliation counters in stats: {sorted(stats)}'
+    assert stats['files_scanned'] == 2 and stats['paths_unaccounted'] == 0
+    assert _accounted(stats) == stats['files_scanned']
   finally:
     shutil.rmtree(root, ignore_errors=True)
 
