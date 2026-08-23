@@ -2445,6 +2445,155 @@ rule documentation. Eight standing false positives go away.
 `audit_scan.py` are both in the ledger and both under Reviewer A and F right now, and moving HEAD
 under a running reviewer already cost one round this sprint. The fixes wait for the panel.
 
+## 7q. Reviewer B, and the thirteenth instance landing on the sprint's own audit artifact
+
+**C1 (Critical, plan). The task-file index reconciles clean over a set that no longer exists.**
+Verified independently before accepting it. The Coverage paragraph at `:293` reads "55 rows over 59
+listed paths, against 59 changed source paths in `dabc333..HEAD`. Uncovered paths: 0". That range
+now yields **69** source paths. Ten have no row:
+
+```
+rules/performance.md
+scripts/test_ban_tokens.d/{00-harness,10-ban-list-cases,20-corruption-and-wiring-cases,30-inventory-pins}.sh
+scripts/validate-dod.d/71-release-mechanism-pins.sh
+scripts/validate-dod.d/79-standing-member-invariant.sh
+skills/hackify/references/html-report.md
+skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md
+skills/hackify/references/perf-scout.md
+```
+
+The table stamps itself "Recorded against `7ad1ea1`" while the coverage sentence names `HEAD` and
+claims zero. The stamp is honest; the sentence built on it is not, because it re-measures nothing.
+This is the thirteenth instance of the sprint's own defect class, and it is the most pointed one
+yet: **the artifact that audits which files were authorized is itself a check that passes while
+measuring nothing.** Twelve instances were found in the machinery. The thirteenth was in the
+bookkeeping that proved the other twelve.
+
+B is explicit that this is **not drift**. All ten paths are authorized in substance: the four doc
+files serve wizard decision #16-A, `rules/performance.md` carries its written reason in
+`perf-scout.md`, and the three splits are forced by the 500-line cap. They lack rows, not
+authorization. Nothing here gets filed as a second finding.
+
+**C2 (Critical, plan). Waves 22, 23, 23b and 24 have no Sprint Backlog entries.** Section 5 stops at
+Wave 21; those four waves exist only as section 7 narrative (`:1998`, `:2061`, `:2123`, `:2213`).
+This is the root cause of C1: with no tasks, no rows could be added. The narrative grew while the
+tracked list did not, which is exactly the drift the Backlog exists to prevent.
+
+### Important
+
+- **`27-marketplace-ref-pin.sh:66`, rule (c) prints green over an empty set, proven by tamper.** With
+  `marketplace.json` set to `{"plugins": []}` the run printed `ok every channel version equals
+  plugin.json (0.14.2)` while (a) and (b) correctly reddened. `[27d]`, four lines below, got a
+  `mrp_below` floor this sprint for exactly this failure. Its sibling in the same file, in the same
+  edit, did not. `test.edge-cases`.
+- **`[0]` and `[0b]` have no automated test** (`validate-dod.sh:91`, `:185`). Two new always-run
+  guards whose only evidence is a one-off manual probe recorded in their own comments.
+  `test.untested`.
+- **Stale MEASURED numbers.** `validate-dod.sh:183` and `00-helpers.sh:23` both say 1398 shell-side
+  and 1401 in transcript; the live run is 1393 / 1396, and `:2256` of this doc already records the
+  1396. `:183` reads "compare like with like before moving it", so the stale figure is operational,
+  not decorative.
+- **The `[0.14.2]` changelog entry omits its own headline.** No mention of `[0]`, `[0b]`, or the
+  three fragment splits (~1000 lines moved). The entry's blurb is about checks reporting success
+  while measuring nothing, and `[0]`/`[0b]` are the generalized guard for precisely that class.
+- **`CHANGELOG.md` at 939 lines.** Already settled by decision #27-A. B adds a fact that changes the
+  fix: `80-file-size-caps.sh:13` sets `CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"`,
+  so **repo-root files are outside the only mechanism enforcing the cap**. `README.md` at 448 sits in
+  the same hole. The carve-out must be written knowing the enforcement never reached these files.
+
+### Minor
+
+- `test_ban_tokens.d/00-harness.sh:8-9`, `tb_ok`/`tb_bad` re-implement the pass/fail counter shape
+  already at `hooks/test_inject_context.sh:24`. Three shell suites, three private counters.
+  `style.reuse`.
+
+### Clean, and a dispatch omission that was mine
+
+Guardrails verified clean: zero em dashes added, no suppressions, no empty catches, no debt markers,
+no touched file over 500 in `[80]`'s roots (max 493), no new function over 40 lines or 3 params.
+AC1 through AC9 verified live; AC10's `dist/` half is unverifiable from a diff because `dist/` is
+gitignored, so its evidence is `[55]` passing.
+
+E's residual checklist was run and returned nothing, the only design-adjacent file being two git
+commands in `html-report.md`.
+
+**I did not pass `{{metrics_table}}`.** B treated it as unavailable and counted every cap by hand,
+an AST pass over the Python and brace-matching over the shell. The result was sound, but that was
+luck rather than design: the omission was mine and it cost the reviewer real work.
+
+## 7r. Reviewer A, and the fourteenth instance two lines below the fix
+
+**A-C1 (Critical). The privacy leak scan launders grep's exit status, and it sits two lines below
+the helper that was fixed to stop doing exactly that.** `scripts/validate-dod.d/10-required-files.sh:72`:
+
+```sh
+abs=$(grep -rcI '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin/ 2>/dev/null \
+      | awk -F: '{s+=$2} END {print s+0}')
+if [ "$abs" -eq 0 ]; then green "  ok   0 absolute /Users/corecave/ paths in shipped content"
+```
+
+`awk`'s `END {print s+0}` always prints a number, `2>/dev/null` hides the error, and the pipe
+discards grep's status. rc 2 (unreadable file) and rc 127 (no matcher on PATH) both arrive as
+`abs=0` and print green. A measured it with a mode-000 file under `skills/`: the pipeline yields 0
+while the repaired `check_no_token` form yields rc 2.
+
+Read the block in full and the lesson is unmissable. Lines 68 to 70 loop the personal handles
+through `check_no_token`, the helper this sprint repaired. Line 72 inlines the broken pattern for
+the home-directory path. **Same file, same scrub block, two lines apart, one fixed and one not.**
+
+Two reasons it survived, both worth keeping:
+
+1. **The sweep searched by symbol.** It enumerated `check_no_token` call sites, so a hand-inlined
+   copy of the same shape was invisible to it. Fixing a defect by fixing its function does nothing
+   for the copies that never called the function.
+2. **The file is not in this sprint's diff** (`git diff --name-only dabc333..HEAD` returns nothing
+   for it). It was only reachable because the dispatch asked A to confirm the pattern everywhere
+   rather than only inside its slice. A scope-obedient review would have been right to skip it.
+
+It also uses bare `grep` where the rest of the sprint pinned `/usr/bin/grep`, which is how rc 127
+becomes reachable at all.
+
+Severity is Critical on consequence, not on shape: this is the check that keeps the user's home path
+and personal handles out of shipped content, and it has been reporting a clean result without
+necessarily reading anything.
+
+### Important
+
+- **An unreadable file reconciles as covered.** `audit_scan.py:281` with `law-scout.md:52`: a
+  contained, supported file that cannot be read lands in `files_skipped`, and the documented
+  reconcile ADDS `files_skipped` into `covered`. Measured: a 501-line mode-000 `.ts` yields
+  `files_scanned 1, files_skipped 1, paths_unaccounted 0`, and its cap violation never appears. This
+  contradicts the docstring added this sprint at `:288-299`. The fix is a `files_unreadable` bucket,
+  and it must NOT be named `paths_*`, because consumers sum drop buckets by name prefix. Wave 24's
+  rule again, from the other side: the bucket was honest, but "skipped" and "covered" are not the
+  same claim.
+- **A missing path list silently becomes a whole-tree walk.** `audit_scan.py:151` with `:307`: an
+  absent `--paths-from` file returns an empty listing and the scanner walks everything, while
+  `stats['paths_unaccounted'] = handed - tally.accounted() if handed else 0` hardcodes 0 in exactly
+  that mode. No reconcile can see the flip. `[80b]` guards one call site; every other caller fails
+  open. This one lands close to home: the settle-round scan in 7o trusted a reconcile that would
+  have read clean had its path list gone missing.
+- **The sprint's headline fix has no test.** `00-helpers.sh:98` and `:261` are the fail-closed
+  branches, and neither the 112-assertion ban-token suite nor `test_audit.py` ever makes a path
+  unreadable; there is no `chmod` or `000` in either. Reverting the fix leaves both suites green.
+  An untested guard against silent failure can fail silently.
+
+### Minor
+
+- `00-helpers.sh:103`, `awk -F:` over `grep -rc` output puts the count in `$3` for a filename
+  containing a colon, and `$2` coerces to 0. False green.
+- `audit_scan.py:204` vs `:220`, containment resolves symlinks but `isfile`/`open` use the
+  unresolved path. CWE-367, low impact locally.
+- `audit_scan.py:132`, the line `./` normalizes to `''` and is admitted, landing in
+  `paths_not_found` rather than a parse bucket.
+
+### What A cleared
+
+Containment is sound. Absolute entries, `..`, symlinks and NUL all fail closed into
+`paths_outside_root`; the `os.sep` suffix on `root_prefix` refuses the `/root` versus `/rootabc`
+bypass; and the `ValueError` guard is correctly ordered ahead of `isfile`, which would otherwise
+swallow the same exception. `split_lines` is correct and its residual is documented.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
