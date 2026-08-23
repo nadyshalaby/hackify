@@ -125,7 +125,7 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 - **The one layering rule.** `dist/` is generated, never hand-edited. Edit the source under `skills/`, `rules/`, `agents/`, then run `bash scripts/sync-runtimes.sh`.
 - **Rules source.** User-global `~/.claude/CLAUDE.md` plus the plugin's own `rules/hard-caps.md`. No project `CLAUDE.md` in this repo.
 - **Test convention.** Validator fragments are numbered shell files sourcing `00-helpers.sh`; they use `check_token_present` / `check_no_token` and increment `FAILED`.
-- **Landmines.** (a) README.md caps at 450 lines and sits at 447. (b) `70-invariants-and-new.sh` pins exact literal strings out of `phase-ledger.md` and `SKILL.md`; rewording those lines breaks the pins. (c) `inject_context.py` keeps only bold bullet leads in its post-turn-1 digest, capped at 900 chars. (d) `block-banned-tokens.sh` rejects em dashes in written prose. (e) `dist/copilot-cli/` is MANIFEST-only by design.
+- **Landmines.** (a) README.md caps at 450 lines and sits at 448. (b) `70-invariants-and-new.sh` pins exact literal strings out of `phase-ledger.md` and `SKILL.md`; rewording those lines breaks the pins. (c) `inject_context.py` keeps only bold bullet leads in its post-turn-1 digest, capped at 900 chars. (d) `block-banned-tokens.sh` rejects em dashes in written prose. (e) `dist/copilot-cli/` is MANIFEST-only by design.
 
 ## 5. Sprint Backlog
 
