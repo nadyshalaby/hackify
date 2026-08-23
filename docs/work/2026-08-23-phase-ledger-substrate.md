@@ -213,7 +213,7 @@ Everything below is post-v0.13.0 reviewer-merge drift, the same bug class as `da
 **Checked and CLEAN, recorded so nobody re-investigates:**
 - Five retired agent types (`code-reviewer-plan-consistency`, `codebase-researcher`, `debug-evidence-gatherer`, `spec-reviewer-dependencies`, `spec-reviewer-rules`) are still named in `references/parallel-agents/README.md` and `phase-2.5-spec-reviewer.md`. Every occurrence is inside a deliberate "retired / merged into X" note, which is intended history, not a live dispatch. **Not a defect.** Verified by reading each site, not by grep count.
 - Every `/hackify:<slug>` reference resolves to a real skill or command.
-- `skills/quick/SKILL.md` is internally consistent; its "four-to-five-parallel-reviewer panel" line is still accurate post-merge (B standing, A/D/F gated, E on UI).
+- `skills/quick/SKILL.md` was judged internally consistent here. **That judgement was WRONG and T17 disproved it.** The "four-to-five" width denies the gate (true floor is 1 with B alone standing), and the file carried the same falsehood a second time in its frontmatter `description`, which sits outside the fenced block and is invisible to `[75h]`. Fixed by T17. Left as written with this correction attached, because the record of a wrong call is worth more than a tidy one.
 - Word caps agree across `phases/phase-2.5-spec-review.md`, `parallel-agents/phase-2.5-spec-reviewer.md` and `agents/spec-reviewer.md` at ≤900.
 
 **Found, routed into T9 (all in files T9 already owns, sent mid-flight rather than opening a colliding task):**
@@ -412,6 +412,20 @@ It also **ran a positive control on its own ban scan**, on the grounds that an a
 **Follow-up it raised, dispatched as T17:** `skills/quick/SKILL.md` carries the identical "four-to-five" falsehood in TWO places, and the trap is that `:3` is the frontmatter `description`, which sits OUTSIDE the fenced block and which `[75h]` structurally cannot see. That is exactly the blind spot T7's tamper proof was built to expose, and it is the line an orchestrator reads when deciding what quick mode costs.
 
 **One considered non-change T16 recorded so the next sweep does not reopen it:** `:23`'s column header reads "What fans out" over a cell now saying "1 spec reviewer", a fan-out of one. Pre-existing framing, shared by `:19`, which my brief had blessed as correct.
+
+### 2026-08-23, T17 landed, and proved a structural gap in the triad
+
+Both quick-mode sites fixed. T17 rewrote its own first draft of `:53` because it stuttered against the row header immediately to its left, and landed on wording that carries no width claim at all.
+
+**It found a third site, examined it, and correctly left it.** `:43` says "not the 6-lens panel". That is a LENS count, not a reviewer count, and it is arithmetically right: B carries two lenses over one read, plus A, D, E, F, which is six. Rewording it would have planted a new variant of exactly the drifting string family this sprint keeps chasing, and that line also carries two of the four paths `[75b]` requires, so editing there is riskier than it looks. **It ran a positive control** on its all-zero scan so the clean result is a real measurement rather than a scan that read nothing.
+
+### STRUCTURAL FINDING: nothing compares built content against source
+
+T17 observed that six `dist/*/skills/quick/SKILL.md` copies and `dist/*/.../orchestration.md` still carried the OLD strings **while `validate-dod.sh` reported green at 0.14.0**. I verified both halves: 6 stale files before the sync, 0 after, and `grep` over every validator fragment confirms **no check compares source content against `dist/`**.
+
+What exists is adjacent but does not cover this: `[24]` runs `sync-runtimes.sh --dry-run` and counts WOULD-WRITE lines, `[55]` compares the manifest against the tracked file set, `[57]` link-checks the built tree, and `[75h]` diffs agent mirrors against their canonical templates. **None of them asks whether the built tree matches the source it was built from.** So a skipped sync ships stale mirrors to all six runtimes and the triad stays green.
+
+This is the sprint's own theme one level up, and it is why the wave-end sync guardrail added to the Guardrails section is currently a PROCEDURE rather than a GUARD. A procedure is exactly what decays. A real check would run the sync into a temp tree and diff it against `dist/`, which is more than a `check_token_present` and is why nobody has written it. **Not fixed this sprint. Surfaced as the top follow-up.**
 
 ## 7. Sprint Review (Phase 4 / 5)
 
