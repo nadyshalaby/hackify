@@ -308,6 +308,22 @@ I gave T11 the check `grep -n "one agent per task\b"`. Its first draft wrote **"
 
 T11 fixed it the right way: it adopted the owner's own noun (`phase-3-implement.md:22` says "ONE **subagent** per task BATCH"), which drops the literal `one agent per task` entirely and makes the grep meaningful again. **Same class as the `dist/` grep trap recorded above: a check that looks precise and is not.** When pinning prose, pin a phrase the correct text will not contain, not one it might contain as a prefix.
 
+### 2026-08-23, T12 landed (reviewer roster, OpenCode path, WCAG), and found a LIVE DISPATCH BUG
+
+**The worst defect of the entire sweep, and it was not on anyone's list.** `references/review-and-verify.md`'s escalation prompt told the agent to read `{{reviewer_c_report}}`, a placeholder for a reviewer retired in v0.13.0, which **has no INPUT slot in that same prompt** (INPUTS 9-11 are a, b, d only). Under the Template Contract an agent receiving an unfilled `{{...}}` must REFUSE and report `unfilled placeholder`. So this was not stale prose, it was a guaranteed wasted round every time escalation ran. The same prompt said "the four prior reviewers" while its OBJECTIVE adjudicated three. No validator pinned any of it. Verified removed: 0 occurrences repo-wide.
+
+**Six F4 sites fixed**, each re-founded on the gate table rather than on a new fixed number. At `phase-5-review.md:27` T12 dropped the count entirely instead of changing "six" to "five", because the panel width is now variable, and it noted the historical framing survives in `review-scope.md:9`, which it did not own.
+
+**F5, and T12 was right to reject my framing.** I said "there are 4 best-effort runtimes, not six". T12 found that the table row keys on **agent registry**, not plugin tier, and the two sets differ: 4 runtimes are best-effort but **5** have no registry. Naming only the best-effort four would have silently dropped Copilot CLI's paste instruction, trading one contradiction for another. It re-keyed the row on dispatch path and stopped using the tier word there.
+
+**F6, evidence-based rather than assumed.** T12 fetched the published W3C Recommendation instead of relying on memory: no WCAG 2.1 criterion was renumbered in 2.2, and the only removal is 4.1.1 Parsing, which none of these files cite. So the escape condition was not met and the move to 2.2 was safe. It then flagged a pre-existing inaccuracy it deliberately did NOT fix: Reviewer E groups 2.5.5 under "Level AA", but 2.5.5 is AAA in both 2.1 and 2.2, and 2.2's AA target-size criterion is the new 2.5.8. Swapping it changes the threshold E applies, which is a behaviour change this task forbade.
+
+**It also refused the bare mirror-write mode**, hand-applying the identical change instead, because a full resync would have written a peer's in-flight canonical into a mirror outside its allowlist. Correct call.
+
+**Two more it found:** `phase-5-multi-review-e-design.md:5` said "the reviewer cap of 6", which the existing `check_no_token 'Cap at 6'` never caught because the live string is "cap of 6". And two WCAG 2.1 stragglers now that the allowlist binds at 2.2, in `scripts/check_design_specs.py` and `assets/design-preview-template.html`, cosmetic since luminance math is version-invariant.
+
+**Tree state after T12: RED by design, exactly one failure**, `check_token_present 'FOUR foreground reviewers'` at `70-invariants-and-new.sh:284`, pinning the string F4 required deleting. Bumping to FIVE was blocked by `check_no_token 'FIVE foreground reviewers'` at `:306` on the same file. The whole cluster at `:283-287` pins fixed counts and unconditional panels from the pre-`17c4a24` world. **Handed to T7, which owns the validator.**
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
