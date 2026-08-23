@@ -1,6 +1,6 @@
 # Work-Doc Template
 
-Drop this skeleton into `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` at the start of Phase 2. Fill it as you go through phases. Keep frontmatter accurate, it is the resume contract.
+Drop this skeleton into `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` at the start of Phase 2, or at graduation on the groom path, which creates the same file before Phase 1. Fill it as you go through phases. Keep frontmatter accurate, it is the resume contract.
 
 > **Back-compat for older work-docs.** Archived work-docs using the prior section names (`Definition of Done`, `Tasks`, `Implementation Log`, `Verification`, `Post-mortem`) remain readable, `skills/hackify/SKILL.md`'s resume-mode rule (authored by T1.4a) accepts either label set. New work-docs use the sprint vocabulary above.
 
@@ -26,7 +26,7 @@ sprint_goal: |
 
 ## 0. Phase ledger
 
-<!-- Opened as a printed block at task start, written here at Phase 2 step 1. `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done. Re-print this block at every phase boundary. -->
+<!-- Opened as a printed block at task start, written here at Phase 2 step 1. Whoever creates this file writes this block into it first, so on the groom path groom writes it, Phase 1 adopts it, and Phase 2 step 1 confirms it rather than writing it again. `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done. Re-print this block at every phase boundary. -->
 
 - [ ] Phase 1. Clarify (lock the goal anchor)
 - [ ] Phase 2. Plan + Gate (work-doc + user "go")
@@ -38,6 +38,8 @@ sprint_goal: |
 - [ ] Phase 6b. Cleanup sweep (Step C.5)
 - [ ] **Phase 6c. Archive work-doc to `done/` (Step D)**
 - [ ] Phase 6d. Update log + HTML report (Step F)
+
+<!-- Section-order law. This skeleton is the authority on section order, every other file agrees with it. `## 0. Phase ledger` is ALWAYS the first block of the body; nothing else takes that slot. On the groom path only, `## Groom Provenance` sits HERE, between section 0 and section 1, and holds the groom distillation and nothing else. -->
 
 ## 1. Original ask
 
