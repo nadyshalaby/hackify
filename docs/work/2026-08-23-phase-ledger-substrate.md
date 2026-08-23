@@ -324,6 +324,32 @@ T11 fixed it the right way: it adopted the owner's own noun (`phase-3-implement.
 
 **Tree state after T12: RED by design, exactly one failure**, `check_token_present 'FOUR foreground reviewers'` at `70-invariants-and-new.sh:284`, pinning the string F4 required deleting. Bumping to FIVE was blocked by `check_no_token 'FIVE foreground reviewers'` at `:306` on the same file. The whole cluster at `:283-287` pins fixed counts and unconditional panels from the pre-`17c4a24` world. **Handed to T7, which owns the validator.**
 
+### 2026-08-23, T7 landed (build green), with an honest incomplete that spawned T14
+
+**Build is green again**, exit 0, zero FAIL. T7 re-founded the stale `:283-287` cluster on the GATING RULE instead of a fixed count, with the right reasoning: a count pin fails on correct text and passes on a reverted panel, which is backwards. It also fixed all five reviewer agent frontmatter descriptions, which `[75h]` structurally cannot see because they sit outside the fenced block, and which are the line an orchestrator reads when choosing whom to dispatch.
+
+**12 of 12 tamper proofs fired.** The one that matters most is T6 in its table: `check_token_present` greps the WHOLE file, so a clause present in both frontmatter and body would let the pin pass on drifted frontmatter. T7 deliberately worded A's body differently from its description, then proved a description-only tamper still fails. That is the difference between a pin and a decoration.
+
+**Decision it made and justified: it DROPPED the `4-5 reviewers` pin** rather than adjust it. That row sizes a fan-out for the orchestration tier, and the answer is the same at 1 reviewer as at 5, so it estimates cost rather than stating a contract. With B alone standing the true floor is 1, which the range denies. `orchestration.md` was outside its allowlist, so pinning a number it believed wrong would have cemented it.
+
+**It also folded six standalone bans and a 4-file loop into one 23-token by 18-file loop**, a strict superset. Per-file ban lists are the thing that goes stale. Cost: validator wall-clock roughly doubled, 3s to 5s, from ~414 `check_no_token` calls. Worth it.
+
+**It pre-empted the `[57]` post-sync risk empirically.** It added two new doc pointers, and `[57]` link-checks the built tree as well as source, so a pass before syncing proves nothing. It rsync'd the built tree to scratch, copied in the 7 of its 8 files that ship there, and re-ran the checker: 112 files resolve, exit 0. The wave-end sync will not turn `[57]` red.
+
+### THIRD VERIFICATION GOTCHA: zsh does not word-split unquoted parameters
+
+T7's first ban scan ran `grep -rcFi -- "$t" $FILES` with `FILES="a b c"`. **zsh passed the whole list as ONE filename**, grep exited 2, and the sum printed 0 for all 23 tokens including one it knew was present. It looked like a clean scan. Any multi-file loop in this environment must run under an explicit `bash <<'EOF'`. The validator itself is unaffected: it runs under non-interactive bash, which also never loads the zsh `grep`-to-`ugrep` wrapper behind gotcha #1.
+
+That is now **three** distinct ways a check has silently measured nothing this sprint. All three were caught by agents proving their own checks rather than trusting a green result.
+
+### The incomplete, and why it is NOT closed
+
+T7 declared Part 3's remaining positive pins **undelivered**. `70-invariants-and-new.sh` is at **498 of a 500-line cap** and they need ~14 more lines. It refused to compact unrelated blocks to dodge the cap, which is correct under §3.2.
+
+**Verified by grep: the four pins at the heart of this sprint are currently UNPINNED.** The canonical sentence (0), `Ledger, at phase open` (0), `always-on injection` (0), `## 0. Phase ledger` (0). The build being green does NOT mean the ledger contract is guarded; it means nothing yet checks it. **T14 dispatched** to add `scripts/validate-dod.d/76-phase-ledger-substrate.sh` plus its `source` line, since `scripts/validate-dod.sh:36-52` is a hand-maintained explicit list and not a glob.
+
+**T7 follow-ups, outside its allowlist, still open:** `orchestration.md` self-contradicts on the Phase 2.5 count, and `phase-5-escalation.md:3` still says "four baseline Phase 5 reviewers".
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
