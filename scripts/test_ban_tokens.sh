@@ -19,6 +19,13 @@
 #      status in BOTH directions, not as printed output
 #   4. a green path that is green because it measured nothing
 #
+# HOW IT IS LAID OUT. This file is the driver: the counts written a second time,
+# the two fragments whose ban lists it re-reads, the run order, and the verdict.
+# The harness and the cases live in scripts/test_ban_tokens.d/ and are sourced in
+# order, the same shape scripts/validate-dod.sh uses. The suite was split there
+# when it reached the 500-LOC hard cap. Sourcing is bash's only import, so a
+# driver plus fragments is the one split that changes nothing about what runs.
+#
 # Standalone: bash scripts/test_ban_tokens.sh, exits non-zero on any failure.
 # Reads the repo, writes only under its own temp directory, mutates nothing.
 
@@ -56,389 +63,75 @@ TB_EXPECT_RPT=6
 TB_EXPECT_CALLS=3
 
 # The two files whose ban lists this test re-reads on every run, so it always
-# tests what ships rather than a copy that can drift away from it.
-TB_SRC_70="scripts/validate-dod.d/70-invariants-and-new.sh"
+# tests what ships rather than a copy that can drift away from it. The names
+# say [70] and [77] because they name the CHECK families, which is what the
+# lists belong to; [38g]'s P5_BANS moved to 71-release-mechanism-pins.sh when
+# 70 was split at the 500-LOC cap, and the check ID went with it.
+TB_SRC_70="scripts/validate-dod.d/71-release-mechanism-pins.sh"
 TB_SRC_77="scripts/validate-dod.d/77-reviewer-roster.sh"
+# The harness and the cases, sourced in order. Definitions only: every one of
+# them reads TB_TMP, TB_LIST and the counters above at CALL time, so the run
+# order at the foot of this file is still the only thing that decides what runs.
+TB_MODULES_DIR="$REPO_ROOT/scripts/test_ban_tokens.d"
+source "$TB_MODULES_DIR/00-harness.sh"
+source "$TB_MODULES_DIR/10-ban-list-cases.sh"
+source "$TB_MODULES_DIR/20-corruption-and-wiring-cases.sh"
+source "$TB_MODULES_DIR/30-inventory-pins.sh"
 
-tb_ok()  { TB_PASS=$((TB_PASS + 1)); printf '  pass %s\n' "$1"; }
-tb_bad() { TB_BAD=$((TB_BAD + 1)); printf '  BAD  %s\n' "$1"; }
+# WIRING GATE, and the reason this file has one at all. This driver became four
+# sourced fragments when the single file hit the 500-LOC cap, and the split
+# bought a failure mode the single file could not have had: delete a source line
+# above and its whole section of the suite leaves with it, while the run order
+# below simply calls fewer functions and the verdict still reads green. That was
+# measured, not feared. Dropping 20-corruption-and-wiring-cases.sh ran 102
+# assertions instead of 112 and dropping 30-inventory-pins.sh ran 105, and BOTH
+# printed ALL BAN-TOKEN TAMPER TESTS PASSED and exited 0. A suite whose coverage
+# can shrink silently is the measures-nothing shape every case below exists to
+# refuse, so the split pays for itself here rather than leaving the hole open.
+#
+# THE NAMES ARE WRITTEN OUT, never grepped from the fragments. A list derived
+# from the files it polices goes empty at exactly the moment they go missing and
+# then passes over nothing, which is the same defect wearing the guard's badge.
+# The cost is real: add a case function that the run order calls and this list
+# needs the name. That is the maintenance a bound has to carry to be worth
+# anything, the same trade TB_EXPECT_70 and TB_EXPECT_77 already make.
+#
+# IT EXITS INSTEAD OF COUNTING. A truncated run reporting "105 passed" is worse
+# than no run, because it looks like the real thing. So this fires before
+# tb_finish is armed and leaves through the plain cleanup trap, which means no
+# partial verdict is ever printed.
+TB_WIRING=(
+  "00-harness.sh tb_ok tb_bad tb_extract_lists tb_load_list tb_expect_red tb_expect_green"
+  "10-ban-list-cases.sh tb_plant_case tb_plant_every_token tb_case_green_path tb_case_real_file_plant"
+  "20-corruption-and-wiring-cases.sh tb_case_token_guard tb_run_token_guards tb_case_blank_token_end_to_end tb_case_zero_tokens tb_write_wiring_fragment tb_case_exit_wiring"
+  "30-inventory-pins.sh tb_count_call_sites tb_check_call_sites tb_check_list_size tb_check_plant_total"
+)
 
-# ---------------------------------------------------------------------------
-# Token-list extraction. shlex parses the shell single-quoting exactly, so a
-# token containing spaces survives, and newline-delimited output is safe because
-# a token carrying a newline is itself a defect the token guard reddens.
-# ---------------------------------------------------------------------------
-tb_extract_lists() {
-  python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_TMP" <<'PY'
-import io, re, shlex, sys, os
-src70, src77, tmp = sys.argv[1], sys.argv[2], sys.argv[3]
-
-# All three lists are shell arrays, so one parser serves all of them, and it reads
-# bare words and quoted words alike. An empty parse exits non-zero right here
-# instead of writing an empty list, because a section handed nothing to plant
-# prints nothing and passes, which is the exact bug this suite exists to refuse.
-# The old "expected exactly 1 batched ban call" assert stood here and is retired,
-# not dropped: it policed one file by reading one call's literal arguments, and
-# tb_check_call_sites below counts the batched calls across the whole fragment
-# directory instead, which is the wider claim CHANGELOG.md actually makes.
-def parse_array(path, name):
-    pat = re.compile(r'^%s\+?=\((.*)\)\s*$' % name)
-    toks = []
-    for line in io.open(path, encoding="utf-8"):
-        m = pat.match(line)
-        if m:
-            toks.extend(shlex.split(m.group(1)))
-    if not toks:
-        sys.exit("no %s group parsed from %s" % (name, path))
-    return toks
-
-lists = (("tokens70.txt", parse_array(src70, "P5_BANS")),
-         ("tokens77.txt", parse_array(src77, "RR_BANS")),
-         ("tokens77rpt.txt", parse_array(src77, "RR_RPT")))
-for name, toks in lists:
-    with io.open(os.path.join(tmp, name), "w", encoding="utf-8") as fh:
-        fh.write("".join(t + "\n" for t in toks))
-PY
-}
-
-# Load one newline-delimited token file into TB_LIST, the array every ban call
-# below is made with. Read into a global rather than echoed back, because a
-# command substitution would flatten the tokens that contain spaces.
-tb_load_list() {
-  local listfile="$1"
-  local t
-  TB_LIST=()
-  while IFS= read -r t; do
-    [ -n "$t" ] || continue
-    TB_LIST+=("$t")
-  done < "$listfile"
-}
-
-# ---------------------------------------------------------------------------
-# Assertions. Every one checks the FAILED counter as well as the printed text,
-# because "prints red, exits 0" is the specific bug 77-reviewer-roster.sh
-# documents against itself and the bug a subshell increment reintroduces.
-# Redirection on a function call does not fork, so FAILED survives the capture.
-# ---------------------------------------------------------------------------
-tb_expect_red() {
-  local label="$1"
-  local before="$2"
-  if [ "$FAILED" -le "$before" ]; then
-    tb_bad "$label: printed its verdict but FAILED did not move ($before -> $FAILED)"
-    return
-  fi
-  if ! /usr/bin/grep -q 'FAIL' "$TB_OUT"; then
-    tb_bad "$label: FAILED moved but no FAIL line was printed"
-    return
-  fi
-  tb_ok "$label"
-}
-
-tb_expect_green() {
-  local label="$1"
-  local before="$2"
-  if [ "$FAILED" -ne "$before" ]; then
-    tb_bad "$label: clean input still moved FAILED ($before -> $FAILED)"
-    return
-  fi
-  if /usr/bin/grep -q 'FAIL' "$TB_OUT"; then
-    tb_bad "$label: clean input printed a FAIL line"
-    return
-  fi
-  tb_ok "$label"
-}
-
-# ---------------------------------------------------------------------------
-# 1. Every banned token, one at a time, over the real lists.
-# ---------------------------------------------------------------------------
-tb_plant_case() {
-  local token="$1"
-  local before="$FAILED"
-  local planted="$TB_TMP/planted.md"
-  TB_PLANTED=$((TB_PLANTED + 1))
-  printf 'Reviewer prose above the plant.\n%s\nReviewer prose below it.\n' "$token" > "$planted"
-  check_no_tokens_in "$planted" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
-  if [ "$FAILED" -le "$before" ]; then
-    tb_bad "planted [$token] did not move FAILED, so the batched screen missed it"
-    return
-  fi
-  if ! /usr/bin/grep -qF "FAIL '$token' has" "$TB_OUT"; then
-    tb_bad "planted [$token] reddened, but no FAIL line names that token"
-    return
-  fi
-  tb_ok "planted [$token] reddens and is named"
-}
-
-# Every sweep proves its OWN coverage: this list, this many tokens, actually
-# screened. A grand total alone is permutation-blind, because swapping two sweeps'
-# lists leaves the sum unchanged while one list gets screened by the wrong array,
-# and the list-size pins cannot see it either since they measure the parsed files
-# rather than which array each sweep screens against. The bound is a delta on
-# TB_PLANTED, which only tb_plant_case moves. Deriving it from ${#TB_LIST[@]}
-# instead would pass by construction: that length stays 23 whether the loop below
-# ran 23 times or broke after five.
-tb_plant_every_token() {
-  local listfile="$1"
-  local want="$2"
-  local label="$3"
-  local before="$TB_PLANTED"
-  local t moved
-  tb_load_list "$listfile"
-  if [ "${#TB_LIST[@]}" -eq 0 ]; then
-    tb_bad "$label: no tokens parsed, so this whole section would have measured nothing"
-    return
-  fi
-  for t in "${TB_LIST[@]}"; do
-    tb_plant_case "$t"
+# Field 0 of every row is the fragment, the rest are the functions it owes.
+# read -ra rather than unquoted word splitting, for the same bash 3.2 reason
+# [37] gives in 70-invariants-and-new.sh.
+tb_check_wiring() {
+  local row missing=0 i
+  local -a fns
+  for row in "${TB_WIRING[@]}"; do
+    read -ra fns <<<"$row"
+    for ((i = 1; i < ${#fns[@]}; i++)); do
+      declare -F "${fns[$i]}" > /dev/null 2>&1 && continue
+      red "  FAIL ${fns[$i]} is not defined, so scripts/test_ban_tokens.d/${fns[0]} is not being sourced and its cases cannot run"
+      missing=$((missing + 1))
+    done
   done
-  moved=$((TB_PLANTED - before))
-  if [ "$moved" -eq "$want" ]; then
-    tb_ok "$label: $moved tokens actually planted, matching the expected $want"
-    return
-  fi
-  tb_bad "$label: $moved tokens actually planted, expected $want (this sweep is screening another list, or its loop stopped early)"
+  [ "$missing" -eq 0 ] && return 0
+  red "[test_ban_tokens] $missing wiring function(s) missing, refusing to run a truncated suite"
+  exit 1
 }
 
-# ---------------------------------------------------------------------------
-# 2. The green path, and the proof it is not green by measuring nothing.
-# ---------------------------------------------------------------------------
-tb_case_green_path() {
-  local before="$FAILED"
-  local clean="$TB_TMP/clean.md"
-  local n
-  printf 'The panel is evidence-gated. B is the standing member of every wave.\n' > "$clean"
-  check_no_tokens_in "$clean" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
-  tb_expect_green "green path: a clean file over ${#TB_LIST[@]} tokens stays green" "$before"
-  n=$(/usr/bin/grep -c "has 0 occurrences in $clean" "$TB_OUT")
-  if [ "$n" -eq "${#TB_LIST[@]}" ]; then
-    tb_ok "green path: printed ${#TB_LIST[@]} verdict lines, one per token, none skipped"
-  else
-    tb_bad "green path: printed $n verdict lines for ${#TB_LIST[@]} tokens"
-  fi
-}
-
-# A real covered file carries multibyte characters, and grep -I skips anything it
-# decides is binary. If the locale ever made it decide that about UTF-8 markdown,
-# every ban over that file would report zero and print green forever.
-tb_case_real_file_plant() {
-  local token="$1"
-  local before="$FAILED"
-  local real="skills/hackify/references/review-and-verify.md"
-  local copy="$TB_TMP/real-copy.md"
-  local nonascii
-  cp "$real" "$copy" || { tb_bad "real-file plant: could not copy $real"; return; }
-  nonascii=$(/usr/bin/grep -c '[^ -~	]' "$copy")
-  if [ "$nonascii" -eq 0 ]; then
-    tb_bad "real-file plant: $real no longer carries multibyte text, pick another fixture"
-    return
-  fi
-  printf '%s\n' "$token" >> "$copy"
-  check_no_tokens_in "$copy" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
-  tb_expect_red "real-file plant: [$token] in a $nonascii-line multibyte file still reddens" "$before"
-}
-
-# ---------------------------------------------------------------------------
-# 3. Token-list corruption, the surface batching adds.
-#
-# Direction matters and is easy to get backwards. An EMPTY list gives grep no
-# patterns, which matches NOTHING and exits 1, which without the guard prints every
-# token green having measured nothing: that is the dangerous direction. A BLANK pattern
-# line matches EVERY line, which is loud rather than silent. Both are refused, and both
-# are asserted against the guard's own verdict, never against the matching.
-#
-# The POSITIVE case is load-bearing: if the guard is ever renamed or deleted, every
-# negative case still "refuses" (a missing function exits 127) and the intact list is
-# the only assertion left that reddens. Do not drop it.
-# ---------------------------------------------------------------------------
-tb_case_token_guard() {
-  local label="$1"
-  shift
-  if ban_tokens_ok "$@"; then
-    tb_bad "token guard: $label was accepted"
-  else
-    tb_ok "token guard: $label is refused"
-  fi
-}
-
-tb_run_token_guards() {
-  tb_case_token_guard "a blank token (would match every line of every file)" 'alpha' '' 'beta'
-  tb_case_token_guard "a whitespace-only token" 'alpha' '   ' 'beta'
-  tb_case_token_guard "a token carrying a newline (splits into a blank pattern line)" \
-    'alpha' "$(printf 'be\nta')" 'beta'
-  tb_case_token_guard "an empty list (would match nothing and print all green)"
-  if ban_tokens_ok 'alpha' 'beta' 'gamma'; then
-    tb_ok "token guard: an intact 3-token list is accepted"
-  else
-    tb_bad "token guard: an intact 3-token list was refused"
-  fi
-}
-
-# End to end: a token that would become a blank pattern line must redden AND must still
-# ban every token the slow way, so the corruption costs speed and never coverage. The red
-# line is matched on 'pattern list', the guard's own wording, so a red from anywhere else
-# cannot be mistaken for this one.
-tb_case_blank_token_end_to_end() {
-  local before="$FAILED"
-  local clean="$TB_TMP/clean.md"
-  local n
-  printf 'Nothing banned lives in this line.\n' > "$clean"
-  check_no_tokens_in "$clean" 'panel is five' '' 'panel is six' > "$TB_OUT" 2>&1
-  tb_expect_red "blank token: a token list that would match every line reddens" "$before"
-  if ! /usr/bin/grep -q 'pattern list' "$TB_OUT"; then
-    tb_bad "blank token: reddened for some other reason than the token guard"
-    return
-  fi
-  # Verdict lines, not green lines: the empty token matches every line by
-  # definition, so it correctly reports a hit rather than a clean scan. What
-  # this proves is that all three were still SCANNED once the guard fired.
-  n=$(/usr/bin/grep -c "occurrences in $clean" "$TB_OUT")
-  if [ "$n" -eq 3 ]; then
-    tb_ok "blank token: all 3 tokens were still scanned the slow way, coverage intact"
-  else
-    tb_bad "blank token: only $n of 3 tokens were still scanned after the guard fired"
-  fi
-}
-
-# Zero tokens is the other empty-pattern-file route into a silent pass: with no
-# tokens the clean path prints nothing at all, so the guard has to be in front of
-# it rather than inside it.
-tb_case_zero_tokens() {
-  local before="$FAILED"
-  local clean="$TB_TMP/clean.md"
-  printf 'Nothing banned lives in this line.\n' > "$clean"
-  check_no_tokens_in "$clean" > "$TB_OUT" 2>&1
-  tb_expect_red "zero tokens: an empty ban list reddens instead of passing silently" "$before"
-}
-
-# ---------------------------------------------------------------------------
-# 4. Exit-status wiring, as a real process status in both directions. A subshell
-# increment prints exactly the same red text and exits 0, so printed output
-# cannot tell these two apart and only the status can.
-# ---------------------------------------------------------------------------
-tb_write_wiring_fragment() {
-  cat > "$TB_TMP/wiring.sh" <<'WIRING'
-#!/usr/bin/env bash
-# Mirrors validate-dod.sh's shape: source the helpers, accumulate into FAILED,
-# exit non-zero if anything failed. $1 repo root, $2 path to scan, $3 token.
-set -uo pipefail
-cd "$1" || exit 3
-FAILED=0
-source "scripts/validate-dod.d/00-helpers.sh"
-check_no_tokens_in "$2" "$3" > /dev/null 2>&1
-if [ "$FAILED" -eq 0 ]; then exit 0; fi
-exit 1
-WIRING
-}
-
-tb_case_exit_wiring() {
-  local dirty="$TB_TMP/wire-dirty.md"
-  local clean="$TB_TMP/wire-clean.md"
-  local rc
-  printf 'The panel is five now.\n' > "$dirty"
-  printf 'The panel is evidence-gated.\n' > "$clean"
-  tb_write_wiring_fragment
-  bash "$TB_TMP/wiring.sh" "$REPO_ROOT" "$dirty" 'panel is five'
-  rc=$?
-  if [ "$rc" -eq 1 ]; then
-    tb_ok "exit wiring: a dirty file exits 1, FAILED is not lost to a subshell"
-  else
-    tb_bad "exit wiring: a dirty file exited $rc, expected 1 (prints red, exits 0)"
-  fi
-  bash "$TB_TMP/wiring.sh" "$REPO_ROOT" "$clean" 'panel is five'
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    tb_ok "exit wiring: a clean file exits 0"
-  else
-    tb_bad "exit wiring: a clean file exited $rc, expected 0"
-  fi
-}
+tb_check_wiring
 
 # ---------------------------------------------------------------------------
 # Run order: list integrity first, because every section after it is only
 # meaningful if the lists it parsed are the lists that ship.
 # ---------------------------------------------------------------------------
-# Count the batched ban calls that actually SHIP, so a fourth one cannot appear in a new
-# fragment while CHANGELOG.md still says three and nothing reddens.
-#
-# CALL SITES, NOT OCCURRENCES. The name also appears in the DEFINITION, in prose comments
-# and inside one red-message string, and counting those would inflate the number until the
-# pin guarded nothing. So every line has its quoted spans blanked (deleting the red message
-# outright) and its comment tail cut, and then EVERY occurrence followed by whitespace is
-# counted: the definition never qualifies, because `check_no_tokens_in() {` has none. Per
-# occurrence rather than per line, because a second call fits on one line. And PROVED every
-# run: 00-helpers.sh holds the definition AND the comments AND the string, so its count is 0.
-tb_count_call_sites() {
-  python3 - "$1" <<'CALLS'
-import glob, io, os, re, sys
-QUOTED = re.compile(r'"(?:\\.|[^"\\])*"|\'[^\']*\'')
-CALL = re.compile(r'\bcheck_no_tokens_in\s')
-def sites(path):
-    return sum(len(CALL.findall(re.sub(r'(?:^|\s)#.*$', '', QUOTED.sub('""', line))))
-               for line in io.open(path, encoding="utf-8"))
-d = sys.argv[1]
-print("%d %d" % (sum(sites(f) for f in sorted(glob.glob(os.path.join(d, "*.sh")))),
-                 sites(os.path.join(d, "00-helpers.sh"))))
-CALLS
-}
-
-# Pinned BOTH ways: against the hand-written three, which defends the CHANGELOG.md sentence,
-# and against the count of lists PARSED (planting is pinned separately, by tb_check_plant_total).
-tb_check_call_sites() {
-  local out total helpers lists
-  local parsed=("$TB_TMP"/tokens*.txt)
-  out=$(tb_count_call_sites "scripts/validate-dod.d")
-  total=${out%% *}
-  helpers=${out##* }
-  lists=${#parsed[@]}
-  [ -f "${parsed[0]}" ] || lists=0
-  if [ -z "$out" ] || [ "$helpers" != "0" ]; then
-    tb_bad "call-site pin: 00-helpers.sh reported ${helpers:-no} call sites, expected 0, so the counter is being fooled by the definition, a comment or the red-message string"
-    return
-  fi
-  tb_ok "call-site pin: the definition, its comment mentions and its red-message string in 00-helpers.sh count as 0 call sites"
-  if [ "$total" -ne "$TB_EXPECT_CALLS" ]; then
-    tb_bad "call-site pin: $total batched ban calls ship in scripts/validate-dod.d/, expected $TB_EXPECT_CALLS (one was added or removed and CHANGELOG.md still claims three)"
-    return
-  fi
-  tb_ok "call-site pin: $total batched ban calls ship, matching the expected $TB_EXPECT_CALLS"
-  if [ "$total" -ne "$lists" ]; then
-    tb_bad "call-site pin: $total calls ship but this suite parsed $lists token list(s), so a shipped ban list is never planted"
-    return
-  fi
-  tb_ok "call-site pin: every one of the $total shipped calls has a token list this suite parses"
-}
-
-# Deliberately NOT check_list_size from 00-helpers.sh: that helper moves FAILED, which is
-# the thing under test here, so borrowing it would corrupt what every assertion reads.
-tb_check_list_size() {
-  local listfile="$1"
-  local want="$2"
-  local label="$3"
-  local got
-  got=$(/usr/bin/grep -c '' "$listfile" 2>/dev/null) || got=0
-  if [ "$got" -eq "$want" ]; then
-    tb_ok "$label: $got tokens parsed, matching the expected $want"
-  else
-    tb_bad "$label: $got tokens parsed, expected $want (a ban group was added or dropped)"
-  fi
-}
-
-# Kept alongside the per-sweep deltas, because exactly two tampers walk past them
-# and this catches both. A sweep that runs TWICE passes its own delta each time,
-# 23 against 23, and only the grand total moves. And an exit taken part way down
-# the run order skips whole sweeps, taking their deltas out of the run with them,
-# so a total firing from the EXIT trap is the last assertion still standing.
-# TB_PLANTED is moved by tb_plant_case alone, so this counts what the run really
-# screened rather than what the run order implies.
-tb_check_plant_total() {
-  local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT))
-  if [ "$TB_PLANTED" -eq "$want" ]; then
-    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all three lists"
-    return
-  fi
-  tb_bad "plant total: $TB_PLANTED tokens actually planted, expected $want (a plant section is pointed at the wrong list, planted twice, or not running at all)"
-}
-
 # The verdict runs from the EXIT trap, not from the foot of the script, so no
 # exit path reaches the shell without it. An early exit is exactly what would
 # skip the pin above, and a suite that leaves without printing a verdict is
