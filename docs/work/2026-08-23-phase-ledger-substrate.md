@@ -1065,6 +1065,11 @@ B upheld both of F's procedural blocks independently, then added a third of its 
 
 ### SIXTH VERIFICATION GOTCHA: the law scout reported clean after scanning nothing
 
+**The fifth has no heading of its own on purpose.** It arrived as Reviewer A's finding A2 rather
+than as something I hit while verifying, so it is written up where it was judged, in the Phase 5
+decision record above: `check_no_token` passes vacuously against a path that does not exist. The
+gap in this heading series is a pointer, not a dropped entry.
+
 Building the closing round's inputs, I ran the bundled lawkeeper scanner over the 48 files in the sprint diff:
 
 ```
@@ -1352,7 +1357,7 @@ reason rather than vanishing.
 built to catch it. The pattern is now specific enough to state as a rule: **any code path that
 filters a caller-supplied list must account for what it removed.** Silence reads as coverage.
 
-### EIGHTH INSTANCE OF THE SAME SHAPE: a ledger keyed on something that could not disagree
+### THE SAME SHAPE, IN AN ARTIFACT I AUTHORED: a ledger keyed on something that could not disagree
 
 Not a verification gotcha this time. The tool was fine; the artifact was mine. Reviewer B refuted the Wave ledger I wrote to close its own repeated finding, and refuted my reason for writing it.
 
@@ -1364,7 +1369,8 @@ Not a verification gotcha this time. The tool was fine; the artifact was mine. R
 
 **And the third, Reviewer F's.** The Phase 5 scope ledger had three columns and listed only the 6 dead paths, against the five-column, one-row-per-path shape `review-scope.md:68-71` specifies. With A and D sliced, "no verdict" and "live verdict" were indistinguishable in it, so "46 of 52" was an assertion. Rebuilt to the spec: 52 rows, blob hashes at head, a lens column, and an explicit cell where a path holds no round-one verdict.
 
-**Why this belongs on the list.** Same shape as the other seven, a marker that reads as coverage while measuring nothing. The difference is that those seven were tools I caught measuring nothing, and this one is an artifact I authored to close a finding. It reported full coverage on all 52 paths while being structurally incapable of reporting anything else.
+**Why this belongs on the list.** Same shape as the nine verification gotchas, a marker that reads as coverage while measuring nothing. The difference is that all nine of those were tools I caught measuring nothing, and this one is an artifact I authored to close a finding. It gets no ordinal in the gotcha series for that reason, and it reported full coverage on all 52 paths while being structurally incapable of reporting anything else.
+
 ## 7d. The fix wave, two more vacuous checks that were mine, and why the loop could never close
 
 Three agents landed as `28857ac`. CI now carries `fetch-depth: 0` **and** `fetch-tags: true`, because
@@ -1379,15 +1385,6 @@ writing a temp file per call.
 I tampered four of the new pins myself rather than trusting the agents' self-reports. All four redden
 in both directions and each reddens only itself.
 
-### NINTH VERIFICATION GOTCHA: my tamper probe edited nothing and I read that as a vacuous pin
-
-The `[70]` file-set probe inserted after a line matching `^P5_FILES=(`. `P5_FILES` is a
-space-separated string, not an array, so the pattern matched zero lines, `sed` changed nothing, the
-validator passed, and I recorded the pin as vacuous. The pin was fine. The probe was the vacuous
-thing. The fix that caught it is one line: compare the file against its backup and print whether the
-tamper actually landed, so a no-op probe can never be read as a passing check. Every probe in this
-document from here on reports `tampered=YES` or `tampered=NO` beside its exit code.
-
 ### EIGHTH VERIFICATION GOTCHA: the em-dash check I ran all session never fired
 
 A `grep -c` whose pattern is a `$'...'` quoted string holding the em dash and the en dash joined by
@@ -1401,9 +1398,20 @@ about the output looked wrong. An implementation agent hit the identical trap in
 reported it in the same words, which is the only reason I am confident the diagnosis is the grep and
 not the file.
 
-That makes nine instances of one shape in a single sprint: a check that passes while measuring
-nothing. The rule they all point at, stated once: **any code path that filters, matches or skips a
-caller-supplied input must account for what it removed, because silence reads as coverage.**
+### NINTH VERIFICATION GOTCHA: my tamper probe edited nothing and I read that as a vacuous pin
+
+The `[70]` file-set probe inserted after a line matching `^P5_FILES=(`. `P5_FILES` is a
+space-separated string, not an array, so the pattern matched zero lines, `sed` changed nothing, the
+validator passed, and I recorded the pin as vacuous. The pin was fine. The probe was the vacuous
+thing. The fix that caught it is one line: compare the file against its backup and print whether the
+tamper actually landed, so a no-op probe can never be read as a passing check. Every probe in this
+document from here on reports `tampered=YES` or `tampered=NO` beside its exit code.
+
+That makes ten instances of one shape in a single sprint: a check that passes while measuring
+nothing. Nine are numbered verification gotchas, tools I caught measuring nothing; the tenth is the
+Wave ledger above, an artifact I wrote myself, which is why it carries no ordinal. The rule they all
+point at, stated once: **any code path that filters, matches or skips a caller-supplied input must
+account for what it removed, because silence reads as coverage.**
 
 ### Wizard decision #16-A: the work-doc is the ruler, not the measured
 
