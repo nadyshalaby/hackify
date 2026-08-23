@@ -381,7 +381,7 @@ sub-section for a reviewer that did not run on this wave.>
 If a sub-section has no findings, write `None.` on its own line under the heading, never go silent. That binds every sub-section you opened, the fixed ones and each per-reviewer one alike, so a report that raised nothing still gets its heading and its `None.`
 ```
 
-If the diff has BOTH a large security/auth surface AND a large UX/visual surface, **dispatch two reviewers in parallel**, one focused on security/correctness, one on architecture/design. They'll independently flag different issues.
+If the diff has BOTH a large security/auth surface AND a large UX/visual surface, that is two specialist lenses, not an adjudication. Dispatch `parallel-agents/phase-5-escalation.md` once per lens, with `{{specialist_lens}}` pinned to security/correctness on one and architecture/design on the other.
 
 ### Acting on reviewer feedback (the response pattern)
 

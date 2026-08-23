@@ -48,8 +48,9 @@ Bias against: accepting "they are close enough" between two shapes.
    allowlist, pre-built by the dispatching agent (e.g.
    `W2/T4: [src/invitations/invitations.service.ts]`,
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
-   the SAME map Reviewer B receives; the `W<n>/` prefix is what you
-   use and C ignores. Files sharing a `W<n>` prefix were written by
+   the SAME map Reviewer B receives; the `W<n>/` prefix is your
+   same-wave signal and is not used by B, which matches on the
+   `T<m>` part. Files sharing a `W<n>` prefix were written by
    agents blind to each other and are the highest-risk seams. The
    reviewer MUST NOT infer this map from task prose, the dispatcher is
    responsible for providing it.

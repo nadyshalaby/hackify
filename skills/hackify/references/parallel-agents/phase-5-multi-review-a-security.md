@@ -171,4 +171,4 @@ If a findings section has no entries, write `None.` on its own line
 under the heading, never go silent.
 ```
 
-Reviewers D (performance) and F (cross-module coherence) are standing members of every wave and live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`). UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the fifth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 5.
+Reviewers D (performance) and F (cross-module coherence) live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`) and are evidence-gated like A, each joining the wave when the diff gives its lens something to look at and folding its residual checklist into B when it does not. B is the floor and carries whatever the gate leaves off. UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the fifth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 5. Gate table: `references/phases/phase-5-review.md`.

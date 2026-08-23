@@ -106,7 +106,7 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the response-table engine)
 ```
 
-This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the escalation reviewer template, `skills/hackify/references/parallel-agents/README.md` for the Phase 5 multi-reviewer dispatch table that feeds this skill on Path A.
+This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the adjudication reviewer template, `skills/hackify/references/parallel-agents/README.md` for the Phase 5 multi-reviewer dispatch table that feeds this skill on Path A.
 
 ## One-line summary
 
