@@ -1995,6 +1995,69 @@ reviewed diff, so closing them now collides with nothing and kills no verdict.
   scanner that Phase 5 runs, carrying two live defects that stopped the review reporting honestly, is
   not the opportunistic tidying the Out-of-Scope bullet excludes.
 
+## 7k. Wave 22 landed, and it found a twelfth instance in the orchestrator itself
+
+Three files split by responsibility, not by line count. `70-invariants-and-new.sh` 500 to 145 with
+the shipped-savings guard rails moving to `71-release-mechanism-pins.sh` (394);
+`77-reviewer-roster.sh` 499 to 269 with the pathless standing-member invariant moving to
+`79-standing-member-invariant.sh` (281); `test_ban_tokens.sh` 499 to 192 over four fragments. Every
+file now has real headroom.
+
+**1400 `ok` lines before, 1400 after, zero checks lost.** Verified independently, not taken from the
+report. Thirteen moved pins tamper-proven, each naming the right file in its red line.
+
+### CONFIRMED Critical C5: one deleted line hides 39% of the validator
+
+```
+delete scripts/validate-dod.sh:72   ->  tampered=YES  exit=0  ok lines 851  (baseline 1400)
+                                         "ALL CHECKS PASSED"
+```
+
+Removing a single `source` line drops **549 of 1400 checks** and the validator still exits 0 and
+still prints its success banner. `[76f]` is one-directional by design and its own comment says so: it
+catches sourced-but-not-named, never named-but-not-sourced.
+
+This is the twelfth instance of the shape, and it is the worst placed of all of them. Eleven were
+individual checks measuring nothing. This one is the thing that runs the checks, and it is the command
+this repo treats as its whole triad.
+
+**It predates the split, and the split widened it by two more droppable lines.** That distinction is
+worth keeping straight and the agent kept it straight rather than claiming credit either way.
+
+**My first probe at it edited nothing** and reported a clean 1400, because my Python filter did not
+match the real line format. The `tampered=NO` guard caught it and I did not read it as a pass. Second
+probe, `sed -i '' '72d'`, reported `tampered=YES` and the real result. That guard has now paid for
+itself three times in this sprint.
+
+### The agent found a hole its own diff created, and closed it
+
+Splitting the ban-token driver made four fragments droppable where none had been before. Measured
+before fixing: dropping one left the suite printing `ALL BAN-TOKEN TAMPER TESTS PASSED` at 102 of 112
+assertions, exit 0. It added a wiring gate asserting every function the run order calls is defined,
+with the names written out literally rather than grepped from the fragments, on the reasoning that a
+list derived from the files it polices goes empty exactly when they vanish. Proven across five drops:
+every one now exits 1 at 0 assertions and names the missing functions.
+
+### And a harness bug of its own, caught first
+
+Its `run_val` piped the validator through `perl` and returned perl's status, so every tamper reported
+`exit=0`. That is the fourth verification gotcha exactly, a pipe swallowing the status, hit
+independently by an agent that had been told about the others. It fixed the harness before trusting
+any of its own results.
+
+Four of its probes were rejected or came back green and it reported all four as its own fault rather
+than the checks': two matched zero times and the no-op guard refused them; one matched three times
+under one-match mode; and two applied but produced no red, because `check_token_present` is a
+substring test, so appending characters to a token leaves it present. That last one is the same
+measures-nothing shape living in the probe rather than the check.
+
+### A correction to my brief, again
+
+I gave the agent three wrong line numbers: the source list is at `validate-dod.sh:45-62` not 41-61,
+the manifest block at 5-35 not 20-35, and B's two stale manifest rows at 21-22 and 28 rather than
+`:25` and `:30`. It found the real ones and fixed both stale rows. That is the third round in a row
+where a line number I supplied from an older note was wrong.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
