@@ -350,6 +350,29 @@ T7 declared Part 3's remaining positive pins **undelivered**. `70-invariants-and
 
 **T7 follow-ups, outside its allowlist, still open:** `orchestration.md` self-contradicts on the Phase 2.5 count, and `phase-5-escalation.md:3` still says "four baseline Phase 5 reviewers".
 
+### 2026-08-23, T14 landed, the ledger contract is now guarded
+
+New fragment `scripts/validate-dod.d/76-phase-ledger-substrate.sh` (135 lines) plus its `source` line. **Sixteen assertions in five blocks**, `[76]` through `[76e]`, and block ordering was confirmed in the validator's own output (`[75k]` then `[76]`..`[76e]` then `[78]`) rather than assumed from the file existing on disk.
+
+**T14 departed from my brief three times, each time because the literal I named would have produced a pin that passes anyway.** This is the right kind of disobedience:
+- I named a SUBSTRING of the canonical sentence. That substring is **bolded in both files**, so two substring checks match by construction and stay green while the sentences drift apart around them. T14 byte-diffed both lines first, confirmed identical, then pinned the WHOLE sentence.
+- It made the Claude Code degrade pin **row-scoped rather than file-scoped**, so moving the degrade up into a prose bullet now fails. File-scoped, it would not have.
+- It pinned the primitive list using its own ordering (`completion sentinel / always-on injection`) because a bare `always-on injection` is satisfied by prose, and this sprint keeps adding prose about it.
+
+**The proof obligation caught two of its own first-draft pins passing under tampering:**
+- The `## 0. Phase ledger` pin stayed GREEN while the real heading was renamed, because `work-doc-template.md` also names that string in a section-order comment fifteen lines below. Fixed with an anchored line match.
+- The primitive-list pin stayed GREEN with the list stripped and one prose mention left, **reproducing exactly the F1 defect that went uncaught for two waves**. Fixed with the list-neighbour literal.
+
+**Counter-factuals it ran explicitly**, which are the most valuable lines in its report: a naive `TodoWrite` pin PASSES on the broken cell, so it would have been green throughout the entire original bug. A words-only pin PASSES on both de-bolded laws. A bare `## 0. Phase ledger` substring PASSES on the renamed heading. Every one of those is a pin someone would plausibly have written.
+
+**Two gaps it flagged rather than silently absorbing, both dispatched as T15:**
+1. `- **No phase is ever silently skipped.**` is unpinned. It is the third law and **the most direct expression of the user's original ask**. My brief named only two bold leads, so T14 stayed in scope.
+2. `scripts/validate-dod.sh` lines 5-22 enumerate every fragment and its check numbers, and do not list `76`. Nothing validates that enumeration, so the triad stays green while it rots. That is the sprint's own failure class inside the sprint's own deliverable.
+
+**Scope honesty worth noting:** T14 pointed out that `git diff --name-only HEAD` is not proof of its own scope, because 24 files were already modified when it started, and used mtimes to demonstrate which lines were T7's rather than its own.
+
+**A bias it documented rather than hiding:** the floor-of-6 count guard in `[76b]` means a seventh phase file is covered automatically, but a legitimately RETIRED phase file reddens the guard and needs a one-character edit. Deliberate for this sprint, flagged so it is not mistaken for a stale constant later.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
