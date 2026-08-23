@@ -1504,6 +1504,44 @@ Five of the nine are the scanner detecting its own test fixtures, which is the s
 is actionable, and recording that as "clean" without the table would have hidden the one row that is
 a real design decision rather than a false positive, row 1.
 
+### A process error of mine: I committed a wave while its agent was still working
+
+I committed `b95a3a2` while the Wave 21 agent was still running, then closed the wave with `e9d7ad5`.
+The agent kept going and hardened `[80b]` by another 29 lines afterwards, and its final report opens
+by saying so: that delta was left uncommitted and would have been orphaned or swept blindly into
+whoever committed next. It was swept into the release commit `78b30b0`, which is the failure it
+predicted, landing unreviewed in the one commit that should be the most deliberate.
+
+**I verified it after the fact rather than pretending I had verified it before.** The hardening turns
+out to close a real hole, and the claim is testable, so I tested it rather than trusting either the
+agent or myself: `audit_scan.py` handed an EMPTY `--paths-from` list falls back to walking the tree,
+scanning **40 files** where the scoped run scans **1**. The original `[80b]` took `max()` across every
+`cap.file-lines` finding in the scan, so with an unwritten path list it would have compared `wc -l` on
+the probe against the longest unrelated file in the repo and called that agreement. It now asserts
+`scoped_paths` and `files_scanned` are both 1 before reading any verdict, filters the finding to the
+probe's own path, and fails explicitly on an unwritten list.
+
+Re-tampered after the hardening, all four with the `tampered=YES/NO` guard, tree restored
+byte-identical: scanner one high reddens with both figures side by side; one low reddens naming the
+missing flag; a blanked path list reddens on the write guard; and the agent independently hit the
+scoped-assertion path with `scoped_paths/files_scanned were '0 40'`. Two different guards cover the
+empty-list hole and both fire.
+
+**The transient the agent reported, with a better-supported cause than the one it offered.** `[80b]`
+reddened once mid-session and then went green across a dozen runs. The agent hypothesised concurrent
+commit activity and said plainly it had not verified that. Committing does not alter a working-tree
+file, so that cannot be it. The likelier cause is self-reference: `[80b]`'s probe is
+`80-file-size-caps.sh` itself, and the agent was appending to that very file while running the
+validator, so `wc -l` and the scanner read it at two different instants of an in-progress write and
+genuinely disagreed. That is a true positive about a file being edited underneath the check, not
+flakiness, and it is confined to edits of the probe itself. Worth knowing before someone reads a
+future red here as noise.
+
+**One stale line it found and I fixed:** `law-scout.md:9` promised findings carrying seven fields
+while the scanner has been emitting ten for releases. The three missing ones are `end_line`,
+`message` and `fixable`, and `end_line` is precisely the field `[80b]` reads to compare the two
+counters, so the doc was understating the interface a new check now depends on.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_

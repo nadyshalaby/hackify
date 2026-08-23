@@ -6,7 +6,7 @@ Sibling protocol to [perf-scout.md](perf-scout.md). Same contract, different law
 
 ## WHAT
 
-- **Deterministic finder.** Same files in, same findings out. The mechanical tier is lawkeeper's tested scanner (`skills/lawkeeper/scripts/audit_scan.py`), not a hand-derived grep. Every finding carries `rule_id, category, severity, confidence, file, line, snippet`.
+- **Deterministic finder.** Same files in, same findings out. The mechanical tier is lawkeeper's tested scanner (`skills/lawkeeper/scripts/audit_scan.py`), not a hand-derived grep. Every finding carries `rule_id, category, severity, confidence, file, line, end_line, message, fixable, snippet`. The last three were emitted for releases while this line still named seven fields, and `end_line` is the one check `[80b]` reads to compare the scanner against `wc -l`.
 - **A bundled script, not a skill call.** Hackify stays self-contained: it runs a **file inside this plugin** by path, the same way it reads `rules/performance.md` by path. It does NOT invoke the lawkeeper skill, does not depend on a sibling plugin being installed, and does not enter lawkeeper's report-and-approve workflow. Running it sits outside the three-tier skill-call rule in [SKILL.md](../SKILL.md) entirely, because no skill is invoked.
 - **Scoped to the diff, always.** Whole-codebase sweeps stay lawkeeper's job (`/hackify:lawkeeper`). The scout only ever looks at files this sprint touched, so a legacy repo does not drown a new feature in inherited findings.
 - **Candidates, not verdicts, for the two syntactic rules.** `ban.bare-error` and `ban.inline-type` are matched exactly but need a one-step scope check (is the throw in domain code, does the type have 2+ props). Everything else is `confidence: exact`, the match IS the violation.
