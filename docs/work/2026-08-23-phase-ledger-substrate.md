@@ -2120,6 +2120,96 @@ three scout and finish sites were left out on my own wrong ruling that they were
 is a regression pin over hardcoded paths rather than a coverage pin, so it could never have caught the
 gap.
 
+## 7m. Wave 23, all five Criticals closed, and a secret scrub that had been reporting on nothing
+
+### C5, and the reasoning that put the guard where it is
+
+The wiring guard lives in `scripts/validate-dod.sh` itself rather than in a fragment, and the reason
+is the fix: **a guard policing the source list cannot be reached through the source list.** In a
+fragment, deleting that fragment's source line takes the guard away with it, which is precisely the
+tamper it exists to catch. The orchestrator is the only file that cannot be un-sourced, because
+running it is the run. Same shape as `[80b]` making itself its own probe.
+
+It prints with plain `printf` instead of `red()` and `green()`, and the agent proved rather than
+assumed why that matters: `00-helpers.sh` is a fragment like any other, and **deleting ITS source
+line gutted the run to 3 `ok` lines and still exited 0.** A guard that needs the helpers cannot report
+the loss of the helpers.
+
+Verified independently. The tamper that was silent an hour ago now exits 1 and fires both new checks:
+
+```
+FAIL 71-release-mechanism-pins.sh exists but validate-dod.sh never sources it
+FAIL this run printed only 848 ok lines against a floor of 1350;
+     checks did not fail, they stopped running
+```
+
+A floor rather than an equality, on the reasoning that only a SHRINKING run hides a loss, and an exact
+count would get bumped without being read. That distinction is right.
+
+### C3, where a blast radius of zero is the finding
+
+`check_no_token` now fails closed on any grep status above 1. **Zero checks reddened**, and the agent
+argued why that is a result rather than an absence of one: the baseline was 0 FAIL, so every direct
+path already returned rc 1, and every `check_no_tokens_in` path took its early return. Nothing was
+passing vacuously on the current tree.
+
+**But the fix bites hard the moment anything is unreadable, and this is the demonstration of the
+sprint.** With one eval file at mode 000, verified here rather than taken on report:
+
+- **Old helper:** 12 unearned greens, including the entire recursive personal-handle scrub printing
+  `ok 'Syanat' has 0 occurrences in skills/` having read nothing.
+- **New helper:** exit 1, thirteen refusals, each naming its path:
+  `FAIL 'Syanat' was never screened in skills/, grep exited 2 (unreadable path, or no matcher)`.
+
+One unreadable file silently voided the whole secret scrub. Of the twelve instances this sprint has
+catalogued, that is the worst consequence any of them carried: not a check that failed to find a
+defect, but a scan for leaked personal identifiers reporting clean without opening a file.
+
+The five live callers I flagged from the reviewer's pre-split citations were located by symbol and
+all five now carry an rc greater than 1 red. Coverage confirmed rather than merely unexamined.
+
+### C2, and the guard paying for itself a fourth time
+
+`[27d]` floored with the sibling check's wording verbatim. The agent's FIRST tamper reported
+`tampered=NO`, because a Python non-raw string ate a `\n` and the pattern missed. Without the guard
+it would have reported a clean run as a passing tamper. That is the fourth time in this sprint that
+one line of `cmp` has stopped a false conclusion, twice for me and twice for an agent.
+
+### Counts, and a number that meant something other than it said
+
+1400 `ok` to **1401**, 75 headers to **76**, 0 FAIL, verified here. Exactly three lines added, none
+removed or changed, each accounted for.
+
+While building the floor the agent found the internal counter reads 1398 where the transcript shows
+1401, because `[57]` and `[85]` delegate to Python checkers that print their own `ok` lines. Not a
+bug, since both test the child's exit status and raise `FAILED` themselves. It documented the gap at
+both sites rather than leaving a number that quietly means something other than it says. It also
+instrumented for the worse explanation first, subshell-swallowed greens, which would also swallow
+`FAILED`, and confirmed there are none.
+
+### Two process lessons, both mine
+
+**My brief was wrong for the fourth round running.** I cited `77-reviewer-roster.sh:483` as the
+vacuous-pass model. That file is 269 lines now; the model moved to
+`79-standing-member-invariant.sh:265` in wave 22, which I had committed myself an hour earlier. Every
+line number I supply from an older note needs re-deriving, and I have now proven that four times.
+
+**Concurrent waves cost the agent real time.** HEAD moved under it three times during its run, and
+mid-flight edits to `review-scope.md` produced two reds it briefly mistook for its own C3 blast
+radius. It recovered by doing all development in a throwaway worktree at a fixed HEAD and then
+re-verifying on the live tree, which is the right move and one I should have specified rather than
+left it to discover. Dispatching two waves against a validator-covered tree is cheap for me and
+expensive for them.
+
+### Follow-up it flagged and did not fix, correctly
+
+`[0]` direction two tests readability, so it catches a fragment that is missing or unreadable. It
+cannot catch one that exists, is readable, and fails to PARSE: `source` returns non-zero, its checks
+vanish, and the basename is still sitting there in the text. `[0b]`'s floor covers it only when the
+fragment is large enough to breach 1350. Closing it needs per-source-line status capture, which would
+break both `[0]`'s and `[76f]`'s `^source ` parse. Named, scoped, and left, which is the right call
+for a wave that already landed three Criticals.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
