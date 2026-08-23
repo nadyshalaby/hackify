@@ -290,7 +290,41 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | `W21/T59` | `b95a3a2` | pre-declared, site deferred, resolved | `scripts/validate-dod.d/80-file-size-caps.sh` (chosen from a pre-declared set of three) |
 | `W21/T60` | `b95a3a2` | pre-declared | `skills/lawkeeper/references/porting-scanner.md` `skills/hackify/references/law-scout.md` |
 
-**Coverage, measured both directions.** 55 rows over 59 listed paths, against 59 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not in the diff: 0. The two sides now reconcile exactly, which they did not while Wave 21 was in flight: at that point four listed paths had no commit yet, because those allowlists were written at dispatch rather than after, so the rows disagreed with git in the only direction a real allowlist can, naming something that had not happened yet. `b95a3a2` closed that gap by landing all four. A reconstructed row can never reach that state, which is the whole point of the distinction. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
+| `W22-24/no task ID` | `6f8d05e` `839a788` `02eb227` `5be90e0` | reconstructed | `rules/performance.md` `skills/hackify/references/perf-scout.md` `skills/hackify/references/html-report.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md` `scripts/validate-dod.d/71-release-mechanism-pins.sh` `scripts/validate-dod.d/79-standing-member-invariant.sh` `scripts/test_ban_tokens.d/00-harness.sh` `scripts/test_ban_tokens.d/10-ban-list-cases.sh` `scripts/test_ban_tokens.d/20-corruption-and-wiring-cases.sh` `scripts/test_ban_tokens.d/30-inventory-pins.sh` |
+| `W25/no task ID` | `4a71a41` `cf7cc5c` | reconstructed | `scripts/validate-dod.d/10-required-files.sh` `skills/lawkeeper/references/carve-outs.md` `skills/lawkeeper/scripts/exemptions.py` `skills/lawkeeper/scripts/test_scoping.py` |
+
+**Coverage. RE-MEASURE IT, DO NOT READ A NUMBER OFF THIS PAGE.** This paragraph previously carried
+frozen totals and the sentence "Uncovered paths: 0" while the range it named had grown from 59 paths
+to 69. Reviewer B caught it, a refuter upheld it, and the stamp defence failed on a fact worth
+keeping: the table claimed to be recorded against `7ad1ea1` while citing commits that are not
+ancestors of it, so its two halves were true at different commits and neither at the stamp. **The
+artifact that audits which files were authorized was itself a check that passed while measuring
+nothing**, which is the thirteenth instance of this sprint's own defect and the only one found in
+the bookkeeping rather than the machinery.
+
+It was never goal drift. Every unrowed path was authorized in substance and lacked a row, not
+permission. But `phase-5-multi-review-b-quality-plan.md:172-177` tells Reviewer B to flag any file
+absent from this index as a Critical scope-creep finding, and forbids reading task prose to rescue
+it, so a stale index does not merely mislead a reader: it manufactures false Criticals on the next
+dispatch. The two `no task ID` rows above close that, using the provenance class this table already
+uses for wave work carried without task numbers. The Sprint Backlog is not required to be
+exhaustive, so a row here is sufficient and a backfilled task is not needed.
+
+The command, so the next reader measures instead of quoting:
+
+```sh
+git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*' | sort > /tmp/now
+# every backticked path in this table, deduped, compared both directions with comm
+```
+
+Filter on file extension and print anything rejected. An earlier count here filtered on `'/' in x`
+and silently dropped `CHANGELOG.md` and `README.md`, reporting 88 against a stated 95, and I nearly
+edited the table to match the broken count.
+
+Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize
+itself, and `dist/` is excluded by `dist/.gitignore`, so no `dist/` path is in the diff at all.
+
+The two sides did not reconcile while Wave 21 was in flight: at that point four listed paths had no commit yet, because those allowlists were written at dispatch rather than after, so the rows disagreed with git in the only direction a real allowlist can, naming something that had not happened yet. `b95a3a2` closed that gap by landing all four. A reconstructed row can never reach that state, which is the whole point of the distinction. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
 
 **Authorization strength, counted rather than asserted.** This is the number that matters, because a row's provenance is what decides whether it can ever fail:
 
