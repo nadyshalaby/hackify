@@ -1097,6 +1097,40 @@ splitting the file first. Minor findings there get a written disposition and the
 follow-up; anything Important or worse means the split happens first.
 
 
+### SEVENTH VERIFICATION GOTCHA: the law scout dropped a listed file and called it neither scanned nor skipped
+
+Running the scout over the six re-scoped paths returned `scoped_paths: 6`, `files_scanned: 5`,
+`files_skipped: 0`. Five plus zero is not six. One path left the scan through a hole that reports nothing.
+
+`.github/workflows/ci.yml` is the one. Proven by scanning each path alone: every other file returns
+`1 0`, that one returns `0 0`.
+
+**Root cause.** `.yml` is not in `SCAN_EXTS` (`exemptions.py`), so `scan_mode` returns falsy, and
+`_iter_listed_files` (`audit_scan.py:105`) does a bare `continue` with no counter behind it. The
+skipped tally only counts files that were considered and rejected for a reason, so a file rejected
+for having the wrong extension is invisible in both columns.
+
+**Why the walk is fine and the list is not.** During a tree walk, dropping unscannable files silently
+is correct, nobody wants a finding for every PNG. But `--paths-from` is the caller asserting intent
+about specific named files. Silently narrowing that list turns "I scanned what you asked for" into
+"I scanned some of it", with a clean report either way. `--paths-from`'s own docstring says "Missing
+paths are dropped", which covers a path that does not exist, not one that exists and is skipped.
+
+**It bit the one file where it mattered most.** `ci.yml` is the only path in this round's scope that
+gained a security-shaped change (`permissions: contents: read`). The scout that is supposed to run at
+every wave end and at review start gave zero coverage on it, and said so nowhere. Reviewer A is being
+told this explicitly in its dispatch, so it does not read scout silence as scout clearance.
+
+**Not fixed here, and the reason is scope rather than size.** `audit_scan.py` is not in this sprint's
+52-path diff. Fixing it would pull a new file into a settle round whose whole purpose is to close on a
+diff that has stopped moving. It goes to the follow-up list with the fix named: account for every
+listed path, and make an explicitly requested path that cannot be scanned report as skipped with its
+reason rather than vanishing.
+
+**This is the seventh time this sprint has found the same shape**, and the third time in the tooling
+built to catch it. The pattern is now specific enough to state as a rule: **any code path that
+filters a caller-supplied list must account for what it removed.** Silence reads as coverage.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
