@@ -1,6 +1,6 @@
 name: CI
 
-# The plugin preaches evidence-before-claims but had no automated gate — the
+# The plugin preaches evidence-before-claims but had no automated gate, and the
 # 0.4.0 release shipped a stale README badge because validate-dod.sh ran only
 # when a human remembered. This workflow runs every gate on push + PR so a
 # broken scanner, a DoD regression, or an incomplete mirror manifest fails
@@ -39,12 +39,34 @@ jobs:
         uses: actions/checkout@v4
         with:
           # Check [27d] in the validator asks git which release tags actually
-          # exist. A default checkout fetches none of them, so without this the
-          # check would degrade to a written skip on every CI run and the one
-          # place it matters most would never run it. `fetch-tags` fetches the
-          # tag refs while leaving the clone shallow, which is all [27d] reads;
-          # it never resolves a tag to its commit.
+          # exist, so this checkout has to land them. Both keys below are
+          # load-bearing and neither works on its own. Measured against this
+          # repo's 43 release tags, over all four combinations this action can
+          # produce:
+          #   depth 1, fetch-tags false: 0 tags, `--no-tags` asks for none.
+          #   depth 1, fetch-tags true:  0 tags. Git follows only tags pointing
+          #     at the one commit it fetched. A probe tag planted on HEAD did
+          #     land; every real release tag sits further back and did not.
+          #   depth 0, fetch-tags false: 0 tags, `--no-tags` still suppresses.
+          #   depth 0, fetch-tags true:  all 43.
+          # Only the last row lets [27d] run, and this file used to be the
+          # second: the check shipped silently disabled, taking its written skip
+          # on every CI run.
+          #
+          # Full depth also flips [27d] from fail-open to fail-closed. Its
+          # empty-tag-list branch takes a yellow skip when the clone is shallow
+          # and a red when it is not, so at depth 1 a broken tag read was
+          # indistinguishable from a skip and passed. At depth 0 it reddens.
+          fetch-depth: 0
           fetch-tags: true
+          # Keeps GITHUB_TOKEN out of .git/config, where the default leaves it
+          # for the rest of the job. Every step below runs shell out of the
+          # checked-out tree, which on a fork PR is written by the PR author.
+          # `permissions: contents: read` narrows what that token can do, not
+          # who can read it back off disk. Nothing here needs git auth: every
+          # git call the steps below make is a local read (diff, grep, ls-files,
+          # rev-parse, tag), and none of them contacts a remote.
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5

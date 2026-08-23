@@ -306,10 +306,13 @@ for f in $PANEL_AGENTS; do check_token_present 'B is the standing member, A, D a
 # phase. Banned everywhere rather than per-file because a hand-kept per-file list is the
 # thing that goes stale, and correct text cannot contain any of them. '3 reviewers' /
 # '2 reviewers' was a separate 4-file loop, folded in so work-doc-template.md is covered.
-for f in "$P5_PHASE_G" "$RAV_G" "$ORCH_G" "$ESC_G" "$QUICK_G" $PANEL_AGENTS "skills/hackify/SKILL.md" "skills/yolo/SKILL.md" "$LEDGER" "$CONTRACT" "$P25_PHASE" "$WORK_DOC_TPL"; do
-  # One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
-  check_no_tokens_in "$f" 'A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers'
-done
+P5_FILES="$P5_PHASE_G $RAV_G $ORCH_G $ESC_G $QUICK_G $PANEL_AGENTS skills/hackify/SKILL.md skills/yolo/SKILL.md $LEDGER $CONTRACT $P25_PHASE $WORK_DOC_TPL"
+P5_BANS=('A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers')
+# Both sizes below are written a SECOND time by hand, the shape [77] already uses: a bound read back out of a list cannot police that list.
+check_list_size "$(printf '%s' "$P5_FILES" | wc -w | tr -d ' ')" 18 "the [70] panel-width file set"
+check_list_size "${#P5_BANS[@]}" 23 "the [70] count-grammar ban list"
+# One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
+for f in $P5_FILES; do check_no_tokens_in "$f" "${P5_BANS[@]}"; done
 
 # No retired agent type may be named in a live instruction, in ANY mode. A dead
 # type fails at dispatch, not at validation, and quick kept dispatching

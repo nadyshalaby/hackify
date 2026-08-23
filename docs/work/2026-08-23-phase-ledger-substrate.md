@@ -101,7 +101,7 @@ sprint_goal: The phase ledger never silently vanishes again, on any runtime, in 
 7. All six files in `references/phases/` name the ledger at phase open and at phase exit; `phase-2.5-spec-review.md` and `phase-3-implement.md` go from zero mentions to explicit ones.
 8. The ledger **opens at task start in every mode** as a printed block, and in full hackify **it is written into the work-doc as section 0 at Phase 2 step 1**. That bolded clause is the canonical sentence: it appears verbatim in `phase-ledger.md` and in `skills/hackify/SKILL.md`, and `70-invariants-and-new.sh` pins the literal string `written into the work-doc as section 0 at Phase 2 step 1` in both. `SKILL.md:69` ("created at the **start of Phase 2**") and `SKILL.md:74` ("Resume rebuilds the ledger") are the two lines that contradict it today and must be rewritten.
 9. `scripts/validate-dod.sh` exits 0, and a new check block fails if the Claude Code fallback cell, the fourth injected rules registration, the refuse-to-advance law, the canonical sentence, or any per-phase ledger mention is removed.
-10. All seven `dist/` runtimes are regenerated and mirror-complete; README and CHANGELOG record the release; version bumped to 0.14.0.
+10. All seven `dist/` runtimes are regenerated and mirror-complete; README and CHANGELOG record the release; version bumped to **0.14.1**. **This criterion was signed off reading 0.14.0 and stayed stale until Phase 5.** Wizard decision #6-A, recorded under "User decisions, taken through the wizard after Reviewer B caught the breach", moved the release to a patch bump after the settle-round fix wave, and `plugin.json` ships `0.14.1`. Correcting the number here closes a stale sign-off artifact; it is not scope creep, because the authorization predates the edit and is written down.
 
 ## 4. Approach
 
@@ -171,29 +171,106 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 - [x] **T16.** Settle the last two stale reviewer-count files. `orchestration.md` states the Phase 2.5 count four times and gives three different numbers, and two of those use the count as the worked EXAMPLE of when a flat parallel batch is the right shape, so a number swap kills the paragraph rather than fixing it. Both examples moved to Phase 1 research agents, which are genuinely independent and the same shape. The Phase 5 row lost its count entirely rather than widening it, because the row sizes a fan-out for the orchestration tier and the tier answer is identical at 1 reviewer and at 5. `phase-5-escalation.md` lost exactly one word, "four". Files: `skills/hackify/references/orchestration.md`, `skills/hackify/references/parallel-agents/phase-5-escalation.md`.
 - [x] **T17.** Fix both quick-mode sites carrying the "four-to-five reviewers" falsehood, which denies the gate this sprint documents: with B alone standing the true floor is 1. The trap is that one of the two is the frontmatter `description`, which sits OUTSIDE the fenced block and which check `[75h]` structurally cannot see, and it is the line an orchestrator reads when deciding what quick mode costs. A third site was examined and deliberately left: it counts LENSES, not reviewers, and is arithmetically correct. Files: `skills/quick/SKILL.md`.
 
-### Wave ledger (authorization for every changed file)
+**Post-plan tasks T32 to T52 (rows written 2026-08-23 at Phase 5, not at dispatch time).** The sprint kept running long after T17: a fix wave on the round-one findings, a settle-round fix wave, the performance rewrite the user ordered as wizard decision #7-B, the 0.14.1 release, a closing-round fix wave and one task after it. None of that had a backlog row, and Reviewer B filed the gap twice. **The numbering skips T18 to T31, which were never assigned to anything.** An earlier draft of the 6a/6b authorization paragraph cited "T18" and "T24"; B proved both unverifiable, so nothing here reuses those numbers or invents replacements for them. Every row below is taken from the Daily Updates or section 7 entry that names the task, cross-checked against `git show --stat` on the commit it landed in. **The rows are reconstructions, not pre-authorizations**, and the index below marks them as such rather than letting them read like allowlists that existed before the edit.
 
-Reviewer B filed the Sprint Backlog stopping at T17 twice, and my first disposition called it a work-doc
-template question rather than a row to add. It came back because the gap was real: files were changing with
-no authorizing row. Commit bodies do not reliably name task IDs, so a retroactive per-task index would be
-reconstructed from memory. Commit to file is exact, so authorization is recorded that way instead. Every
-source path in `dabc333..HEAD` appears below exactly once, under the commit that last touched it.
+- [x] **T32.** Settle-round finding S1: `phase-5-multi-review-e-design.md:21` and its agent mirror cited WCAG "target size 2.5.5" while claiming Level AA. 2.5.5 Target Size (Enhanced) is AAA in both 2.1 and 2.2; 2.2's AA criterion is 2.5.8 Target Size (Minimum). Both files checked for a stranded pixel threshold in the same breath, so the ID swap could not leave a 44 pointing at a 24 rule. Files: `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md`, `agents/design-conformance-reviewer.md`.
+- [x] **T33.** Settle-round finding S2: `phase-5-multi-review-f-coherence.md:205` called F a "Standing member", contradicting the gate shipped beside it. Replaced with the seam as the trigger plus why most waves cross one, and the agent mirror re-synced. Files: `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md`, `agents/code-reviewer-coherence.md`. **Attribution note:** the record names T32 and T33 only as the two ends of the settle-round range at `:620` and `:850`, never by content. S1 and S2 are the two settle-round fixes no other T number claims, so they are these rows; which of the two IDs went to which fix is a guess, and the `W13` prefix is identical either way.
+- [x] **T34.** Replace `[77]`'s parsed-path floor with an equality assertion against an independently written `RR_EXPECTED=6`, because a bound derived from the list cannot police the list: a floor of 4 sat under a set of 6 and printed `ok all 4 files exist` while guarding nothing. Plus a second pin naming by literal the two files whose ban coverage exists nowhere else, since equality cannot see a substitution. Files: `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T35.** Pin `{{reviewer_reports}}` in the adjudicator, with a presence check plus six per-letter bans, so the fixed A/B/D enumeration that structurally could not read an E or F finding cannot walk back in under any letter. Proven red twice. Files: `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T36.** Correct `[77]`'s own banner, which claimed the block covers "the files `[70]` does not cover" while four of its six are already in `[70]`'s loop. Now states both halves with numbers, and keeps the two duplicate tokens deliberately rather than deduplicating into an undeclared cross-fragment dependency. Files: `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T37.** Settle-round finding S3: `review-and-verify.md:384` was orphaned by this sprint's own retitle, so the fenced template above it read as the nearest antecedent. The sentence now dispatches `phase-5-escalation.md` by name with `{{specialist_lens}}` pinned per lens and says outright that two large surfaces are not an adjudication. Files: `skills/hackify/references/review-and-verify.md`.
+- [x] **T38.** Settle-round finding S4: `review-triage/SKILL.md:109` still named the escalation reviewer template after the rename to adjudication reviewer. `:61` and `:95` already carried the correct identity and were left alone. Files: `skills/review-triage/SKILL.md`.
+- [x] **T39.** Finding P1, mine rather than a reviewer's, and functional rather than cosmetic: `phase-5-review.md:15` routed `{{task_file_index}}` to "Reviewers C and F" after C was retired into B in v0.13.0, while B genuinely consumes that input and refuses without it, so a dispatcher following the table starved B and burned a round. Fixed at all three sites together, and the two files' older disagreement about what the consumer does with the map resolved in favour of the true one. Files: `skills/hackify/references/phases/phase-5-review.md`, `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md`, `agents/code-reviewer-coherence.md`.
+- [x] **T40.** Settle-round finding S5: `phase-5-multi-review-a-security.md:174` called D and F "standing members of every wave", the same false claim as S2 one file over, while line 5 of the same file said the opposite and correct thing. It sits past the fence close at `:172`, so `[75h]` is structurally blind to it and the mirror does not carry the sentence at all. New text states the rule and points at the gate table instead of re-encoding a count. Files: `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md`.
+- [x] **T41.** Finding P2, mine, and my first framing of it was a no-op: adding paths to a ban list that does not contain the failing token. Neither S2 nor S5 was a count defect, so `[77]` grows from count grammar into claim grammar. It now pins the invariant that there is exactly one standing member and it is B, by reading each claim's subject rather than matching phrasings, discovers its own files by grep over four roots, and carries ten phrase-order tokens. 214 lines to 418. Files: `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T42.** Wizard decision #7-B, the performance rewrite, taken over both my recommendation and Reviewer D's to defer. Two checks re-read each whole file once per token. A batched `grep -qrFiI -f` screen now runs per file, with the unmodified `check_no_token` loop re-run only on files that screen dirty, so verdict identity holds by construction and the green path short-circuits. Ships `scripts/test_ban_tokens.sh` as the automated tamper suite B asked for. Files: `scripts/validate-dod.d/00-helpers.sh`, `scripts/validate-dod.d/70-invariants-and-new.sh`, `scripts/validate-dod.d/77-reviewer-roster.sh`, `scripts/test_ban_tokens.sh`.
+- [x] **T43.** The fragment manifest at `validate-dod.sh:23-25` claimed `[77]` covers "the files the `[70]` ban loop does not cover", the exact boundary claim `[77]` itself refutes with numbers. Replaced with the real two-part coverage plus the standing-member invariant. Files: `scripts/validate-dod.sh`.
+- [x] **T44.** Rename the printed-output strings in `20-templates.sh` that still called it the escalation reviewer template, four of five hits including both lines the validator actually prints. The fifth is a filesystem path to `phase-5-escalation.md`, a genuinely different prompt, and was deliberately left. Files: `scripts/validate-dod.d/20-templates.sh`.
+- [x] **T45.** Close the last six findings against the new guard: `README.md` added as a scan root, which took the scanned set from 12 files to 13 and forced roots to be checked as two kinds, directories with `-d` and files with `-s`; the newline-path silent skip (`--null`, not `-Z`, which means `--decompress` on BSD grep and would have made the scan cover nothing while printing green), awk exit-status checking, the false subsumption claim recomputed from both files, a stale pointer named by file and line, and `RR_BANS_EXPECTED=60` written independently of the list. Files: `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T46.** Run the tamper suite in CI as step 8 of 10, immediately before the validator it covers, seven insertions and zero deletions so no existing step moved. Caught the blocker that `scripts/test_ban_tokens.sh` was still untracked and would fail the next push unless committed alongside. Files: `.github/workflows/ci.yml`.
+- [x] **T47.** Wizard decision #6-A, the 0.14.1 release notes. `plugin.json` to `0.14.1`, a proportionate `[0.14.1]` CHANGELOG entry, and a README blurb paid for by merging the three oldest under one `Earlier releases` heading, landing at 448 of 450. Left the build red on purpose rather than reaching outside its allowlist for `marketplace.json`. Files: `.claude-plugin/plugin.json`, `CHANGELOG.md`, `README.md`.
+- [x] **T48.** Dispatched off T47's disclosed red: bring `marketplace.json` back in sync with `plugin.json` at `0.14.1`, which four checks read as a pair. Files: `.claude-plugin/marketplace.json`.
+- [x] **T49.** Six closing-round findings. The matcher-identity claim was PATH-dependent and two comments asserted opposite things about the same tool; the real answer is that the validator runs under bash where bare `grep` already resolves absolutely, and the wrapper that honours ignore files is a zsh function. Plus the discovery grep's own exit status, an authority pin that was a strict prefix of an existing one, and a second banned set counted nowhere. Files: `scripts/validate-dod.d/00-helpers.sh`, `scripts/validate-dod.d/77-reviewer-roster.sh`.
+- [x] **T50.** Correct three claims in the `[0.14.1]` release notes, two lines changed and nothing outside that entry touched. The false reason for the pathless discovery is gone, and the verdict-identity claim now carries Reviewer D's residual in the entry's own words: the hole is announced rather than closed. Files: `CHANGELOG.md`.
+- [x] **T51.** Declare `permissions: contents: read` at workflow level, on the reasoning that the safe setting should be the one you get by forgetting. Plus `[27d]`, which requires every released version below the in-flight one to resolve to a real tag, with a shrink-only ratchet for the two versions that were never tagged and `fetch-tags: true` so CI can see them. Files: `.github/workflows/ci.yml`, `scripts/validate-dod.d/27-marketplace-ref-pin.sh`.
+- [x] **T52.** The CHANGELOG said the suite plants "all 83 banned tokens" while T49 had moved six report-input bans into `RR_RPT` with no plant test, making the real inventory 89. Plants all six, adds a runtime plant counter per sweep so a misrouted sweep reddens even when the grand total does not, and narrows the word "all" to something true. Files: `scripts/test_ban_tokens.sh`, `CHANGELOG.md`, `scripts/validate-dod.d/77-reviewer-roster.sh`.
 
-| Commit | What it did | Files it touched |
-|---|---|---|
-| `b96d2db` | wave 1, give the phase ledger a substrate that cannot vanish | `rules/phase-discipline.md` `scripts/sync-runtimes.d/00-helpers.sh` `skills/hackify/references/runtime-adapters.md` |
-| `ee5cc64` | wave 2, put the ledger in the phase protocols and the rule in the hook | `hooks/hooks.json` `hooks/inject-context.sh` `hooks/test_inject_context.sh` `skills/hackify/references/phases/phase-1-clarify.md` `skills/hackify/references/phases/phase-3-implement.md` `skills/hackify/references/phases/phase-4-verify.md` |
-| `8fa8d58` | guard the ledger contract, and make the reviewer docs tell the truth | `agents/code-reviewer-performance.md` `agents/code-reviewer-quality-plan.md` `agents/code-reviewer-security.md` `agents/spec-reviewer.md` `commands/designify.md` `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `skills/groom/SKILL.md` `skills/hackify/SKILL.md` `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` `skills/hackify/references/parallel-agents/template-contract.md` `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/yolo/evals/evals.json` |
-| `2a616e5` | settle the last reviewer-count contradictions in orchestration | `skills/hackify/references/orchestration.md` |
-| `54b56de` | quick mode's panel width, incl. the frontmatter copy [75h] cannot see | `skills/quick/SKILL.md` |
-| `fac7478` | address all ten upheld Phase 5 findings | `skills/hackify/references/parallel-agents/README.md` `skills/hackify/references/parallel-agents/phase-5-aggregation.md` `skills/hackify/references/parallel-agents/phase-5-escalation.md` `skills/hackify/references/parallel-agents/phase-5-refute.md` `skills/hackify/references/phase-ledger.md` `skills/hackify/references/phases/phase-6-finish.md` `skills/hackify/references/review-scope.md` `skills/hackify/references/work-doc-template.md` `skills/yolo/SKILL.md` |
-| `0e2edca` | settle-round findings, and guard the claim not just the count | `agents/code-reviewer-coherence.md` `agents/design-conformance-reviewer.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `skills/hackify/references/phases/phase-5-review.md` `skills/hackify/references/review-and-verify.md` `skills/review-triage/SKILL.md` |
-| `55d1d75` | stop re-reading every file once per banned phrase | `scripts/test_ban_tokens.sh` `scripts/validate-dod.d/20-templates.sh` `scripts/validate-dod.d/70-invariants-and-new.sh` `scripts/validate-dod.sh` |
-| `1270bfd` | 0.14.1 | `.claude-plugin/marketplace.json` `.claude-plugin/plugin.json` `README.md` |
-| `a66f900` | close the closing round, incl. a hole in the fix for a hole | `.github/workflows/ci.yml` `CHANGELOG.md` `scripts/validate-dod.d/00-helpers.sh` `scripts/validate-dod.d/27-marketplace-ref-pin.sh` `scripts/validate-dod.d/77-reviewer-roster.sh` |
+**One wave carries no task IDs at all, and that is recorded rather than papered over.** The fix wave that landed as `fac7478` addressed the round-one decision-table findings, and it was dispatched off finding IDs, never off task numbers. No T number was ever assigned to any of it. Those thirteen paths appear in the index below keyed on their finding ID instead, marked `no task ID`, and the count of paths whose ONLY authorization is such a row is given with the index so the weakness is countable rather than described.
 
-**52 source paths, every one authorized.** Work-doc edits are excluded: the work-doc is the authorizing
-artifact and cannot authorize itself.
+### Task-file index (authorization for every changed file)
+
+**Recorded against `7ad1ea1`.** That commit changes only `docs/work/`, so this index does not authorize the commit that carries it, which is the defect the commit-keyed table it replaces could not avoid.
+
+The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_file_index}}`. F reads the `W<n>` prefix to find same-wave seams; B matches on `T<m>` to detect a file touched with no authorizing task. **A `W<n>` prefix means the tasks under it were dispatched together and wrote blind to each other.** Waves 1 to 5 are the plan's own labels. Waves 6 to 17 are assigned here from the landing order in `dabc333..7ad1ea1`, and every task that was dispatched alone gets its own wave number rather than being bundled, so the prefix never claims a parallelism that did not happen. The one place the record is thin is inside `W13`, where `:646` shows T41 was deliberately sequenced after the T34 to T36 agent while the rest of the wave's internal ordering is unrecorded; they stay in one wave because an over-broad same-wave signal costs F a read and an over-narrow one costs it a seam.
+
+| Key | Landed in | Provenance | Files (allowlist) |
+|---|---|---|---|
+| `W1/T1` | `b96d2db` | pre-declared | `skills/hackify/references/runtime-adapters.md` |
+| `W1/T2` | `b96d2db` | pre-declared | `skills/hackify/references/phase-ledger.md` `skills/hackify/references/work-doc-template.md` |
+| `W1/T3` | `b96d2db` | pre-declared | `rules/phase-discipline.md` `scripts/sync-runtimes.d/00-helpers.sh` |
+| `W2/T4` | `ee5cc64` | pre-declared | `hooks/hooks.json` `hooks/inject-context.sh` `hooks/test_inject_context.sh` |
+| `W2/T5` | `ee5cc64` | pre-declared | `skills/hackify/references/phases/phase-1-clarify.md` `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/hackify/references/phases/phase-3-implement.md` `skills/hackify/references/phases/phase-4-verify.md` `skills/hackify/references/phases/phase-5-review.md` `skills/hackify/references/phases/phase-6-finish.md` |
+| `W2/T6` | `ee5cc64` | pre-declared | `skills/hackify/SKILL.md` `skills/quick/SKILL.md` `skills/yolo/SKILL.md` |
+| `W2b/T9` | `8fa8d58` | pre-declared | `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/yolo/evals/evals.json` |
+| `W2b/T10` | `8fa8d58` | pre-declared | `skills/groom/SKILL.md` `skills/hackify/references/work-doc-template.md` `skills/hackify/references/phase-ledger.md` |
+| `W3/T7` | `8fa8d58` | pre-declared, amended at Phase 5 | `scripts/validate-dod.d/70-invariants-and-new.sh` `agents/code-reviewer-coherence.md` `agents/code-reviewer-performance.md` `agents/code-reviewer-quality-plan.md` `agents/code-reviewer-security.md` `agents/design-conformance-reviewer.md` |
+| `W4/T8a` | `8fa8d58`, `5a84a7a` | pre-declared | `.claude-plugin/plugin.json` `.claude-plugin/marketplace.json` `CHANGELOG.md` `README.md` |
+| `W5/T8b` | (no tracked path) | pre-declared | (none tracked: the seven runtime trees under dist are git-ignored, so the mirror resync changed no tracked file) |
+| `W6/T11` | `8fa8d58` | reconstructed | `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `agents/code-reviewer-security.md` |
+| `W7/T12` | `8fa8d58` | reconstructed | `skills/hackify/references/review-and-verify.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` `skills/hackify/references/parallel-agents/template-contract.md` `skills/hackify/references/parallel-agents/README.md` `skills/hackify/references/phases/phase-5-review.md` `skills/review-triage/SKILL.md` `commands/designify.md` `agents/design-conformance-reviewer.md` `agents/spec-reviewer.md` |
+| `W8/T14` | `8fa8d58` | reconstructed | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
+| `W9/T15` | `8fa8d58` | reconstructed | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
+| `W10/T16` | `2a616e5` | reconstructed | `skills/hackify/references/orchestration.md` `skills/hackify/references/parallel-agents/phase-5-escalation.md` |
+| `W11/T17` | `54b56de` | reconstructed | `skills/quick/SKILL.md` |
+| `W12/F-crit` | `fac7478` | **no task ID** | `skills/hackify/references/review-and-verify.md` |
+| `W12/F1` | `fac7478` | **no task ID** | `skills/yolo/SKILL.md` |
+| `W12/F2` | `fac7478` | **no task ID** | `skills/hackify/references/parallel-agents/phase-5-aggregation.md` |
+| `W12/F3` | `fac7478` | **no task ID** | `skills/hackify/references/review-scope.md` |
+| `W12/F4` | `fac7478` | **no task ID** | `skills/hackify/references/phase-ledger.md` `skills/hackify/references/work-doc-template.md` `skills/hackify/references/phases/phase-5-review.md` `skills/hackify/references/phases/phase-6-finish.md` |
+| `W12/F5` | `fac7478` | **no task ID** | `skills/hackify/references/parallel-agents/phase-5-escalation.md` `skills/hackify/references/parallel-agents/phase-5-refute.md` `skills/hackify/references/parallel-agents/README.md` |
+| ``W12/[77]`` | `fac7478` | **no task ID** | `scripts/validate-dod.d/77-reviewer-roster.sh` `scripts/validate-dod.sh` |
+| `W13/T32` | `0e2edca` | reconstructed | `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` `agents/design-conformance-reviewer.md` |
+| `W13/T33` | `0e2edca` | reconstructed | `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `agents/code-reviewer-coherence.md` |
+| `W13/T34` | `0e2edca` | reconstructed | `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W13/T35` | `0e2edca` | reconstructed | `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W13/T36` | `0e2edca` | reconstructed | `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W13/T37` | `0e2edca` | reconstructed | `skills/hackify/references/review-and-verify.md` |
+| `W13/T38` | `0e2edca` | reconstructed | `skills/review-triage/SKILL.md` |
+| `W13/T39` | `0e2edca` | reconstructed | `skills/hackify/references/phases/phase-5-review.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `agents/code-reviewer-coherence.md` |
+| `W13/T40` | `0e2edca` | reconstructed | `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` |
+| `W13/T41` | `0e2edca` | reconstructed | `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W14/T42` | `55d1d75` | reconstructed | `scripts/validate-dod.d/00-helpers.sh` `scripts/validate-dod.d/70-invariants-and-new.sh` `scripts/validate-dod.d/77-reviewer-roster.sh` `scripts/test_ban_tokens.sh` |
+| `W14/T43` | `55d1d75` | reconstructed | `scripts/validate-dod.sh` |
+| `W14/T44` | `55d1d75` | reconstructed | `scripts/validate-dod.d/20-templates.sh` |
+| `W14/T45` | `55d1d75` | reconstructed | `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W14/T46` | `55d1d75` | reconstructed | `.github/workflows/ci.yml` |
+| `W14/T47` | `1270bfd` | reconstructed | `.claude-plugin/plugin.json` `CHANGELOG.md` `README.md` |
+| `W15/T48` | `1270bfd` | reconstructed | `.claude-plugin/marketplace.json` |
+| `W16/T49` | `a66f900` | reconstructed | `scripts/validate-dod.d/00-helpers.sh` `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W16/T50` | `a66f900` | reconstructed | `CHANGELOG.md` |
+| `W16/T51` | `a66f900` | reconstructed | `.github/workflows/ci.yml` `scripts/validate-dod.d/27-marketplace-ref-pin.sh` |
+| `W17/T52` | `cf606a5` | reconstructed | `scripts/test_ban_tokens.sh` `CHANGELOG.md` `scripts/validate-dod.d/77-reviewer-roster.sh` |
+
+**Coverage, measured both directions.** 45 rows over 52 source paths. Uncovered paths: 0. Listed but absent from `dabc333..7ad1ea1`: 0. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
+
+**Authorization strength, counted rather than asserted.** This is the number that matters, because a row's provenance is what decides whether it can ever fail:
+
+| Provenance | Rows | Distinct paths | What the row is worth |
+|---|---|---|---|
+| pre-declared | 10 | 23 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
+| pre-declared, amended at Phase 5 | 1 | 6 | the allowlist was real and the task went outside it; the row carries the six paths actually touched and says so |
+| reconstructed | 27 | 32 | written at Phase 5 from the Daily Updates entry plus `git show --stat`, so it records what happened and cannot retroactively have constrained it |
+| no task ID | 7 | 13 | keyed on the decision-table finding that authorized the fix, because no task number was ever assigned |
+
+**The amended row is `W3/T7`, and it is the one row here that proves the index can fail.** T7's allowlist was `scripts/validate-dod.d/70-invariants-and-new.sh` alone; it also wrote five agent files. The breach is recorded in this sprint's own Sprint Backlog and it stays legible in the index, as its own provenance class rather than folded into `pre-declared`, because a table where the recorded breach is indistinguishable from a clean row is the table Reviewer B refuted.
+
+Both count columns are re-derived from the rows above, by grouping on the Provenance cell (bold is emphasis, so `**no task ID**` and `no task ID` are one label) and unioning the backticked paths in each group. They are not maintained by hand. A hand-kept total on a table that later work grows is the staleness this sprint already had to fix twice, once in the DoD count and once in the roster.
+
+**The distinct-path column does not partition the 52.** It sums to 74, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 52; do not sum the column and compare it.
+
+**Three paths have no authorization other than a `no task ID` row:** `skills/hackify/references/parallel-agents/phase-5-aggregation.md`, `skills/hackify/references/parallel-agents/phase-5-refute.md` and `skills/hackify/references/review-scope.md`. Every other path in the 13 also appears under a numbered task somewhere else in the index. That count of three is the honest measure of how much of this sprint changed with nothing task-shaped standing behind it.
+
+**Two known imprecisions, left visible rather than tidied.** `README.md` was edited by T9 and T11 as well as T8a, and only T8a's row lists it, so those two tasks worked outside their stated allowlists exactly as T7 did; that is recorded here rather than fixed by quietly widening two settled rows, and it is a follow-up. And several files sit in more than one row, `77-reviewer-roster.sh` in seven of them, which is a true fact about how this sprint ran and is not deduplicated.
 
 
 ## 6. Daily Updates
@@ -506,6 +583,8 @@ Every row run fresh on the settled tree at commit `54b56de`. No row is a memory 
 | 9. Validator fails if the contract is removed | **Live tamper on the real tree: reverted the Claude Code cell to a bare `` `TodoWrite` ``, the ORIGINAL bug.** Validator exit 1 with `FAIL the '\| todo tracker \|' row names a tool with no degrade; the ledger vanishes and nothing in the table tells the model to fall back`. Restored from git, exit 0, zero FAIL. **The guard catches the exact defect the user reported.** | PASS |
 | 10. 7 runtimes, release recorded | All 7 `dist/` trees present. Source and BUILT manifests both `0.14.0`. README badge `0.14.0`, README at exactly 450 of its 450 cap. CHANGELOG top entry `## [0.14.0] - 2026-08-23`. `phase-discipline.md` in all 6 mirroring runtimes (copilot-cli is MANIFEST-only by design). All 9 agent mirrors byte-identical. | PASS |
 
+**AC10 re-evidenced at 0.14.1.** The row above is a dated measurement on the settled tree at `54b56de` and is deliberately not rewritten. Wizard decision #6-A later moved the release to `0.14.1`, landed by T47 and T48 in `1270bfd`, and that is re-verified rather than assumed: `git show 1270bfd:.claude-plugin/plugin.json` and the two `plugin.version` entries in `marketplace.json` all read `0.14.1`, the stable channel pin reads `v0.14.1`, `CHANGELOG.md:8` carries `## [0.14.1] - 2026-08-23`, and README came back to 448 of its 450 cap. The `since v0.14.0` stamps at README's `rules/` tree row and its fourth-always-on-file sentence are correct history and were deliberately left alone, per the trap recorded in the T47 entry.
+
 **Triad, run last on the settled tree:** `validate-dod.sh` exit 0 / zero FAIL. `test_inject_context.sh` 29/29. `test_block_banned_tokens.sh` 41/41. `test_audit.py` 28/28.
 
 **Ship gate.** This plugin has no build, no server and no runnable app: it is markdown, shell validators and Python helpers, installed by copying a tree. `ship.build` is satisfied by `sync-runtimes.sh` producing all 7 runtime trees (786 files, exit 0). `ship.boot` has no target, and is recorded as **skipped with reason** rather than silently absent: there is no process to start. `ship.smoke` is the live two-turn injector run in AC6 plus the AC9 tamper, which together exercise the actual runtime path a user hits (hook fires, digest is built, guard catches a regression).
@@ -513,6 +592,76 @@ Every row run fresh on the settled tree at commit `54b56de`. No row is a memory 
 ### Scope ledger (Phase 5)
 
 Panel gated on evidence, per the contract this sprint just corrected. **B standing** (never sliced). **A** ran because `hooks.json` gained a fourth entry, and a hook entry is a command line executed on every prompt in every install; an ambiguous surface runs the reviewer. **D** ran on a measured signal (validator wall-clock moved). **F** ran because the diff crosses 19 directories and was written by 17 agents across 7 waves, each blind to the others. **E folded**, with evidence: the diff contains no UI, component, stylesheet or design token; its residual checklist went to B.
+
+**The ledger below replaces a three-column table that listed only the 6 dead paths.** Reviewer F was right that the old shape was not the artifact `review-scope.md:68-71` specifies: with A and D sliced, "no verdict" and "live verdict" were indistinguishable in it, so "46 of 52" was an assertion rather than something a reader could check. This is the specified five-column shape, one row per changed path, all 52.
+
+How to re-derive every cell, so none of this has to be taken on trust:
+
+- **blob** is `git rev-parse --short=9 7ad1ea1:<path>`, the content hash at head. Keying on the path alone is unsound; the hash is the only thing that proves the reviewed content and the shipped content are the same content.
+- **lenses** are every lens whose surface the path touches, classified from `review-scope.md`'s "Who gets sliced" table. B is on every row because B is never sliced. F is on every row because F echoed `settle all` in the closing round and its boundary set here spans the agent mirrors, the skill docs, the validator fragments that pin strings in both, and the two manifests that pin each other. A takes the hook, script, workflow and manifest surfaces; D takes the hook, script and workflow surfaces. **E is on no row**, because E was folded on written evidence in every round of this sprint.
+- **round 1** says whether the path was in round one's diff at all. Round one read `dabc333..54b56de`, which is 43 of these 52 paths; the other 9 did not exist yet, so they hold no round-one verdict and the cell says so instead of leaving a blank that reads like clean.
+- **settle** compares the head blob against the blob at `b83dcff`, the tree the closing panel actually read. Identical means the closing verdict is still live. Different means it died when the fix wave moved the file, and 7c put it back in scope.
+
+**The honest limit on the lenses column.** B's and F's coverage is evidenced per path: both echoed `settle all` at `b83dcff`, which under the grammar means the whole assigned slice with nothing carried. A's and D's per-path pathspec lists were never written down at dispatch, so their cells are the manifest re-derived now from the classification rule, which is what those lenses should have received rather than a transcript of what they did receive. That gap is exactly why `review-scope.md` puts building the manifest before the dispatch message goes out, and this sprint did it after.
+
+| path | blob | lenses | round 1 | settle |
+|---|---|---|---|---|
+| `.claude-plugin/marketplace.json` | `1fa53fb2c` | A B F | reviewed | live |
+| `.claude-plugin/plugin.json` | `8c359921e` | A B F | reviewed | live |
+| `.github/workflows/ci.yml` | `43fcf3afe` | A B D F | not in diff, no round-1 verdict | dead (f6c6060ab), re-scoped in 7c |
+| `agents/code-reviewer-coherence.md` | `5e1fd654f` | B F | reviewed | live |
+| `agents/code-reviewer-performance.md` | `f40d7c11d` | B F | reviewed | live |
+| `agents/code-reviewer-quality-plan.md` | `761b8cd00` | B F | reviewed | live |
+| `agents/code-reviewer-security.md` | `1ce576f99` | B F | reviewed | live |
+| `agents/design-conformance-reviewer.md` | `2063ba4f9` | B F | reviewed | live |
+| `agents/spec-reviewer.md` | `49ae70140` | B F | reviewed | live |
+| `CHANGELOG.md` | `f07eef888` | B F | reviewed | dead (31225ff31), re-scoped in 7c |
+| `commands/designify.md` | `3823e1ab7` | B F | reviewed | live |
+| `hooks/hooks.json` | `741d5cdf8` | A B D F | reviewed | live |
+| `hooks/inject-context.sh` | `4fe497f9a` | A B D F | reviewed | live |
+| `hooks/test_inject_context.sh` | `27a6f9bcc` | A B D F | reviewed | live |
+| `README.md` | `0f4a1abb3` | B F | reviewed | live |
+| `rules/phase-discipline.md` | `2b7e994a8` | B F | reviewed | live |
+| `scripts/sync-runtimes.d/00-helpers.sh` | `13fca724c` | A B D F | reviewed | live |
+| `scripts/test_ban_tokens.sh` | `6b5eb2baf` | A B D F | not in diff, no round-1 verdict | dead (f11815777), re-scoped in 7c |
+| `scripts/validate-dod.d/00-helpers.sh` | `ea974b274` | A B D F | not in diff, no round-1 verdict | dead (a4138d5bc), re-scoped in 7c |
+| `scripts/validate-dod.d/20-templates.sh` | `0d78093db` | A B D F | not in diff, no round-1 verdict | live |
+| `scripts/validate-dod.d/27-marketplace-ref-pin.sh` | `594718145` | A B D F | not in diff, no round-1 verdict | dead (d58e71d3c), re-scoped in 7c |
+| `scripts/validate-dod.d/70-invariants-and-new.sh` | `f81bb0006` | A B D F | reviewed | live |
+| `scripts/validate-dod.d/76-phase-ledger-substrate.sh` | `af10ab4eb` | A B D F | reviewed | live |
+| `scripts/validate-dod.d/77-reviewer-roster.sh` | `7f2e3a2d3` | A B D F | not in diff, no round-1 verdict | dead (757ccc00e), re-scoped in 7c |
+| `scripts/validate-dod.sh` | `53f6ec76e` | A B D F | reviewed | live |
+| `skills/groom/SKILL.md` | `cf0f9e542` | B F | reviewed | live |
+| `skills/hackify/references/orchestration.md` | `21fdc0f17` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` | `9b02a8b85` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-5-aggregation.md` | `cd99bda21` | B F | not in diff, no round-1 verdict | live |
+| `skills/hackify/references/parallel-agents/phase-5-escalation.md` | `1ecbf0c03` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` | `510bd421b` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` | `ffd132b5e` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` | `9dc9c689f` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/phase-5-refute.md` | `eca394edb` | B F | not in diff, no round-1 verdict | live |
+| `skills/hackify/references/parallel-agents/README.md` | `db3af856a` | B F | reviewed | live |
+| `skills/hackify/references/parallel-agents/template-contract.md` | `de335027d` | B F | reviewed | live |
+| `skills/hackify/references/phase-ledger.md` | `ea41ef49d` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-1-clarify.md` | `960381f56` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-2.5-spec-review.md` | `cb0a97997` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-3-implement.md` | `157a6f931` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-4-verify.md` | `c30fa0dc5` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-5-review.md` | `2937f85f3` | B F | reviewed | live |
+| `skills/hackify/references/phases/phase-6-finish.md` | `404dd7d85` | B F | reviewed | live |
+| `skills/hackify/references/review-and-verify.md` | `ccaf4a5eb` | B F | reviewed | live |
+| `skills/hackify/references/review-scope.md` | `e52cbb0ef` | B F | not in diff, no round-1 verdict | live |
+| `skills/hackify/references/runtime-adapters.md` | `1ded3d26a` | B F | reviewed | live |
+| `skills/hackify/references/work-doc-template.md` | `25164194f` | B F | reviewed | live |
+| `skills/hackify/SKILL.md` | `4a932253e` | B F | reviewed | live |
+| `skills/quick/SKILL.md` | `820976442` | B F | reviewed | live |
+| `skills/review-triage/SKILL.md` | `0c9ccce00` | B F | reviewed | live |
+| `skills/yolo/evals/evals.json` | `6beb47e97` | B F | reviewed | live |
+| `skills/yolo/SKILL.md` | `e9da33f87` | B F | reviewed | live |
+
+**52 rows, 52 paths in `dabc333..7ad1ea1`, checked both directions with an empty difference each way.** 46 live verdicts, 6 dead and re-scoped in 7c, which is the same six the 7c carry-over table names and at the same blob hashes. 9 paths hold no round-one verdict, because they did not exist in round one's diff.
+
+**Five paths hold neither a round-one verdict nor a live closing one.** They are `.github/workflows/ci.yml`, `scripts/test_ban_tokens.sh`, `scripts/validate-dod.d/00-helpers.sh`, `scripts/validate-dod.d/27-marketplace-ref-pin.sh` and `scripts/validate-dod.d/77-reviewer-roster.sh`: the five dead rows that also carry `no round-1 verdict`. They landed after the panel read `b83dcff`, so round one never saw them, and the closing round's verdict on them died when they moved again in `cf606a5` and after. Zero live coverage from either recorded round. `CHANGELOG.md` is the sixth dead path and is not in this set, because it did hold a round-one verdict. This is the number to look at first, and it is stated as a count and a list precisely because Reviewer F's point was that no-verdict has to be visible rather than inferable from intersecting two columns.
 
 ### Reviewer D (performance), and it corrected MY premise with measurements
 
@@ -989,7 +1138,7 @@ What it proved positively is worth more than what it found:
 - **`RR_EXPECTED` and `RR_BANS_EXPECTED` detect additions and deletions but never a substitution**, and the test re-parses the same source, so a typo'd token is planted as itself and passes. Needs a second independent source of truth, which is a design question rather than an edit.
 - **`test_ban_tokens.sh`'s `rc > 1` branch has no assertion**, the one path through the new helper that is untested.
 - **`[70]` still has no token-count pin and no existence gate on its ban-loop paths.** Preserved deliberately to keep verdict identity; now that identity is understood to be a superset rather than an equality, this is worth revisiting on its own.
-- **The Sprint Backlog stops at T17.** B filed this as B5's fix re-drifting: T42 to T48 exist only as prose in section 7, so eight files have no backlog row and no `task_file_index` entry. B filed it Important rather than Critical because the authorization is verifiable (wizard #6-A and #7-B plus the task records), and I agree with that call. **I first dispositioned this as a work-doc template question rather than a row to add. That was wrong, and B was right to file it twice.** The gap kept growing as the sprint ran, and a record gap that widens every wave is a real finding, not a philosophical one. Closed properly in the Wave ledger above: commit bodies do not reliably name task IDs, so a retroactive per-task index would have been reconstructed from memory and would have looked authoritative while being a guess. Commit to file is exact, so authorization is recorded that way instead, and all 52 source paths now carry a row. **The lesson is not about backlogs.** When the honest index cannot be rebuilt, the fix is to change what the record is keyed on, not to declare the gap structural and move on.
+- **The Sprint Backlog stops at T17.** B filed this as B5's fix re-drifting: T42 to T48 exist only as prose in section 7, so eight files have no backlog row and no `task_file_index` entry. B filed it Important rather than Critical because the authorization is verifiable (wizard #6-A and #7-B plus the task records), and I agree with that call. **I first dispositioned this as a work-doc template question rather than a row to add. That was wrong, and B was right to file it twice.** The gap kept growing as the sprint ran, and a record gap that widens every wave is a real finding, not a philosophical one. **My second close was wrong too, and B refuted that as well.** I replaced the missing rows with a commit-keyed Wave ledger, arguing that a retroactive per-task index would have to be reconstructed from memory. Both halves failed. The artifact could not fail, being a post-hoc census off `git show --stat` where every changed file gets a row by construction, so it absorbed this sprint's own T7 allowlist breach and left scope creep unfalsifiable. And the reason was falsified by this document: the T11 to T17 rows say in their own preamble that every path in them came from `git show --stat`, not from memory, so the honest path I called unavailable had already been walked here. **Closed properly in the Task-file index in section 5**, which is task-keyed, carries a per-task `Files:` allowlist, and marks every row pre-declared, reconstructed or no task ID so a reader can see which rows could ever have failed. **The lesson is not about backlogs.** A record keyed on something that cannot disagree with the diff is not a record, and preferring it because the honest key is harder to rebuild is the same bad trade this sprint kept catching everywhere else.
 
 ### T50, the release-note corrections, and two refusals worth more than the edits
 
@@ -1060,7 +1209,7 @@ longer exist in that form. `review-scope.md:93` is explicit about what a full ro
 The rule also says the ledger is mandatory the moment anything is carried, and 7b carried nothing
 explicitly, it just asserted the round was clean. That is the gap this section closes.
 
-Recorded against `b83dcff`, the tree the panel actually read. **46 of 52 verdicts are still live and carry.**
+Recorded against `b83dcff`, the tree the panel actually read. **46 of 52 verdicts are still live and carry.** That count is no longer an assertion: it is derived from the 52-row scope ledger in section 7, which carries one row per changed path with its blob hash, its lenses and its round-one and settle cells, in the shape `review-scope.md:68-71` specifies.
 
 ### Dead verdicts, back into scope
 
@@ -1074,6 +1223,8 @@ Recorded against `b83dcff`, the tree the panel actually read. **46 of 52 verdict
 | `scripts/validate-dod.d/77-reviewer-roster.sh` | `757ccc00e` | `7f2e3a2d3` |
 
 **6 paths.** Everything else in the 52-path diff holds a live verdict and is not re-read.
+
+This table is the dead-path subset of the full scope ledger in section 7, kept here because it is what 7c acts on. It is not the scope ledger itself. Reviewer F filed a Critical against reading it as one: three columns, no lens column, and only the dead paths, so a reader could not tell a live verdict from no verdict at all for the other 46. The five-column, 52-row ledger is in section 7, and the six rows here agree with it on both blob hashes.
 
 ### The gate, which must match round one
 
@@ -1131,6 +1282,19 @@ reason rather than vanishing.
 built to catch it. The pattern is now specific enough to state as a rule: **any code path that
 filters a caller-supplied list must account for what it removed.** Silence reads as coverage.
 
+### EIGHTH INSTANCE OF THE SAME SHAPE: a ledger keyed on something that could not disagree
+
+Not a verification gotcha this time. The tool was fine; the artifact was mine. Reviewer B refuted the Wave ledger I wrote to close its own repeated finding, and refuted my reason for writing it.
+
+**The artifact could not fail.** A task allowlist is a pre-authorization written before the edit, so a file outside it is detectable. What I built was a post-hoc census derived from `git show --stat`, where every changed file gets a row by construction and no possible diff could have produced a missing one. Four things went with it. This sprint's own recorded breach, T7 claiming one file while the task touched six, was silently absorbed, because there was no allowlist left to breach. Scope creep became unfalsifiable. Reviewer F's map has to be keyed `W<n>/T<m>`, and a commit table has neither a wave nor a task. And a ticked task with no covering hunks became unreachable.
+
+**My stated reason was falsified by this document.** I wrote that a task-keyed index would have to be reconstructed from memory. The T11 to T17 rows in section 5 say in their own preamble that every path in them is taken from `git show --stat` on the sprint commits and not from memory. The honest path I declined had already been walked in this sprint, by me, in this file. So the reasoning was wrong, not only the artifact.
+
+**A second defect in the same table, also B's.** It claimed every path sits under the commit that last touched it. `cf606a5` wrote that ledger and also touched `scripts/test_ban_tokens.sh`, `CHANGELOG.md` and `scripts/validate-dod.d/77-reviewer-roster.sh`, and a ledger cannot authorize the commit that writes it, so those three were filed under older commits and the stated invariant was false for 3 of 52. Section 7c had already solved this one section later by stamping "Recorded against `b83dcff`". The replacement index stamps the same way, against `7ad1ea1`, which changes only `docs/work/` and therefore authorizes nothing of its own.
+
+**And the third, Reviewer F's.** The Phase 5 scope ledger had three columns and listed only the 6 dead paths, against the five-column, one-row-per-path shape `review-scope.md:68-71` specifies. With A and D sliced, "no verdict" and "live verdict" were indistinguishable in it, so "46 of 52" was an assertion. Rebuilt to the spec: 52 rows, blob hashes at head, a lens column, and an explicit cell where a path holds no round-one verdict.
+
+**Why this belongs on the list.** Same shape as the other seven, a marker that reads as coverage while measuring nothing. The difference is that those seven were tools I caught measuring nothing, and this one is an artifact I authored to close a finding. It reported full coverage on all 52 paths while being structurally incapable of reporting anything else.
 ## 8. Retrospective
 
 _(filled at Phase 6)_

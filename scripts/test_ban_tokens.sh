@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tamper test for the batched token ban (check_no_tokens_in / ban_patternfile_ok
+# Tamper test for the batched token ban (check_no_tokens_in / ban_tokens_ok
 # in scripts/validate-dod.d/00-helpers.sh).
 #
 # WHY THIS FILE EXISTS. [70] and [77] used to re-read every covered file once per
@@ -12,8 +12,9 @@
 # already shipped at least once:
 #   1. a banned token that stops being banned, checked one token at a time over
 #      the REAL lists parsed out of the two fragments, not a sample
-#   2. a pattern file that silently changes what grep matches (blank line, empty
-#      file, wrong length), which is the vacuous-pass surface batching adds
+#   2. a token that silently changes what grep matches (blank, whitespace-only,
+#      newline-carrying, or no tokens at all), the vacuous-pass surface batching
+#      adds, because grep -f reads one pattern per LINE
 #   3. a check that prints red and exits 0, verified as a real process exit
 #      status in BOTH directions, not as printed output
 #   4. a green path that is green because it measured nothing
@@ -50,6 +51,9 @@ TB_EXPECT_77=60
 # against one named file instead of the six-file sweep, so it is counted apart
 # from the 60 above and pinned apart from them too.
 TB_EXPECT_RPT=6
+# The number CHANGELOG.md stakes a claim on, "all 89 tokens in the validator's three
+# batched ban lists". THREE was prose with nothing behind it, so it is written here.
+TB_EXPECT_CALLS=3
 
 # The two files whose ban lists this test re-reads on every run, so it always
 # tests what ships rather than a copy that can drift away from it.
@@ -62,27 +66,21 @@ tb_bad() { TB_BAD=$((TB_BAD + 1)); printf '  BAD  %s\n' "$1"; }
 # ---------------------------------------------------------------------------
 # Token-list extraction. shlex parses the shell single-quoting exactly, so a
 # token containing spaces survives, and newline-delimited output is safe because
-# a token carrying a newline is itself a defect the pattern-file guard reddens.
+# a token carrying a newline is itself a defect the token guard reddens.
 # ---------------------------------------------------------------------------
 tb_extract_lists() {
   python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_TMP" <<'PY'
 import io, re, shlex, sys, os
 src70, src77, tmp = sys.argv[1], sys.argv[2], sys.argv[3]
 
-# Exactly one batched call, not merely a first one. Taking the first match would
-# start testing the wrong list the moment a second batched call is added above
-# it, and the token-count pin cannot see a wrong list of the same length.
-hits70 = [m.group(1) for m in
-          (re.match(r'^\s*check_no_tokens_in "\$f" (.+?)\s*$', line)
-           for line in io.open(src70, encoding="utf-8")) if m]
-if len(hits70) != 1:
-    sys.exit("expected exactly 1 batched ban call in %s, found %d" % (src70, len(hits70)))
-toks70 = shlex.split(hits70[0])
-
-# Both [77] arrays live in the same file, so one parser serves both, and it reads
+# All three lists are shell arrays, so one parser serves all of them, and it reads
 # bare words and quoted words alike. An empty parse exits non-zero right here
 # instead of writing an empty list, because a section handed nothing to plant
 # prints nothing and passes, which is the exact bug this suite exists to refuse.
+# The old "expected exactly 1 batched ban call" assert stood here and is retired,
+# not dropped: it policed one file by reading one call's literal arguments, and
+# tb_check_call_sites below counts the batched calls across the whole fragment
+# directory instead, which is the wider claim CHANGELOG.md actually makes.
 def parse_array(path, name):
     pat = re.compile(r'^%s\+?=\((.*)\)\s*$' % name)
     toks = []
@@ -94,7 +92,7 @@ def parse_array(path, name):
         sys.exit("no %s group parsed from %s" % (name, path))
     return toks
 
-lists = (("tokens70.txt", toks70),
+lists = (("tokens70.txt", parse_array(src70, "P5_BANS")),
          ("tokens77.txt", parse_array(src77, "RR_BANS")),
          ("tokens77rpt.txt", parse_array(src77, "RR_RPT")))
 for name, toks in lists:
@@ -240,56 +238,54 @@ tb_case_real_file_plant() {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Pattern-file corruption, the surface batching adds.
+# 3. Token-list corruption, the surface batching adds.
 #
-# Direction matters and is easy to get backwards. An EMPTY pattern file matches
-# NOTHING and grep exits 1, which without the guard prints every token green
-# having measured nothing: that is the dangerous direction. A BLANK LINE matches
-# EVERY line, which is loud rather than silent. Both are refused, and both are
-# asserted here against the guard's own red line, never against the matching.
+# Direction matters and is easy to get backwards. An EMPTY list gives grep no
+# patterns, which matches NOTHING and exits 1, which without the guard prints every
+# token green having measured nothing: that is the dangerous direction. A BLANK pattern
+# line matches EVERY line, which is loud rather than silent. Both are refused, and both
+# are asserted against the guard's own verdict, never against the matching.
+#
+# The POSITIVE case is load-bearing: if the guard is ever renamed or deleted, every
+# negative case still "refuses" (a missing function exits 127) and the intact list is
+# the only assertion left that reddens. Do not drop it.
 # ---------------------------------------------------------------------------
-tb_case_patternfile_guard() {
+tb_case_token_guard() {
   local label="$1"
-  local want="$2"
-  local pf="$TB_TMP/pattern.txt"
-  if ban_patternfile_ok "$pf" "$want"; then
-    tb_bad "pattern guard: $label was accepted"
+  shift
+  if ban_tokens_ok "$@"; then
+    tb_bad "token guard: $label was accepted"
   else
-    tb_ok "pattern guard: $label is refused"
+    tb_ok "token guard: $label is refused"
   fi
 }
 
-tb_run_patternfile_guards() {
-  printf 'alpha\n\nbeta\n' > "$TB_TMP/pattern.txt"
-  tb_case_patternfile_guard "a blank line (would match every line of every file)" 3
-  printf 'alpha\n   \nbeta\n' > "$TB_TMP/pattern.txt"
-  tb_case_patternfile_guard "a whitespace-only line" 3
-  : > "$TB_TMP/pattern.txt"
-  tb_case_patternfile_guard "an empty file (would match nothing and print all green)" 3
-  printf 'alpha\nbeta\n' > "$TB_TMP/pattern.txt"
-  tb_case_patternfile_guard "a short file (a token silently dropped)" 3
-  printf 'alpha\nbeta\ngamma\n' > "$TB_TMP/pattern.txt"
-  if ban_patternfile_ok "$TB_TMP/pattern.txt" 3; then
-    tb_ok "pattern guard: an intact 3-line file is accepted"
+tb_run_token_guards() {
+  tb_case_token_guard "a blank token (would match every line of every file)" 'alpha' '' 'beta'
+  tb_case_token_guard "a whitespace-only token" 'alpha' '   ' 'beta'
+  tb_case_token_guard "a token carrying a newline (splits into a blank pattern line)" \
+    'alpha' "$(printf 'be\nta')" 'beta'
+  tb_case_token_guard "an empty list (would match nothing and print all green)"
+  if ban_tokens_ok 'alpha' 'beta' 'gamma'; then
+    tb_ok "token guard: an intact 3-token list is accepted"
   else
-    tb_bad "pattern guard: an intact 3-line file was refused"
+    tb_bad "token guard: an intact 3-token list was refused"
   fi
-  rm -f "$TB_TMP/pattern.txt"
-  tb_case_patternfile_guard "a missing file" 3
 }
 
-# End to end: a token that would write a blank line into the pattern file must
-# redden AND must still ban every token the slow way, so the corruption costs
-# speed and never coverage.
+# End to end: a token that would become a blank pattern line must redden AND must still
+# ban every token the slow way, so the corruption costs speed and never coverage. The red
+# line is matched on 'pattern list', the guard's own wording, so a red from anywhere else
+# cannot be mistaken for this one.
 tb_case_blank_token_end_to_end() {
   local before="$FAILED"
   local clean="$TB_TMP/clean.md"
   local n
   printf 'Nothing banned lives in this line.\n' > "$clean"
   check_no_tokens_in "$clean" 'panel is five' '' 'panel is six' > "$TB_OUT" 2>&1
-  tb_expect_red "blank token: a pattern file that would match every line reddens" "$before"
-  if ! /usr/bin/grep -q 'pattern file' "$TB_OUT"; then
-    tb_bad "blank token: reddened for some other reason than the pattern file"
+  tb_expect_red "blank token: a token list that would match every line reddens" "$before"
+  if ! /usr/bin/grep -q 'pattern list' "$TB_OUT"; then
+    tb_bad "blank token: reddened for some other reason than the token guard"
     return
   fi
   # Verdict lines, not green lines: the empty token matches every line by
@@ -361,6 +357,59 @@ tb_case_exit_wiring() {
 # Run order: list integrity first, because every section after it is only
 # meaningful if the lists it parsed are the lists that ship.
 # ---------------------------------------------------------------------------
+# Count the batched ban calls that actually SHIP, so a fourth one cannot appear in a new
+# fragment while CHANGELOG.md still says three and nothing reddens.
+#
+# CALL SITES, NOT OCCURRENCES. The name also appears in the DEFINITION, in prose comments
+# and inside one red-message string, and counting those would inflate the number until the
+# pin guarded nothing. So every line has its quoted spans blanked (deleting the red message
+# outright) and its comment tail cut, and then EVERY occurrence followed by whitespace is
+# counted: the definition never qualifies, because `check_no_tokens_in() {` has none. Per
+# occurrence rather than per line, because a second call fits on one line. And PROVED every
+# run: 00-helpers.sh holds the definition AND the comments AND the string, so its count is 0.
+tb_count_call_sites() {
+  python3 - "$1" <<'CALLS'
+import glob, io, os, re, sys
+QUOTED = re.compile(r'"(?:\\.|[^"\\])*"|\'[^\']*\'')
+CALL = re.compile(r'\bcheck_no_tokens_in\s')
+def sites(path):
+    return sum(len(CALL.findall(re.sub(r'(?:^|\s)#.*$', '', QUOTED.sub('""', line))))
+               for line in io.open(path, encoding="utf-8"))
+d = sys.argv[1]
+print("%d %d" % (sum(sites(f) for f in sorted(glob.glob(os.path.join(d, "*.sh")))),
+                 sites(os.path.join(d, "00-helpers.sh"))))
+CALLS
+}
+
+# Pinned BOTH ways: against the hand-written three, which defends the CHANGELOG.md sentence,
+# and against the count of lists PARSED (planting is pinned separately, by tb_check_plant_total).
+tb_check_call_sites() {
+  local out total helpers lists
+  local parsed=("$TB_TMP"/tokens*.txt)
+  out=$(tb_count_call_sites "scripts/validate-dod.d")
+  total=${out%% *}
+  helpers=${out##* }
+  lists=${#parsed[@]}
+  [ -f "${parsed[0]}" ] || lists=0
+  if [ -z "$out" ] || [ "$helpers" != "0" ]; then
+    tb_bad "call-site pin: 00-helpers.sh reported ${helpers:-no} call sites, expected 0, so the counter is being fooled by the definition, a comment or the red-message string"
+    return
+  fi
+  tb_ok "call-site pin: the definition, its comment mentions and its red-message string in 00-helpers.sh count as 0 call sites"
+  if [ "$total" -ne "$TB_EXPECT_CALLS" ]; then
+    tb_bad "call-site pin: $total batched ban calls ship in scripts/validate-dod.d/, expected $TB_EXPECT_CALLS (one was added or removed and CHANGELOG.md still claims three)"
+    return
+  fi
+  tb_ok "call-site pin: $total batched ban calls ship, matching the expected $TB_EXPECT_CALLS"
+  if [ "$total" -ne "$lists" ]; then
+    tb_bad "call-site pin: $total calls ship but this suite parsed $lists token list(s), so a shipped ban list is never planted"
+    return
+  fi
+  tb_ok "call-site pin: every one of the $total shipped calls has a token list this suite parses"
+}
+
+# Deliberately NOT check_list_size from 00-helpers.sh: that helper moves FAILED, which is
+# the thing under test here, so borrowing it would corrupt what every assertion reads.
 tb_check_list_size() {
   local listfile="$1"
   local want="$2"
@@ -416,6 +465,7 @@ trap tb_finish EXIT
 printf '[test_ban_tokens] batched token ban, tamper tests\n'
 
 tb_extract_lists
+tb_check_call_sites
 tb_check_list_size "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_check_list_size "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 tb_check_list_size "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
@@ -429,7 +479,7 @@ tb_case_green_path
 tb_load_list "$TB_TMP/tokens77.txt"
 tb_case_real_file_plant 'panel is five'
 
-tb_run_patternfile_guards
+tb_run_token_guards
 tb_case_blank_token_end_to_end
 tb_case_zero_tokens
 tb_case_exit_wiring

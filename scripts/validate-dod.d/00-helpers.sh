@@ -115,29 +115,31 @@ check_role() {
   [ "$ok" = "1" ] && green "  ok   $label ROLE 5-element check"
 }
 
-# Pattern-file integrity guard for check_no_tokens_in below. A `grep -f` pattern
-# file is a new vacuous-pass surface and it fails in two OPPOSITE directions, so
-# one guard cannot be a count of non-empty lines. An EMPTY pattern file matches
-# nothing and exits 1, which would print every token green having measured
-# nothing. A blank or whitespace-only line matches every line of every file,
-# which quietly destroys the batching. So the line total is asserted EQUAL to the
-# number of tokens the caller meant to write, which reddens on a token that was
-# dropped or one that split itself across two lines, and every line is required
-# to carry at least one non-space character.
-ban_patternfile_ok() {
-  local pf="$1"
-  local want="$2"
-  local n=0
-  local line
-  [ -r "$pf" ] || return 1
-  while IFS= read -r line || [ -n "$line" ]; do
-    n=$((n + 1))
-    case "$line" in
+# Token-list integrity guard for check_no_tokens_in below. `grep -f` reads one
+# pattern per LINE, and that is a vacuous-pass surface failing in two OPPOSITE
+# directions, so one guard cannot be a count of non-empty entries. An EMPTY list
+# gives grep nothing, which matches nothing and exits 1, which would print every
+# token green having measured nothing. A token with no non-space character, or
+# one carrying a newline, becomes a BLANK pattern line, and a blank pattern
+# matches every line of every file, which quietly destroys the batching. Both are
+# refused here, before grep is handed anything.
+#
+# This used to guard the temp FILE the tokens were written to and count its
+# lines, catching the same two shapes at one remove. The temp file is gone, so
+# the tokens are screened directly. Same coverage: the file-shaped failures it
+# also caught (unwritable, short, truncated) were failures OF THE FILE, and there
+# is no longer a file to fail.
+ban_tokens_ok() {
+  local t
+  [ "$#" -gt 0 ] || return 1
+  for t in "$@"; do
+    case "$t" in
+      *$'\n'*) return 1 ;;
       *[![:space:]]*) ;;
       *) return 1 ;;
     esac
-  done < "$pf"
-  [ "$n" -eq "$want" ]
+  done
+  return 0
 }
 
 # Ban a whole token list over one path with ONE grep instead of one grep plus one
@@ -170,21 +172,25 @@ ban_patternfile_ok() {
 check_no_tokens_in() {
   local path="$1"
   shift
-  local pf="" rc=0 t
+  local rc=0 t
   if [ "$#" -eq 0 ]; then
     red "  FAIL [ban] check_no_tokens_in was called for $path with an empty token list, so it would ban nothing while printing nothing"
     FAILED=$((FAILED + 1))
     return
   fi
-  pf=$(mktemp "${TMPDIR:-/tmp}/hackify-ban.XXXXXX" 2>/dev/null) || pf=""
-  if [ -n "$pf" ] && printf '%s\n' "$@" > "$pf" 2>/dev/null && ban_patternfile_ok "$pf" "$#"; then
-    /usr/bin/grep -qrFiI -f "$pf" -- "$path" 2>/dev/null
+  if ban_tokens_ok "$@"; then
+    # Process substitution, not a temp file and not a pipe. A temp file cost an
+    # mktemp and an rm on every call, about 25 of each per validator run. A pipe
+    # would work too, but callers run under `set -o pipefail`, where the status
+    # read back is the whole pipeline's rather than grep's, and grep's three
+    # distinct statuses (0 match, 1 clean, 2 unreadable) are the entire contract
+    # below. A plain command keeps $? grep's alone.
+    /usr/bin/grep -qrFiI -f <(printf '%s\n' "$@") -- "$path" 2>/dev/null
     rc=$?
   else
-    red "  FAIL [ban] the $#-token pattern file for $path is unwritable or corrupt (empty, wrong length, or carrying a blank line that would match every line), so the batched screen cannot be trusted"
+    red "  FAIL [ban] the $#-token pattern list for $path is corrupt (a token that is blank, whitespace-only, or carrying a newline would become a blank pattern line and match every line), so the batched screen cannot be trusted"
     FAILED=$((FAILED + 1))
   fi
-  if [ -n "$pf" ]; then rm -f "$pf"; fi
   if [ "$rc" -eq 1 ]; then
     for t in "$@"; do green "  ok   '$t' has 0 occurrences in $path"; done
     return

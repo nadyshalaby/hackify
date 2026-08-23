@@ -94,10 +94,13 @@ fi
 # check breaking. Cut v0.14.1 at its release commit before bumping.
 
 # Releases that went out untagged BEFORE this check existed. A ratchet, not a
-# suppression: the list may only shrink, each entry names the commit its tag
-# belongs at, and deleting an entry while the tag is still missing turns this
-# check red rather than quiet. Backfilling either one is a one-line git command,
-# which is why they are recorded here instead of being scoped away.
+# suppression: MRP_KNOWN_UNTAGGED_EXPECTED below is this list's own length
+# written out a second time by hand, so appending a version to silence a
+# genuinely untagged release cannot land without also editing that number, which
+# is the line a reviewer actually reads. Deleting an entry while its tag is still
+# missing turns this check red rather than quiet. Backfilling either tag is a
+# one-line git command, which is why they are recorded here instead of being
+# scoped away. The paragraph above names the release commit each one belongs at.
 MRP_KNOWN_UNTAGGED="0.3.1
 0.14.0"
 
@@ -105,6 +108,24 @@ MRP_NL='
 '
 
 yellow "[27d] every released version below the in-flight one resolves to a real git tag"
+
+# The list's LENGTH, written a SECOND time. Why a hand-written number beats a
+# bound derived from the list is argued above check_list_size in 00-helpers.sh.
+# Note that this is equality, so it reddens on an addition as well as a deletion;
+# it does not by itself make the list shrink-only, it makes either direction cost
+# a visible edit here. Pinned OUTSIDE the MRP_VERIFIABLE block below on purpose:
+# a pin that runs only once the tag read succeeded would stop guarding at exactly
+# the moment the check degrades, which is the fail-open shape [27d] exists to
+# catch. It still sits below the two early returns at the top of this fragment
+# (no jq, unreadable plugin.json), which take [27] out entirely; those are the
+# limit of this pin's reach, not something it covers.
+MRP_KNOWN_UNTAGGED_EXPECTED=2
+mrp_known_total=0
+while IFS= read -r mrp_entry; do
+  [ -n "$mrp_entry" ] || continue
+  mrp_known_total=$((mrp_known_total + 1))
+done <<< "$MRP_KNOWN_UNTAGGED"
+check_list_size "$mrp_known_total" "$MRP_KNOWN_UNTAGGED_EXPECTED" "the [27d] MRP_KNOWN_UNTAGGED list"
 
 MRP_CHANGELOG_VERSIONS="$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md 2>/dev/null | tr -d '#[] ')"
 if MRP_TAGS="$(git tag --list 'v*' 2>/dev/null)"; then MRP_TAG_RC=0; else MRP_TAG_RC=1; fi
@@ -125,7 +146,7 @@ elif [ "$MRP_TAG_RC" -ne 0 ]; then
 elif [ -z "$MRP_TAGS" ]; then
   MRP_VERIFIABLE=0
   if [ "$MRP_SHALLOW" = "true" ]; then
-    yellow "  skip shallow checkout carrying no tags, [27d] cannot run here; CI fetches them with 'fetch-tags: true' on actions/checkout"
+    yellow "  skip shallow checkout carrying no tags, [27d] cannot run here; this is a local-clone branch now, CI checks out with 'fetch-depth: 0' AND 'fetch-tags: true', the only pair that lands tags"
   else
     red "  FAIL a full clone reports zero 'v*' tags, and this repo has released dozens, so the tag list is unreadable rather than genuinely empty"
     FAILED=$((FAILED + 1))
@@ -136,6 +157,7 @@ if [ "$MRP_VERIFIABLE" -eq 1 ]; then
   mrp_resolved=0
   mrp_missing=0
   mrp_known=""
+  mrp_known_n=0
   mrp_stale=""
   # One `sort -V` over the CHANGELOG versions with the in-flight version spliced
   # in, then read until the in-flight version turns up. Everything consumed
@@ -151,17 +173,28 @@ if [ "$MRP_VERIFIABLE" -eq 1 ]; then
       *"${MRP_NL}v${mrp_v}${MRP_NL}"*) mrp_resolved=$((mrp_resolved + 1)); continue ;;
     esac
     case "$MRP_NL$MRP_KNOWN_UNTAGGED$MRP_NL" in
-      *"${MRP_NL}${mrp_v}${MRP_NL}"*) mrp_known="$mrp_known $mrp_v"; continue ;;
+      *"${MRP_NL}${mrp_v}${MRP_NL}"*) mrp_known="$mrp_known $mrp_v"; mrp_known_n=$((mrp_known_n + 1)); continue ;;
     esac
     red "  FAIL $mrp_v is a released CHANGELOG entry but tag v$mrp_v does not exist, so the stable channel was never installable at that release"
     FAILED=$((FAILED + 1))
     mrp_missing=$((mrp_missing + 1))
   done < <(printf '%s\n%s\n' "$MRP_CHANGELOG_VERSIONS" "$PLUGIN_VERSION" | sort -V)
 
+  # Both numbers are counted above, never written down here. "all $mrp_resolved"
+  # was a false total: mrp_resolved counts only the versions that DID resolve,
+  # while mrp_known holds the ones knowingly recorded as never cut, so "all"
+  # named the resolvers and silently dropped every recorded hole from the
+  # denominator. A count that excludes the exceptions is the shape this
+  # fragment's own header forbids.
+  # All three buckets, not the two that happen to be non-zero on the branch that
+  # prints. A version below the in-flight one resolved, was recorded as a known
+  # hole, or is missing; a denominator that drops one of those is the same defect
+  # this line exists to remove.
+  mrp_below=$((mrp_resolved + mrp_known_n + mrp_missing))
   if [ "$mrp_missing" -eq 0 ]; then
-    green "  ok   all $mrp_resolved released version(s) below in-flight $PLUGIN_VERSION resolve to a real git tag"
+    green "  ok   $mrp_resolved of $mrp_below released version(s) below in-flight $PLUGIN_VERSION resolve to a real git tag ($mrp_known_n recorded as never cut)"
   else
-    red "       backfill with 'git tag -a v<version> <release commit>', or record it in MRP_KNOWN_UNTAGGED beside the commit it belongs at"
+    red "       backfill with 'git tag -a v<version> <release commit>', or add the bare version to MRP_KNOWN_UNTAGGED, bump MRP_KNOWN_UNTAGGED_EXPECTED to match, and name its release commit in the comment above that list"
   fi
 
   # A recorded hole that has since been tagged takes the resolved branch above
@@ -177,7 +210,7 @@ if [ "$MRP_VERIFIABLE" -eq 1 ]; then
     yellow "  note never cut, recorded as predating this check:$mrp_known (stable channel is not installable at those versions)"
   fi
   if [ -n "$mrp_stale" ]; then
-    yellow "  note MRP_KNOWN_UNTAGGED still lists$mrp_stale after the tag was cut, prune the entry so the list keeps shrinking"
+    yellow "  note MRP_KNOWN_UNTAGGED still lists$mrp_stale after the tag was cut, prune the entry and drop MRP_KNOWN_UNTAGGED_EXPECTED to match so the list keeps shrinking"
   fi
   yellow "  note in-flight $PLUGIN_VERSION and anything above it is exempt, scripts/release.sh cuts that tag after the release commit lands"
 fi
