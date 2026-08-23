@@ -1542,6 +1542,107 @@ while the scanner has been emitting ten for releases. The three missing ones are
 `message` and `fixable`, and `end_line` is precisely the field `[80b]` reads to compare the two
 counters, so the doc was understating the interface a new check now depends on.
 
+## 7f. The closing round, and the first scope ledger built against a diff that can hold still
+
+Rebuilt at `753789b`, base `dabc333`. Every earlier ledger in this sprint was stamped against a diff
+that the act of recording the round would immediately invalidate. This one is not, because the
+reviewed diff now excludes `docs/work/`, so writing this section changes no reviewed byte and kills
+no verdict.
+
+**No verdict carries over, and that is honest rather than lazy.** Waves 18 through 21 plus the
+release moved or created all 59 paths after the last round was judged. A carried verdict requires the
+recorded blob hash to still match disk, and not one does. So every row reads `no verdict` and every
+row is read again. This is a full round, not a settle round wearing its clothes.
+
+### Gate line
+
+| Lens | Dispatched | Scope | Reason |
+|---|---|---|---|
+| **B** quality + plan | yes | `.` | Standing member, never sliced. Applies the semantic tier to every touched file and re-judges every scout row. |
+| **A** security + correctness | yes | 16 paths | The diff changes executable logic: a scanner's path handling, a hook, CI, and eleven validator fragments. |
+| **D** performance | yes | 15 paths | The validator is run before every commit; this sprint already moved its runtime twice. |
+| **F** coherence | yes | `settle all` | 59 paths crossing skill, agent, validator and runtime boundaries, and F never carries over by rule. |
+| **E** design conformance | **folded** | 0 paths | No UI-bearing path in the diff. Zero `.tsx`, `.jsx`, `.css`, `.scss` or `.html` files changed. Its slice is empty, so it is not dispatched and this line is the record of why. |
+
+### Scope ledger
+
+| path | blob | lenses | round 1 | settle |
+|---|---|---|---|---|
+| `.claude-plugin/marketplace.json` | `46bcc4a` | B F | no verdict | read |
+| `.claude-plugin/plugin.json` | `0ed5dd3` | B F | no verdict | read |
+| `.github/workflows/ci.yml` | `2f72078` | B A F | no verdict | read |
+| `CHANGELOG.md` | `959f11b` | B F | no verdict | read |
+| `README.md` | `64eaf73` | B F | no verdict | read |
+| `agents/code-reviewer-coherence.md` | `5e1fd65` | B F | no verdict | read |
+| `agents/code-reviewer-performance.md` | `f40d7c1` | B F | no verdict | read |
+| `agents/code-reviewer-quality-plan.md` | `bf15f6d` | B F | no verdict | read |
+| `agents/code-reviewer-security.md` | `1ce576f` | B F | no verdict | read |
+| `agents/design-conformance-reviewer.md` | `2063ba4` | B F | no verdict | read |
+| `agents/spec-reviewer.md` | `49ae701` | B F | no verdict | read |
+| `commands/designify.md` | `3823e1a` | B F | no verdict | read |
+| `hooks/hooks.json` | `741d5cd` | B F | no verdict | read |
+| `hooks/inject-context.sh` | `4fe497f` | B A D F | no verdict | read |
+| `hooks/test_inject_context.sh` | `27a6f9b` | B A D F | no verdict | read |
+| `rules/phase-discipline.md` | `2b7e994` | B F | no verdict | read |
+| `scripts/sync-runtimes.d/00-helpers.sh` | `13fca72` | B A D F | no verdict | read |
+| `scripts/test_ban_tokens.sh` | `ec02e6d` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/00-helpers.sh` | `7c2cc82` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/20-templates.sh` | `0d78093` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/27-marketplace-ref-pin.sh` | `38cd001` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/70-invariants-and-new.sh` | `fe16996` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/76-phase-ledger-substrate.sh` | `ce725e7` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/77-reviewer-roster.sh` | `7f2e3a2` | B A D F | no verdict | read |
+| `scripts/validate-dod.d/80-file-size-caps.sh` | `fe42571` | B A D F | no verdict | read |
+| `scripts/validate-dod.sh` | `53f6ec7` | B A D F | no verdict | read |
+| `skills/groom/SKILL.md` | `cf0f9e5` | B F | no verdict | read |
+| `skills/hackify/SKILL.md` | `4a93225` | B F | no verdict | read |
+| `skills/hackify/references/law-scout.md` | `630c1a0` | B F | no verdict | read |
+| `skills/hackify/references/orchestration.md` | `21fdc0f` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/README.md` | `db3af85` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` | `9b02a8b` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-aggregation.md` | `cd99bda` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-escalation.md` | `1ecbf0c` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` | `510bd42` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` | `35560c8` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` | `ffd132b` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` | `9dc9c68` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/phase-5-refute.md` | `eca394e` | B F | no verdict | read |
+| `skills/hackify/references/parallel-agents/template-contract.md` | `de33502` | B F | no verdict | read |
+| `skills/hackify/references/phase-ledger.md` | `ea41ef4` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-1-clarify.md` | `960381f` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-2.5-spec-review.md` | `cb0a979` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-3-implement.md` | `157a6f9` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-4-verify.md` | `c30fa0d` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-5-review.md` | `5a0ffd5` | B F | no verdict | read |
+| `skills/hackify/references/phases/phase-6-finish.md` | `404dd7d` | B F | no verdict | read |
+| `skills/hackify/references/review-and-verify.md` | `ccaf4a5` | B F | no verdict | read |
+| `skills/hackify/references/review-scope.md` | `3d0d727` | B F | no verdict | read |
+| `skills/hackify/references/runtime-adapters.md` | `1ded3d2` | B F | no verdict | read |
+| `skills/hackify/references/work-doc-template.md` | `2516419` | B F | no verdict | read |
+| `skills/lawkeeper/references/porting-scanner.md` | `39ded73` | B F | no verdict | read |
+| `skills/lawkeeper/scripts/audit_scan.py` | `b36f99a` | B A D F | no verdict | read |
+| `skills/lawkeeper/scripts/checks.py` | `a4c2e34` | B A D F | no verdict | read |
+| `skills/lawkeeper/scripts/test_audit.py` | `9ede299` | B A D F | no verdict | read |
+| `skills/quick/SKILL.md` | `8209764` | B F | no verdict | read |
+| `skills/review-triage/SKILL.md` | `0c9ccce` | B F | no verdict | read |
+| `skills/yolo/SKILL.md` | `e9da33f` | B F | no verdict | read |
+| `skills/yolo/evals/evals.json` | `6beb47e` | B F | no verdict | read |
+
+### Perf-scout candidates staged for D
+
+Three survive the noise. `grep -A` over shell matches comments and arithmetic, so most raw hits are
+not candidates at all and are dropped here rather than passed on as volume.
+
+| # | ID | Site | Note |
+|---|---|---|---|
+| 1 | `perf.process.spawn-per-item` | `20-templates.sh:107`, `:112` | `check_template_anchors "$(cat "$f")"` and `check_severity_presence "$(cat "$f")"` spawn `cat` plus `basename` once per file inside the loop. |
+| 2 | `perf.algorithmic.scan-in-loop` | `20-templates.sh:162` | `hits=$(grep -c -- "$path" "$f")` runs a fresh grep per path per file. |
+| 3 | `perf.process.spawn-per-item` | `80-file-size-caps.sh:21` | `wc -l` plus `tr` per scanned file. Likely inherent to the check, staged so D rules on it rather than me. |
+
+All three are pre-existing rather than introduced by this sprint. D already cut `[70]` by 61% and
+`[77]` by 80% earlier in this same sprint, so the cheap wins in this area are taken; these are what is
+left.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
