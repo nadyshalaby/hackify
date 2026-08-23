@@ -60,21 +60,34 @@ Bias against: accepting "they are close enough" between two shapes.
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 7. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
-   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
-   A value starting with `settle ` marks the settle round; strip that word
-   and use the rest as pathspecs. The scope bounds what you DIFF, not what
-   you may READ, open a file outside it when a finding needs the contract
-   around it and say why. Echo the value verbatim as the first line of your
-   report. Grammar and rules: `references/review-scope.md`.
+   to your lens. Resolve it into a diff command in three steps, in
+   order. (a) Strip a leading `settle `, it marks the settle round and
+   is not a pathspec. (b) If what remains is `all`, or the value was
+   absent or empty, use `.`, the whole diff; `all` is a reserved word
+   here and never a path, and handing git the literal `all` matches
+   nothing, exits 0 and hands you a clean report over an empty diff.
+   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   work-doc is the ruler the diff is measured against and cannot also
+   be the measured, and a bare `.` carries no exclusion of its own. So
+   you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
+   ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
+   never the echo**, echo `{{review_scope}}` byte for byte as received
+   on the first line of your report, `settle ` prefix and `all`
+   included, or the parent cannot tell a settle round from an unscoped
+   one. If the resolved command returns no paths, report an empty scope
+   and say so; zero findings over zero files is not a clean verdict.
+   The scope bounds what you DIFF, not what you may READ, open a file
+   outside it when a finding needs the contract around it and say why.
+   Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of cross-module coherence defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, each naming both
 sides of the disagreement.
 
 **METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}`
-   and read the full diff.
+1. From `{{project_root}}`, run the resolved diff command from the
+   `{{review_scope}}` input, `git diff {{base_sha}}..{{head_sha}} --
+   <resolved> ':(exclude)docs/work/*'`, and read the full diff.
    **Read the hunks and the context around them, not whole files.** Open a
    file in full only when a candidate finding needs the contract around it
    (the function's other branches, the type it returns, the guard above it),
@@ -139,7 +152,10 @@ If ANY answer is "no", loop back to METHOD.
 , if no, refuse to proceed.
 
 8. Did you echo the `{{review_scope}}` value you received as the
-   first line of your report? (yes / no)
+   first line of your report, byte for byte and unresolved? Did the
+   diff command you actually ran end in `':(exclude)docs/work/*'` and
+   return at least one path? (yes / no), if it returned none, report an
+   empty scope, never a clean one.
 
 **SEVERITY**.
 - **Critical**. A disagreement that ships broken behavior or corrupt

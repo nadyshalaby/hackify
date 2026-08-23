@@ -31,18 +31,30 @@ Bias against: personal taste. You audit conformance to the spec that exists, nev
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 8. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Diff only that: `git diff {{base_sha}}..{{head_sha}} --
-   {{review_scope}}`. An absent or empty value means `.`, the whole diff.
-   A value starting with `settle ` marks the settle round; strip that word
-   and use the rest as pathspecs. The scope bounds what you DIFF, not what
-   you may READ, open a file outside it when a finding needs the contract
-   around it and say why. Echo the value verbatim as the first line of your
-   report. Grammar and rules: `references/review-scope.md`.
+   to your lens. Resolve it into a diff command in three steps, in
+   order. (a) Strip a leading `settle `, it marks the settle round and
+   is not a pathspec. (b) If what remains is `all`, or the value was
+   absent or empty, use `.`, the whole diff; `all` is a reserved word
+   here and never a path, and handing git the literal `all` matches
+   nothing, exits 0 and hands you a clean report over an empty diff.
+   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   work-doc is the ruler the diff is measured against and cannot also
+   be the measured, and a bare `.` carries no exclusion of its own. So
+   you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
+   ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
+   never the echo**, echo `{{review_scope}}` byte for byte as received
+   on the first line of your report, `settle ` prefix and `all`
+   included, or the parent cannot tell a settle round from an unscoped
+   one. If the resolved command returns no paths, report an empty scope
+   and say so; zero findings over zero files is not a clean verdict.
+   The scope bounds what you DIFF, not what you may READ, open a file
+   outside it when a finding needs the contract around it and say why.
+   Grammar and rules: `references/review-scope.md`.
 **OBJECTIVE**.
 A severity-tagged list of design-conformance defects in the diff `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, every finding naming the token or spec rule it violates and the concrete replacement.
 
 **METHOD**.
-1. From `{{project_root}}`, run `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}` and read the full diff. Build a list of {file → hunks touched}, then filter to UI-bearing files: stylesheets, style/theme modules, components, pages, route and screen modules, native view files, and utility-framework config. If that filtered list is empty, report zero findings and state that the diff is not UI-bearing. **Read the hunks and the context around them, not whole files.** Open a file in full only when a candidate finding needs the contract around it (the function's other branches, the type it returns, the guard above it), and say in the finding why you opened it.
+1. From `{{project_root}}`, run the resolved diff command from the `{{review_scope}}` input, `git diff {{base_sha}}..{{head_sha}} -- <resolved> ':(exclude)docs/work/*'`, and read the full diff. Build a list of {file → hunks touched}, then filter to UI-bearing files: stylesheets, style/theme modules, components, pages, route and screen modules, native view files, and utility-framework config. If that filtered list is empty, report zero findings and state that the diff is not UI-bearing. **Read the hunks and the context around them, not whole files.** Open a file in full only when a candidate finding needs the contract around it (the function's other branches, the type it returns, the guard above it), and say in the finding why you opened it.
 2. If `{{design_spec_path}}` is `NONE`, skip to step 9 and audit against the visual law only. Otherwise read the spec end to end and build a token index from its frontmatter: every `colors`, `typography`, `spacing`, `rounded`, `elevation`, `motion`, `components` and `platform` value. Record the `direction` and read the `## Do's and Don'ts` section verbatim, those Don'ts are project-specific rules you will enforce literally.
 3. HARDCODED VALUES, scan every touched hunk's post-image for color literals (`#rgb`, `#rrggbb`, `rgb(`, `rgba(`, `hsl(`), `box-shadow` literals, and raw pixel values on font-size, padding, margin, gap, and border-radius. For each, check the token index: if a token holds that value, or a value within 2px or one scale step of it, the literal is a finding and you name the token that should replace it. A literal with no nearby token is a separate finding: the value is off-scale.
 4. TYPE RAMP, every new or changed font-size, font-weight, line-height, and letter-spacing must match one of the spec's twelve typography roles exactly. A size between two steps is an Important finding. A new font-family not present in the spec's `fonts` block is Critical.
@@ -66,7 +78,10 @@ Paste this checklist under a `## Verification` heading in your report. If ANY an
 8. If `{{reference_images}}` was not `NONE`, did you capture the rendered screen and compare it against every reference frame, rather than reading the source? (yes / no)
 
 9. Did you echo the `{{review_scope}}` value you received as the
-   first line of your report? (yes / no)
+   first line of your report, byte for byte and unresolved? Did the
+   diff command you actually ran end in `':(exclude)docs/work/*'` and
+   return at least one path? (yes / no), if it returned none, report an
+   empty scope, never a clean one.
 
 **SEVERITY**.
 - **Critical**. Ships a broken or inaccessible interface, or silently changes the brand direction. Anchored examples: new body text at 3.1:1 against its background = Critical (WCAG 1.4.3); `outline: none` on a focusable control with no replacement indicator = Critical (WCAG 2.4.7); a font-family absent from the spec's `fonts` block introduced as the display face = Critical (direction change without sign-off).

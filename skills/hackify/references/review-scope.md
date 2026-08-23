@@ -16,10 +16,30 @@ Six reviewers each ran `git diff <base>..<head>` and read the whole thing, in si
 |---|---|
 | `.` | the whole diff is yours |
 | `<pathspec list>` | your assigned slice, space-separated git pathspecs relative to `{{project_root}}` |
-| `settle all` | settle round, nothing carried over, review your whole assigned slice |
+| `settle all` | settle round, nothing carried over, re-read the whole reviewed diff; `all` resolves to `.`, never to a path |
 | `settle <pathspec list>` | settle round, review only these, the rest hold a live verdict |
 
-Append it to the diff command: `git diff {{base_sha}}..{{head_sha}} -- {{review_scope}}`. Strip a leading `settle ` first, it is a marker for you, not a pathspec.
+## Resolving a scope into a diff command
+
+The value is not a pathspec you can paste. Resolve it in three steps, in this order.
+
+1. **Strip a leading `settle `.** It marks the round, it is not a path. What is left is the pathspec part.
+2. **If the pathspec part is `all`, or the value was absent or empty, use `.`.** `all` is a reserved word in this grammar and never a path; it names the whole reviewed diff, which is exactly what a settle round with nothing carried over has to read. A literal `all` handed to git matches a directory called `all/`, and in a repo without one it matches nothing at all: empty output, exit 0, no error, a reviewer that read nothing and a report that says clean.
+3. **Append the `docs/work/` exclusion pathspec unconditionally**, whatever step 2 produced. It is the same literal the manifest step below builds with and the FULL-round definition below repeats; copy it from either, quotes included. A bare `.` carries no exclusion of its own, so the append is never optional.
+
+Every reviewer therefore runs one shape, `git diff {{base_sha}}..{{head_sha}} -- <resolved pathspec> <exclusion>`, where the exclusion is step 3's literal and never varies. Only the middle term moves:
+
+| Value received | Resolved pathspec |
+|---|---|
+| `.` | `.` |
+| `src/auth/ src/db/` | `src/auth/ src/db/` |
+| `settle all` | `.` |
+| `settle src/auth/` | `src/auth/` |
+| absent or empty | `.` |
+
+**Resolution rewrites the diff command and never the echo.** The echoed line is the value as received, byte for byte, `settle ` prefix and `all` included. A reviewer that echoes what it resolved to reports `Scope: settle .`, and the parent can no longer tell a settle round from an unscoped one, which is the gate at the bottom of this file failing quietly.
+
+**A resolved command that returns no paths is an empty scope, not a clean one.** It stays reachable after step 2: a dispatcher can hand a lens a slice that turns out to hold nothing, a scope of `settle docs/work/notes.md` being the obvious one. Say so in the report. Zero findings over zero files is not a verdict and must never be counted as one.
 
 **An absent or empty value means `.`.** This is deliberate and it is the safe direction: a dispatcher that forgets to slice buys nothing and loses nothing, because the reviewer falls back to the whole diff. A missing slice is recoverable. A silently narrowed one is not.
 
@@ -86,7 +106,7 @@ A file carries its verdict into the settle round when **all** of these hold:
 - its blob hash is identical to the hash recorded with that verdict, and
 - the lens is not F.
 
-**F never carries over.** Every other lens judges a file against itself, so an unchanged file means an unchanged judgement. F judges a file against its counterparts, and a counterpart moving is enough to break coherence while both files' own hashes stay put. F re-reads its whole boundary set on every settle round, which is why `settle all` is F's normal value.
+**F never carries over.** Every other lens judges a file against itself, so an unchanged file means an unchanged judgement. F judges a file against its counterparts, and a counterpart moving is enough to break coherence while both files' own hashes stay put. F re-reads its whole boundary set on every settle round, which is why `settle all` is F's normal value: `all` resolves to the whole reviewed diff, a superset of any boundary set, so no counterpart can move outside what F re-reads.
 
 Everything that fails any of the three conditions goes back into `{{review_scope}}` and is read again.
 
