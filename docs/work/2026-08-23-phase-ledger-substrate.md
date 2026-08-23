@@ -1048,6 +1048,55 @@ All six closed. The two things worth keeping are not in the fix list.
 
 T50 refused to verify two counts while files were moving. I verified them after the wave settled and **got the arithmetic right and the quantifier wrong**, which is its own entry in this sprint's catalogue. `RR_BANS_EXPECTED=60` plus `TB_EXPECT_70=23` really did equal the 83 planted tokens the suite reported, so every number I checked matched. What I never checked was the word next to them: `CHANGELOG.md` said the suite plants **all** 83 banned tokens, and T49 had just moved six report-input bans into `RR_RPT` with no plant test, making the real inventory 89. The count was true and the claim was false, and no amount of re-adding the same three constants would have surfaced it. **Verifying the figures in a sentence is not the same as verifying the sentence.** Closed in T52 by planting all six, so the suite plants 89 of 89 and the word "all" is earned rather than asserted. The assertion tally that sat beside it is gone from the release notes: it was unguarded, nothing reddened when it drifted, and it rotted twice inside this one sprint. The token count stays because `TB_EXPECT_70`, `TB_EXPECT_77` and `TB_EXPECT_RPT` redden if the real inventory moves. **Keep the number a check defends, drop the number that only sounds precise.** "Ten phrase-order tokens" holds too: eleven tokens match the phrase, and the eleventh (`'spec reviewers in parallel'`) came in with the guard's original creation at `fac7478`, not with the ten added at `0e2edca`. Confirmed with `git log -S`.
 
+## 7c. Carry-over ledger, and the round the fix wave made necessary
+
+The closing round in 7b came back clean on every lens, and then I spent a fix wave on its
+fix-forward findings. That wave moved the diff, so those clean verdicts describe files that no
+longer exist in that form. `review-scope.md:93` is explicit about what a full round means now:
+
+> every byte of the diff is covered by a live verdict, and F re-read the boundary set.
+
+**A verdict is live while the blob hash it was recorded against still matches the file on disk.**
+The rule also says the ledger is mandatory the moment anything is carried, and 7b carried nothing
+explicitly, it just asserted the round was clean. That is the gap this section closes.
+
+Recorded against `b83dcff`, the tree the panel actually read. **46 of 52 verdicts are still live and carry.**
+
+### Dead verdicts, back into scope
+
+| Path | Blob the panel read | Blob on disk now |
+|---|---|---|
+| `.github/workflows/ci.yml` | `f6c6060ab` | `43fcf3afe` |
+| `CHANGELOG.md` | `31225ff31` | `f07eef888` |
+| `scripts/test_ban_tokens.sh` | `f11815777` | `6b5eb2baf` |
+| `scripts/validate-dod.d/00-helpers.sh` | `a4138d5bc` | `ea974b274` |
+| `scripts/validate-dod.d/27-marketplace-ref-pin.sh` | `d58e71d3c` | `594718145` |
+| `scripts/validate-dod.d/77-reviewer-roster.sh` | `757ccc00e` | `7f2e3a2d3` |
+
+**6 paths.** Everything else in the 52-path diff holds a live verdict and is not re-read.
+
+### The gate, which must match round one
+
+Round one ran **A, B, D and F, with E folded** on the evidence that the diff contains no UI, component,
+stylesheet or design token. `phase-5-review.md:110` requires a closing round to carry the same gate
+decision and the same `{{folded_lenses}}` value, so that is what this round carries. I broke this rule
+once already this sprint by folding A on a round-three dispatch, and F caught it with my own rule book.
+
+### Scope values, and why B and F do not get the short list
+
+| Lens | `{{review_scope}}` | Why |
+|---|---|---|
+| **A** security | `settle <the dead paths in its surface>` | sliced lens, carries |
+| **D** performance | `settle <the dead paths in its surface>` | sliced lens, carries |
+| **B** quality + plan | `settle all` | `review-scope.md:47`, B is **never** sliced. "B is the floor under this optimisation and pretending otherwise would delete coverage." |
+| **F** coherence | `settle all` | `review-scope.md:85`, F never carries. Every other lens judges a file against itself, F judges it against its counterparts, and a counterpart moving breaks coherence while both files' own hashes sit still. |
+
+**A decision taken before dispatch rather than after a finding lands:** `77-reviewer-roster.sh` is at 499
+of 500 lines. If this round produces a finding needing a new line there, it cannot be fixed without
+splitting the file first. Minor findings there get a written disposition and the split becomes a
+follow-up; anything Important or worse means the split happens first.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
