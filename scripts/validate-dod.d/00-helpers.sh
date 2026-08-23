@@ -9,8 +9,34 @@
 # This module defines shared helpers and is sourced first by the validate-dod.sh orchestrator. No check groups live here.
 
 red()    { printf '\033[31m%s\033[0m\n' "$*"; }
-green()  { printf '\033[32m%s\033[0m\n' "$*"; }
 yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
+
+# Every printed pass is tallied here so the orchestrator can assert a FLOOR on
+# the run's total at the end, which is [0b] in scripts/validate-dod.sh. Only
+# lines carrying the "  ok   " verdict prefix count: "ALL CHECKS PASSED" is a
+# summary, not a check, and must not pad the number that polices the summary.
+#
+# IT IS THE SHELL-SIDE TOTAL, AND THAT IS THREE BELOW THE TRANSCRIPT. [57] and
+# [85] delegate to scripts/check_doc_links.py and scripts/check_design_specs.py,
+# which print their own ok lines in validator format without passing through
+# here, so a `grep -c` over the output reads three higher than this counter.
+# Measured, not assumed: 1401 ok lines in the transcript against 1398 here. The
+# gap is safe to leave because both fragments test the checker's EXIT STATUS and
+# raise FAILED themselves, so a delegated check that stops running fails loudly
+# rather than quietly shrinking the run. Counting their stdout instead would mean
+# parsing a child process's output to police a number, which is a worse bargain.
+#
+# ASSIGNED ONLY IF UNSET. [0] in the orchestrator runs BEFORE this file is
+# sourced and tallies its own ok line into the same variable. A plain
+# DOD_OK_COUNT=0 here would reset that to zero and lose it, which is a counter
+# under-reporting the run it exists to police.
+DOD_OK_COUNT=${DOD_OK_COUNT:-0}
+green() {
+  case "${1:-}" in
+    '  ok   '*) DOD_OK_COUNT=$((DOD_OK_COUNT + 1)) ;;
+  esac
+  printf '\033[32m%s\033[0m\n' "$*"
+}
 
 check_file() {
   if [ -f "$1" ]; then
@@ -30,17 +56,42 @@ check_jq() {
   fi
 }
 
+# FAIL CLOSED ON A GREP THAT NEVER RAN. grep's status used to be thrown away: it
+# was the head of a pipe, so under `set -o pipefail` the substitution read back
+# awk's status, and awk succeeds on empty input. grep exiting 2 on a path it
+# cannot read, or 127 when there is no matcher at all, both arrived here as
+# count=0 and printed green having screened nothing. check_no_tokens_in below
+# already reds on rc > 1 and states why ("a screen that never ran must never be
+# the reason a token prints green"), then falls back to THIS function for every
+# token, so the two halves disagreed: one honest red followed by N unearned
+# greens. Same rule now holds on both sides of that call.
+#
+# The status is grep's alone because a command substitution carries the status of
+# the command inside it, and there is no pipe left inside it to launder. `local
+# out` is declared apart from the assignment: `local out=$(...)` reports the
+# status of the `local` builtin, which is the original bug in a new place.
+#
+# The rationale sits above the function rather than inside it, matching
+# check_list_size, ban_tokens_ok and check_no_tokens_in below, and keeping the
+# body inside the 40-line cap it would otherwise breach by one.
 check_no_token() {
   local token="$1"
   local path="$2"
-  local count
+  local count out rc
   # -I skips binary files: Python bytecode (__pycache__/*.pyc) embeds absolute
   # source paths that would otherwise be counted as personal-handle/leaked-path hits.
   # /usr/bin/grep by absolute path, matching check_no_tokens_in below: this
   # function IS that function's fallback, so the two must be one binary and not
   # two resolutions. See the comment above check_no_tokens_in for which shell
   # resolves bare grep to what.
-  count=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+  out=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null)
+  rc=$?
+  if [ "$rc" -gt 1 ]; then
+    red "  FAIL '$token' was never screened in $path, grep exited $rc (unreadable path, or no matcher); a count of 0 here would be a count of nothing"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  count=$(printf '%s\n' "$out" | awk -F: '{s+=$2} END {print s+0}')
   if [ "$count" -eq 0 ]; then
     green "  ok   '$token' has 0 occurrences in $path"
   else

@@ -46,6 +46,12 @@
 #                   (contract + WCAG AA contrast)
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
 #
+# Two checks do NOT live in a fragment and are written out below instead:
+#   [0]  the wiring guard, disk and source list must agree in both directions
+#   [0b] a floor on the run's own ok-line total
+# Both are here because a check that guards the source list cannot be reached
+# through the source list. See the comment above each one.
+#
 # Note: -e is intentionally omitted, modules accumulate failures into
 # FAILED and the orchestrator exits non-zero at the end. -e would abort
 # on the first failed check and hide the rest.
@@ -57,6 +63,79 @@ FAILED=0
 DOD_MODULES_DIR="$REPO_ROOT/scripts/validate-dod.d"
 
 cd "$REPO_ROOT"
+
+# ---------------------------------------------------------------------------
+# [0] WIRING GUARD. Every fragment on disk is sourced below, and every source
+# line below names a fragment that is actually there. Both directions, because
+# each one alone leaves the hole the other covers.
+#
+# WHY IT LIVES HERE AND NOT IN A FRAGMENT. [76f] in 76-phase-ledger-substrate.sh
+# guards the neighbouring half of this, sourced-but-not-named-in-the-header, and
+# says in its own comment that it is one-directional and cannot catch
+# named-but-not-sourced. That missing direction cannot be bought by adding
+# another fragment: deleting the source line for THAT fragment takes the check
+# away with it, which is exactly the tamper it exists to catch. A guard whose own
+# disappearance is the thing it guards against is not a guard. This file is the
+# only one that cannot be un-sourced, because running it IS the run, so the check
+# lives here. Same reasoning [80b] gives for making itself its own probe.
+#
+# WHY printf AND NOT red()/green(). 00-helpers.sh is a fragment like any other
+# and its source line can go too. With no helpers loaded, red() is a missing
+# command, the failure message prints nothing at all, and the run still walks
+# into `exit 0`. FAILED is a plain shell variable that needs no helper, so the
+# printf form reddens and exits 1 whether or not 00-helpers.sh was sourced.
+#
+# MEASURED, not feared: deleting the single source line for
+# 71-release-mechanism-pins.sh dropped the run from 1400 ok lines to 851, with
+# 0 FAIL, "ALL CHECKS PASSED" printed, and exit 0.
+printf '\033[33m%s\033[0m\n' "[0] every fragment on disk is sourced, and every source line names a fragment that exists"
+DOD_SELF="$REPO_ROOT/scripts/validate-dod.sh"
+DOD_SOURCED=$(grep -E '^source ' "$DOD_SELF" 2>/dev/null | grep -oE '[0-9]+-[A-Za-z0-9._-]+\.sh' | sort -u)
+DOD_DISK_N=0
+DOD_LINE_N=0
+DOD_WIRING_BAD=0
+
+# Direction one, the tamper this guard was written for: a fragment sitting on
+# disk that nothing sources. Its checks do not fail, they simply never happen.
+for dod_frag in "$DOD_MODULES_DIR"/*.sh; do
+  [ -f "$dod_frag" ] || continue
+  DOD_DISK_N=$((DOD_DISK_N + 1))
+  dod_base=${dod_frag##*/}
+  grep -qxF -- "$dod_base" <<<"$DOD_SOURCED" && continue
+  printf '\033[31m%s\033[0m\n' "  FAIL scripts/validate-dod.d/$dod_base exists but $DOD_SELF never sources it, so every check it holds is absent from this run and cannot fail it"
+  FAILED=$((FAILED + 1))
+  DOD_WIRING_BAD=$((DOD_WIRING_BAD + 1))
+done
+
+# Direction two: a source line naming a fragment that is not there. `source` on a
+# missing file returns 1, and with -e deliberately omitted the run carries on
+# with that fragment's checks silently gone. A rename or a typo lands here, and
+# direction one cannot see it because the basename is right there in the text.
+while IFS= read -r dod_name; do
+  [ -n "$dod_name" ] || continue
+  DOD_LINE_N=$((DOD_LINE_N + 1))
+  [ -r "$DOD_MODULES_DIR/$dod_name" ] && continue
+  printf '\033[31m%s\033[0m\n' "  FAIL $DOD_SELF sources $dod_name but scripts/validate-dod.d/$dod_name is missing or unreadable, so that source line is a no-op and its checks never run"
+  FAILED=$((FAILED + 1))
+  DOD_WIRING_BAD=$((DOD_WIRING_BAD + 1))
+done <<DOD_WIRING_EOF
+$DOD_SOURCED
+DOD_WIRING_EOF
+
+# BOTH SIDES FLOORED. An empty directory compared against an empty source list
+# agrees perfectly and proves nothing. A clean verdict over an empty set is the
+# vacuous pass this guard exists to refuse, so it is reported as a failure rather
+# than printed as a green. Floors and not an exact count, because a legitimately
+# retired fragment must not redden this; 15 against today's 20 leaves room to
+# retire several and still refuses a set that has collapsed.
+if [ "$DOD_DISK_N" -lt 15 ] || [ "$DOD_LINE_N" -lt 15 ]; then
+  printf '\033[31m%s\033[0m\n' "  FAIL the [0] wiring scan found $DOD_DISK_N fragment(s) on disk and $DOD_LINE_N source line(s), expected at least 15 of each; a wiring check over an empty set measures nothing"
+  FAILED=$((FAILED + 1))
+elif [ "$DOD_WIRING_BAD" -eq 0 ]; then
+  # Counted by hand here rather than through green(), which is not defined yet.
+  DOD_OK_COUNT=$((${DOD_OK_COUNT:-0} + 1))
+  printf '\033[32m%s\033[0m\n' "  ok   all $DOD_DISK_N fragments in scripts/validate-dod.d/ are sourced, and all $DOD_LINE_N source lines name a readable fragment"
+fi
 
 source "$DOD_MODULES_DIR/00-helpers.sh"
 source "$DOD_MODULES_DIR/10-required-files.sh"
@@ -78,6 +157,37 @@ source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
+
+# ---------------------------------------------------------------------------
+# [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being
+# sourced. It cannot catch a fragment that is still sourced while its contents
+# stop checking anything: an early return, a deleted block, a loop over a set
+# that went empty. This repo has catalogued twelve separate instances of a check
+# that passes while measuring nothing, and the one property all twelve share is
+# that the run got quietly smaller.
+#
+# DELIBERATELY A FLOOR, NOT AN EQUALITY. Every wave adds checks, so an exact
+# count would redden on every commit and be bumped without being read, which is
+# how a bound becomes noise. A floor only moves when the run SHRINKS, which is
+# the only direction that hides a loss. Lowering it is allowed and must carry a
+# stated reason in the same commit, the way a retired fragment does.
+#
+# Complementary to [0] and weaker on purpose: dropping 90-collisions.sh costs one
+# ok line and sails over this floor, which is why [0] does the per-fragment work.
+# What this catches instead is the wholesale gutting [0] is blind to.
+#
+# THE NUMBER IS THE SHELL-SIDE TOTAL, three below a `grep -c` over the transcript,
+# because [57] and [85] delegate to Python checkers that print their own ok lines.
+# See the comment above DOD_OK_COUNT in 00-helpers.sh for why that gap is safe.
+# The floor is set against THIS counter, so compare like with like before moving
+# it: today's run counts 1398 here and prints 1401 ok lines.
+DOD_OK_FLOOR=1350
+if [ "${DOD_OK_COUNT:-0}" -lt "$DOD_OK_FLOOR" ]; then
+  printf '\033[31m%s\033[0m\n' "  FAIL this run printed only ${DOD_OK_COUNT:-0} ok lines against a floor of $DOD_OK_FLOOR; checks did not fail, they stopped running, so find what went quiet before trusting this verdict"
+  FAILED=$((FAILED + 1))
+else
+  printf '\033[33m%s\033[0m\n' "  note $DOD_OK_COUNT ok lines counted through the shell printers, at or above the floor of $DOD_OK_FLOOR (the transcript carries 3 more from the delegated Python checkers in [57] and [85])"
+fi
 
 if [ "$FAILED" -eq 0 ]; then
   green "ALL CHECKS PASSED"

@@ -195,7 +195,21 @@ if [ "$MRP_VERIFIABLE" -eq 1 ]; then
   # hole, or is missing; a denominator that drops one of those is the same defect
   # this line exists to remove.
   mrp_below=$((mrp_resolved + mrp_known_n + mrp_missing))
-  if [ "$mrp_missing" -eq 0 ]; then
+  # FLOOR ON THE COMPARISON, not on the reads. The three guards above judge
+  # whether the INPUTS arrived: a CHANGELOG with no parsed versions, a `git tag`
+  # that errored, a tag list that came back empty. None of them judges whether
+  # the comparison below them ever ran. All three counters start at zero, so a
+  # `sort -V` that emits nothing, or that reaches the in-flight version on its
+  # first line, leaves the loop body unexecuted and prints
+  # "ok 0 of 0 released version(s) ... resolve to a real git tag" over a set
+  # nothing was ever compared against.
+  #
+  # A clean verdict over an empty set is the vacuous pass this block exists to
+  # refuse, so it is reported as a failure rather than printed as a green.
+  if [ "$mrp_below" -eq 0 ]; then
+    red "  FAIL [27d] compared 0 released versions below in-flight $PLUGIN_VERSION, so its clean verdict measured nothing; the 'sort -V' feeding the loop either emitted nothing or reached $PLUGIN_VERSION on its first line"
+    FAILED=$((FAILED + 1))
+  elif [ "$mrp_missing" -eq 0 ]; then
     green "  ok   $mrp_resolved of $mrp_below released version(s) below in-flight $PLUGIN_VERSION resolve to a real git tag ($mrp_known_n recorded as never cut)"
   else
     red "       backfill with 'git tag -a v<version> <release commit>', or add the bare version to MRP_KNOWN_UNTAGGED, bump MRP_KNOWN_UNTAGGED_EXPECTED to match, and name its release commit in the comment above that list"
