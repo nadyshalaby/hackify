@@ -5,7 +5,7 @@ status: in-progress
 type: fix
 created: 2026-08-23
 project: hackify
-current_task: T16 (Phase 3 closing; T1-T15 done)
+current_task: Phase 5 Review (T1-T17 done; Phase 3 and Phase 4 closed)
 worktree: none
 branch: main
 sprint_goal: The phase ledger never silently vanishes again, on any runtime, in any mode.
@@ -20,9 +20,9 @@ sprint_goal: The phase ledger never silently vanishes again, on any runtime, in 
 - [x] Phase 1. Clarify (lock the goal anchor)
 - [x] Phase 2. Plan + Gate (work-doc + user "go")
 - [x] Phase 2.5. Spec review (1 reviewer, patch the doc)
-- [>] Phase 3. Implement (all waves committed)
-- [ ] Phase 4. Verify (Evidence Ledger + triad green)
-- [ ] Phase 5. Review (decision table empty)
+- [x] Phase 3. Implement (all waves committed)
+- [x] Phase 4. Verify (Evidence Ledger + triad green)
+- [>] Phase 5. Review (decision table empty)
 - [ ] Phase 6a. Re-verify + land choice (Steps A, C)
 - [ ] Phase 6b. Cleanup sweep (Step C.5)
 - [ ] Phase 6c. Archive work-doc to `done/` (Step D)
@@ -466,6 +466,44 @@ Panel gated on evidence, per the contract this sprint just corrected. **B standi
 
 **Process honesty from D, unprompted:** I substituted a measured brief for the `{{perf_scout_report}}` input rather than supplying the scout table. It proceeded because the brief carried concrete measurements, and flagged the omission so it stays visible. It also refused to stand on a number it could not verify (whether the harness runs same-matcher hooks sequentially or in parallel), resting the finding only on token cost, which is harness-independent.
 
+
+### Reviewer A (security + correctness), after adversarial refutation
+
+A raised four findings; a refuter on the reproduction and authority lenses **killed two of them and reproduced the other two**, which is the whole reason the refuter runs before a fix is spent.
+
+**REFUTED, A1 (Critical as filed).** A claimed nothing verifies that the four rules files named in `hooks.json` exist on disk. They do: `70-invariants-and-new.sh:68-75` asserts `[ -f "$t" ]` for every `${CLAUDE_PLUGIN_ROOT}/` path parsed out of hooks.json, **21 lines above the line A cited in the same file it had open**, and `60-primitives.sh:4-13` covers A's own headline example directly. The refuter reproduced it on a scratch copy: deleting each of the four files exits 1 every time (7 failures for `phase-discipline.md`), against a green positive control.
+
+**REFUTED, A4 (Minor).** A claimed the unquoted `$PANEL_AGENTS` at `:304` is silently wrong on a path containing spaces. Tested with such a path: two loud red FAILs. "Silently" was the load-bearing word and it is false. Worth keeping the refuter's caveat: it tested spaces, not glob metacharacters, and if `:304` were ever deleted, `:309` alongside it would become genuinely silent.
+
+**UPHELD, A2 (Important). This is the fifth verification gotcha, now confirmed by experiment.** `check_no_token` (`00-helpers.sh:37`) runs `grep -rcFiI` against a path that may not exist, and a missing path yields `0`, which reads as green. Renaming `agents/code-reviewer-performance.md` produced **23 green no-op ban lines**. Bounded, not silent in practice: that same rename still goes red through `:304`, the mirror manifest and the doc-link check. The helper defect is real regardless of who happens to catch it today.
+
+**UPHELD, A3 (Minor), with A's own scope rationale corrected.** With `rules/hard-caps.md` present and readable but neither `python3` nor `jq` on PATH, `inject-context.sh` emits **0 bytes and exits 0**, while its comment at `:57-61` claims it never degrades to injecting nothing. Injection was possible and nothing was injected, so the sentence is falsified non-vacuously. But **the false sentence at lines 25-30 is untouched by this diff** (the file has one hunk, `@@ -3,10 +3,10 @@`), so A's argument for pulling it into sprint scope does not hold even though the claim itself is true.
+
+**Process honesty from the refuter, unprompted:** its first attempt at the A3 experiment was broken in exactly the way it had been warned about. `env PATH=/tmp/emptybin bash ...` hid `bash` itself and returned 127, which it would have misread as the degrade path. The redo used an absolute `/bin/bash` plus a jq-available positive control.
+
+### Reviewer B (quality + plan consistency), and it caught this sprint failing its own law
+
+**CRITICAL, and it is the sprint's own dogfood failure.** Section 0 of this very work-doc still read `[>] Phase 3` / `[ ] Phase 4` while Phase 4 had landed a complete 10-row Evidence Ledger at `83e2027` and Phase 5 was running. The resume law this sprint wrote (`references/phase-ledger.md`: "On resume, **read the ledger back** ... set the first open phase to `in_progress`. It is a read, not a reconstruction.") turns a stale ledger from an untidy record into a **wrong answer**: a resumed session obeying the new law re-enters Phase 3. Fixed before anything else: Phase 3 and Phase 4 ticked, Phase 5 set open, frontmatter `current_task` moved off `T16`. Anchors AC3, AC8, Q&A #2-A.
+
+**Important, and mostly about the record rather than the code.** The Sprint Backlog stops at T10/T8a/T8b while the sprint ran to T17, so 19 of 43 changed files have no backlog row and no `Files:` allowlist; every one traces to a Daily Updates entry or a commit body, so it is a record gap, not scope creep. T7 edited five `agents/*.md` frontmatter descriptions outside its stated allowlist, with a written disposition but no allowlist amendment. A named Guardrail ("validate-dod.sh exit 0 at every wave end") was breached mid-sprint and self-disclosed at Daily Updates:161. AC10's mirror-completeness claim rests on nothing enforceable, which is the same structural gap T17 already found.
+
+**Folded lens E, run and reported.** Evidence line: no UI, component, stylesheet or design token in the diff, `.md`/`.sh`/`.json` only. One finding came out of it: `agents/design-conformance-reviewer.md:3` and `parallel-agents/phase-5-multi-review-e-design.md:21` now read "WCAG 2.2 Level AA (... target size 2.5.5)", but **2.5.5 Target Size (Enhanced) is AAA in both 2.1 and 2.2**; 2.2's AA criterion is the new **2.5.8 Target Size (Minimum)**, which the line omits. The bump to 2.2 makes this newly wrong rather than inherited. B also noted the gate contract says E is never folded into B, while the dispatcher folded it anyway; that is a dispatch disagreement, not a defect in the diff.
+
+**Minor.** The `818 + 496 + 619 + 550 = 2431` line is arithmetically wrong, the sum is **2483** and both B and D measured that independently. T8a's checkbox is `[ ]` though `5a84a7a` shipped all four of its files. **T13 appears in no artifact anywhere.** AC5 names three laws while `rules/phase-discipline.md` ships five. `README.md` sits at exactly its 450 bound with zero headroom. `2a616e5` and `54b56de` shipped source changes after the 0.14.0 release commit with no CHANGELOG amendment.
+
+**Process honesty from B, unprompted:** `{{law_scout_report}}` was not supplied. It proceeded rather than burn a round, re-ran the scan itself over every added line (zero suppressions, zero non-null `!`, zero empty catches, zero bare `Error` throws, zero em dashes, no secrets) and flagged the omission. It re-ran the triad fresh: validator exit 0, 29/29 + 41/41 + 28/28.
+
+### Reviewer F (cross-module coherence), and it found the same bug shape twice
+
+**CRITICAL.** The escalation reviewer adjudicates only A, B and D. Its INPUTS at `review-and-verify.md:238-246`, its OBJECTIVE at `:252-254` and its OUTPUT template at `:354-362` have a slot per A, B and D and none for E or F, while the panel it follows emits **F on most waves** and E on UI diffs. F calls this the same shape as the `{{reviewer_c_report}}` bug T12 fixed: the dead half was removed, the live half was never added. Under refutation on the reproduction lens, because T12 had already seen it and declined it as a behaviour change rather than a contradiction.
+
+**Important.** `phase-5-aggregation.md:5` carries two retired counts in one sentence ("2 spec reviewers" and "the 5-to-6 reviewer panel"); the Phase 6a ledger label reads `(Steps A, C)` and omits **Step B, the mandatory 4-options user menu**, which matters more than a label usually would because that string is canonical at `phase-ledger.md:59` and `work-doc-template.md:37` and therefore lands in every work-doc, and because a mandatory user question is exactly what Q&A #3-A made non-negotiable this sprint. Also flagged: `yolo/SKILL.md:114` "4-to-5 parallel reviewers" as an unguarded count, `review-scope.md:9` "The panel is five now", and two divergent escalation prompts. All under refutation.
+
+**Minor.** `runtime-adapters.md:111` still says "one of the 8 primitives" against `:5` and `:7` saying 12, which this sprint changed.
+
+**Clean and measured, worth not re-running:** the validator fragment list agrees in both directions (17 on disk, 17 sourced, 17 named); a placeholder sweep found no consumer without a producer; all five `agents/*.md` frontmatter carry the gate sentence; `sync_agent_mirrors.py --check` is 9/9.
+
+**F's own caveat, stated unprompted:** it built its task-to-file index from the work-doc's per-task `Files:` lines at `:130-163`, but T11, T12 and T14 through T17 have no backlog row, so its same-wave marking is weakest **exactly where the reviewer-drift edits landed**. That is the same gap B filed as its first Important, arrived at from the opposite direction.
 
 
 ## 8. Retrospective
