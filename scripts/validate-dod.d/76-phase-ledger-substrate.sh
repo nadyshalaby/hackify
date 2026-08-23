@@ -323,3 +323,58 @@ for pls_bf in "skills/hackify/references/parallel-agents/phase-5-multi-review-b-
   check_token_present '**You still READ the work-doc in full at step 2.**' "$pls_bf"
   check_token_present '**It stays your authority for steps 14 to 19.**' "$pls_bf"
 done
+
+yellow "[76h] the FULL-round gate is worded identically at every site that states it, and B's round marker exists in both copies of its prompt"
+# ONE RULE, FOUR SITES, AND THE DEFECT THIS PINS IS THE ONE THAT ALREADY HAPPENED.
+# The gate was amended in review-scope.md to exempt Reviewer B from the scope echo
+# and the three other files that state the same rule were left on the old wording,
+# which required an echo from EVERY lens. B is never sliced and has no
+# {{review_scope}} to echo, and 71-release-mechanism-pins.sh reddens the moment B's
+# prompt gains that placeholder, so the old wording was not merely stale, it was
+# unsatisfiable: no dispatch could declare any settle round FULL. A rule amended at
+# one site and left standing at three is exactly the shape [76g] exists to refuse,
+# so it gets the same mechanism rather than a second hand-edit.
+#
+# THE FILE SET IS DISCOVERED, NOT LISTED, for [76g]'s reason. A hand-kept list of
+# the sites stating this rule is the next thing to go stale, and the site that goes
+# stale is precisely the one nobody remembered to list. Discovery also catches the
+# other direction, a NEW file picking the wording up, which is how the count moves
+# when a fifth site is written and nobody says so.
+#
+# WORDED IDENTICALLY IS THE POINT, not merely present. Four paraphrases of one gate
+# are four rules a reader has to reconcile, and the reconciling is where the
+# amendment got lost. Pinning ONE literal forces the four sites to agree byte for
+# byte or redden, which is the only version of "they agree" a script can check.
+#
+# B'S MARKER IS PINNED IN BOTH HALVES, the instruction and the skeleton line, because
+# either alone leaves the other deletable while this stays green. The instruction with
+# no skeleton slot is a rule with nowhere to write the answer; the skeleton slot with
+# no instruction is a blank B fills in however it likes. The marker is what replaced
+# B's silence as the gate's per-run evidence, so losing half of it silently is losing
+# the evidence.
+#
+# grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: same three
+# reasons spelled out above [76g], and pls_x_assert is the same function. -c counts
+# LINES and the gate wording can share a line with other prose, -E would read the
+# backticks, `|`, `<` and `>` in these literals as metacharacters, and these scans
+# recurse a directory tree where a grep honouring ignore files would silently shrink
+# the discovered set. An unreadable root exits 2 and reddens rather than counting 0.
+PLS_GATE='every dispatched lens that takes a scope echoed a `settle `-prefixed scope, F echoed `settle all`, and B echoed `Round: settle`'
+PLS_BMARK='`Round: ` followed by the round the dispatch named, and nothing else'
+PLS_BSKEL='Round: <first | middle | settle>'
+# Hand-written beside the check and independent of the lists they police, per the
+# argument above check_list_size in 00-helpers.sh. Today: the gate wording sits at 4
+# occurrences over 4 files (SKILL.md, phases/phase-5-review.md, review-and-verify.md,
+# review-scope.md), and each half of B's marker at 2 over 2, its canonical prompt plus
+# its agents/ byte-mirror. Both marker numbers are 2 and stay 2: a third copy of B's
+# prompt is a roster change, not a wording change, and it should redden here.
+PLS_GATE_FILES_EXPECTED=4
+PLS_GATE_OCCUR_EXPECTED=4
+PLS_BMARK_FILES_EXPECTED=2
+PLS_BMARK_OCCUR_EXPECTED=2
+PLS_BSKEL_FILES_EXPECTED=2
+PLS_BSKEL_OCCUR_EXPECTED=2
+
+pls_x_assert "$PLS_GATE" "$PLS_GATE_FILES_EXPECTED" "$PLS_GATE_OCCUR_EXPECTED"
+pls_x_assert "$PLS_BMARK" "$PLS_BMARK_FILES_EXPECTED" "$PLS_BMARK_OCCUR_EXPECTED"
+pls_x_assert "$PLS_BSKEL" "$PLS_BSKEL_FILES_EXPECTED" "$PLS_BSKEL_OCCUR_EXPECTED"

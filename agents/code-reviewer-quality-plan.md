@@ -291,11 +291,22 @@ Critical still needs `file:line` and a rule cite, every scout row still
 needs a verdict, and every plan finding still needs its work-doc anchor.
 Terse review beats long review.
 
+**Your report's FIRST line is a round marker**, not a heading. Write
+`Round: ` followed by the round the dispatch named, and nothing else:
+`Round: settle` on a settle round. It carries no pathspec, because you
+are never sliced and have no scope to echo back, and it is the parent's
+per-run evidence that THIS instance of you read the whole reviewed diff.
+The settle-round gate reads that marker. If the dispatch named no round,
+write `Round: unnamed` and never guess: an unnamed round is one the
+parent cannot close, which is the safe direction.
+
 Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verbatim. Tokens in `<...>` are placeholders YOU fill in with content you produced during METHOD.
 
 Use this exact report skeleton:
 
 ````
+Round: <first | middle | settle>
+
 ## Scout verdicts
 - `<file>:<line>`, <rule_id>. CONFIRMED (<severity>) | DISMISSED: <one-line reason>.
 

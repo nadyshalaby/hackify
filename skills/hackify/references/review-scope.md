@@ -43,15 +43,15 @@ Every reviewer therefore runs one shape, `git diff {{base_sha}}..{{head_sha}} --
 
 **An absent or empty value means `.`.** This is deliberate and it is the safe direction: a dispatcher that forgets to slice buys nothing and loses nothing, because the reviewer falls back to the whole diff. A missing slice is recoverable. A silently narrowed one is not.
 
-**On a settle round the value is never absent.** The `settle` prefix is what makes a carried-over round distinguishable from a round the dispatcher simply did not scope. Without it, "narrowed on purpose" and "never set" look identical, and a round with no scope at all could call itself FULL.
+**On a settle round no scope-taking lens's value is absent.** The `settle` prefix is what makes a carried-over round distinguishable from a round the dispatcher simply did not scope. Without it, "narrowed on purpose" and "never set" look identical, and a round with no scope at all could call itself FULL.
 
-**Every reviewer echoes the value it received**, verbatim, on the first line of its report:
+**Every reviewer that takes a scope echoes the value it received**, verbatim, on the first line of its report:
 
 ```
 Scope: settle src/auth/ src/db/migrations/
 ```
 
-That echo is what lets the parent prove the settle round was properly scoped instead of taking its own word for it.
+That echo is what lets the parent prove the settle round was properly scoped instead of taking its own word for it. **Reviewer B has no scope to echo**, and opens its report with a round marker in the echo's place, which the gate at the bottom of this file reads instead.
 
 ## Reading outside your scope
 
@@ -77,13 +77,13 @@ Do this once, at Phase 5 dispatch, before the message goes out. The scouts alrea
 2. Assign each path to every lens whose surface it touches, using the table above. A path may go to several. Most go to at least two.
 3. **Any path you cannot confidently classify goes to B**, which is already reading everything, so an unclassifiable file is never an uncovered file.
 4. Write the scope ledger (below) into the work-doc Sprint Review.
-5. Pass each reviewer its own pathspec list as `{{review_scope}}`. Pass B `.`.
+5. Pass each sliced reviewer its own pathspec list as `{{review_scope}}`. B takes no `{{review_scope}}` at all, so there is nothing to pass it; name the round in B's dispatch instead and B echoes that back as its round marker.
 
 **When a lens's list comes out empty, that lens has nothing to review.** Do not dispatch it, and record why in the gate line, exactly as you would for a folded lens. An empty slice is a gate decision and it is written down like one.
 
 ### Why `docs/work/` is excluded
 
-The work-doc is the ruler the diff is measured against and cannot also be the measured. Every round writes its result into the work-doc, which changes its bytes, which kills its own verdict, which mandates another round whose result lands in the work-doc again. That loop provably cannot close; one sprint rewrote its work-doc 25 times. Nothing about the work-doc's accuracy goes unchecked, because Reviewer B still reads it in full as an INPUT and still flags any file with no authorizing task entry. The precedent is `scripts/validate-dod.d/80-file-size-caps.sh:13`, whose `CAP_SEARCH_PATHS` leaves `docs/` out. Read it as what it is, an allowlist of the six primitive directories rather than a carve-out aimed at work logs: `dist/` (generated), `CHANGELOG.md` and `README.md` (release prose) and `LICENSE` all sit outside it too. The shared reason is the general one, none of them is a primitive the caps govern, and a work log is only the nearest instance of it.
+The work-doc is the ruler the diff is measured against and cannot also be the measured. Every round writes its result into the work-doc, which changes its bytes, which kills its own verdict, which mandates another round whose result lands in the work-doc again. That loop provably cannot close; one sprint rewrote its work-doc 25 times. Nothing about the work-doc's accuracy goes unchecked, because Reviewer B still reads it in full as an INPUT and still flags any file with no authorizing task entry. The precedent is `scripts/validate-dod.d/80-file-size-caps.sh:13`, whose `CAP_SEARCH_PATHS` leaves `docs/` out. Read it as what it is, an allowlist of the six primitive directories rather than a carve-out aimed at work logs: `dist/` (generated) and `LICENSE` sit outside it too, the shared reason being the general one, none of them is a primitive the caps govern, and a work log is only the nearest instance of it. `CHANGELOG.md` and `README.md` are no longer in that company, and that changed in this same sprint: a second `find -maxdepth 1` in that file's `cap_file_list` reaches the repo root, so both are scanned. The exemption `CHANGELOG.md` carries through `CAP_APPEND_ONLY` is from the CAP and never from the SCAN, it is still opened, counted and reported through `cap_exempt`, and `CAP_ROOT_WITNESS` names `README.md` as the witness that reddens the check the day the root scan stops reaching it.
 
 ## The scope ledger
 
@@ -120,17 +120,26 @@ The old definition was "the panel re-read every byte". The new one is:
 
 A verdict is live when the blob hash it was recorded against still matches the file on disk. This is a different guarantee from the old one, not a weaker one, but it is only as good as the ledger, so the ledger is mandatory whenever carry-over is used.
 
-The parent may only declare a round FULL when every dispatched lens **that takes a scope** echoed one beginning with `settle `, and F's echo was `settle all`. A lens that echoed a bare pathspec list was running a middle round, and **a middle round can never close the loop** no matter how clean it came back.
+The parent may only declare a round FULL when every dispatched lens that takes a scope echoed a `settle `-prefixed scope, F echoed `settle all`, and B echoed `Round: settle`. A lens that echoed a bare pathspec list was running a middle round, and **a middle round can never close the loop** no matter how clean it came back.
 
-**Reviewer B is the one exemption, and it is structural rather than a courtesy.** B takes no
-`{{review_scope}}` at all: B is never sliced, so there is no scope for it to echo. Requiring an echo
-from B made this gate unsatisfiable, because `71-release-mechanism-pins.sh` fails the build the
-moment B's prompt gains a `{{review_scope}}` placeholder. One rule required exactly what another
-forbade, and a settle round genuinely could not be declared FULL by any dispatch.
+**Reviewer B is exempt from the SCOPE echo, and that exemption is structural rather than a
+courtesy.** B takes no `{{review_scope}}` at all: B is never sliced, so there is no scope for it to
+echo. Requiring a scope echo from B made this gate unsatisfiable, because
+`71-release-mechanism-pins.sh` fails the build the moment B's prompt gains a `{{review_scope}}`
+placeholder. One rule required exactly what another forbade, and a settle round genuinely could not
+be declared FULL by any dispatch.
 
-The exemption is safe because the echo was only ever evidence for the real condition above, that
-every byte of the reviewed diff is covered by a live verdict. For every sliced lens the echo is the
-only proof it did not quietly read a subset. For B that proof comes from the validator instead, and
-it is stronger: a sliced B cannot be dispatched, because it cannot exist. **Read B's silence as full
-coverage only while that check is green.** If B ever gains a scope placeholder, this exemption is
-void and the gate must be reconsidered, not patched again.
+**The validator pin is not a stronger proof than the echo, it is a proof of something else**, and an
+earlier draft of this file got that backwards. The pin is a universal over TEMPLATES: no copy of B's
+prompt may carry the placeholder, so no B can ever be sliced through its inputs. An echo is an
+existential over RUNS: this particular instance read what it says it read. Neither implies the
+other. A dispatcher can narrow B in prose without touching the placeholder, and one has, handing B a
+17-path weighting that was compliant with the pin and a narrowing all the same. So B's silence was
+never coverage, and reading it as coverage was the defect.
+
+**B closes that gap with a round marker instead of a scope.** Its report's first line is `Round: `
+plus the round its dispatch named, `Round: settle` on a settle round, which carries no pathspec and
+so leaves the pin green. The gate above reads that marker: a settle round is FULL only when B's
+marker says `settle`, and a B that reports any other round, or `Round: unnamed` because its dispatch
+named none, leaves the round unclosable. If B ever gains a scope placeholder, the marker alone stops
+being enough and the gate must be reconsidered, not patched again.
