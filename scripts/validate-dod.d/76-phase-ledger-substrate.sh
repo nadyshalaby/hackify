@@ -325,26 +325,23 @@ for pls_bf in "skills/hackify/references/parallel-agents/phase-5-multi-review-b-
 done
 
 yellow "[76h] the FULL-round gate is worded identically at every site that states it, and B's round marker exists in both copies of its prompt"
-# ONE RULE, FOUR SITES, AND THE DEFECT THIS PINS IS THE ONE THAT ALREADY HAPPENED.
-# The gate was amended in review-scope.md to exempt Reviewer B from the scope echo
-# and the three other files that state the same rule were left on the old wording,
-# which required an echo from EVERY lens. B is never sliced and has no
-# {{review_scope}} to echo, and 71-release-mechanism-pins.sh reddens the moment B's
-# prompt gains that placeholder, so the old wording was not merely stale, it was
-# unsatisfiable: no dispatch could declare any settle round FULL. A rule amended at
-# one site and left standing at three is exactly the shape [76g] exists to refuse,
-# so it gets the same mechanism rather than a second hand-edit.
+# ONE RULE, FOUR SITES, AND THE DEFECT THIS PINS ALREADY HAPPENED. The gate was
+# amended in review-scope.md to exempt Reviewer B from the scope echo, and the three
+# other files stating the same rule were left on the old wording, which demanded an
+# echo from EVERY lens. B is never sliced and has no {{review_scope}} to echo, and
+# 71-release-mechanism-pins.sh reddens the moment B's prompt gains that placeholder,
+# so the old wording was not merely stale, it was unsatisfiable: no dispatch could
+# declare any settle round FULL. A rule amended at one site and left standing at
+# three is the shape [76g] exists to refuse, so it gets the same mechanism.
 #
-# THE FILE SET IS DISCOVERED, NOT LISTED, for [76g]'s reason. A hand-kept list of
-# the sites stating this rule is the next thing to go stale, and the site that goes
-# stale is precisely the one nobody remembered to list. Discovery also catches the
-# other direction, a NEW file picking the wording up, which is how the count moves
-# when a fifth site is written and nobody says so.
+# DISCOVERED, NOT LISTED, for [76g]'s reason: a hand-kept list of the sites stating
+# this rule is the next thing to go stale, and the site that goes stale is the one
+# nobody remembered to list. Discovery also catches a NEW file picking the wording up.
 #
 # WORDED IDENTICALLY IS THE POINT, not merely present. Four paraphrases of one gate
-# are four rules a reader has to reconcile, and the reconciling is where the
-# amendment got lost. Pinning ONE literal forces the four sites to agree byte for
-# byte or redden, which is the only version of "they agree" a script can check.
+# are four rules a reader must reconcile, and the reconciling is where the amendment
+# got lost. Pinning ONE literal forces the four to agree byte for byte or redden,
+# the only version of "they agree" a script can check.
 #
 # B'S MARKER IS PINNED IN BOTH HALVES, the instruction and the skeleton line, because
 # either alone leaves the other deletable while this stays green. The instruction with
@@ -378,3 +375,125 @@ PLS_BSKEL_OCCUR_EXPECTED=2
 pls_x_assert "$PLS_GATE" "$PLS_GATE_FILES_EXPECTED" "$PLS_GATE_OCCUR_EXPECTED"
 pls_x_assert "$PLS_BMARK" "$PLS_BMARK_FILES_EXPECTED" "$PLS_BMARK_OCCUR_EXPECTED"
 pls_x_assert "$PLS_BSKEL" "$PLS_BSKEL_FILES_EXPECTED" "$PLS_BSKEL_OCCUR_EXPECTED"
+yellow "[76i] the header manifest's check-id RANGES agree with the fragments they describe"
+# THE ONLY MANIFEST ROW SHAPE THAT CAN GO POSITIVELY WRONG. scripts/validate-dod.sh opens
+# with a hand-written row per fragment. Most under-describe theirs and that is fine:
+# `check [75]` claims nothing about how many checks 75 holds. A RANGE ENDPOINT is
+# different, because it asserts a MAXIMUM. `checks [76]-[76g]` went false the day [76h]
+# shipped, silently, in the same commit that made it stale.
+#
+# [76f] GUARDS THE NEIGHBOURING HALF, that every sourced fragment is named in the header
+# by basename, and argues against pinning each row's range because that "would fail on
+# correct text the day a [76g] lands". Right about a HARDCODED range, wrong about a
+# DERIVED one: this reads both ends off the fragment, so it reddens on a stale row and
+# goes green once the row is updated, which is what that comment actually wanted.
+#
+# CHECKED ONLY WHERE THE ROW MAKES A CLAIM A FRAGMENT CAN CONTRADICT. If the row's FIRST
+# item is a range its start must be the fragment's LOWEST declared check; if the LAST item
+# is a range its end must be the HIGHEST. Everything else is skipped BY CONSTRUCTION, not
+# by exception list: a gloss row naming one id claims no bound, and `[7]-[15], [36]` gets
+# its start checked and its end skipped because [36], not [15], is the last thing it
+# names. That is what keeps this off the two deliberate gloss rows.
+#
+# DECLARED MEANS `yellow "[..]"` AT LINE START, never a mention anywhere in the file.
+# 71-release-mechanism-pins.sh names [38b] twice in its own comments while [38b] is
+# DECLARED in 70-invariants-and-new.sh, so a whole-file grep reads 71's minimum as [38b]
+# and reddens a correct row. Not foreseen: a live wrong premise, caught by measuring.
+#
+# THE FLOOR STOPS THIS PASSING VACUOUSLY. Reformat the header past the row pattern and
+# every row stops parsing (empty parser output included), and it prints a confident zero.
+# A floor rather than an exact count, for [76f]'s reason on its own: this polices a
+# hand-edited list that legitimately shrinks when a row changes style, and only a collapse
+# toward zero means the parser broke.
+PLS_RANGE_FLOOR=12
+if ! command -v python3 > /dev/null 2>&1; then
+  red "  FAIL [76i] needs python3 to parse the header manifest, and it is not on PATH"
+  FAILED=$((FAILED + 1))
+else
+pls_range_out=$(python3 - <<'PLS_RANGE_PY'
+import io, os, re
+
+ORCH = "scripts/validate-dod.sh"
+FRAGDIR = "scripts/validate-dod.d"
+def key(tok):
+    m = re.match(r'^(\d+)([a-z]?)$', tok)
+    return (int(m.group(1)), m.group(2))
+head = []
+for line in io.open(ORCH, encoding='utf-8'):
+    if line.startswith('set -uo pipefail'):
+        break
+    head.append(line.rstrip('\n'))
+ROW = re.compile(r'^#\s{2,}(\d+-[A-Za-z0-9._-]+\.sh),\s+checks?\s+(.*)$')
+CONT = re.compile(r'^#\s{4,}(\S.*)$')
+rows = []
+for line in head:
+    m = ROW.match(line)
+    if m:
+        rows.append([m.group(1), m.group(2)])
+        continue
+    c = CONT.match(line) if rows else None
+    if c:
+        rows[-1][1] += ' ' + c.group(1)
+
+ITEM = re.compile(r'^\[(\d+[a-z]?)\](?:\s*-\s*\[(\d+[a-z]?)\])?')
+SEP = re.compile(r'^\s*(?:,\s*(?:and\s+)?|\s+and\s+)')
+def parse_run(text):
+    items, rest = [], text
+    while True:
+        m = ITEM.match(rest)
+        if not m:
+            break
+        items.append((m.group(1), m.group(2)))
+        rest = rest[m.end():]
+        sep = SEP.match(rest)
+        if not sep:
+            break
+        rest = rest[sep.end():]
+    return items
+checked = 0
+for frag, text in rows:
+    path = os.path.join(FRAGDIR, frag)
+    if not os.path.isfile(path):
+        continue
+    body = io.open(path, encoding='utf-8').read()
+    declared = re.findall(r'^yellow "\[(\d+[a-z]?)\]', body, re.M)
+    items = parse_run(text)
+    if not declared:
+        continue
+    if not items:
+        print("FAIL %s names no parseable check id in its header row" % frag)
+        continue
+    lo, hi = min(declared, key=key), max(declared, key=key)
+    first, last = items[0], items[-1]
+    if first[1]:
+        checked += 1
+        if first[0] != lo:
+            print("FAIL %s header row opens its range at [%s], but the fragment's lowest declared check is [%s]" % (frag, first[0], lo))
+        else:
+            print("OK   %s header range opens at [%s], the fragment's lowest declared check" % (frag, first[0]))
+    if last[1]:
+        checked += 1
+        if last[1] != hi:
+            print("FAIL %s header row closes its range at [%s], but the fragment's highest declared check is [%s]" % (frag, last[1], hi))
+        else:
+            print("OK   %s header range closes at [%s], the fragment's highest declared check" % (frag, last[1]))
+print("COUNT %d" % checked)
+PLS_RANGE_PY
+)
+  pls_range_n=0
+  while IFS= read -r pls_line; do
+    case "$pls_line" in
+      'OK   '*) green "  ok   ${pls_line#OK   }" ;;
+      'FAIL '*) red "  FAIL ${pls_line#FAIL }"; FAILED=$((FAILED + 1)) ;;
+      'COUNT '*) pls_range_n=${pls_line#COUNT } ;;
+    esac
+  done <<PLS_RANGE_EOF
+$pls_range_out
+PLS_RANGE_EOF
+  if [ "$pls_range_n" -lt "$PLS_RANGE_FLOOR" ]; then
+    red "  FAIL [76i] only $pls_range_n range endpoints were compared, expected at least $PLS_RANGE_FLOOR (a changed header format stops the rows parsing and this check would pass on nothing)"
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   $pls_range_n header-manifest range endpoints compared against their fragments"
+  fi
+fi

@@ -392,3 +392,77 @@ check_token_present 'unavailable' "$P5_REVIEW"
 check_file "skills/hackify/scripts/render-report.py"
 check_token_present 'Do not hand-write the HTML' "skills/hackify/references/html-report.md"
 check_token_present 'render-report.py' "skills/hackify/references/finish.md"
+
+yellow "[38h] the settle-echo contract's FILE SET, so a new site cannot join it unnoticed"
+# WHAT THIS CATCHES AND WHAT IT DOES NOT, stated first, because a check whose comment
+# overstates its reach is the defect class this sprint spent itself on.
+#
+# [76h] pins the FULL-round gate sentence BYTE FOR BYTE at the four files that state it,
+# so those four cannot drift apart. It is blind to a FIFTH file stating the same rule in
+# NEW WORDS, and that blindness is not hypothetical: three sites carried the pre-amendment
+# rule in three different phrasings, a grep on the literal found four of the six sites
+# that existed, and a person reading the file found the other two.
+#
+# THIS CLOSES ONE HALF OF THAT GAP AND ONLY ONE HALF. It counts the FILES under skills/
+# and agents/ mentioning the settle prefix at all, so a NEW FILE joining the contract
+# reddens until someone consciously adds it to the total. It does NOT catch a second,
+# differently worded statement inside a file ALREADY in the set. Both sites that broke
+# this sprint were of that second kind: review-scope.md and phases/phase-5-review.md were
+# already in the set and neither offending sentence carried the marker, so this number
+# would not have moved by one. Nothing mechanical catches that case at a cost worth
+# paying; a reader catches it, and saying so here is cheaper than a later maintainer
+# assuming it was covered.
+#
+# IT LIVES BESIDE [38e] BECAUSE THAT IS THE BLOCK IT GUARDS. [38e] pins the diff-slicing
+# and carry-over mechanism, `settle all` and `F never carries over` included, in these
+# same files. This is the same saving's file set, one layer out.
+#
+# THE MARKER WAS CHOSEN BY MEASUREMENT, not taste. The backticked prefix discovers
+# exactly the twelve files in the contract: four sliced reviewer prompts, their four
+# agents/ mirrors, and the four docs that state the rule. The obvious alternative, the
+# `Scope: ` echo token, is worse at both ends, dragging in
+# skills/lawkeeper/assets/report-template.md while missing all three docs that went stale.
+#
+# THE FILE COUNT FAILS, THE OCCURRENCE COUNT ONLY NOTES, and that asymmetry is the design
+# rather than an oversight to tidy into a second hard pin. The file count moves only when
+# a file joins or leaves the contract, which always deserves a human decision. The
+# occurrence total moves whenever anyone rewords a prompt and happens to say the prefix
+# once more, which is noise, and a check that cries wolf gets its expected number bumped
+# without thought. Two pins in this repo went vacuous exactly that way earlier in this
+# sprint. KNOWN HOLE, left open on purpose and written down: a site deleted INSIDE a file
+# that keeps its other mentions passes here. The echo instruction in the four sliced
+# prompts is the live instance, pinned nowhere else in this validator today; closing it
+# wants its own pin on that skeleton line, not a hard total here, and that decision has
+# not been taken.
+#
+# grep -oF and -rlIF, never -c and never -E, and absolute /usr/bin/grep: the three reasons
+# argued above [76g] all bite here. -c counts LINES, and phase-5-review.md carries two
+# occurrences on one line today, so -c reads this set as 24 rather than 25.
+RSE_MARK='`settle `'
+RSE_ROOTS="skills agents"
+# Hand-written beside the check and independent of the list it polices, per the argument
+# above check_list_size in 00-helpers.sh. Today: 12 files, 25 occurrences (eight prompt
+# files at 2 each, phase-5-review.md 4, review-scope.md 3, SKILL.md and
+# review-and-verify.md 1 each).
+RSE_FILES_EXPECTED=12
+RSE_OCCUR_TODAY=25
+rse_files=$(/usr/bin/grep -rlIF -- "$RSE_MARK" $RSE_ROOTS 2>/dev/null); rse_rcf=$?
+rse_occs=$(/usr/bin/grep -roIF -- "$RSE_MARK" $RSE_ROOTS 2>/dev/null); rse_rco=$?
+if [ "$rse_rcf" -gt 1 ] || [ "$rse_rco" -gt 1 ]; then
+  red "  FAIL [38h] could not scan $RSE_ROOTS for '$RSE_MARK' (grep exited $rse_rcf then $rse_rco), so a count of 0 here would be a count of nothing"
+  FAILED=$((FAILED + 1))
+else
+  rse_nf=0; rse_no=0
+  [ -n "$rse_files" ] && rse_nf=$(printf '%s\n' "$rse_files" | wc -l | tr -d ' ')
+  [ -n "$rse_occs" ] && rse_no=$(printf '%s\n' "$rse_occs" | wc -l | tr -d ' ')
+  check_list_size "$rse_nf" "$RSE_FILES_EXPECTED" "the files under $RSE_ROOTS in the settle-echo contract"
+  if [ "$rse_no" -eq "$RSE_OCCUR_TODAY" ]; then
+    green "  ok   '$RSE_MARK' sits at $rse_no occurrences, unchanged (advisory, this half never fails)"
+  else
+    yellow "  note '$RSE_MARK' moved to $rse_no occurrences from the $RSE_OCCUR_TODAY recorded here; advisory by design, update it once you have looked at why"
+  fi
+  if [ "$rse_nf" -ne "$RSE_FILES_EXPECTED" ]; then
+    red "  ---- the $rse_nf discovered file(s) were:"
+    printf '        %s\n' $rse_files
+  fi
+fi

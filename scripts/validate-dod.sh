@@ -19,18 +19,22 @@
 #                   structural invariants (excised files stay excised, skill
 #                   frontmatter, hook command targets, always-on injection,
 #                   perf surfaces)
-#   71-release-mechanism-pins.sh, checks [38c]-[38g], one block per shipped
+#   71-release-mechanism-pins.sh, checks [38c]-[38h], one block per shipped
 #                   saving, each pinning the guard rail that keeps the saving
 #                   from becoming a silent loss of rigor. Split out of 70 at
-#                   the 500-LOC cap; the check IDs moved with the blocks
+#                   the 500-LOC cap; the check IDs moved with the blocks. [38h]
+#                   pins the settle-echo contract's file set beside [38e], the
+#                   diff-slicing block it guards
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
-#   76-phase-ledger-substrate.sh, checks [76]-[76h], where the phase ledger
+#   76-phase-ledger-substrate.sh, checks [76]-[76i], where the phase ledger
 #                   lives, the per-phase tick lines, the always-on phase laws,
 #                   this orchestrator's own fragment enumeration ([76f]), and
 #                   the docs/work/ exclusion on the reviewed diff ([76g]), and
 #                   the FULL-round gate wording, stated identically at every
-#                   site that states it, plus Reviewer B's round marker ([76h])
+#                   site that states it, plus Reviewer B's round marker ([76h]),
+#                   and this row's own range endpoints checked against the
+#                   fragments they describe ([76i])
 #   77-reviewer-roster.sh, check [77], reviewer-roster drift in COUNT grammar,
 #                   count bans over six files (two no other check reaches, a
 #                   wider token set on the four shared with [38g]) plus the
