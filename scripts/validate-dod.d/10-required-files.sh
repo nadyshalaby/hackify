@@ -81,10 +81,9 @@ done
 # repaired matcher the personal-handle loops above already screen through; this
 # was the last copy of the old pattern in the file.
 #
-# SINGULAR, NOT THE BATCHED check_no_tokens_in. There is one token here, so
-# batching would save nothing, and scripts/test_ban_tokens.d/30-inventory-pins.sh
-# pins how many batched call sites ship across scripts/validate-dod.d/ against the
-# number CHANGELOG.md claims.
+# SINGULAR, NOT THE BATCHED check_no_tokens_in. The batched form takes MANY TOKENS
+# over ONE path; this is ONE token over four paths, the opposite shape, so there is
+# nothing here to batch and nothing the batched form would save.
 for abs_path in skills/ README.md CHANGELOG.md .claude-plugin/; do
   check_no_token '/Users/corecave/' "$abs_path"
 done

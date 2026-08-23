@@ -65,10 +65,16 @@ CAP_APPEND_ONLY_EXPECTED=1
 # agreement and earns the same treatment, a check instead of prose. python3 is not a new
 # requirement here, [80b] already reddens without it.
 #
-# The two do NOT match on scope, and that is deliberate rather than drift: this list is
-# compared against a repo-relative path and so waives the ROOT changelog alone, while the
-# scanner compares basenames because it is pointed at arbitrary roots. They coincide at a
-# repo root, which is the only place this check runs. Only the CONTENTS are cross-checked.
+# THE TWO SIDES DO NOT HOLD THE SAME SHAPE, so the SHELL side is the one normalized, and
+# only at the comparison below. CAP_APPEND_ONLY holds REPO-RELATIVE PATHS because its two
+# other consumers need one: the membership test in the scan loop compares against what
+# cap_file_list emits, and the staleness loop hands each entry to `[ -f ]`. The scanner
+# keys on BASENAMES because it is pointed at arbitrary roots. Comparing the two raw is
+# string equality between a path and a basename, which holds today only because both
+# lists read exactly `CHANGELOG.md`, and turns into a FALSE RED the day either side gains
+# a single non-root entry. Reducing the shell copy to basenames at the point of use is
+# what makes the two sides comparable without breaking the two consumers that need paths.
+# Only the CONTENTS are cross-checked.
 CAP_EXEMPTIONS="skills/lawkeeper/scripts/exemptions.py"
 
 # The one root file this check actually ENFORCES, named rather than counted. With
@@ -118,30 +124,59 @@ $CAP_APPEND_ONLY
 CAP_EXEMPT_EOF
 check_list_size "$cap_known_total" "$CAP_APPEND_ONLY_EXPECTED" "the [80] CAP_APPEND_ONLY exemption list"
 
+# THE MODULE NAME IS DERIVED FROM CAP_EXEMPTIONS, NOT HARDCODED, and that is a fix rather
+# than a tidy-up. The import used to read `from exemptions import ...` while the `[ -f ]`
+# guard below tested CAP_EXEMPTIONS, so the two could disagree about which file this check
+# is even about: point CAP_EXEMPTIONS at any sibling module in that directory and the guard
+# passed, the real exemptions.py was imported regardless, and the ok line named a file it
+# had never opened. Reproduced by pointing it at lexer.py and watching it print green. That
+# is the same shape as every other defect this fragment exists to refuse, a check reporting
+# on one thing while measuring another.
+cap_module="${CAP_EXEMPTIONS##*/}"
+cap_module="${cap_module%.py}"
+
+# A DERIVED NAME THAT IS NOT IMPORTABLE IS A FAILURE, NEVER A SILENT SKIP. A hyphen is legal
+# in a filename and illegal in a module name, so renaming the scanner's set to something like
+# append-only-exemptions.py would leave the file present, the `[ -f ]` guard green, and the
+# import raising. Caught here it names the real problem; left to the import it would arrive as
+# "could not read APPEND_ONLY_BASENAMES", which blames the contents of a file that is fine.
+case "$cap_module" in
+  '' | [0-9]* | *[!A-Za-z0-9_]*) cap_module_ok=0 ;;
+  *) cap_module_ok=1 ;;
+esac
+
 cap_scanner_exempt() {
   python3 -c '
-import sys
+import importlib, sys
 sys.path.insert(0, sys.argv[1])
-from exemptions import APPEND_ONLY_BASENAMES
-print("\n".join(sorted(APPEND_ONLY_BASENAMES)))
-' "${CAP_EXEMPTIONS%/*}" 2> /dev/null
+print("\n".join(sorted(importlib.import_module(sys.argv[2]).APPEND_ONLY_BASENAMES)))
+' "${CAP_EXEMPTIONS%/*}" "$cap_module" 2> /dev/null
 }
 
 cap_one_line() { echo "$1" | tr '\n' ' '; }
 
+# Path list to basename set, the normalization the block comment above argues for.
+# `sort -u` and not `sort`, because two exempt paths sharing a basename are ONE
+# basename to the scanner and the two sides must still be able to agree.
+cap_to_basenames() { sed 's|.*/||' | sort -u; }
+
 cap_scanner_list=$(cap_scanner_exempt)
-cap_shell_list=$(printf '%s\n' "$CAP_APPEND_ONLY" | sort)
+cap_shell_list=$(printf '%s\n' "$CAP_APPEND_ONLY" | cap_to_basenames)
+cap_shell_count=$(printf '%s\n' "$cap_shell_list" | wc -l | tr -d ' ')
 if [ ! -f "$CAP_EXEMPTIONS" ]; then
   red "  FAIL $CAP_EXEMPTIONS is missing, so nothing cross-checks this exemption list against the scanner's and the two can drift unobserved"
+  FAILED=$((FAILED + 1))
+elif [ "$cap_module_ok" -eq 0 ]; then
+  red "  FAIL '$cap_module', derived from $CAP_EXEMPTIONS, is not a plain Python module name, so the set this check compares against can never be imported"
   FAILED=$((FAILED + 1))
 elif [ -z "$cap_scanner_list" ]; then
   red "  FAIL could not read APPEND_ONLY_BASENAMES out of $CAP_EXEMPTIONS; a list that cannot be read is not a list that agrees"
   FAILED=$((FAILED + 1))
 elif [ "$cap_scanner_list" != "$cap_shell_list" ]; then
-  red "  FAIL this check waives [$(cap_one_line "$cap_shell_list")] from the ${CAP_MAX_LOC}-LOC cap and $CAP_EXEMPTIONS waives [$(cap_one_line "$cap_scanner_list")]; the two enforcers of one cap would exempt different files"
+  red "  FAIL this check waives basename(s) [$(cap_one_line "$cap_shell_list")] from the ${CAP_MAX_LOC}-LOC cap and $CAP_EXEMPTIONS waives [$(cap_one_line "$cap_scanner_list")]; the two enforcers of one cap would exempt different files"
   FAILED=$((FAILED + 1))
 else
-  green "  ok   CAP_APPEND_ONLY and $CAP_EXEMPTIONS waive the same ${CAP_APPEND_ONLY_EXPECTED} file(s) from the ${CAP_MAX_LOC}-LOC cap"
+  green "  ok   CAP_APPEND_ONLY and $CAP_EXEMPTIONS waive the same ${cap_shell_count} basename(s) from the ${CAP_MAX_LOC}-LOC cap"
 fi
 
 if [ "$cap_total" -eq 0 ]; then
