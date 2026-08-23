@@ -279,11 +279,11 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | `W19/T55` | `e27e2fc` | pre-declared | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` |
 | `W20/T56` | `85c0a19` | pre-declared | `skills/lawkeeper/scripts/audit_scan.py` |
 | `W20/T57` | `85c0a19` | pre-declared | `skills/lawkeeper/scripts/test_audit.py` |
-| `W21/T58` | (in flight) | pre-declared | `skills/lawkeeper/scripts/checks.py` `skills/lawkeeper/scripts/test_audit.py` |
-| `W21/T59` | (in flight) | pre-declared, site deferred | `scripts/validate-dod.d/80-file-size-caps.sh` `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
-| `W21/T60` | (in flight) | pre-declared | `skills/lawkeeper/references/porting-scanner.md` `skills/hackify/references/law-scout.md` |
+| `W21/T58` | `b95a3a2` | pre-declared | `skills/lawkeeper/scripts/checks.py` `skills/lawkeeper/scripts/test_audit.py` |
+| `W21/T59` | `b95a3a2` | pre-declared, site deferred, resolved | `scripts/validate-dod.d/80-file-size-caps.sh` (chosen from a pre-declared set of three) |
+| `W21/T60` | `b95a3a2` | pre-declared | `skills/lawkeeper/references/porting-scanner.md` `skills/hackify/references/law-scout.md` |
 
-**Coverage, measured both directions.** 55 rows over 59 listed paths, against 55 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not yet in the diff: 4, all belonging to Wave 21, which was still running when this count was taken. Its allowlists were written at dispatch rather than after, so the rows currently disagree with git in the only direction a real allowlist can: naming something that has not happened yet. A reconstructed row cannot reach that state, which is the whole point of the distinction. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
+**Coverage, measured both directions.** 55 rows over 59 listed paths, against 59 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not in the diff: 0. The two sides now reconcile exactly, which they did not while Wave 21 was in flight: at that point four listed paths had no commit yet, because those allowlists were written at dispatch rather than after, so the rows disagreed with git in the only direction a real allowlist can, naming something that had not happened yet. `b95a3a2` closed that gap by landing all four. A reconstructed row can never reach that state, which is the whole point of the distinction. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
 
 **Authorization strength, counted rather than asserted.** This is the number that matters, because a row's provenance is what decides whether it can ever fail:
 
@@ -293,7 +293,7 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | pre-declared, amended at Phase 5 | 2 | 11 | the allowlist was real and the task went outside it; the row carries the paths actually touched and says so |
 | reconstructed | 27 | 32 | written at Phase 5 from the Daily Updates entry plus `git show --stat`, so it records what happened and cannot retroactively have constrained it |
 | no task ID | 7 | 13 | keyed on the decision-table finding that authorized the fix, because no task number was ever assigned |
-| pre-declared, site deferred | 1 | 3 | the task's placement was a judgement call handed to the implementer, so the row names the candidate set it may choose from and is narrowed to the actual file when the wave lands |
+| pre-declared, site deferred, resolved | 1 | 1 | the task's placement was a judgement call handed to the implementer, so the row named the candidate set it could choose from and has now been narrowed to the file the landed wave actually touched |
 
 **Why `W21/T59` gets its own class instead of being called pre-declared.** That task pins two
 line-count enforcers against each other, and where the check belongs is a real design question: the
@@ -305,6 +305,15 @@ the edit and a file outside those three is still detectable, and weaker than `pr
 does not name one file. Recording it as either of the neighbouring classes would overstate or
 understate what it actually constrains.
 
+**It resolved, and the mechanism held.** The implementer chose
+`scripts/validate-dod.d/80-file-size-caps.sh`, on the reasoning that the check belongs beside the
+other counter it is measuring against. `b95a3a2` touched five files, all five inside their task
+allowlists, and the two candidates it did not choose,
+`scripts/validate-dod.d/76-phase-ledger-substrate.sh` and `scripts/validate-dod.sh`, are untouched in
+that commit. That is the falsifiable part: a deferred site narrows the allowlist to a set rather than
+abandoning it, so a file outside the set is still a detectable breach, and this one stayed inside.
+The row now names the settled file, and its listed-path count drops from three to one.
+
 **The pre-declared class grew from 9 rows to 16 across Waves 18 to 20, and that is the number worth watching.** Reviewer B's Critical was that a census cannot fail. Every row added since carries an allowlist written at dispatch time, and Wave 20's two rows currently name files that do not yet appear in the diff, which is a state a reconstructed row cannot reach by construction.
 
 **Two rows are amended, and they are what prove the index can fail.** `W3/T7`'s allowlist was `scripts/validate-dod.d/70-invariants-and-new.sh` alone; it also wrote five agent files. `W2b/T9`'s allowlist named four paths and did not name `README.md`; it edited README anyway. Both breaches are recorded in this sprint's own Sprint Backlog and both stay legible in the index, in their own provenance class rather than folded into `pre-declared`, because a table where the recorded breach is indistinguishable from a clean row is the table Reviewer B refuted.
@@ -315,7 +324,9 @@ understate what it actually constrains.
 
 Both count columns are re-derived from the rows above, by grouping on the Provenance cell (bold is emphasis, so `**no task ID**` and `no task ID` are one label) and unioning the backticked paths in each group. They are not maintained by hand. A hand-kept total on a table that later work grows is the staleness this sprint already had to fix twice, once in the DoD count and once in the roster.
 
-**The distinct-path column does not partition the 52.** It sums to 95, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 59; do not sum the column and compare it.
+**The distinct-path column does not partition the 59.** It sums to 93, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 59; do not sum the column and compare it.
+
+**A parser trap worth recording, because it is this sprint's own shape.** The first recount I ran filtered path tokens on `'/' in x`, which silently discarded every root-level file: `CHANGELOG.md` and `README.md` have no slash. It reported 88 where the table said 95 and I nearly edited the table to match a broken count. The filter now matches on a file extension and prints any token it rejected, so a dropped input is visible instead of arriving as a smaller number. Same rule as the nine gotchas: a filter that cannot say what it removed reads as coverage.
 
 **Three paths have no authorization other than a `no task ID` row:** `skills/hackify/references/parallel-agents/phase-5-aggregation.md`, `skills/hackify/references/parallel-agents/phase-5-refute.md` and `skills/hackify/references/review-scope.md`. Every other path in the 13 also appears under a numbered task somewhere else in the index. That count of three is the honest measure of how much of this sprint changed with nothing task-shaped standing behind it.
 
@@ -1438,6 +1449,60 @@ Wave 8 (T53 to T55) applies it: exclude `docs/work/` where the review scope is b
 exclusion into Reviewer B's own diff commands since B is never sliced and receives `settle all`, and
 pin all of it in `76-phase-ledger-substrate.sh` with every pin proven by tamper. B keeps reading the
 work-doc in full as its authority. It simply stops grading it.
+
+## 7e. Wave 21, the two line counters, and a scout report that could not be reproduced
+
+`b95a3a2` landed T58, T59 and T60. The lawkeeper scanner counted one line more than `wc -l` on every
+newline-terminated file, because splitting the source on newlines keeps the phantom empty element a
+POSIX terminator produces. A file sitting exactly at the 500-line cap read as 501 and was flagged.
+`scripts/validate-dod.d/70-invariants-and-new.sh` is at exactly 500, passed the repo's own `[80]`
+check, and was flagged by the scanner at the same time, which is how the two enforcers were caught
+disagreeing.
+
+**The agent refused the obvious fix and was right to.** `str.splitlines()` corrects the count and
+also breaks on form feed, vertical tab and the Unicode line separators. Those extra break points
+would renumber every other rule's findings, and the masked twin rejoins the list with `\n` before the
+lexer reads it, so any split on another character would quietly rewrite the source being analysed. It
+dropped exactly one trailing element instead, which leaves a genuine trailing blank line counted.
+
+I verified the fix at five boundaries rather than taking the tests on trust. 500 lines plus a
+terminator went 501 to 500; 500 without one stayed 500; `a\n\n` went 3 to 2, keeping its real blank
+line; an empty file went 1 to 0; a single unterminated line stayed 1. All five agree with `wc -l`.
+
+**Check `[80b]` stops the two counters drifting apart again**, and I tamper-proved it in both
+directions with the `tampered=YES/NO` guard from the ninth gotcha. Making the scanner count one high
+reddens with both figures side by side; making it count one low reddens naming the flag that went
+missing at the lower cap. Baseline green, exit 0, tree restored byte-identical afterwards.
+
+### The scout report I was about to hand the closing round was not reproducible
+
+The staged law-scout report recorded its own invocation as
+`--text-only-ext .sh .md .py .json .yml .yaml`, one flag carrying six values. That flag is
+`action='append'`, so the form takes `.sh` as the value and the remaining five as positional
+arguments, and `audit_scan.py` accepts exactly one positional. **Run as written it exits on a usage
+error and prints no report at all.** The 52-handed, 49-scanned, 3-unaccounted figures in that report
+therefore came from some other command, and nothing on the page says which. That is a provenance
+defect in a Phase 5 input, and it would have travelled straight into the closing round as
+`{{law_scout_report}}`.
+
+Regenerated with the repeated-flag form `law-scout.md:39` actually prescribes, against the current
+diff: **59 paths handed, 59 scanned, 0 skipped, every drop bucket 0, `paths_unaccounted` 0.** The
+reconciliation the dotfile fix made possible now holds on the real list, both directions.
+
+Nine candidates, every one dispositioned, no silent drops:
+
+| # | rule_id | site | Disposition |
+|---|---|---|---|
+| 1 | `cap.file-lines` | `CHANGELOG.md:921` | **DISMISSED, by design.** `80-file-size-caps.sh:13` scopes the cap sweep to `skills agents rules scripts hooks commands`, deliberately excluding root files. Append-only history; splitting it by responsibility destroys what it is for. |
+| 2 | `clean.removed-comment` | `CHANGELOG.md:488` | **REFUTED, false positive.** Markdown prose describing the lawkeeper skill, not a `// removed:` code comment. Pre-existing. |
+| 3 | `clean.removed-comment` | `README.md:143` | **REFUTED, false positive.** Same shape, prose describing `/lawkeeper`. Pre-existing. |
+| 4 | `clean.removed-comment` | `law-scout.md:23` | **REFUTED, false positive.** The line documents the `// removed:` rule as one of the things the scout catches. A rule matching its own documentation. Dates to v0.9.0, untouched this sprint. |
+| 5, 6 | `clean.removed-comment` | `test_audit.py:145`, `:146` | **REFUTED, false positive.** The literal fixtures that prove the rule fires: `'// removed: old handler'` and `'# removed: dead path'`. |
+| 7, 8, 9 | `clean.debt-marker` | `test_audit.py:150`, `:151`, `:170` | **REFUTED, false positive.** Same shape: `TODO` and `FIXME` fixtures that prove the debt-marker rule fires. |
+
+Five of the nine are the scanner detecting its own test fixtures, which is the scanner working. None
+is actionable, and recording that as "clean" without the table would have hidden the one row that is
+a real design decision rather than a false positive, row 1.
 
 ## 8. Retrospective
 
