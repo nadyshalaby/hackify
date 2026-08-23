@@ -3376,6 +3376,29 @@ the agent's own changes constant, because the sibling was still landing the four
 worth recording that a wave running two agents over one repo can produce a red that belongs to neither
 agent's diff.
 
+### The seventeenth instance, closed, and a distinction worth keeping
+
+The import now derives its module from `${CAP_EXEMPTIONS##*/}` and validates it before use, with a
+hyphen as the motivating case: legal in a filename, illegal in a module name, so renaming the set to
+`append-only-exemptions.py` would leave the file present, the `[ -f ]` guard green, and the import
+raising. Caught at the guard it names the real problem instead of blaming the contents of a file that
+is fine.
+
+**I reproduced the hole myself rather than taking the report.** Pointed at `lexer.py`, the old snippet
+still returns `CHANGELOG.md`, because it hardcodes `from exemptions import` and only the directory ever
+came from the variable. The new snippet returns empty and the `-z` branch fails the check.
+
+**The agent drew a line I want kept, because it is the difference between a fix and a fix that flatters
+itself.** Of its two probes only ONE closed a hole. `lexer.py` is the genuine false-green: green printed
+over a file never opened. The `00-helpers.sh` probe reddened under the old code too, just for the wrong
+reason, blaming file contents when the real fault was an unimportable name. One false-green closed, one
+misattributed error corrected, and it refused to bank the second as though it were the first.
+
+It also left one edge deliberately and said so: `${CAP_EXEMPTIONS%/*}` on a slashless path returns the
+whole string and puts a bogus entry on `sys.path`. It fails safe, Python ignores a non-directory, the
+import fails, the check reddens. Not the class we are hunting, and flagged so nobody rediscovers it as
+a bug.
+
 ## 7ae. Fix group A: the rule was at six sites, and my count of four was an artifact of how I looked
 
 **The number in the brief was wrong and the agent found the missing two.** F cited three stale sites
