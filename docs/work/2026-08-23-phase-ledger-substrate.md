@@ -2284,6 +2284,143 @@ It also built a better control than a true no-op: an edit that changed bytes (a 
 changing meaning, which must report `tampered=YES` and stay green. A true no-op control cannot
 distinguish "the check is fine" from "my probe did nothing".
 
+## 7o. The settle round: a scout that reproduces, and a ledger rebuilt on a diff that moved under it
+
+Every verdict from the closing panel is dead. Waves 22, 23, 23b and 24, plus the release commit,
+moved or created essentially every path in the ledger, and the carry-over law says a verdict lives
+only while its recorded blob still matches disk. So the panel that closed at `303ef40` authorizes
+nothing now. That is the law working, not a setback: skipping the round here would be the same
+assert-instead-of-check move this whole sprint exists to delete.
+
+### The scout, run at HEAD and reproducible this time
+
+The staged report from Wave 21 could never be reproduced, because its recorded invocation passed
+six values to a single `--text-only-ext` flag, which exits on a usage error. This run passes the
+flag five times, once per extension, and exits 0 with an empty stderr.
+
+```
+python3 skills/lawkeeper/scripts/audit_scan.py . \
+  --paths-from "$SCOUT_PATHS" --max-file-lines 500 \
+  --text-only-ext .md --text-only-ext .sh --text-only-ext .py \
+  --text-only-ext .json --text-only-ext .yml
+```
+
+Reconcile first, findings second:
+
+```
+PARSE: 69 lines in, 69 paths out (0 dropped, 0 unaccounted)
+SCAN : 69/69 paths accounted, 0 unaccounted
+       files_scanned=69 files_skipped=0
+```
+
+`files_scanned=69` is the number that matters. Wave 24's rule is that a reconcile which subtracts
+known buckets proves nothing about whether the buckets should have been hit at all, so a balanced
+reconcile over an empty scan would still be worthless. Here nothing was dropped and 69 files were
+actually read, so the balance is load-bearing rather than decorative.
+
+### Law-scout (phase-5-settle, 2026-08-23)
+
+| Finding | rule_id | file:line | Evidence | Proposed fix | Status |
+|---|---|---|---|---|---|
+| CHANGELOG over the line cap | cap.file-lines | CHANGELOG.md:1 | 939 lines against a 500 cap | none yet, needs a decision | staged |
+| `removed:` in a changelog bullet | clean.removed-comment | CHANGELOG.md:506 | release prose describing what a version removed, not a code comment | none | false-positive: historical prose |
+| `removed:` in a README bullet | clean.removed-comment | README.md:143 | feature-list prose for `/lawkeeper` | none | false-positive: prose |
+| `removed:` in the scout's own docs | clean.removed-comment | law-scout.md:23 | the sentence documenting that the rule catches `// removed:` leftovers | none | false-positive: self-match |
+| `removed:` fixtures | clean.removed-comment | test_audit.py:145,146 | `assert 'clean.removed-comment' in _rules('// removed: old handler\n')` | none | false-positive: detection fixture |
+| debt-marker fixtures | clean.debt-marker | test_audit.py:150,151,170 | `assert 'clean.debt-marker' in _rules('// TODO fix this later\n')` | none | false-positive: detection fixture |
+
+Eight of nine are false positives and they share one cause worth naming: **the scanner has no
+self-exemption, so the file that documents a rule and the test that proves the rule works both
+trip that rule.** This is the inverse of the sprint's twelve instances. Those were checks that
+passed while measuring nothing; this is a check that fires while measuring nothing. Noise, not
+silence, and cheaper, but it is the same failure to distinguish a real signal from an artifact of
+the check's own construction.
+
+`carve-outs.md:16` already exempts test files from four rules (suppression, non-null, inline-type,
+bare-error) and not from the two hygiene rules. Whether that asymmetry is deliberate is a real
+question and it goes to the user, not into a silent fix.
+
+The `cap.file-lines` row is the only live one. There is no carve-out for append-only historical
+records, so a growing CHANGELOG will redden this scan every sprint from here on.
+
+### Scope ledger
+
+Base `dabc333`, HEAD `23def4b`, 60 commits, 69 paths after `':(exclude)docs/work/*'`.
+Zero deleted, so all 69 blobs are live at dispatch. E folds on evidence: zero UI-bearing files in
+the diff, checked by extension, and the fold is recorded here rather than left silent.
+
+| Path | Blob | Lenses |
+|---|---|---|
+| `.claude-plugin/marketplace.json` | `46bcc4a` | B |
+| `.claude-plugin/plugin.json` | `0ed5dd3` | B |
+| `.github/workflows/ci.yml` | `8c89479` | B |
+| `CHANGELOG.md` | `57b23a4` | B |
+| `README.md` | `64eaf73` | B |
+| `agents/code-reviewer-coherence.md` | `d808f13` | B,F |
+| `agents/code-reviewer-performance.md` | `5f374f2` | B,F |
+| `agents/code-reviewer-quality-plan.md` | `bf15f6d` | B,F |
+| `agents/code-reviewer-security.md` | `c2c83b7` | B,F |
+| `agents/design-conformance-reviewer.md` | `1833a56` | B,F |
+| `agents/spec-reviewer.md` | `49ae701` | B,F |
+| `commands/designify.md` | `3823e1a` | B |
+| `hooks/hooks.json` | `741d5cd` | B,D |
+| `hooks/inject-context.sh` | `4fe497f` | B,A,D |
+| `hooks/test_inject_context.sh` | `27a6f9b` | B,A,D |
+| `rules/performance.md` | `039fccd` | B |
+| `rules/phase-discipline.md` | `2b7e994` | B |
+| `scripts/sync-runtimes.d/00-helpers.sh` | `13fca72` | B,A,D |
+| `scripts/test_ban_tokens.d/00-harness.sh` | `2643992` | B,A,D |
+| `scripts/test_ban_tokens.d/10-ban-list-cases.sh` | `5a28d49` | B,A,D |
+| `scripts/test_ban_tokens.d/20-corruption-and-wiring-cases.sh` | `cdec619` | B,A,D |
+| `scripts/test_ban_tokens.d/30-inventory-pins.sh` | `b3f4f80` | B,A,D |
+| `scripts/test_ban_tokens.sh` | `2e32998` | B,A,D |
+| `scripts/validate-dod.d/00-helpers.sh` | `0dddfc0` | B,A,D |
+| `scripts/validate-dod.d/20-templates.sh` | `f8fd250` | B,A,D |
+| `scripts/validate-dod.d/27-marketplace-ref-pin.sh` | `e020e4f` | B,A,D |
+| `scripts/validate-dod.d/70-invariants-and-new.sh` | `86a97b6` | B,A,D |
+| `scripts/validate-dod.d/71-release-mechanism-pins.sh` | `0d2f6ff` | B,A,D |
+| `scripts/validate-dod.d/76-phase-ledger-substrate.sh` | `bbd8556` | B,A,D |
+| `scripts/validate-dod.d/77-reviewer-roster.sh` | `d40b70a` | B,A,D |
+| `scripts/validate-dod.d/79-standing-member-invariant.sh` | `3597c5a` | B,A,D |
+| `scripts/validate-dod.d/80-file-size-caps.sh` | `46e7d5e` | B,A,D |
+| `scripts/validate-dod.sh` | `bb7709f` | B,A,D |
+| `skills/groom/SKILL.md` | `cf0f9e5` | B,F |
+| `skills/hackify/SKILL.md` | `4a93225` | B,F |
+| `skills/hackify/references/html-report.md` | `ed2000b` | B,F |
+| `skills/hackify/references/law-scout.md` | `5cb41bc` | B,F |
+| `skills/hackify/references/orchestration.md` | `21fdc0f` | B,F |
+| `skills/hackify/references/parallel-agents/README.md` | `db3af85` | B,F |
+| `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` | `9b02a8b` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-aggregation.md` | `cd99bda` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-escalation.md` | `1ecbf0c` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` | `8bc9062` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` | `35560c8` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md` | `4741e52` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` | `41a05ab` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` | `a5c8cbb` | B,F |
+| `skills/hackify/references/parallel-agents/phase-5-refute.md` | `eca394e` | B,F |
+| `skills/hackify/references/parallel-agents/template-contract.md` | `de33502` | B,F |
+| `skills/hackify/references/perf-scout.md` | `58ea4d3` | B,F |
+| `skills/hackify/references/phase-ledger.md` | `ea41ef4` | B,F |
+| `skills/hackify/references/phases/phase-1-clarify.md` | `960381f` | B,F |
+| `skills/hackify/references/phases/phase-2.5-spec-review.md` | `cb0a979` | B,F |
+| `skills/hackify/references/phases/phase-3-implement.md` | `157a6f9` | B,F |
+| `skills/hackify/references/phases/phase-4-verify.md` | `c30fa0d` | B,F |
+| `skills/hackify/references/phases/phase-5-review.md` | `5a0ffd5` | B,F |
+| `skills/hackify/references/phases/phase-6-finish.md` | `f8b14ee` | B,F |
+| `skills/hackify/references/review-and-verify.md` | `e66ede3` | B,F |
+| `skills/hackify/references/review-scope.md` | `878595f` | B,F |
+| `skills/hackify/references/runtime-adapters.md` | `1ded3d2` | B,F |
+| `skills/hackify/references/work-doc-template.md` | `2516419` | B,F |
+| `skills/lawkeeper/references/porting-scanner.md` | `e4b2ed4` | B,F |
+| `skills/lawkeeper/scripts/audit_scan.py` | `abf4250` | B,A,F |
+| `skills/lawkeeper/scripts/checks.py` | `27f0171` | B,A,F |
+| `skills/lawkeeper/scripts/test_audit.py` | `f3723ac` | B,A,F |
+| `skills/quick/SKILL.md` | `8209764` | B,F |
+| `skills/review-triage/SKILL.md` | `0c9ccce` | B,F |
+| `skills/yolo/SKILL.md` | `e9da33f` | B,F |
+| `skills/yolo/evals/evals.json` | `6beb47e` | B,F |
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
