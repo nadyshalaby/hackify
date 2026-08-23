@@ -3441,6 +3441,55 @@ implementation deliberately withheld until the tradeoff is on the table.
 one; `:31` stops at `([76g])`. Nothing reddens, because `[76f]` checks fragment filenames and not check
 IDs, so the manifest simply under-describes its own fragment. Authorized as a one-file extension.
 
+## 7af. Wizard decisions 29 and 30, and a recommendation that led with its own limitation
+
+Both went the recommended way, and the reason is worth recording because it is a standard for what a
+useful recommendation looks like rather than a preference about checks.
+
+**Issue #29, the prose-variant gap. Answer: A, build the file-count pin.** The agent recommended it
+while stating up front that **it would not have caught either of the two sites it found this task**,
+because both sit in files already inside any plausible discovery set, and neither sentence carries the
+marker. So the pin catches a new FILE entering the settle-echo contract and does not catch a second,
+differently worded statement inside a file already in it, which is exactly what bit us. It said so
+before saying what the option buys. It also measured the two options it rejected instead of reasoning
+about them: banning the universal phrasings runs to 21 occurrences across 9 files, most of them
+innocent and load-bearing, so it ships with a roughly 15-entry allowlist on day one and every entry is
+a hole. I verified the marker measurement independently and got its numbers exactly, 12 files and 25
+occurrences, which is why the rest of the analysis was worth trusting.
+
+**It rejected the structurally correct-looking answer, with reasons rather than taste.** Pointer
+discipline, where one file states the rule and the rest link to it, collides with an existing pin that
+requires `settle all` inside `review-and-verify.md`, contradicts this plugin's stated stance that a
+reader should have the rule in hand (the same reason `{{repo_brief}}` exists), and does not survive the
+next author, because pointer discipline is itself an unenforced convention: someone who wants the rule
+inline writes it inline, and now there is a pointer AND a restatement.
+
+**And it named a trigger instead of a preference.** If this class appears a third time, single-source
+the sentence at build time the way `agents/*.md` already are, since this repo has solved the identical
+problem once already, one authored thing that must appear identically in several places, with a
+generator plus `--check`. Not now: more machinery than one rule earns. A recommendation with a written
+trigger is worth more than one with a strength of feeling.
+
+**Issue #30, the stale-range twin. Answer: A, fix the shape for both.** The agent found the structural
+rule: a manifest row whose range endpoint carries a letter suffix is the only shape that can go
+POSITIVELY wrong, because the endpoint asserts a maximum. `[76]-[76g]` was already stale.
+`71-release-mechanism-pins.sh, checks [38c]-[38g]` is the same shape and accurate today, so it fails
+silently the day a `[38h]` lands. Verified: that file carries `[38b]` through `[38g]`, so the row is
+also wrong at the LOW end already. Fixing the shape rather than the instance is the same reasoning that
+made `[76h]` worth building.
+
+**Declined, and recorded as declined rather than dropped:** normalizing the two theme-gloss manifest
+rows. The manifest deliberately runs two styles, ID-enumeration and one-line gloss, and normalizing
+would drag the ship-bar row into listing eleven IDs it currently summarizes. A style change is not a
+bug fix.
+
+**One design point handed back rather than decided for the agent.** It flagged that the occurrence
+count will throw occasional false reds when someone rewords a prompt. A check that cries wolf gets its
+expected number bumped without thought, which is precisely how `[27d]` and the `[70]` lists went vacuous
+earlier in this same sprint. My leaning, passed as a leaning: fail hard on the file count, note the
+occurrence drift. The limitation goes in the check's own comment, not only in a report, because a check
+whose comment overstates its reach is the defect class this sprint exists to close.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
