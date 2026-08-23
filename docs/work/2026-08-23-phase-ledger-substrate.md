@@ -1744,6 +1744,108 @@ Nothing above has been touched. Reviewers A, B and D are still reading these exa
 a file while a reviewer reads it is a Critical this project has already filed once in this sprint.
 The fix wave goes out when the panel is complete.
 
+## 7h. Reviewers A and D, two more Criticals, and a fabricated catalog ID that was mine
+
+### Reviewer A, CONFIRMED Critical: `[27d]` can print a clean verdict over an empty set
+
+`27-marketplace-ref-pin.sh:197` computes `mrp_below=$((mrp_resolved + mrp_known_n + mrp_missing))` and
+prints it. All three start at zero. If the `sort -V` feeding the loop at `:185` emits nothing, whether
+because `-V` is absent or errors, the loop body never runs, every counter stays zero, `mrp_missing`
+is zero, and the green branch prints:
+
+```
+ok   0 of 0 released version(s) below in-flight 0.14.2 resolve to a real git tag
+```
+
+with `FAILED` unmoved. I reproduced the arithmetic directly. The three guards at `:150-165` cover the
+input READS, not the COMPARISON.
+
+**This is the check I quoted an hour ago to claim "46 of 46 released versions resolve".** That number
+happens to be true, and I verified the tags by hand when I cut them, but the check backing the claim
+cannot distinguish 46 of 46 from nothing at all.
+
+**The sprint's own standard says this should be red.** `77-reviewer-roster.sh:483` refuses exactly
+this state in exactly these words: "A clean verdict over an empty set is the vacuous pass this block
+exists to refuse, so it is reported as a failure rather than printed as a green." `[27d]` has no such
+floor. A's read that this is an oversight rather than a deliberate carve-out is right, and the
+fragment's own header at `:127` forbids it.
+
+### Reviewer A, CONFIRMED Critical: the fail-open helper now sits under a fail-closed one
+
+`00-helpers.sh:43` runs `count=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null | awk ...)`. The
+pipeline's exit status is awk's, so grep returning 2 (unreadable path) or 127 (no matcher) both
+produce `count=0` and a green line. Verified: that pipeline against a nonexistent path prints nothing
+and exits 0.
+
+The hole itself is the fifth verification gotcha, already recorded and knowingly deferred. **What
+this diff created is the asymmetry.** `check_no_tokens_in` at `:198` states "a screen that never ran
+must never be the reason a token prints green" and reds on rc greater than 1 at `:201`. Then `:207`
+calls the fail-open helper anyway, so one honest red is followed by N unearned greens. Live callers
+with no red above them: `70-invariants-and-new.sh:262`, `:343`, `:373`.
+
+### Reviewer A, Important: my drop-accounting fix has a silent drop upstream of its own counters
+
+`audit_scan.py:98`, `load_paths_from` discards blank lines, whitespace-only lines, `#`-prefixed lines
+(a legal POSIX filename) and duplicates, with no bucket for any of them. Measured on a crafted list:
+**7 lines in, 2 paths out, `scoped_paths` 2, `paths_unaccounted` 0.** Because `build_stats` uses
+`len(config.only_paths)` as the denominator, and the reconcile snippet checks against
+`config.scoped_paths`, the loss happens BEFORE the numbers the whole chain reconciles against. It is
+structurally invisible, and it contradicts the docstring at `:15` that says every listed path lands
+in exactly one counter.
+
+This is the sharpest finding of the round. The sprint's thesis is that a filter must account for what
+it removed. The fix I shipped for that does account for every drop in the scan loop, and drops five
+of seven inputs in the parse step above it.
+
+### Reviewer A, Important, Minor, and what it cleared
+
+`audit_scan.py:130` calls `os.path.realpath` unguarded on caller-supplied strings; a NUL byte raises
+`ValueError` and aborts the scan, reachable from `git diff --name-only -z`. Containment otherwise
+holds: absolute paths, `..` and out-of-root symlinks all land in `paths_outside_root`.
+
+Minor: `[80b]`'s `mktemp` has no EXIT trap while `test_ban_tokens.sh:33` traps in this same sprint; a
+bare `grep` survives at `00-helpers.sh:54` beside a comment claiming one binary.
+
+**And a residual on the line-count fix that I should have found.** After the fix an UNTERMINATED file
+reads one line ABOVE `wc -l`, where before it read one below. Verified: unterminated 500-line file,
+`split_lines` 500, `wc -l` 499. `[80b]` gates on termination and REDS on that case rather than
+covering it, so the two enforcers still disagree there. The fix moved the disagreement rather than
+removing it, and the check is honest about not covering it.
+
+A explicitly cleared four things it was asked to attack, and said so rather than staying silent:
+`split_lines` cannot corrupt other rules (`lexer.py:27` splits on the same character, so
+`len(masked) == len(lines)` holds, and it diffed old against new finding sets for four rules with the
+violation on the final line, identical); `[80b]`'s `1 1` assertion forces every drop bucket to zero
+arithmetically; `[27d]`'s empty-list mechanics are correct, the vacuity is in the comparison loop not
+the list; and the CI change is a net improvement with correct least-privilege.
+
+### Reviewer D: no Criticals, one Important, and two IDs I made up
+
+Measured wall clock **4.70s median** (4.67 / 4.70 / 4.74), exit 0.
+
+**D dismissed two of my three staged perf candidates because I cited an ID that does not exist.**
+`perf.process.spawn-per-item` is not in `rules/performance.md`. I checked after reading the report:
+`perf.algorithmic.scan-in-loop` is real, the other is my invention. The perf-scout's own ground rule
+says every pattern cites a `perf.<domain>.<slug>` ID from the catalog, so I broke the scout's rule
+while operating the scout. D also said my evidence for one of them was wrong: at
+`20-templates.sh:107` the cost is not `cat` plus `basename`, it is spawn-per-token.
+
+D confirmed the one real candidate: `20-templates.sh:162`, `perf.algorithmic.scan-in-loop`, Important.
+`grep -c` per path times file, 3 paths over 20 files, 60 greps plus 60 `basename`, rescanning the
+template corpus three times. **0.19s of a 4.70s pre-commit gate**, against 0.00s for one alternation
+grep over the same set. Pre-existing, and the same fix shape the earlier D pass used on `[70]` and
+`[77]`.
+
+**D quantified the catalog gap rather than just naming it.** Per-item subprocess spawn has no ID at
+all, and it costs `80-file-size-caps.sh:21` 0.33s (360 spawns, 0.01s via `xargs wc -l`) plus roughly
+0.39s across the `echo "$body" | grep`-per-token idiom, about **0.7s, 15% of the gate**, all
+pre-existing. Its recommendation is to ADD the ID rather than stretch an existing one.
+
+**D declined to file the two things I asked it to rule on**, with numbers: `[80b]`'s four Python
+starts cost 0.05s, about 1%, and raising it would breach the catalog's own "when NOT to optimize";
+`[76g]` costs 0.02s. It also confirmed `split_lines` adds no per-line cost, one O(1) pop per file.
+Context it volunteered: `90-collisions.sh` alone is 1.587s, 34% of the run, and out of scope.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
