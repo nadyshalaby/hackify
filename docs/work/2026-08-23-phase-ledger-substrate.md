@@ -222,6 +222,22 @@ Everything below is post-v0.13.0 reviewer-merge drift, the same bug class as `da
 
 T9's scope was reframed mid-flight from "fix the Phase 2.5 count" to "purge post-v0.13.0 reviewer-merge drift from my four files", then frozen.
 
+### 2026-08-23, T10 landed (groom / section-0 contract hole)
+
+**The rule chosen:** whoever creates the work-doc writes section 0 into it. Direct path, that is Phase 2 step 1, unchanged. Groom path, that is groom, because groom is what creates the file. Phase 1 then ADOPTS the existing block and Phase 2 step 1 CONFIRMS it rather than writing a second one. Section order is stated in exactly one place, the template skeleton (`work-doc-template.md:42`), and the other files point at it instead of restating it.
+
+This was chosen over rewording the canonical sentence, because that sentence is pinned in `SKILL.md` and by the upcoming T7 check, both outside T10's allowlist. It sits untouched at `phase-ledger.md:26`.
+
+**Two holes T10 closed that were not in its brief:**
+- `SKILL.md:90` told Phase 1 to CREATE the ten items, so on the groom path an agent following it literally would write a second block. Phase 1 now adopts and never opens a second.
+- Groom's Step 3 print and Phase 1's adopt were both printing the same block back to back. The adopt no longer re-prints; it restores into the tracker and flips its own item.
+
+**Follow-up T10 found and correctly did NOT fix (out of its scope, worth a decision later):** groom writes `status: clarifying`, and Phase 2's exit artifact is "work-doc exists AND explicit user go" (`phase-ledger.md:99`). On the groom path the file half is pre-satisfied, so only the go gates Phase 2. A groomed task therefore carries a work-doc with `status: clarifying` and an all-open ledger through the whole of Phase 1, which the resume rule at `phase-ledger.md:121` reads as "resume at Phase 1". That is arguably correct behaviour, but it is unverified. **Not fixed this sprint.**
+
+### Process note, coordinator error worth not repeating
+
+Commit `ccde50d` used `git add -A` while two agents were still writing, and it swept up T10's `work-doc-template.md` edits into a commit whose message says it only records sweep findings. Nothing was lost and the content was re-verified against HEAD, but the commit message now under-describes its own diff. **Use explicit paths when committing during a live wave.** A wave-end commit is safe because the wave is settled by definition; a mid-wave commit is not.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
