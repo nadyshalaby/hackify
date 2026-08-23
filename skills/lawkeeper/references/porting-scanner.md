@@ -18,11 +18,19 @@ rule analogs).
    Phase 4 merges it uniformly:
    ```json
    {"schema_version": 1, "root": "...", "config": {...},
-    "stats": {"files_scanned": N, "files_skipped": M, "findings": K},
+    "stats": {"files_scanned": N, "files_skipped": M, "paths_outside_root": 0,
+              "paths_in_skipped_dir": 0, "paths_not_found": 0, "paths_unsupported": 0,
+              "paths_unaccounted": 0, "findings": K},
     "findings": [{"rule_id": "...", "category": "...", "severity": "...",
                   "confidence": "exact", "file": "rel/path", "line": 12, "end_line": 12,
                   "message": "...", "snippet": "...", "fixable": "manual"}]}
    ```
+   The four `paths_*` drop buckets and `paths_unaccounted` are part of the shape, not optional
+   trim. Every path handed to a scoped run has to leave the iterator through exactly one counter,
+   so `files_scanned + files_skipped +` the four drop buckets must equal `config.scoped_paths`,
+   and `paths_unaccounted` publishes that subtraction instead of asserting it. A generated scanner
+   that omits them can under-cover a scan and still report clean. On a whole-tree run there is no
+   path list, so every bucket reads 0.
 3. **False-positive discipline.** Mask comments and string literals before matching code-construct
    bans, exactly as `lexer.py` does, a ban hiding in a string or comment must NOT match. Only
    emit `confidence: exact` for checks that are truly exact; mark anything heuristic as such.

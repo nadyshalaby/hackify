@@ -81,6 +81,31 @@ def test_file_lines_cap():
   assert len(hits) == 1 and hits[0]['rule_id'] == 'cap.file-lines'
 
 
+def _cap_hits(src, cap=500):
+  """cap.file-lines findings for `src`, through the text-only path (no JS lexer needed)."""
+  ctx = FileContext('src/a.ts', src)
+  return [f for f in ctx.run_text_only(cap, []) if f['rule_id'] == 'cap.file-lines']
+
+
+def test_file_lines_at_cap_is_clean():
+  """A file of exactly `cap` real lines is AT the cap, not over it."""
+  assert _cap_hits('x\n' * 500) == []
+
+
+def test_file_lines_ignores_the_trailing_newline():
+  """Phantom-element proof: a terminated file counts the same as an unterminated one."""
+  assert _cap_hits('x\n' * 499 + 'x') == []
+  assert _cap_hits('x\n' * 500 + 'x') == _cap_hits('x\n' * 501)
+
+
+def test_file_lines_one_over_cap_reports_the_real_count():
+  """One real line over is flagged, and the count it reports is the real one."""
+  hits = _cap_hits('x\n' * 501)
+  assert len(hits) == 1, f'expected one cap.file-lines finding, got {len(hits)}'
+  assert hits[0]['end_line'] == 501, f"end_line {hits[0]['end_line']}, expected 501"
+  assert '501 lines' in hits[0]['message'], hits[0]['message']
+
+
 def test_exemptions_paths():
   assert is_test('src/users/users.test.ts')
   assert is_generated('src/routeTree.gen.ts')

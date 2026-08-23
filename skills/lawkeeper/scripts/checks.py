@@ -73,12 +73,32 @@ SECRET_RES = (
 _ENVNAME_RE = re.compile(r'^[A-Z0-9_]+$')
 
 
+def split_lines(src):
+  """Real lines, the same count `wc -l` gives a newline-terminated file.
+
+  `src.split('\n')` is not that. Every well-formed POSIX text file ends in a newline,
+  so the split yields a phantom trailing empty element: a file AT the cap read one line
+  OVER it, and a file MISSING its terminator read one UNDER. Exactly that phantom is
+  dropped here, one element, never more, so `a\n\n` still counts its real blank line.
+
+  Deliberately NOT `str.splitlines()`, which fixes the count but also breaks on form
+  feed, vertical tab and the Unicode separators. Those extra break points would renumber
+  every other rule's findings, and `masked` rejoins this list with `\n` before handing it
+  to the lexer, so a split on any other character would silently rewrite the source the
+  masker sees. A pure newline split keeps lines 1..N byte-identical to the file.
+  """
+  lines = src.split('\n')
+  if lines and lines[-1] == '':
+    lines.pop()
+  return lines
+
+
 class FileContext:
   """One file's source plus its masked twin, ready for the checks to run over."""
 
   def __init__(self, rel_path, src):
     self.rel_path = rel_path
-    self.lines = src.split('\n')
+    self.lines = split_lines(src)
     self._masked = None
     self._masked_text = None
 

@@ -33,10 +33,23 @@ git diff --name-only "<base_sha>..HEAD" > "$SCOUT_PATHS"          # Phase 5 star
 python3 "<plugin-root>/skills/lawkeeper/scripts/audit_scan.py" "<project_root>" \
   --paths-from "$SCOUT_PATHS" \
   --max-file-lines "<project cap, default 500>" \
-  --ban-patterns "<project_root>/.claude/hooks/ban-patterns.txt"   # omit if absent
+  --ban-patterns "<project_root>/.claude/hooks/ban-patterns.txt" \
+  > "$SCOUT_REPORT"                          # ban-patterns: omit the flag if the file is absent
+
+# 3. Reconcile the coverage BEFORE reading a single finding.
+python3 - "$SCOUT_REPORT" <<'RECONCILE'
+import json, sys
+report = json.load(open(sys.argv[1]))
+stats, handed = report['stats'], report['config']['scoped_paths']
+drops = sum(v for k, v in stats.items() if k.startswith('paths_') and k != 'paths_unaccounted')
+covered = stats['files_scanned'] + stats['files_skipped'] + drops
+print(f"{covered}/{handed} paths accounted, {stats['paths_unaccounted']} unaccounted")
+RECONCILE
 ```
 
 Resolve `<plugin-root>` from the `Base directory for this skill:` line surfaced when hackify loads, then walk up two levels from `skills/hackify/`. Pass `--text-only-ext .py --text-only-ext .go` (etc.) for a mixed repo, those files get the file-line cap and the project's own bans only, so the JS checks cannot misfire on other syntax.
+
+**Reconcile before you trust the result.** `stats.paths_unaccounted` must read 0, and `files_scanned + files_skipped +` the four `paths_*` drop buckets must add up to `config.scoped_paths`. A non-zero drop bucket is normal and expected (`paths_not_found` counts files the diff deleted, `paths_unsupported` counts every path whose extension the scanner does not read); a shortfall in the total is not. Treat any shortfall as MISSING COVERAGE, say so in the staging table, and re-run with the gap closed. A scan that quietly covered less than the diff it was handed reports as clean, and that is precisely how a scoped-path bug once survived a whole sprint.
 
 **Non-JS stacks.** The bundled scanner's full check suite is ECMAScript-family only. On a Python / Go / Rust / Java project the deterministic tier covers the file-line cap plus the project's `ban-patterns.txt` through `--text-only-ext`, and the semantic tier below carries the rest. Say so in the staging table rather than reporting a thin scan as a clean one.
 
