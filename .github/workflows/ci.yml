@@ -12,6 +12,19 @@ on:
   pull_request:
     branches: [main]
 
+# Least privilege for GITHUB_TOKEN (OWASP CICD-SEC-4). With no block at all
+# every job inherits the repository default, which is read/write on many repos,
+# and nothing here needs write: the workflow reads the tree, runs tests, and
+# runs sync-runtimes.sh only with --dry-run, which touches nothing. It never
+# pushes, comments, releases, or calls the GitHub API.
+#
+# Declared at WORKFLOW level rather than inside the one job on purpose. A job
+# added later inherits this restrictive default, whereas a job-level block
+# leaves the next job back on the repository default. The safe setting is the
+# one you get by forgetting.
+permissions:
+  contents: read
+
 # Cancel superseded runs on the same ref to save minutes.
 concurrency:
   group: ci-${{ github.ref }}
@@ -24,6 +37,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Check [27d] in the validator asks git which release tags actually
+          # exist. A default checkout fetches none of them, so without this the
+          # check would degrade to a written skip on every CI run and the one
+          # place it matters most would never run it. `fetch-tags` fetches the
+          # tag refs while leaving the clone shallow, which is all [27d] reads;
+          # it never resolves a tag to its commit.
+          fetch-tags: true
 
       - name: Set up Python
         uses: actions/setup-python@v5

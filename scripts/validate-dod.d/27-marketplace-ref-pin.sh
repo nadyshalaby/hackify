@@ -13,6 +13,9 @@
 #   a) the stable `hackify` channel's ref MUST equal "v<plugin.json version>"
 #   b) the `hackify-edge` channel's ref MUST stay "main" (it tracks the branch)
 #   c) every channel's `version` MUST equal plugin.json's version
+#   d) every version already released BELOW the in-flight one MUST resolve to a
+#      real git tag, because (a) only compares two strings and never asks
+#      whether the thing they name exists
 
 yellow "[27] marketplace channel pins match plugin.json (stable ref, edge ref, versions)"
 
@@ -62,4 +65,119 @@ done < <(jq -r '.plugins[] | "\(.name)|\(.version)"' .claude-plugin/marketplace.
 
 if [ "$mismatched" -eq 0 ]; then
   green "  ok   every channel version equals plugin.json ($PLUGIN_VERSION)"
+fi
+
+# --- [27d] tags that were never cut ------------------------------------------
+#
+# WHY THIS EXISTS: rule (a) above asserts the stable pin EQUALS "v<version>". It
+# has never asked whether the thing that string names exists, and twice now it
+# did not. 0.3.1 (release commit 91c2d72) and 0.14.0 (release commit 5a84a7a)
+# both shipped with the manifest pinned at a tag nobody ever cut. Rule (a) was
+# green for the whole of both releases and the stable channel was installable at
+# neither. That is this check's own header describing the exact failure class it
+# was written to catch, from the one angle it could not see.
+#
+# WHY IT IS NOT "THE PIN MUST RESOLVE": scripts/release.sh builds the tag from
+# plugin.json and cuts it AFTER the release commit lands, so on a correct
+# pre-release commit the pin leads the tag by design. A bare "must resolve"
+# assertion would redden on every one of those commits and get deleted inside a
+# week. It would also be vacuous: rule (a) already forces the pin to equal the
+# in-flight version, so "resolves OR is in flight" is satisfied by (a) alone and
+# measures nothing. So the in-flight version and anything sorting above it is
+# exempt, everything BELOW it must be tagged, and a skipped tag is caught at the
+# next version bump rather than never. That bump is the earliest moment the two
+# cases are distinguishable at all.
+#
+# NOTE FOR THE NEXT RELEASE: 0.14.1 is exempt only while it is in flight.
+# Bumping plugin.json to 0.14.2 drops it out of the window, and if v0.14.1 still
+# has not been cut this check goes red on it. That is the check working, not the
+# check breaking. Cut v0.14.1 at its release commit before bumping.
+
+# Releases that went out untagged BEFORE this check existed. A ratchet, not a
+# suppression: the list may only shrink, each entry names the commit its tag
+# belongs at, and deleting an entry while the tag is still missing turns this
+# check red rather than quiet. Backfilling either one is a one-line git command,
+# which is why they are recorded here instead of being scoped away.
+MRP_KNOWN_UNTAGGED="0.3.1
+0.14.0"
+
+MRP_NL='
+'
+
+yellow "[27d] every released version below the in-flight one resolves to a real git tag"
+
+MRP_CHANGELOG_VERSIONS="$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md 2>/dev/null | tr -d '#[] ')"
+if MRP_TAGS="$(git tag --list 'v*' 2>/dev/null)"; then MRP_TAG_RC=0; else MRP_TAG_RC=1; fi
+MRP_SHALLOW="$(git rev-parse --is-shallow-repository 2>/dev/null || echo unknown)"
+
+# Everything below this point can only run on real inputs. Each guard says in
+# writing why it could not measure, because the one outcome this check must
+# never produce is a green line standing in for a comparison that never ran.
+MRP_VERIFIABLE=1
+if [ -z "$MRP_CHANGELOG_VERSIONS" ]; then
+  red "  FAIL no '## [x.y.z]' heading parsed out of CHANGELOG.md, so [27d] would have measured nothing"
+  FAILED=$((FAILED + 1))
+  MRP_VERIFIABLE=0
+elif [ "$MRP_TAG_RC" -ne 0 ]; then
+  red "  FAIL 'git tag --list' exited non-zero, so no release tag was verified; a tag read that errors must never stand in for 'no tag is missing'"
+  FAILED=$((FAILED + 1))
+  MRP_VERIFIABLE=0
+elif [ -z "$MRP_TAGS" ]; then
+  MRP_VERIFIABLE=0
+  if [ "$MRP_SHALLOW" = "true" ]; then
+    yellow "  skip shallow checkout carrying no tags, [27d] cannot run here; CI fetches them with 'fetch-tags: true' on actions/checkout"
+  else
+    red "  FAIL a full clone reports zero 'v*' tags, and this repo has released dozens, so the tag list is unreadable rather than genuinely empty"
+    FAILED=$((FAILED + 1))
+  fi
+fi
+
+if [ "$MRP_VERIFIABLE" -eq 1 ]; then
+  mrp_resolved=0
+  mrp_missing=0
+  mrp_known=""
+  mrp_stale=""
+  # One `sort -V` over the CHANGELOG versions with the in-flight version spliced
+  # in, then read until the in-flight version turns up. Everything consumed
+  # before that point sorts strictly below it and is therefore a release whose
+  # tag is already due; everything at or after it is the legitimate window. The
+  # tag lookup is set membership against one enumeration, not one `git rev-parse`
+  # per version, because 46 spawned processes is the cost this validator spent
+  # 0.14.1 removing.
+  while IFS= read -r mrp_v; do
+    [ -n "$mrp_v" ] || continue
+    [ "$mrp_v" = "$PLUGIN_VERSION" ] && break
+    case "$MRP_NL$MRP_TAGS$MRP_NL" in
+      *"${MRP_NL}v${mrp_v}${MRP_NL}"*) mrp_resolved=$((mrp_resolved + 1)); continue ;;
+    esac
+    case "$MRP_NL$MRP_KNOWN_UNTAGGED$MRP_NL" in
+      *"${MRP_NL}${mrp_v}${MRP_NL}"*) mrp_known="$mrp_known $mrp_v"; continue ;;
+    esac
+    red "  FAIL $mrp_v is a released CHANGELOG entry but tag v$mrp_v does not exist, so the stable channel was never installable at that release"
+    FAILED=$((FAILED + 1))
+    mrp_missing=$((mrp_missing + 1))
+  done < <(printf '%s\n%s\n' "$MRP_CHANGELOG_VERSIONS" "$PLUGIN_VERSION" | sort -V)
+
+  if [ "$mrp_missing" -eq 0 ]; then
+    green "  ok   all $mrp_resolved released version(s) below in-flight $PLUGIN_VERSION resolve to a real git tag"
+  else
+    red "       backfill with 'git tag -a v<version> <release commit>', or record it in MRP_KNOWN_UNTAGGED beside the commit it belongs at"
+  fi
+
+  # A recorded hole that has since been tagged takes the resolved branch above
+  # and never reaches mrp_known, so the list would quietly outlive its reason.
+  while IFS= read -r mrp_k; do
+    [ -n "$mrp_k" ] || continue
+    case "$MRP_NL$MRP_TAGS$MRP_NL" in
+      *"${MRP_NL}v${mrp_k}${MRP_NL}"*) mrp_stale="$mrp_stale $mrp_k" ;;
+    esac
+  done <<< "$MRP_KNOWN_UNTAGGED"
+
+  if [ -n "$mrp_known" ]; then
+    yellow "  note never cut, recorded as predating this check:$mrp_known (stable channel is not installable at those versions)"
+  fi
+  if [ -n "$mrp_stale" ]; then
+    yellow "  note MRP_KNOWN_UNTAGGED still lists$mrp_stale after the tag was cut, prune the entry so the list keeps shrinking"
+  fi
+  yellow "  note in-flight $PLUGIN_VERSION and anything above it is exempt, scripts/release.sh cuts that tag after the release commit lands"
 fi

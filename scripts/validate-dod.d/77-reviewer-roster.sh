@@ -68,7 +68,7 @@
 #   '5-to-6-reviewer', '5-to-6 panel' and '5-to-6 spec reviewers' alike where
 #   [70]'s fixed phrases reach only their own wording.
 #
-#   The overlap, MEASURED against [70]:310 rather than asserted: 2 exact
+#   The overlap, MEASURED against [70]:311 rather than asserted: 2 exact
 #   duplicates ('5-6 reviewers', '3 parallel reviewers'); 6 pairs where a token
 #   HERE is broader (4 of these 60 over 4 of [70]'s 23, e.g. '5-to-6' over
 #   '5-to-6-reviewer'); and 2 pairs where a token THERE is broader, [70]'s
@@ -96,17 +96,17 @@
 #   sentences it exists to catch. The list is not the unit of coverage, the
 #   claim is.
 #
-#   README.md is a FILE root, not a directory one, and it is here because
-#   README.md:103 carries a live standing-member claim about B that nothing
-#   guarded: the roots were four directories and the repo's most-read document
-#   sat outside all of them. CHANGELOG.md and docs/ are deliberately NOT roots,
-#   measured rather than assumed: the awk below reads CHANGELOG.md:102 as F and
-#   :198 as A, both correct release text about the roster as it stood when
-#   written, and the work-doc under docs/work/ quotes the defect sentences
-#   verbatim eight times to record them. History that says what used to be true
-#   is not drift, and a ban that reddens on it gets deleted rather than obeyed.
+#   README.md is a FILE root because it carries a live standing-member claim
+#   about B that nothing guarded, the roots being four directories with the
+#   repo's most-read document outside all of them. CHANGELOG.md and docs/ are
+#   deliberately NOT roots, on the SHAPE of what the awk finds there and never a
+#   census of it: every CHANGELOG.md hit is release text correct for the roster
+#   as it stood when written, so older entries name F and A legitimately, and
+#   every docs/work/ hit quotes a defect sentence to record it. History is not
+#   drift. No line numbers or counts here on purpose: the version that cited two
+#   CHANGELOG.md hits as "measured rather than assumed" had both moved in-sprint.
 #
-#   Exactly two tokens are literal duplicates of [70]:310, '5-6 reviewers' and
+#   Exactly two tokens are literal duplicates of [70]:311, '5-6 reviewers' and
 #   '3 parallel reviewers'. Both are KEPT deliberately. Dropping them on the
 #   four shared files would make this block's coverage depend on [70]'s
 #   hand-kept token list, an undeclared cross-fragment dependency that nothing
@@ -248,14 +248,10 @@ RR_FILES="$RR_FILES $RR_PA/phase-5-aggregation.md"
 RR_FILES="$RR_FILES skills/hackify/references/phases/phase-5-review.md"
 RR_FILES="$RR_FILES skills/hackify/references/review-and-verify.md"
 
-# The set's SIZE, written a SECOND time and on purpose. A bound derived from the
-# list cannot police the list: delete an entry and a `wc -w` bound drops with it
-# and stays green. That is precisely how a floor of 4 sat under a set of 6 and
-# guarded nothing, printing "ok all 4 files exist" while two files quietly left
-# coverage. Equality against an independently written number is the cheapest
-# thing that reddens on BOTH a deletion and an addition, so the list and its
-# expected size cannot drift apart again. A seventh file must bump this in the
-# same commit, and that edit is loud and deliberate, which is the whole point.
+# The set's SIZE, written a SECOND time. Why a hand-written number beats a bound
+# derived from the list is argued above check_list_size in 00-helpers.sh; this is
+# the set that taught it, a floor of 4 under a set of 6 printing "ok all 4 files
+# exist" while two of them had quietly left coverage.
 RR_EXPECTED=6
 
 # Existence gate. Runs to completion before any ban, see the header.
@@ -268,12 +264,8 @@ for f in $RR_FILES; do
   FAILED=$((FAILED + 1))
   RR_BAD=$((RR_BAD + 1))
 done
-if [ "$RR_PARSED" -ne "$RR_EXPECTED" ]; then
-  red "  FAIL $RR_PARSED path(s) parsed from the [77] file set, expected exactly $RR_EXPECTED (a file was added or dropped without updating RR_EXPECTED, or the list is mangled)"
-  FAILED=$((FAILED + 1))
-elif [ "$RR_BAD" -eq 0 ]; then
-  green "  ok   all $RR_PARSED files in the [77] set exist and are non-empty"
-fi
+check_list_size "$RR_PARSED" "$RR_EXPECTED" "the [77] file set"
+[ "$RR_BAD" -eq 0 ] && green "  ok   all $RR_PARSED files in the [77] set exist and are non-empty"
 
 # Size alone cannot see a SUBSTITUTION: swap one path for another and 6 is still
 # 6. These two carry ban coverage that exists nowhere else in the validator, so
@@ -320,21 +312,11 @@ RR_BANS+=('all four reviewers' 'all five reviewers' 'all six reviewers' 'reviewe
 # Phase 2.5 dispatches exactly one spec reviewer, so any count is drift.
 RR_BANS+=('2 spec reviewers' '3 spec reviewers' 'two spec reviewers' 'three spec reviewers' 'both spec reviewers' 'spec reviewers in parallel')
 
-# The list's LENGTH, written a SECOND time, for exactly the reason RR_EXPECTED
-# is written next to RR_FILES: a bound derived from the list cannot police the
-# list. Nothing else here counts what it bans, so a whole ban group could be
-# deleted and every check in this fragment still printed green; the only thing
-# that noticed was scripts/test_ban_tokens.sh, which the validator does not run.
-# Equality against an independently written number reddens on BOTH a deletion
-# and an addition. TB_EXPECT_77 over there holds the same number, also written
-# independently, and a token added or dropped updates both in the same commit.
+# The list's LENGTH, written a SECOND time, same argument as RR_EXPECTED above.
+# Nothing else here counts what it bans, so a whole ban group could vanish and
+# every check still print green. TB_EXPECT_77 in test_ban_tokens.sh mirrors it.
 RR_BANS_EXPECTED=60
-if [ "${#RR_BANS[@]}" -eq "$RR_BANS_EXPECTED" ]; then
-  green "  ok   the [77] ban list carries all $RR_BANS_EXPECTED tokens"
-else
-  red "  FAIL ${#RR_BANS[@]} token(s) in the [77] ban list, expected exactly $RR_BANS_EXPECTED (a ban group was added or dropped without updating RR_BANS_EXPECTED)"
-  FAILED=$((FAILED + 1))
-fi
+check_list_size "${#RR_BANS[@]}" "$RR_BANS_EXPECTED" "the [77] count-grammar ban list"
 
 for f in $RR_FILES; do
   # A path that failed the gate above is skipped, never banned over.
@@ -351,11 +333,16 @@ done
 # files, and splitting a pin from the bans that complete it puts one guard in
 # two places. Verified before adding: reviewer_[a-f]_report appears nowhere
 # under skills/, only in CHANGELOG.md and docs/work/, which this set never reads.
+# These six carry their OWN count now; they were counted NOWHERE, so the header's
+# "counted separately from those 60" was true of the intent and false of the code.
+# Still open: test_ban_tokens.sh parses RR_BANS lines only, so no plant test here.
 RR_RAV="skills/hackify/references/review-and-verify.md"
+RR_RPT=(reviewer_a_report reviewer_b_report reviewer_c_report reviewer_d_report reviewer_e_report reviewer_f_report)
+RR_RPT_EXPECTED=6
+check_list_size "${#RR_RPT[@]}" "$RR_RPT_EXPECTED" "the [77] report-input ban list"
 if [ -s "$RR_RAV" ]; then
   check_token_present '{{reviewer_reports}}' "$RR_RAV"
-  check_no_tokens_in "$RR_RAV" reviewer_a_report reviewer_b_report reviewer_c_report \
-    reviewer_d_report reviewer_e_report reviewer_f_report
+  check_no_tokens_in "$RR_RAV" "${RR_RPT[@]}"
 fi
 
 # The standing-member invariant. Deliberately pathless: it discovers its own set
@@ -364,11 +351,11 @@ fi
 # the algorithm, for why parenthetical spans are stripped before the subject is
 # located, and for why a subject-free mention counts as a defect.
 #
-# /usr/bin/grep by absolute path, never bare grep. Shells in this environment
-# wrap grep in a function that honours ignore files, and such a wrapper returns
-# nothing and exits 0, which is exactly the vacuous pass this block guards
-# against. The absolute path costs nothing and makes the scan independent of
-# whatever grep the sourcing shell resolves.
+# /usr/bin/grep by absolute path, and WHICH SHELL is the whole question. Under the
+# BASH this validator runs in, bare grep already IS /usr/bin/grep; the interactive
+# ZSH here wraps grep in a function honouring ignore files, returning nothing and
+# exiting 0, the exact vacuous pass this block guards. check_no_token now names the
+# path too, so this scan, the batched screen and its fallback are one binary.
 RR_SM_ANCHOR="skills/hackify/references/phases/phase-5-review.md"
 
 # Vacuous-pass guard, part one: the roots, which come in two kinds and are
@@ -416,11 +403,15 @@ fi
 # /usr/bin/grep is BSD grep 2.6.0 (FreeBSD), where -Z is --decompress, accepted
 # in silence and emitting no NUL at all, so -Z here would read as the fix and be
 # none. Process substitution rather than a pipe so the loop runs in THIS shell,
-# a piped loop is a subshell that discards every count it keeps.
+# a piped loop is a subshell that discards every count it keeps. It discards
+# grep's own status too, so that rides the stream as a last 'rc:N' record no real
+# path can collide with; RR_SM_RC starts at 2, so one that never arrives fails.
 RR_SM_N=0
+RR_SM_RC=2
 RR_SM_HITANCHOR=0
 RR_SM_BAD=""
 while IFS= read -r -d '' rr_f; do
+  case $rr_f in rc:*) RR_SM_RC=${rr_f#rc:}; continue ;; esac
   RR_SM_N=$((RR_SM_N + 1))
   [ "$rr_f" = "$RR_SM_ANCHOR" ] && RR_SM_HITANCHOR=1
   # awk exits 2 on a path it cannot open, so that status is CHECKED. Closes the
@@ -458,7 +449,7 @@ while IFS= read -r -d '' rr_f; do
   fi
   [ -n "$rr_out" ] && RR_SM_BAD="$RR_SM_BAD$rr_out
 "
-done < <(/usr/bin/grep -rlIi --null -- 'standing member' "${RR_SM_DIRS[@]}" "${RR_SM_FILES[@]}" 2>/dev/null)
+done < <(/usr/bin/grep -rlIi --null -- 'standing member' "${RR_SM_DIRS[@]}" "${RR_SM_FILES[@]}" 2>/dev/null; printf 'rc:%d\0' "$?")
 
 # Vacuous-pass guard, part two: the discovery itself. A root can exist and still
 # be the wrong root, so the scan is required to actually reach a file already
@@ -473,9 +464,20 @@ else
 fi
 
 # Vacuous-pass guard, part three: the invariant's authority. A pin that outlives
-# the rule it enforces is worse than no pin, so if the canonical sentence leaves
-# the docs this check goes red instead of policing a dropped rule.
-check_token_present 'B is the standing member' "$RR_SM_ANCHOR"
+# the rule it enforces is worse than no pin. [70] already pins the POSITIVE half
+# over this same file ('B is the standing member of every wave'), and the old pin
+# here was a strict PREFIX of it, so it could never redden first. Pinned instead:
+# the EXCLUSIVITY half, pinned nowhere else. Cited by token, not by line.
+check_token_present 'A, D and F are gated on evidence' "$RR_SM_ANCHOR"
+
+# Vacuous-pass guard, part four: the discovery's OWN exit status, discarded until
+# now. grep exits 1 on "matched nothing" (the RR_SM_N gate below judges that) and
+# 2+ on a root it could not read while still printing the roots it COULD, leaving
+# that root's files unjudged with RR_SM_N non-zero and the anchor still hit.
+if [ "$RR_SM_RC" -gt 1 ]; then
+  red "  FAIL the [77] standing-member discovery exited $RR_SM_RC, so a root under ${RR_SM_DIRS[*]} ${RR_SM_FILES[*]} was unreadable and every roster claim inside it went unjudged"
+  FAILED=$((FAILED + 1))
+fi
 
 if [ "$RR_SM_N" -eq 0 ]; then
   # A clean verdict over an empty set is the vacuous pass this block exists to

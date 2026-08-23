@@ -36,7 +36,11 @@ check_no_token() {
   local count
   # -I skips binary files: Python bytecode (__pycache__/*.pyc) embeds absolute
   # source paths that would otherwise be counted as personal-handle/leaked-path hits.
-  count=$(grep -rcFiI -- "$token" "$path" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+  # /usr/bin/grep by absolute path, matching check_no_tokens_in below: this
+  # function IS that function's fallback, so the two must be one binary and not
+  # two resolutions. See the comment above check_no_tokens_in for which shell
+  # resolves bare grep to what.
+  count=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
   if [ "$count" -eq 0 ]; then
     green "  ok   '$token' has 0 occurrences in $path"
   else
@@ -66,6 +70,26 @@ check_line_range() {
     green "  ok   $file has $lines lines (range $min..$max)"
   else
     red "  FAIL $file has $lines lines, expected $min..$max"
+    FAILED=$((FAILED + 1))
+  fi
+}
+
+# A list's own length asserted against an expected size the caller wrote by hand
+# next to the list. A bound DERIVED from the list cannot police the list: delete
+# an entry and a `wc`-style bound drops with it and stays green, which is how a
+# floor of 4 once sat under a set of 6 and guarded nothing. Equality against an
+# independently written number is the cheapest thing that reddens on BOTH a
+# deletion and an addition. Three parameters, at the project cap, so the "what
+# went wrong" hint in the red line is generic rather than a fourth argument
+# repeated at every call site.
+check_list_size() {
+  local got="$1"
+  local want="$2"
+  local label="$3"
+  if [ "$got" -eq "$want" ]; then
+    green "  ok   $label carries all $want entries"
+  else
+    red "  FAIL $label carries $got entries, expected exactly $want (an entry was added or dropped without updating the expected size written beside the list)"
     FAILED=$((FAILED + 1))
   fi
 }
@@ -131,10 +155,18 @@ ban_patternfile_ok() {
 # grep rather than one per token; a dirty path costs what it always cost, plus
 # the screen. No diagnostic detail is traded away for the speed.
 #
-# The matcher is /usr/bin/grep by absolute path, which is what bare `grep`
-# already resolves to under the bash this validator runs in. Naming it makes the
-# screen and the per-token fallback provably the same matcher, rather than
-# leaving it to whatever a sourcing shell has wrapped grep with.
+# The matcher is /usr/bin/grep by absolute path. WHICH SHELL is the whole of the
+# question and this used to leave it out. Under the BASH that validate-dod.sh and
+# scripts/test_ban_tokens.sh run in, bare `grep` already resolves to
+# /usr/bin/grep, so naming it changes nothing today; under the interactive ZSH in
+# this environment `grep` is a shell function honouring ignore files, which is the
+# premise 77-reviewer-roster.sh hardens its own scan on. Both are true and the
+# fragments used to read as if only one could be. check_no_token above now names
+# the same absolute path, so the batched screen and the per-token fallback are
+# provably one binary instead of one binary and one shell lookup. That also keeps
+# the property the asymmetry used to buy by accident: the screen was the stricter
+# matcher, seeing every file a wrapper would have skipped, so a screen-negative
+# was trustworthy. Identical matchers keep it trivially rather than by luck.
 check_no_tokens_in() {
   local path="$1"
   shift
