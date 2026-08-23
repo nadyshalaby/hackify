@@ -594,7 +594,7 @@ The fix wave changed 13 files, so Phase 5 cannot exit on the first round's diff.
 
 **The 6a and 6b exit-artifact rows were authorized by me, not by a reviewer finding, and Reviewer B is right that the record did not say so.** B filed the 6b row as scope creep with no decision-table row, and conceded 6a as a defensible consequence of F4. The honest account: neither came from F4. Both came from an implementation agent noticing, unprompted, that the exit-artifact table had rows for 6c and 6d and none for 6a or 6b, which I then dispatched as a follow-up task. **The verifiable authorization is the body of commit `fac7478`**, which states "Also adds exit-artifact rows for 6a and 6b". An earlier version of this paragraph cited task IDs T18 and T24, which appear nowhere else in this document: the backlog runs T1 to T17 and the settle-round index runs T32 to T41, so those numbers were unverifiable and are replaced by the commit that actually carries the decision. Reviewer B found that, and was right that a provenance claim nobody can check is worth less than the commit body sitting in the log. The justification is that `phases/phase-6-finish.md:56` asserts "Each of 6a to 6d ticks on its own exit artifact", and that assertion was simply false for two of the four. A law with nothing to bite on is the same defect class this sprint exists to close, so I authorized it. **Kept, with this row as the missing authorization.** B's underlying point stands and is not softened: new normative content went into the always-on ledger contract without a written authorizing line, which is exactly what the sprint is trying to make impossible.
 
-**This work-doc crossed the 500-line cap during Phase 5 and it passes only through a gap.** It was 574 lines at commit `0e2edca` and it is over 740 now. An earlier version of this paragraph said "473 to 584", which understated the overrun by more than 80 lines and was itself a stale hand-written measurement inside a disposition about measurement. **`CHANGELOG.md` sits at 904 lines under the identical hole and had no disposition at all** until this sentence; the same reasoning covers it, an append-only release log is not an implementation file, and it is named here so it stops being silently exempt. `scripts/validate-dod.d/80-file-size-caps.sh:13` scopes the cap to `CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"`, so `docs/` is never scanned. That narrowing is undocumented, and the user-global rules require a written technical exception rather than a silent one. **Written disposition, file not split:** a work-doc is an append-only sprint record, not a source file, and splitting it would break the single-source-of-truth property the whole workflow rests on (resume opens one file). The cap exists to keep implementation files reviewable; it was never meant to bound a log. What is wrong here is that the exemption lives in an unexplained variable instead of in writing. **Recorded as a follow-up:** document the `docs/` exemption at `80-file-size-caps.sh:13` in the file's own header, the way every other fragment explains its scope. Not fixed in this sprint, because it is a different file with a different justification and would need its own round.
+**This work-doc crossed the 500-line cap during Phase 5 and it passes only through a gap.** **This paragraph has now carried a stale line count three times** (473 to 584, then 574 to "over 740", against a real figure that kept moving past both), and Reviewer B caught it each time. So it stops carrying one. The count is whatever `/usr/bin/grep -c "" docs/work/2026-08-23-phase-ledger-substrate.md` says at the moment you ask, and the same goes for `CHANGELOG.md`. **That is the fix this document prescribed for itself hundreds of lines above and then failed to apply here:** a hand-maintained number describing a file that other work keeps growing goes stale every single time, and a note recording the last time it went stale does not prevent the next one. **`CHANGELOG.md` sits under the identical hole and had no disposition at all** until this sentence; the same reasoning covers it, an append-only release log is not an implementation file, and it is named here so it stops being silently exempt. `scripts/validate-dod.d/80-file-size-caps.sh:13` scopes the cap to `CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"`, so `docs/` is never scanned. That narrowing is undocumented, and the user-global rules require a written technical exception rather than a silent one. **Written disposition, file not split:** a work-doc is an append-only sprint record, not a source file, and splitting it would break the single-source-of-truth property the whole workflow rests on (resume opens one file). The cap exists to keep implementation files reviewable; it was never meant to bound a log. What is wrong here is that the exemption lives in an unexplained variable instead of in writing. **Recorded as a follow-up:** document the `docs/` exemption at `80-file-size-caps.sh:13` in the file's own header, the way every other fragment explains its scope. Not fixed in this sprint, because it is a different file with a different justification and would need its own round.
 
 ### P2, and the drift a settle round structurally cannot reach
 
@@ -664,7 +664,7 @@ Written. `plugin.json` at `0.14.1`, a proportionate `[0.14.1]` CHANGELOG entry i
 
 **It corrected two of my numbers.** I briefed "ten commits, 21+ files"; the real range `5a84a7a..HEAD` is **nine commits and 22 files**. It got that from the log rather than from my brief, which is the right order of trust.
 
-**The README compression is the cleanest possible version of that trade.** It merged the three oldest blurbs (0.13.0, 0.12.0, 0.11.0) under one `Earlier releases` heading, freeing six lines and spending four, landing at **448 of 450**. What was lost is **two heading lines and nothing else**: every bullet is byte-identical, with a plain version prefix in front of the existing bold lead so attribution survives. It explicitly declined to compress the 0.14.0 bullets, on the grounds that it is the immediately prior release and the most relevant blurb on the page, and merging it would have destroyed real content to save one line. That is the judgement I would have wanted.
+**The README compression is the cleanest possible version of that trade.** It merged the three oldest blurbs (0.13.0, 0.12.0, 0.11.0) under one `Earlier releases` heading, freeing six lines and spending four, landing at **448 of 450**. What was lost is the three headings, plus some consolidation I described wrongly. **Reviewer B checked and my "every bullet is byte-identical" claim holds for only one of the three:** 0.11.0's bullet is untouched, but 0.13.0's three bullets were collapsed into one and 0.12.0's two into one, each with a **new bold lead**. B confirmed the substance survives, 650 words to 630 with every old claim traceable, and the heading arithmetic is right. The byte-identity claim was not, and it came from the implementing agent's report which I repeated without checking. It explicitly declined to compress the 0.14.0 bullets, on the grounds that it is the immediately prior release and the most relevant blurb on the page, and merging it would have destroyed real content to save one line. That is the judgement I would have wanted.
 
 **It left the build red on purpose rather than reaching outside its allowlist.** Bumping `plugin.json` alone desyncs it from `marketplace.json`, and two checks read the pair, so four FAILs appeared. It established a clean baseline first (exit 0 on the same tree with the siblings' work already in it), which is what makes the attribution provable rather than asserted. Dispatched as T48.
 
@@ -702,7 +702,9 @@ The tamper suite now runs in CI as step 8 of 10, placed immediately before the v
 
 **My brief prescribed the wrong flag, and it would have produced a seventh vacuous pass.** I told the agent to fix the newline-path silent skip with `grep -rlZ`. On this machine `/usr/bin/grep` is **BSD grep 2.6.0-FreeBSD, where `-Z` means `--decompress`**, accepted in silence and emitting zero NUL bytes. The agent tried it, measured `RR_SM_N=0` files scanned, and switched to `--null`, which is the long form in both BSD and GNU grep. Had it followed my instruction and only checked that the validator stayed green, the standing-member scan would have silently scanned **nothing** while printing a clean verdict. That is the sprint's own defect, authored by me, in the fix for the sprint's own defect.
 
-It also found my prescription too narrow. Bash drops NUL bytes out of `$(...)`, so a captured-list shape cannot work at all; the loop is now fed by process substitution, which also keeps it in the main shell so `FAILED` increments survive. And rather than fixing only the newline instance, it added a check on **awk's exit status** (awk exits 2 on an unopenable path), closing the whole unreadable-path class.
+It also found my prescription too narrow. Bash drops NUL bytes out of `$(...)`, so a captured-list shape cannot work at all; the loop is now fed by process substitution, which also keeps it in the main shell so `FAILED` increments survive. And rather than fixing only the newline instance, it added a check on **awk's exit status** (awk exits 2 on an unopenable path).
+
+**That last clause originally read "closing the whole unreadable-path class", and Reviewer A proved it false in the closing round.** The awk check guards the **consumer**, not the **producer**. The discovery grep's own exit status was still discarded, so with one root made unreadable, grep exits 2, the directory-exists guard still passes because the directory exists, the file count stays non-zero because other roots contributed, and the discovery anchor still hits because it lives under `skills/`. **An entire root could leave coverage while the block printed green**, in the block written to refuse silent skips. A demonstrated it with the same BSD grep rather than reasoning about it. Dispatched as T49 finding 1. The lesson is narrow and worth keeping: checking that the reader succeeded is not checking that the search succeeded.
 
 **The other five:**
 
@@ -908,6 +910,118 @@ Two pointers the T37/T38 agent found while fixing `:384`, both outside its allow
 - **`phase-5-escalation.md:170` carries the same two-surface judgement in the old grammar**, "dispatch **two reviewers in the same message**". Now that `:384` points at that file, a dispatcher arrives and reads a near-duplicate of the sentence that sent them there. That is a consolidation call on a file this sprint did not otherwise own, so it needs its own round rather than a drive-by edit.
 
 Both are recorded here so the next sprint inherits them as known work rather than rediscovering them. Neither blocks Phase 5 exit: a stale comment and a redundant-but-correct sentence are not defects in the shipped behaviour.
+
+## 7b. Closing round (Phase 5 exit), all four lenses
+
+`settle all` on every lens, gate matching round one (A, B, D, F run; E folded), tree clean and committed at `b83dcff` so no verdict died to a moving file. `dabc333..b83dcff`.
+
+**All four returned CLEAN. Every one of them stated explicitly that nothing blocks Phase 5 exit.** Every finding below is a fix-forward record-accuracy or hardening item, and the ones tied to this sprint's diff went straight into a fix wave (T49, T50, T51) rather than being carried.
+
+### The three findings that falsified something I had written
+
+- **Reviewer A: my claim that the awk exit-status fix "closed the whole unreadable-path class" was false.** Corrected in place above. A proved a whole root can leave coverage while the block prints green, using the same BSD grep rather than arguing from the man page.
+- **Reviewer B: my "every bullet is byte-identical" claim about the README compression held for one of three.** Corrected in place above. I had repeated the implementing agent's report without checking it.
+- **Reviewer B: the 500-line disposition carried a stale number for the third time.** B's sharpest observation was not the number but that **this document had already prescribed the fix ("a generated count or none at all") four hundred lines earlier and then failed to apply it here.** The paragraph no longer carries a count.
+
+### Reviewer F, and the sprint's theme landing on its own guard
+
+F's Important is that the batched screen names `/usr/bin/grep` while the fallback still calls bare `grep`, so their claimed "provably the same matcher" is PATH-dependent. Latent today, and `[77]` hardens its own scan on the **opposite** premise a few hundred lines away, so both comments cannot be right. Reviewer D added the nuance that the current asymmetry is in the safe direction, because the gate is the stricter matcher.
+
+Its best Minor is close to poetry. `[77]`'s header contains a claim explicitly labelled **"measured rather than assumed"**, naming two line numbers in `CHANGELOG.md`. Re-running that measurement now gives five hits at entirely different lines, two of which **my own release commit created after the measurement was written**. A claim whose whole point was that it had been measured rather than guessed went stale inside the same sprint, in the file built to stop exactly that. Fixed in a way that cannot rot again: describe the shape, do not enumerate line numbers of a file that grows.
+
+F also found an authority pin that is a strict prefix of an existing pin over the same file, so it cannot redden unless the other already has, and a second banned set counted nowhere despite a header saying it is "counted separately".
+
+### Reviewer D closed its own Important, and reconciled every millisecond
+
+**D's finding is discharged.** 25 batched calls replaced roughly 780 per-token ones, and `[70]`'s 587 verdict lines are byte-identical across the fix.
+
+Its measurements are the most rigorous numbers this sprint produced. External command invocations fell **2411 to 925, down 61.6%**; grep 1527 to 770, awk 883 to 104. `[77]`'s system time fell 93%. The headline it chose is the right one: **`[70]` cost 0.46s at base for 245 verdicts, 1.18s pre-fix for 587, and 0.46s at head for the same 587**, so 2.4x the assertions now cost what base cost. Head runs **fewer external commands than base** (925 against 943) while carrying **2.18x the assertions**.
+
+It reconciled the residual rather than hand-waving: timing every fragment at base and head, the sum of per-fragment deltas is **+0.250s against a full-run delta of +0.27s**, decomposing as new `[76]` +0.07, new `[77]` +0.17, and `[70]` **+0.000**. It also corrected my sprint-delta figure downward, +0.27s and 6.3% rather than the +0.35s and 8% I briefed.
+
+**And it refused to overclaim on my behalf.** On a missing path the screen returns 2 and prints a FAIL saying the path was never screened, then still prints vacuous green lines from the fallback. D's words: **"The hole is announced, not closed"**, and it explicitly said verdict identity is therefore not strictly preserved on `[70]`'s ungated paths, though every divergence is in the safe direction. It flagged that as B's and F's lens rather than smoothing it into "identity confirmed" in its own report. That correction is why the release notes are being rewritten (T50).
+
+On wall-clock it declined to flatter the result: 4.58s is still above the ~3s bar it would normally want for a pre-commit check, and it said so. But the sprint did not put it there, base is 4.31s and the two biggest fragments are untouched by this work. What it had objected to was the trajectory, and **per-assertion cost went 6.81ms to 3.32ms while the cost model moved from linear-in-tokens to linear-in-paths.** That was the concern and it is answered.
+
+### Reviewer A, and what it confirmed rather than found
+
+A's verdict on the security surface is the honest one: no auth flow, no session handling, no network call, no SQL, no deserialization, no migration, no privilege boundary, zero secrets, zero PII, and no new `eval` / `curl` / `subprocess` / shell construction anywhere in the range. It said so plainly instead of manufacturing findings to justify its dispatch.
+
+What it proved positively is worth more than what it found:
+
+- **Verdict identity under adversarial input:** 83 tokens against 134 real files, **zero divergence** between the batched screen and the per-token loop, including multibyte prose, no-trailing-newline, binary and invalid-UTF-8 cases.
+- **The new code is strictly safer than what it replaced:** on a missing or unreadable path the screen returns 2 and fails loudly where the old helper summed a vacuous 0.
+- **The pattern file is sound:** `mktemp` under `${TMPDIR:-/tmp}`, mode 0600, unpredictable name, removed on every path that creates it, no repo file content can reach the patterns, and empty, blank-line, short and long files are all rejected.
+- **The test cannot delete what it did not create:** every write under a `mktemp -d` with an EXIT trap, the one real file read via `cp`, nothing under `skills/` written or removed, and the earlier agent's probe directory confirmed gone.
+- **The newline fix holds:** `--null` does emit a trailing NUL on this grep, verified with `od -c`, so no record is dropped.
+
+**A also overruled F on one point, correctly.** F flagged the `v0.14.1` marketplace pin as a repeat of the uncut-tag defect. A ruled it **not a finding**: tags are cut in Phase 6 by `release.sh`, which builds the tag from `plugin.json`, so pinning ahead of the tag is the normal pre-finish window. What A filed instead is the real defect underneath, that `[27]` asserts the pin **equals** the version but never that it **resolves**, which is precisely why 0.14.0 shipped pointing at a tag that was never cut.
+
+### Carried, not fixed this wave, with reasons
+
+- **`hooks/inject_context.py:61` uses positional `maxsplit` in `re.split`**, a DeprecationWarning with removal scheduled. On removal, turn 2 onward raises `TypeError`, which `main()`'s `except OSError` does not catch, so the shell falls through to jq and **silently re-injects all four rules files in full on every prompt**. Real future breakage, **pre-existing**, and a hooks change deserves its own round with its own tests rather than a drive-by at the end of a settle wave.
+- **`hooks/inject-context.sh:37`**, the fourth entry inherits a `[ ! -f ] then exit 0` path that emits nothing, while the file's own comment promises every failure degrades to injecting the FULL text and never to nothing. Same reasoning: pre-existing shape, this sprint's entry merely participates in it.
+- **`RR_EXPECTED` and `RR_BANS_EXPECTED` detect additions and deletions but never a substitution**, and the test re-parses the same source, so a typo'd token is planted as itself and passes. Needs a second independent source of truth, which is a design question rather than an edit.
+- **`test_ban_tokens.sh`'s `rc > 1` branch has no assertion**, the one path through the new helper that is untested.
+- **`[70]` still has no token-count pin and no existence gate on its ban-loop paths.** Preserved deliberately to keep verdict identity; now that identity is understood to be a superset rather than an equality, this is worth revisiting on its own.
+- **The Sprint Backlog stops at T17.** B filed this as B5's fix re-drifting: T42 to T48 exist only as prose in section 7, so eight files have no backlog row and no `task_file_index` entry. B filed it Important rather than Critical because the authorization is verifiable (wizard #6-A and #7-B plus the task records), and I agree with that call. The structural answer is that this sprint outgrew a flat backlog written for seventeen tasks, which is a work-doc template question, not a row to add.
+
+### T50, the release-note corrections, and two refusals worth more than the edits
+
+Three corrections landed in `CHANGELOG.md`, two lines changed, nothing outside the `[0.14.1]` entry touched (proved with zero-context hunk headers `@@ -14 +14 @@` and `@@ -22 +22 @@`).
+
+The false reason is gone. The entry now says the pathless discovery exists because a hand-kept list is the next thing to go stale, and states the real history: both roster defects sat in files `[70]`'s ban loop **already named**, and both named the wrong **letter** rather than the wrong number, so no count ban could ever have reached them. The verdict-identity claim now reads "stricter than the loop it replaces, and identical on every path that was already covered", with Reviewer D's residual carried in the entry's own words: the hole is **announced rather than closed**.
+
+**It corrected my citation.** I sent it to `77-reviewer-roster.sh:41-43`; the sentence is at **42-43**, because `:41` is the third defect's entry rather than part of the sentence.
+
+**Two refusals, both right:**
+
+- **It declined to "fix" an arguable claim.** The same bullet says the validator "had drifted from 4.26s to about 6.0s", and D measured the base at 4.29-4.33s, so 4.26 sits just under. The agent judged that 4.26 reads as a prior-release baseline rather than a claim about `dabc333`, said it had no measurement contradicting it, and **flagged it instead of editing**. That is the right treatment for arguable-versus-false.
+- **It declined to verify two counts, and the reason is the sharpest thing in the report.** The entry cites "ten phrase-order tokens" and "99 assertions that plant all 83 banned tokens". Those numbers are parsed out of two files that **sibling agents were mid-edit in at that moment**, so any count it read would have proved nothing about what actually ships. It refused to record a number that would have moved by commit time.
+
+**That refusal creates an action item for me, and it is exactly the class of thing this sprint keeps finding:** once T49 lands, the "ten phrase-order tokens" and "83 banned tokens / 99 assertions" figures in `CHANGELOG.md` must be re-verified against the committed files before the wave is committed. A shipped count that was true when written and false when merged is the same defect as every other stale number in this sprint.
+
+### T51, and a defect class nobody had counted
+
+Both findings closed. CI now declares `permissions: contents: read`, placed at workflow level on a reason worth keeping: with one job the two placements are equivalent today, but they differ for the **next** job someone adds, which inherits the safe value from a workflow-level block and silently falls back to the repository default from a job-level one. **The safe setting should be the one you get by forgetting.**
+
+**It refuted one of my two suggested designs as vacuous.** I proposed "the ref resolves OR equals the in-flight version". The agent showed rule (a) of the same check already forces the pin to equal `v<plugin.json version>`, so that formulation is satisfied by rule (a) alone and measures nothing. I proposed a check with a hole in it, in the sprint about checks with holes in them.
+
+**What it built instead, as `[27d]`:** every released version **below** the in-flight one must resolve to a real tag; the in-flight version and anything above it is exempt, and the exemption is printed as a `note` rather than left invisible. A skipped tag is then caught at the next version bump, which is the earliest moment "the pin leads the tag" and "the tag was never cut" become distinguishable at all.
+
+**And it found a second hole nobody had counted: `0.3.1` (release commit `91c2d72`) was never tagged either, eleven months before `0.14.0`.** That is what turns this from one miss into a recurring class, and it is why the check earns its place.
+
+Because both holes are real and unfixable without cutting tags, they sit in a named list. **The agent built that as a shrink-only ratchet rather than a suppression:** deleting an entry while the tag is still missing turns the check red, proven by tamper, and a `note` fires if a listed version ever does get tagged, so the list cannot outlive its reason.
+
+**Two anti-vacuity guards, both proven live rather than asserted:** a full clone reporting zero `v*` tags fails as "unreadable rather than genuinely empty", and a `CHANGELOG.md` with no version headings fails as "would have measured nothing". The `git tag --list` exit status is captured rather than discarded. On the red path it emits **no green line and no note standing in for one**, which the agent called out explicitly given this repo's history.
+
+**It closed the CI gap rather than degrading to a skip.** I had warned that a fresh CI checkout fetches no tags and told it to fall back to a written skip. It instead added `fetch-tags: true` to the checkout step, which is inside its own allowlist, and proved it end to end on a real shallow clone: 0 tags gives `skip`, and after the fetch, still shallow, 43 tags gives `ok`. The skip branch is kept and proven live but is now reachable only outside CI.
+
+**On shellcheck it refused to round up.** `shellcheck -x` exits 1 on two pre-existing `SC2317` infos. Rather than report a pass, it ran the same check against `git show HEAD:` of the file, got byte-identical findings, and stated plainly that its delta introduces zero new ones. It added no suppression and did not touch those lines to make the number look better.
+
+**The operational warning it insisted on surfacing, which I would otherwise have hit blind:** bumping to `0.14.2` drops `0.14.1` out of the exempt window, and `v0.14.1` will not have been cut either, so **`[27d]` will go red on `0.14.1`**. That is the check working, not a regression. Cut `v0.14.1` at its release commit before any further bump. It put this in the file header and in its report so a future red build is not misread.
+
+### T49, and an agent catching itself committing the defect it was fixing
+
+All six closed. The two things worth keeping are not in the fix list.
+
+**It found a better root cause than the reviewer did.** F reported the matcher-identity claim as PATH-dependent and left it there. T49 established what is actually true: **the validator runs under bash, where bare `grep` already IS `/usr/bin/grep`; the wrapper that honours ignore files is a zsh function from the Claude Code shell snapshot.** Neither of the two contradicting comments named its shell, which is why both could look right. Both now say which shell they mean, and the fallback names the absolute path so D's safe-direction property holds by construction rather than by luck. Proven by tamper: with a `grep(){ return 1; }` wrapper in scope over a tree whose `.gitignore` is `*`, the pre-fix helper printed `ok '5-to-6' has 0 occurrences` on a file that plainly contains it.
+
+**It caught itself committing the exact defect it was dispatched to fix.** Its first draft of the F3 comment cited `[70]:296` **positionally**, inside the paragraph set arguing that positional citations rot. It found this in its own review, replaced it with a token citation, and disclosed it. The only positional citation left in its diff is the one F5 explicitly asked for.
+
+**It corrected my premise rather than working around it.** My brief said both files were at 497 of 500 lines. `00-helpers.sh` was at 170. Only `77` was tight. It used the real room instead of gutting documentation to fit an imaginary budget.
+
+**It disclosed a deviation nobody asked about.** To fund the line budget it converted `RR_EXPECTED`'s check to the new shared `check_list_size` helper, which no finding requested, and then owned all three consequences unprompted: one extra ok line, a behaviour change where a size mismatch used to suppress the existence green and now both print, and **the loss of the old `or the list is mangled` hint, which it names as a real failure mode for a space-separated list.** That is a fair trade disclosed as a trade.
+
+**F6 had three rot points, not the one I briefed.** Besides the CHANGELOG line numbers, `README.md:103` had already moved to `:101`, and the work-doc's "eight times" was 19 and still climbing as siblings wrote. All three replaced with a description of the shape and an explicit statement of why no numbers appear.
+
+**Carried, with the fix spelled out:** the six report-input bans still have no plant test, because `test_ban_tokens.sh` was outside its allowlist. It left precise instructions (a third extraction pattern, a third expected constant, a size check, and a plant loop scoped to the single file those bans cover) rather than a vague note.
+
+**And a structural recommendation I agree with: `77-reviewer-roster.sh` is at 499 of 500 and is effectively frozen.** It does two jobs, count grammar and the standing-member invariant, and the second lifts cleanly into its own fragment. Creating a file was outside its allowlist. **This is the highest-value follow-up out of the sprint**, because the next person to touch that check is blocked before they start.
+
+### Counts in the release notes, verified after the wave settled
+
+T50 refused to verify two counts while files were moving. Verified now against the committed tree: `RR_BANS_EXPECTED=60`, `TB_EXPECT_70=23`, `TB_EXPECT_77=60`, so **83 planted tokens and 99 assertions both hold**. "Ten phrase-order tokens" holds too: eleven tokens match the phrase, and the eleventh (`'spec reviewers in parallel'`) came in with the guard's original creation at `fac7478`, not with the ten added at `0e2edca`. Confirmed with `git log -S`.
 
 ## 8. Retrospective
 
