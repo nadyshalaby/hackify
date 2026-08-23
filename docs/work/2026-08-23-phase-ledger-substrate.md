@@ -1544,7 +1544,7 @@ counters, so the doc was understating the interface a new check now depends on.
 
 ## 7f. The closing round, and the first scope ledger built against a diff that can hold still
 
-Rebuilt at `753789b`, base `dabc333`. Every earlier ledger in this sprint was stamped against a diff
+Rebuilt at `753789b` and re-stamped at `303ef40`, base `dabc333`. Every earlier ledger in this sprint was stamped against a diff
 that the act of recording the round would immediately invalidate. This one is not, because the
 reviewed diff now excludes `docs/work/`, so writing this section changes no reviewed byte and kills
 no verdict.
@@ -1571,7 +1571,7 @@ row is read again. This is a full round, not a settle round wearing its clothes.
 | `.claude-plugin/marketplace.json` | `46bcc4a` | B F | no verdict | read |
 | `.claude-plugin/plugin.json` | `0ed5dd3` | B F | no verdict | read |
 | `.github/workflows/ci.yml` | `2f72078` | B A F | no verdict | read |
-| `CHANGELOG.md` | `959f11b` | B F | no verdict | read |
+| `CHANGELOG.md` | `994c2cb` | B F | no verdict | read |
 | `README.md` | `64eaf73` | B F | no verdict | read |
 | `agents/code-reviewer-coherence.md` | `5e1fd65` | B F | no verdict | read |
 | `agents/code-reviewer-performance.md` | `f40d7c1` | B F | no verdict | read |
@@ -1627,6 +1627,18 @@ row is read again. This is a full round, not a settle round wearing its clothes.
 | `skills/review-triage/SKILL.md` | `0c9ccce` | B F | no verdict | read |
 | `skills/yolo/SKILL.md` | `e9da33f` | B F | no verdict | read |
 | `skills/yolo/evals/evals.json` | `6beb47e` | B F | no verdict | read |
+
+**Re-stamped before dispatch, and a mistake of mine on the way there.** Two commits landed between
+building the ledger and dispatching, so `CHANGELOG.md` had moved and its recorded blob was already
+stale. Catching that is the ledger working. My first re-stamp used a regex matching
+`` | `path` | `hash` | ``, which is also the exact shape of a task-file index row, whose second column
+is a COMMIT hash and not a blob. It rewrote 52 of those to `DELETED` in one pass, because
+`git rev-parse HEAD:W1/T1` resolves nothing. Reverted from git, redone bounded to the ledger section
+alone: one row re-stamped, the index untouched. A pattern that matches more than the thing it was
+written for is the same failure this whole sprint is about, and the only reason it was cheap this time
+is that the file was committed and the damage printed itself in the diff.
+
+Verified at dispatch: 59 rows, 59 blobs matching HEAD, 0 uncovered, 0 phantom.
 
 ### Perf-scout candidates staged for D
 
