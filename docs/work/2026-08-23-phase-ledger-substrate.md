@@ -195,6 +195,22 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 - [x] **T51.** Declare `permissions: contents: read` at workflow level, on the reasoning that the safe setting should be the one you get by forgetting. Plus `[27d]`, which requires every released version below the in-flight one to resolve to a real tag, with a shrink-only ratchet for the two versions that were never tagged and `fetch-tags: true` so CI can see them. Files: `.github/workflows/ci.yml`, `scripts/validate-dod.d/27-marketplace-ref-pin.sh`.
 - [x] **T52.** The CHANGELOG said the suite plants "all 83 banned tokens" while T49 had moved six report-input bans into `RR_RPT` with no plant test, making the real inventory 89. Plants all six, adds a runtime plant counter per sweep so a misrouted sweep reddens even when the grand total does not, and narrows the word "all" to something true. Files: `scripts/test_ban_tokens.sh`, `CHANGELOG.md`, `scripts/validate-dod.d/77-reviewer-roster.sh`.
 
+### Wave 18, the closing round's fix wave (findings-driven, allowlists declared at dispatch)
+
+- [x] **FW-ci.** Carry both `fetch-depth: 0` and `fetch-tags: true`, because depth 0 alone lands zero tags on a non-shallow clone and the new fail-closed tag check would then redden every run. Pin `[27d]`'s two never-cut versions with an expected count, placed outside the verifiable block so it cannot be skipped past. Files: `.github/workflows/ci.yml`, `scripts/validate-dod.d/27-marketplace-ref-pin.sh`.
+- [x] **FW-pins.** Defend the CHANGELOG's claim of "three" batched ban lists by counting the call sites that actually ship, pinned three ways and proved against a negative control. Give `[70]`'s two lists the size guard they never had. Stop `check_no_tokens_in` writing a temp file per call. Files: `scripts/test_ban_tokens.sh`, `scripts/validate-dod.d/70-invariants-and-new.sh`, `scripts/validate-dod.d/00-helpers.sh`.
+
+### Wave 19, wizard decision #16-A, the work-doc is the ruler
+
+- [x] **T53.** Exclude `docs/work/` at all three sites that build the review scope, and amend the closure rule everywhere it is stated. It is stated in three places, not the one I briefed, so amending only the first would have left two copies of the pre-fix rule for a reader to find. Files: `skills/hackify/references/review-scope.md`, `skills/hackify/references/phases/phase-5-review.md`.
+- [x] **T54.** Carry the same exclusion into Reviewer B's own two diff commands, because B is never sliced and receives `settle all`, so a dispatcher-side exclusion never reaches it. B still reads the work-doc in full as its authority. Files: `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md`, `agents/code-reviewer-quality-plan.md`.
+- [x] **T55.** Pin the pathspec and the reason prose separately per file, so an exclusion cannot survive with its justification deleted, and existence-gate every path first because a typo greps zero and reads as a dropped site. Files: `scripts/validate-dod.d/76-phase-ledger-substrate.sh`.
+
+### Wave 20, wizard decision #18-A, the law scout's dotfile blind spot
+
+- [ ] **T56.** `load_paths_from` normalises with `lstrip('./')`, which strips a character set rather than a prefix, so every dot-directory path is mangled into one that does not exist and then dropped by a `continue` that moves no counter. Fix the normalisation and make the drop paths reconcile against `scoped_paths`, so the scanner can never again report a clean scan over files it did not open. Files: `skills/lawkeeper/scripts/audit_scan.py`.
+- [ ] **T57.** Test-first, including the reconciliation invariant that makes this class of bug impossible to reintroduce quietly. Files: `skills/lawkeeper/scripts/test_audit.py`.
+
 **One wave carries no task IDs at all, and that is recorded rather than papered over.** The fix wave that landed as `fac7478` addressed the round-one decision-table findings, and it was dispatched off finding IDs, never off task numbers. No T number was ever assigned to any of it. Those thirteen paths appear in the index below keyed on their finding ID instead, marked `no task ID`, and the count of paths whose ONLY authorization is such a row is given with the index so the weakness is countable rather than described.
 
 ### Task-file index (authorization for every changed file)
@@ -250,17 +266,26 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | `W16/T50` | `a66f900` | reconstructed | `CHANGELOG.md` |
 | `W16/T51` | `a66f900` | reconstructed | `.github/workflows/ci.yml` `scripts/validate-dod.d/27-marketplace-ref-pin.sh` |
 | `W17/T52` | `cf606a5` | reconstructed | `scripts/test_ban_tokens.sh` `CHANGELOG.md` `scripts/validate-dod.d/77-reviewer-roster.sh` |
+| `W18/FW-ci` | `28857ac` | pre-declared | `.github/workflows/ci.yml` `scripts/validate-dod.d/27-marketplace-ref-pin.sh` |
+| `W18/FW-pins` | `28857ac` | pre-declared | `scripts/test_ban_tokens.sh` `scripts/validate-dod.d/70-invariants-and-new.sh` `scripts/validate-dod.d/00-helpers.sh` |
+| `W19/T53` | `e27e2fc` | pre-declared | `skills/hackify/references/review-scope.md` `skills/hackify/references/phases/phase-5-review.md` |
+| `W19/T54` | `e27e2fc` | pre-declared | `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` `agents/code-reviewer-quality-plan.md` |
+| `W19/T55` | `e27e2fc` | pre-declared | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` |
+| `W20/T56` | (in flight) | pre-declared | `skills/lawkeeper/scripts/audit_scan.py` |
+| `W20/T57` | (in flight) | pre-declared | `skills/lawkeeper/scripts/test_audit.py` |
 
-**Coverage, measured both directions.** 45 rows over 52 source paths. Uncovered paths: 0. Listed but absent from `dabc333..7ad1ea1`: 0. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
+**Coverage, measured both directions.** 52 rows over 55 listed paths, against 53 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not yet in the diff: 2, `skills/lawkeeper/scripts/audit_scan.py` and `skills/lawkeeper/scripts/test_audit.py`, because Wave 20's allowlist is written before its wave lands rather than after. That is the shape a pre-declared row is supposed to have, and it is the direction the earlier reconstructed rows could never point in. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
 
 **Authorization strength, counted rather than asserted.** This is the number that matters, because a row's provenance is what decides whether it can ever fail:
 
 | Provenance | Rows | Distinct paths | What the row is worth |
 |---|---|---|---|
-| pre-declared | 9 | 22 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
+| pre-declared | 16 | 33 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
 | pre-declared, amended at Phase 5 | 2 | 11 | the allowlist was real and the task went outside it; the row carries the paths actually touched and says so |
 | reconstructed | 27 | 32 | written at Phase 5 from the Daily Updates entry plus `git show --stat`, so it records what happened and cannot retroactively have constrained it |
 | no task ID | 7 | 13 | keyed on the decision-table finding that authorized the fix, because no task number was ever assigned |
+
+**The pre-declared class grew from 9 rows to 16 across Waves 18 to 20, and that is the number worth watching.** Reviewer B's Critical was that a census cannot fail. Every row added since carries an allowlist written at dispatch time, and Wave 20's two rows currently name files that do not yet appear in the diff, which is a state a reconstructed row cannot reach by construction.
 
 **Two rows are amended, and they are what prove the index can fail.** `W3/T7`'s allowlist was `scripts/validate-dod.d/70-invariants-and-new.sh` alone; it also wrote five agent files. `W2b/T9`'s allowlist named four paths and did not name `README.md`; it edited README anyway. Both breaches are recorded in this sprint's own Sprint Backlog and both stay legible in the index, in their own provenance class rather than folded into `pre-declared`, because a table where the recorded breach is indistinguishable from a clean row is the table Reviewer B refuted.
 
@@ -270,7 +295,7 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 
 Both count columns are re-derived from the rows above, by grouping on the Provenance cell (bold is emphasis, so `**no task ID**` and `no task ID` are one label) and unioning the backticked paths in each group. They are not maintained by hand. A hand-kept total on a table that later work grows is the staleness this sprint already had to fix twice, once in the DoD count and once in the roster.
 
-**The distinct-path column does not partition the 52.** It sums to 78, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 52; do not sum the column and compare it.
+**The distinct-path column does not partition the 52.** It sums to 89, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 55; do not sum the column and compare it.
 
 **Three paths have no authorization other than a `no task ID` row:** `skills/hackify/references/parallel-agents/phase-5-aggregation.md`, `skills/hackify/references/parallel-agents/phase-5-refute.md` and `skills/hackify/references/review-scope.md`. Every other path in the 13 also appears under a numbered task somewhere else in the index. That count of three is the honest measure of how much of this sprint changed with nothing task-shaped standing behind it.
 
