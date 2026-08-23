@@ -1,6 +1,6 @@
 # Phase ledger (trackable, ordered, un-skippable)
 
-A visible checklist that forces the phases to run **in order** and makes a forgotten step (like archiving the work-doc) impossible to hide. The ledger lives in the runtime's **todo tracker** (a trackable to-do list the user can see). It is the order-enforcer for the whole task.
+A visible checklist that forces the phases to run **in order** and makes a forgotten step (like archiving the work-doc) impossible to hide. The ledger lives in the runtime's **todo tracker** (a trackable to-do list the user can see) when the runtime has one, and in a printed chat block plus the work-doc's `## 0. Phase ledger` section when it does not. See **Substrate** below. It is the order-enforcer for the whole task.
 
 Load this file from Phase 1. The ledger is always-on: it is created early and updated at every phase boundary.
 
@@ -13,17 +13,37 @@ Prose rules like "do not skip Phase 2.5" and "archive before the summary" are so
 | Layer | Lives in | Scope | Survives a session? |
 |---|---|---|---|
 | **Sprint Backlog** | the work-doc | task-level (one line per task) | Yes, the durable state |
-| **Phase ledger** | the todo tracker | phase/step-level (one line per phase) | No, session-local; rebuilt on resume |
+| **Phase ledger** | the todo tracker, or a printed chat block plus work-doc section 0 | phase/step-level (one line per phase) | Mode-dependent, full hackify yes (it is in the work-doc), quick and yolo no |
 
 They do not overlap. The Sprint Backlog tracks *what code work* is left. The phase ledger tracks *which workflow phase* you are in and forbids running them out of order.
 
+## Substrate (where the ledger actually lives)
+
+**Primary substrate.** The runtime's `todo tracker` primitive, whenever the runtime actually exposes one ([runtime-adapters.md](runtime-adapters.md)).
+
+**Fallback substrate.** Used whenever it does not. The ledger is **printed in chat** as a markdown checklist at task start, and re-printed at **every** phase boundary. In full hackify it additionally lives in the work-doc's `## 0. Phase ledger` block, which is the durable copy.
+
+The ledger opens at task start in every mode as a printed block, and in full hackify it is **written into the work-doc as section 0 at Phase 2 step 1**.
+
+| Mode | On disk | What the record is |
+|---|---|---|
+| **Full hackify** | the work-doc's `## 0. Phase ledger` block | durable, archived with the doc, read back on resume |
+| **quick** | nothing, by contract | the printed block in chat |
+| **yolo** | nothing, by contract | the printed block in chat |
+
+quick and yolo keep nothing on disk by contract, so they print only and the printed block is the record. Do not invent a scratch ledger file for them.
+
+On the fallback substrate a tick is an edit plus a re-print, not a tool call: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` completed. The ordering law and the reflect-after-each-step rule below apply unchanged, the marks just live in text.
+
+**On Claude Code specifically**, `TodoWrite` is frequently absent from the session tool surface, so the fallback is the NORMAL path there, not an exotic edge case. Check for the primitive at task start, and when it is not there, degrade to the printed block without comment. A missing tool is never a reason to drop the ledger.
+
 ## When to create it
 
-- **Full hackify**, at the **start of Phase 2**, right after the ask is real and before any code. Create it before you draft the work-doc.
+- **Full hackify**, opened at **task start in Phase 1** as a printed block, right after the ask is real and before any code. It becomes section 0 of the work-doc at **Phase 2 step 1**, when the file is first created, before you draft the rest of it.
 - **quick**, at task start, right after Phase 1.
 - **yolo**, at task start, right after Phase 1.
 
-Create it with the **todo tracker** primitive (`runtime-adapters.md`). One item per phase; **Phase 6 is split into sub-steps** so archiving is its own tracked line.
+Create it with the **todo tracker** primitive when the runtime exposes one, otherwise with the fallback substrate above (`runtime-adapters.md`). One item per phase; **Phase 6 is split into sub-steps** so archiving is its own tracked line.
 
 ## The item lists per mode
 
@@ -97,8 +117,8 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 
 ## Pause / resume
 
-- The **Sprint Backlog** in the work-doc is the durable state. The **phase ledger** is session-local.
-- On resume, **rebuild the ledger** from the work-doc: recreate the items, tick the phases already done (read `status` + the Sprint Backlog checkboxes), and set the first open phase to `in_progress`.
+- The **Sprint Backlog** in the work-doc is the durable state. In full hackify the **phase ledger** is durable too, it is section 0 of the same file.
+- On resume, **read the ledger back** from the work-doc's `## 0. Phase ledger` block: re-print it, restore it into the todo tracker if the runtime has one, and set the first open phase to `in_progress`. It is a read, not a reconstruction. Only when that block is missing (an older work-doc) do you rebuild it from `status` + the Sprint Backlog checkboxes.
 - quick / yolo keep no work-doc, so their ledger dies with the session, consistent with their no-resume contract.
 
 ## Anti-rationalizations (STOP and apply the reality)
@@ -106,7 +126,7 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 | Thought | Reality |
 |---|---|
 | "I'll archive right after I show the summary" | The ledger blocks it. The summary item is unreachable while the archive item is open. Archive first. |
-| "The code is done. I can skip the ledger now" | The ledger is created at Phase 2, before code. It is the order-enforcer, not a trophy for the end. |
+| "The code is done. I can skip the ledger now" | The ledger opens at task start, before any code. It is the order-enforcer, not a trophy for the end. |
 | "This phase does not apply. I'll delete its item" | Do not delete. Mark it `completed` with `skipped: <reason>`. Silent deletion hides drift. |
 | "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (waves, reviewers), never across them. |
 | "Tests are green, that's Phase 4 done" | Phase 4's exit artifact includes the three ship-gate rows. A green triad is not a booted app. |

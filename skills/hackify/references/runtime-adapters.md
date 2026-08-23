@@ -2,9 +2,9 @@
 
 ## Why this file exists
 
-hackify is authored against 11 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver, completion sentinel) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
+hackify is authored against 12 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver, completion sentinel, always-on injection) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
 
-## The 11 primitives
+## The 12 primitives
 
 - `wizard tool`, multi-question batched interactive question prompt to the user.
 - `subagent dispatcher`, launches a foreground subagent with a self-contained prompt and waits for the result.
@@ -13,10 +13,11 @@ hackify is authored against 11 abstract primitives (wizard, subagent, file-read,
 - `file-edit op`, applies a targeted in-place edit to a local file.
 - `search`, pattern search across the project (regex/literal).
 - `shell`, executes a shell command (with optional timeout).
-- `todo tracker`, a trackable, ordered to-do list surfaced to the user; the substrate for the phase ledger (`phase-ledger.md`). Where a runtime has no native list, the fallback is an in-chat markdown checklist, the phase ledger degrades to visible-but-not-interactive, never absent.
+- `todo tracker`, a trackable, ordered to-do list surfaced to the user; the substrate for the phase ledger (`phase-ledger.md`). Where a runtime has no native list, the fallback is to print the ledger in chat as a markdown checklist and re-print it at every phase boundary, plus the work-doc's `## 0. Phase ledger` block in full hackify, which is the durable copy. The phase ledger degrades to visible-but-not-interactive, never absent.
 - `orchestration tier`, how much parallel machinery a mandatory fan-out gets (Phase 2.5 reviewers, Phase 3 waves, Phase 5 reviewers + refuters). Hackify runs at MAXIMUM tier by default in every mode. Contract, standing authorization, and the opt-out phrases: [orchestration.md](orchestration.md).
 - `iteration driver`, what re-enters the workflow across turns until the phase ledger is fully ticked. On by default; operates ABOVE the phases, never inside one. Same contract file.
 - `completion sentinel`, a one-line completion condition an INDEPENDENT evaluator re-checks after every turn, so "done" is not the parent's own opinion. On by default in every mode; parent-only, never proposed from a subagent. Unlike the other two it has no reliable tool call, the parent always prints a paste-ready line and calls the native tool only when it is genuinely in scope. Same contract file.
+- `always-on injection`, a per-prompt context injector that puts the plugin's non-negotiable laws in front of the model on every message, independent of which skill is loaded. Native only on Claude Code, the `UserPromptSubmit` hook in `hooks/hooks.json`, currently four rules files. Where no such primitive exists, the same laws reach the model through `SKILL.md` prose alone, which is weaker, and that gap is why the Claude Code path exists.
 
 ## Per-runtime mapping table
 
@@ -29,10 +30,11 @@ hackify is authored against 11 abstract primitives (wizard, subagent, file-read,
 | file-edit op | `Edit` | `apply_patch` | `apply_patch` | `replace` | `edit` | inline edit via chat | inline edit via chat |
 | search | `Grep` | `ripgrep` (via shell) | `ripgrep` (via shell) | `grep` | `grep` | built-in codebase search | n/a, no project-wide search tool; rely on shell `grep` |
 | shell | `Bash` | `shell` | `shell` | `run_shell_command` | `bash` | built-in terminal | `shell` |
-| todo tracker | `TodoWrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, hosted UI; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist | `todowrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist |
+| todo tracker | `TodoWrite` when the session exposes it; it is gated and frequently absent, so fall back to printing the ledger in chat at every phase boundary, plus the work-doc's `## 0. Phase ledger` block in full hackify, the durable copy | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, hosted UI; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist | `todowrite` | n/a, no todo primitive; emulate as an in-chat markdown checklist | n/a, no todo primitive; emulate as an in-chat markdown checklist |
 | orchestration tier | `ultracode` keyword in scope + the `Workflow` tool for fan-outs a flat batch serves poorly | n/a, no subagent primitive; max tier means the phases run inline and sequentially | n/a, same as Codex CLI | n/a, same as Codex CLI | largest parallel `task` dispatch the mode supports | n/a, no subagent primitive; phases run inline | n/a, no subagent primitive; phases run inline |
 | iteration driver | `/loop` in self-paced mode carrying `continue work on <slug>` | n/a, no scheduler; parent runs phases to completion in-turn, user re-prompts to resume | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry | n/a, no scheduler; same in-turn carry |
 | completion sentinel | conditional, `/goal <condition>` printed for the user to paste (needs a trusted workspace and unrestricted hooks); the `ProposeGoal` tool only when it is in scope, parent-only, blocked in plan mode | n/a, no session-goal primitive; degrades to the anchor's Success Signals + Phase 4 acceptance rows | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no session-goal primitive; same degrade | n/a, no session-goal primitive; same degrade | n/a, no session-goal primitive; same degrade |
+| always-on injection | native, the `UserPromptSubmit` hook in `hooks/hooks.json`, currently four rules files | n/a, no per-prompt injection primitive; the same laws reach the model through `SKILL.md` prose alone, which is weaker | n/a, same as Codex CLI | n/a, same as Codex CLI | n/a, no per-prompt injection primitive; same degrade | n/a, no per-prompt injection primitive; same degrade | n/a, no per-prompt injection primitive; same degrade |
 
 ## Plugin model support matrix
 
@@ -49,10 +51,10 @@ hackify is authored against 11 abstract primitives (wizard, subagent, file-read,
 ## Native-tier enhancements (optional, never load-bearing)
 
 The first 8 primitives above (wizard through todo tracker) are the only load-bearing contract: every
-workflow phase runs on them alone, on every tier. The last 3 (orchestration tier, iteration driver,
-completion sentinel) raise the ceiling where a runtime supports them and degrade to a stated fallback
-where it does not, so no phase may hard-require one. The enhancements below upgrade ergonomics or
-wall-clock time on runtimes that support them, nothing more. Each one carries a stated degrade path, and no workflow phase may hard-require
+workflow phase runs on them alone, on every tier. The last 4 (orchestration tier, iteration driver,
+completion sentinel, always-on injection) raise the ceiling where a runtime supports them and
+degrade to a stated fallback where it does not, so no phase may hard-require one. The enhancements
+below upgrade ergonomics or wall-clock time on runtimes that support them, nothing more. Each one carries a stated degrade path, and no workflow phase may hard-require
 an enhancement; a phase that cannot run without one is a portability bug. (The deterministic
 perf-scout is deliberately absent from this list: it rides the `shell` primitive and runs identically
 on every tier.)
@@ -62,7 +64,7 @@ on every tier.)
 | Structured subagent outputs | Reviewer/scout findings return as machine-readable, schema-validated data instead of prose tables, making aggregation and the decision table mechanical | Phase 2.5 + Phase 5 | Aggregation degrades to the word-capped markdown OUTPUT tables the templates already mandate |
 | Background subagents | Long-running research/audit/scan agents run in the background and notify on completion, overlapping with user interaction | Phase 1 exploration; large Phase 5 scans | Dispatch degrades to foreground sequential subagents |
 | Per-agent model/effort tiers | Mechanical work (deterministic scout runs, registration edits) rides a fast/cheap tier while deep reviewers and implementers keep the strongest tier, cost and latency drop with no rigor loss | Phase 3 + Phase 5 dispatches | Tiering degrades to a single-model runtime where all agents run equal |
-| Task-tracker dependency ordering | Phase-ledger items carry blocked-by edges, so starting a phase out of order becomes mechanically impossible, extends the ordering law in `phase-ledger.md` | Every phase (ledger-wide) | Ordering degrades to the convention-enforced law `phase-ledger.md` already specifies |
+| Task-tracker dependency ordering | Phase-ledger items carry blocked-by edges, so a tracker that has them refuses an out-of-order start instead of leaving it to the written law, extends the ordering law in `phase-ledger.md` | Every phase (ledger-wide) | Ordering degrades to the convention-enforced law `phase-ledger.md` already specifies |
 | Batched wizard rounds | Several back-to-back wizard calls land in one turn, so the Phase 1 questionnaire flows as 4-question batches | Phase 1 | Batching degrades to sequential single batches |
 
 Per-runtime support, in the same column order as the mapping table, runtime-specific tool names stay
@@ -73,7 +75,7 @@ inside the table cells, per this file's convention:
 | Structured subagent outputs | native, `Agent` findings returned schema-validated | n/a, no subagent primitive | n/a, no subagent primitive | n/a, no subagent primitive | unknown, `task` returns prose; schema validation unverified | n/a, no subagent primitive | n/a, no subagent primitive |
 | Background subagents | native, `Agent` with `run_in_background` | n/a, no subagent primitive | n/a, no subagent primitive | n/a, no subagent primitive | unknown, `task` background dispatch unverified | n/a, no subagent primitive | n/a, no subagent primitive |
 | Per-agent model/effort tiers | native, per-`Agent` `model` override; per-agent effort in agent definitions | n/a, no subagent primitive | n/a, no subagent primitive | n/a, no subagent primitive | partial, per-mode model pinning in mode files; effort control unverified | n/a, no subagent primitive | n/a, no subagent primitive |
-| Task-tracker dependency ordering | native, `TodoWrite` items carry blocked-by edges | n/a, no todo primitive | n/a, no todo primitive | n/a, no todo primitive | unknown, `todowrite` exists; dependency edges unverified | n/a, no todo primitive | n/a, no todo primitive |
+| Task-tracker dependency ordering | conditional, `TodoWrite` items carry blocked-by edges when the session exposes the tool; it is frequently absent, and ordering then rests on the printed ledger block plus the work-doc's `## 0. Phase ledger` section, a written law, never tool-level edges | n/a, no todo primitive | n/a, no todo primitive | n/a, no todo primitive | unknown, `todowrite` exists; dependency edges unverified | n/a, no todo primitive | n/a, no todo primitive |
 | Batched wizard rounds | native, back-to-back `AskUserQuestion` calls in one turn | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive |
 
 ## Sync output per runtime

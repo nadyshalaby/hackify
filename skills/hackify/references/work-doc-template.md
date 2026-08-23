@@ -24,6 +24,21 @@ sprint_goal: |
 
 # Add invitation expiry to closed sign-up
 
+## 0. Phase ledger
+
+<!-- Opened as a printed block at task start, written here at Phase 2 step 1. `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done. Re-print this block at every phase boundary. -->
+
+- [ ] Phase 1. Clarify (lock the goal anchor)
+- [ ] Phase 2. Plan + Gate (work-doc + user "go")
+- [ ] Phase 2.5. Spec review (1 reviewer, patch the doc)
+- [ ] Phase 3. Implement (all waves committed)
+- [ ] Phase 4. Verify (Evidence Ledger + triad green)
+- [ ] Phase 5. Review (decision table empty)
+- [ ] Phase 6a. Re-verify + land choice (Steps A, C)
+- [ ] Phase 6b. Cleanup sweep (Step C.5)
+- [ ] **Phase 6c. Archive work-doc to `done/` (Step D)**
+- [ ] Phase 6d. Update log + HTML report (Step F)
+
 ## 1. Original ask
 
 > [paste the user's request VERBATIM, in a blockquote]

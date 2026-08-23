@@ -159,6 +159,7 @@ MIRROR_SOURCES=(
   "rules/hard-caps.md"
   "rules/expert-mindset.md"
   "rules/perf-guardrails.md"
+  "rules/phase-discipline.md"
   "rules/code-quality.md"
   "rules/performance.md"
   "rules/four-principles.md"
