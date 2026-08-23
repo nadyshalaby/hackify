@@ -33,15 +33,17 @@ The user is consulted ONLY for Phase 1 wizard answers (if the ask is ambiguous).
 
 ## Phase ledger, trackable, ordered (always-on)
 
-Open a **phase ledger** at task start: a trackable to-do list (the runtime's **todo tracker**) with one item per phase. Clarify → Plan → Spec-review → Implement → Verify → Multi-reviewer → Finish. Rules (full contract: `../hackify/references/phase-ledger.md`):
+Open a **phase ledger** at task start, one item per phase. Clarify → Plan → Spec-review → Implement → Verify → Multi-reviewer → Finish. Rules (full contract: `../hackify/references/phase-ledger.md`):
 
-- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`. No phase skipped, mark a carve-out `completed` with a one-line reason.
-- **Reflect after each item**, one line: what changed, did it pass, what is next, then advance.
+- **Substrate.** The runtime's **todo tracker** primitive when the session actually exposes one, otherwise a printed markdown checklist in chat, re-printed at **every** phase boundary. **On Claude Code the printed block is the normal path**, not an exotic edge case, because the todo tracker is frequently absent from the session tool surface. YOLO writes no work-doc, so that printed block is the ONLY record its ledger has, which makes the re-print rule load-bearing rather than cosmetic. The ledger degrades to visible-but-not-interactive, never to absent. On the fallback a tick is an edit plus a re-print: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done.
+- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`.
 - **Auto-pass removes the WAIT, not the STEP.** YOLO auto-passes the Phase 2 gate and the Phase 6 menu, but still ticks every ledger item in order. No work-doc → the ledger is session-local.
+- **No step is ever silently dropped.** Gate-free is not step-free, and nobody is watching, which is exactly why this one is written down. Every one of YOLO's own items ends either `completed`, or `completed` with a one-line reason printed in the block, e.g. `Phase 3b, skipped: no wave got stuck`. Never delete an item to make progress look done.
+- **Reflect after each item**, one line: what changed, did it pass, what is next, then advance.
 
 ## Expert mindset (always-on)
 
-Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier, and prove every claim with fresh evidence. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md` and `rules/perf-guardrails.md`, the caps and performance laws bind in YOLO too).
+Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier, and prove every claim with fresh evidence. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md` and `rules/phase-discipline.md`, four injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in YOLO too).
 
 ## Auto-pass behavior (the two gates YOLO skips)
 
@@ -101,6 +103,8 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 | "Push the commit too, they'll want it on remote" | No. Phase 6 default is commit to current branch locally, no push. Pushing is user-initiated (`git push` themselves). |
 | "Skip multi-reviewer because no work-doc DoD to consistency-check against" | The in-chat plan block has the AC list. Reviewer B audits diff against that list. No skip. |
 | "Auto-pass means I can skip the phase too" | Auto-pass removes the WAIT at a gate, not the phase. Every ledger item still runs in order and gets ticked `completed`. |
+| "Nobody is watching this run, so a step I drop costs nothing" | It costs the whole point. Every item ends `completed`, or `completed` with a written one-line reason. Autopilot is where a silent drop is least likely to be noticed and most likely to ship. |
+| "There is no to-do tool in this session, so there is no ledger" | There is one. Print it in chat and re-print it at every boundary. YOLO keeps nothing on disk, so the printed block is the only record the ledger has. |
 | "Autopilot, so auto-fix without refuting" | Refute first. Auto-fixing a phantom Critical in autopilot breaks working code and nobody sees it until `git diff HEAD~1`. A Critical still needs two refutations to die; the second refuter is dispatched only when the first one votes to refute, because an upheld first verdict already settles it. |
 | "Tests are green, skip the ship gate and commit" | The ship gate is a Phase 4 exit artifact in every mode. Commit is Phase 6; you cannot reach it with an open ledger item. |
 | "The re-scan came back clean, commit it" | Only if the diff has not changed since. A round that changed code mandates another round before Phase 6. |

@@ -4,6 +4,8 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Prove every task and requirement landed AND that the app actually runs. Evidence before claims. Three parts, full spec in `references/review-and-verify.md`.
 
+**Ledger, at phase open.** Set the phase ledger's `Phase 4. Verify (Evidence Ledger + triad green)` to in-progress and re-print the whole block. Never open it while `Phase 3. Implement` is still open. That is the **phase** ledger, a different artifact from the Evidence Ledger this phase builds. Contract: [../phase-ledger.md](../phase-ledger.md).
+
 **Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
 **Part 2. Three-layer re-verify (prove it without drifting).** Run in order; re-run any layer on demand when the user says "prove it again".
@@ -33,3 +35,5 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 - [ ] Manual smoke check (if user opted in), list steps and outcomes
 
 **On any red, do NOT advance to Phase 5.** Loop back to Phase 3 (or 3b if stuck).
+
+**Ledger, at phase exit.** A proof row per task and per acceptance bullet, a green fresh triad, and all three ship-gate rows present first, then one line of reflection (what changed, did it pass, what is next), then tick the phase ledger's `Phase 4. Verify` and open `Phase 5. Review (decision table empty)`. A ship-gate leg that does not apply is a written `⏭ skipped` row carrying its reason, never a missing row.

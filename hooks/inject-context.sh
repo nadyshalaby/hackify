@@ -3,10 +3,10 @@
 #
 # Injects the markdown file given as $1 as additionalContext. hooks.json
 # invokes this once per always-on file (rules/hard-caps.md,
-# rules/expert-mindset.md, rules/perf-guardrails.md) as a separate
-# UserPromptSubmit hook entry; the harness concatenates their
-# additionalContext. NON-routing, this hook MUST NOT inspect the prompt or
-# classify full vs quick vs groom.
+# rules/expert-mindset.md, rules/perf-guardrails.md,
+# rules/phase-discipline.md) as a separate UserPromptSubmit hook entry; the
+# harness concatenates their additionalContext. NON-routing, this hook MUST
+# NOT inspect the prompt or classify full vs quick vs groom.
 #
 # WHY IT IS SESSION-AWARE (v0.11.0): additionalContext is appended to the
 # transcript and STAYS there. Re-injecting the same ~2.1k tokens on every

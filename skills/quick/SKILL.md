@@ -21,15 +21,17 @@ No Plan+Gate. No Spec self-review. No parallel reviewer panel (ONE reviewer carr
 
 ## Phase ledger, trackable, ordered (always-on)
 
-Open a **phase ledger** at task start: a trackable to-do list (the runtime's **todo tracker**) with one item per kept phase. Clarify → Implement → Verify → Review-lite → Cleanup → Summary. Rules (full contract: `../hackify/references/phase-ledger.md`):
+Open a **phase ledger** at task start, one item per kept phase. Clarify → Implement → Verify → Review-lite → Cleanup → Summary. Rules (full contract: `../hackify/references/phase-ledger.md`):
 
-- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`. No phase skipped, mark a carve-out `completed` with a one-line reason.
+- **Substrate.** The runtime's **todo tracker** primitive when the session actually exposes one, otherwise a printed markdown checklist in chat, re-printed at **every** phase boundary. **On Claude Code the printed block is the normal path**, not an exotic edge case, because the todo tracker is frequently absent from the session tool surface. Quick keeps nothing on disk by contract, so that printed block is the ONLY record its ledger has, which makes the re-print rule load-bearing rather than cosmetic. The ledger degrades to visible-but-not-interactive, never to absent. On the fallback a tick is an edit plus a re-print: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done.
+- One item `in_progress` at a time. No later phase starts until the current phase's exit artifact exists and its item is `completed`.
+- **No step is ever silently dropped.** Quick is short by design, and short is not the same as silent. Every one of quick's own items ends either `completed`, or `completed` with a one-line reason written into the printed block, e.g. `Phase 1, skipped: zero ambiguity, the ask names the file and the line`. Never delete an item to make progress look done, and never let one disappear because the turn ran long.
 - **Reflect after each item**, one line: what changed, did it pass, what is next, then advance.
 - Quick keeps no work-doc and no archive item, so the ledger is session-local. It exists to force order and reflection, not to survive a restart.
 
 ## Expert mindset (always-on)
 
-Even in quick mode, think as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier. Small tasks are where broken work hides. Prove instead of claim; when unsure, ask. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md` and `rules/perf-guardrails.md`, the caps and performance laws bind in quick mode too).
+Even in quick mode, think as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier. Small tasks are where broken work hides. Prove instead of claim; when unsure, ask. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md` and `rules/phase-discipline.md`, four injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in quick mode too).
 
 ## Kept phases
 
@@ -112,6 +114,8 @@ Print to chat. If the user promoted to full hackify mid-task, append the log to 
 | "User said 'quick' so we skip Phase 1 clarify" | Only skip clarify if there is zero ambiguity in the ask. If even one detail is unclear, run the wizard, one batched question is cheaper than a wrong implementation. |
 | "An update log is overkill for a one-line fix" | It's mandatory. One block is fine. The user always knows what landed and why. |
 | "I'll fold verify and review into one step" | The ledger keeps them separate and ordered. Tick Verify `completed` before Review-lite starts. |
+| "This step obviously does not apply here, no need to mention it" | Then mark it `completed` with the one-line reason and re-print the block. Quick drops ceremony, never steps. A step that disappears with nothing written is a silent drop. |
+| "There is no to-do tool in this session, so there is no ledger" | There is one. Print it in chat and re-print it at every boundary. Quick keeps nothing on disk, so the printed block is the only record the ledger has. |
 | "Quick mode, so skip the ship gate" | The ship gate is always-on in every mode. If there is nothing to run, write the `⏭ skipped` row with the reason. That costs one line. |
 | "One reviewer means fewer lenses" | No. One reviewer, all lenses. Quick mode drops the review parallelism, never the coverage. |
 | "It's a typo, I'll just edit the file myself" | The no-parent-authored-diff law binds in quick mode too, with no size threshold. Dispatch it. |

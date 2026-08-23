@@ -58,22 +58,26 @@ The only mandatory user gate is between **Plan** and **Spec review**. After Phas
 ## The work-doc (single source of truth)
 
 - **Location.** `<project>/docs/work/<YYYY-MM-DD>-<slug>.md` in flight; move to `<project>/docs/work/done/<YYYY-MM-DD>-<slug>.md` once shipped.
-- **Skeleton** (`references/work-doc-template.md`). Frontmatter: `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, `sprint_goal`. Body: Original Ask → Clarifying Q&A → Acceptance Criteria → Approach → Sprint Backlog → Daily Updates → Sprint Review → Retrospective.
-- **State is the file.** No companion sidecar, no in-conversation memory. Resume = open file, read frontmatter, jump to the first unchecked checkbox.
+- **Skeleton** (`references/work-doc-template.md`). Frontmatter: `slug`, `title`, `status`, `type`, `created`, `project`, `current_task`, `worktree`, `branch`, `sprint_goal`. Body: **Phase ledger (section 0)** → Original Ask → Clarifying Q&A → Acceptance Criteria → Approach → Sprint Backlog → Daily Updates → Sprint Review → Retrospective.
+- **State is the file.** No companion sidecar, no in-conversation memory. Resume = open file, read frontmatter, read the `## 0. Phase ledger` block back to find the open phase (an older doc without that block falls back to rebuilding the ledger, see the ledger section below), then jump to the first unchecked Sprint Backlog checkbox.
 - **Project root.** Each sub-project is its own git repo. Work-doc lives inside the project repo. Multi-project tasks: one doc per project, linked via `related` frontmatter field.
 
 ---
 
 ## The phase ledger, trackable, ordered (always-on)
 
-Every task runs against a **phase ledger**: a trackable to-do list (the runtime's **todo tracker** primitive) with one item per phase, created at the **start of Phase 2**. It is the order-enforcer. Deep contract: [references/phase-ledger.md](references/phase-ledger.md).
+Every task runs against a **phase ledger**: one item per phase, ticked in order. It is the order-enforcer. Deep contract: [references/phase-ledger.md](references/phase-ledger.md).
 
+The ledger opens at task start in every mode as a printed block, and in full hackify it is **written into the work-doc as section 0 at Phase 2 step 1**.
+
+- **Substrate, primary then fallback.** The ledger lives in the runtime's **todo tracker** primitive when the session actually exposes one. When it does not, it lives in a printed markdown checklist in chat, re-printed at **every** phase boundary, plus the work-doc's `## 0. Phase ledger` section once that file exists. **On Claude Code the fallback is the NORMAL path**, not an exotic edge case, because the todo tracker is frequently absent from the session tool surface. Check for the primitive at task start and degrade without comment when it is missing. A missing tool makes the ledger visible-but-not-interactive, never absent. On the fallback a tick is an edit plus a re-print, not a tool call: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` done.
+- **The law is also injected.** `rules/phase-discipline.md` carries the ledger law, the in-order law and the wizard mandate into every prompt through the `UserPromptSubmit` hook, so they stay in front of you long after this file has scrolled away. Only Claude Code has that hook; the other six runtimes take the same laws from this prose alone (`references/runtime-adapters.md`).
 - **One item `in_progress` at a time, no jumping ahead.** A later phase cannot start until the current phase's exit artifact exists and its item is `completed`. No phase is skipped: a carve-out is marked `completed` with a one-line reason, never deleted. Parallelism lives *inside* a phase (waves, reviewers), never across phases.
 - **Phase 6 is split into sub-items** so archiving is its own line (`6c Archive → done/`), and it comes **before** the summary (`6d Summary + report`). The summary is unreachable while the archive item is open, so the work-doc always lands in `docs/work/done/` before any recap prints.
 - **Reflect after each item:** one line, what changed, did it pass, what is next (the communication voice), then flip the item and start the next.
-- **Resume rebuilds the ledger** from the work-doc's `status` + Sprint Backlog checkboxes; quick/yolo ledgers are session-local.
+- **Resume READS the ledger back**, it does not rebuild it. In full hackify the ledger is section 0 of the work-doc: re-print that block, restore it into the todo tracker if the runtime has one, and set the first open phase to `in_progress`. Rebuilding from `status` + the Sprint Backlog checkboxes is the fallback for an older work-doc with no section 0 block, and for quick/yolo, which have no work-doc at all and whose ledgers are session-local.
 
-The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog tracks code tasks (durable, task-level); the ledger tracks phases (session-local, phase-level). See [references/phase-ledger.md](references/phase-ledger.md) for the per-mode item lists and the exit-artifact table.
+The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog tracks code tasks (task-level); the ledger tracks phases (phase-level). In full hackify both are durable, they are two sections of the same file; in quick and yolo the ledger is session-local because those modes keep nothing on disk. See [references/phase-ledger.md](references/phase-ledger.md) for the per-mode item lists and the exit-artifact table.
 
 ---
 
@@ -82,6 +86,8 @@ The ledger is a **separate layer** from the work-doc Sprint Backlog: the Backlog
 **Goal.** Groom the ask into a locked **Primary Goal & Guardrails** anchor, five parts, North-Star Goal / In-Scope / Out-of-Scope and Non-Goals / Guardrails and Invariants / Success Signals. Maximum understanding before any code. Enforced downstream by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal.
 
 **Load the always-on trio first:** `references/communication-voice.md` (voice), `references/expert-mindset.md` (mindset), `references/phase-ledger.md` (ledger contract). They govern every phase from here on.
+
+**Open the phase ledger here, not later.** The moment the ask is real and before any code, create the ten full-mode items in the todo tracker when the runtime has one, otherwise print them as a chat block, and set Phase 1 to `in_progress`. Phase 2 step 1 writes that same block into the work-doc as section 0. Waiting for the work-doc leaves the whole of Phase 1 with no visible tracker.
 
 **Hard rule.** No code, no file edits, no test runs in Phase 1. Every question you put to the user, in EVERY phase, goes through the wizard tool; a plain numbered list in chat is forbidden. Every question also obeys the Clarity law in the canonical Wizard Contract (`references/clarify-questions/wizard-contract.md`), written so the user can answer without knowing how this workflow works.
 
@@ -95,9 +101,9 @@ Full protocol, task-type classification, questionnaire assembly, and the anchor 
 
 **Goal.** A work-doc the user can scan in 60 seconds and say "go."
 
-**First, open the phase ledger.** Create the trackable to-do list (todo tracker, one item per phase, Phase 6 split into sub-items) per the always-on ledger section above and [references/phase-ledger.md](references/phase-ledger.md). Set Phase 2 to `in_progress`. Then:
+**First, the phase ledger.** It is already open from Phase 1 (todo tracker where the runtime has one, otherwise the printed block, Phase 6 split into sub-items). Tick Phase 1 `completed`, set Phase 2 `in_progress`, and re-print the block. Step 1 below gives it its durable home. Contract: [references/phase-ledger.md](references/phase-ledger.md). Then:
 
-1. **Create the work-doc** at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`. Slug `kebab-case`, ≤6 words. Date is today.
+1. **Create the work-doc** at `<project>/docs/work/<YYYY-MM-DD>-<slug>.md`. Slug `kebab-case`, ≤6 words. Date is today. **Write the phase ledger into it as `## 0. Phase ledger`**, between the title line and `## 1. Original ask`, before you draft anything else, so the durable copy exists from the file's first save.
 2. **Fill from template** (`references/work-doc-template.md`). Required now: Original Ask (verbatim), Clarifying Q&A (verbatim), Acceptance Criteria (3-7 verifiable bullets), Approach (≤200 words; chosen path + 1-2 sentence rationale), Sprint Backlog (flat checklist, each task 5-30 min).
 3. **Task granularity.** Each task independently testable and committable. Break "Add invitation expiry" into "Add `expires_at` column + migration", "Reject expired tokens in invitations service", "Show 'expired' state in UI", "Backend test", "Frontend test". Default: one commit per task.
 4. **No placeholders.** No "TBD", no "implement error handling later", no "similar to T2". Decompose vague tasks now.
@@ -271,7 +277,7 @@ Contract, schema, and the web↔native token mapping: `references/design-spec/sp
 
 ## Code quality (always-on)
 
-Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable, headline: ≤40 LOC per function, ≤3 params, ≤500 LOC per file, 0 lint suppressions; full list: `rules/hard-caps.md` (canonical, injected every prompt). The `UserPromptSubmit` hook injects THREE rules files into every prompt, `rules/hard-caps.md` (caps), `rules/expert-mindset.md` (mindset), `rules/perf-guardrails.md` (performance), so all three laws are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from the Phase 2.5 spec reviewer and Phase 5 Reviewer B.
+Hackify enforces the project's code-quality rules. If a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md` (canonical doctrine; the legacy `references/code-rules.md` path is a forwarding stub). Hard caps non-negotiable, headline: ≤40 LOC per function, ≤3 params, ≤500 LOC per file, 0 lint suppressions; full list: `rules/hard-caps.md` (canonical, injected every prompt). The `UserPromptSubmit` hook injects FOUR rules files into every prompt, `rules/hard-caps.md` (caps), `rules/expert-mindset.md` (mindset), `rules/perf-guardrails.md` (performance), `rules/phase-discipline.md` (phase order, the always-open ledger, the wizard mandate), so all four laws are always loaded; the deeper doctrine in `rules/code-quality.md` loads on demand from the Phase 2.5 spec reviewer and Phase 5 Reviewer B.
 
 **Performance law.** `rules/perf-guardrails.md` is the always-on tier; the canonical catalog is `rules/performance.md` (stable `perf.<domain>.<slug>` IDs + severity model), loaded by implementers, Reviewer D, and the scout; the deterministic scan protocol lives in `references/perf-scout.md`.
 
@@ -314,6 +320,7 @@ Hackify talks in **B2 (upper-intermediate) English** so non-native readers can f
 | `rules/code-quality.md` (plugin root) | SOLID/DRY/types/layering deep dive, canonical location (legacy `references/code-rules.md` is a forwarding stub) |
 | `rules/performance.md` (plugin root) | canonical perf catalog, stable `perf.<domain>.<slug>` IDs + severity model (load: implementers, Reviewer D, scout triage) |
 | `rules/perf-guardrails.md` (plugin root) | always-on perf stub, injected every prompt by the `UserPromptSubmit` hook |
+| `rules/phase-discipline.md` (plugin root) | always-on phase stub, the always-open ledger + phases-in-order + wizard mandate, injected every prompt by the `UserPromptSubmit` hook |
 | `references/perf-scout.md` | deterministic perf-scout protocol (run: every Phase 3 wave-end + Phase 5 start) |
 | `references/law-scout.md` | deterministic engineering-law scan, the bundled lawkeeper scanner scoped to touched files (same two run points) |
 | `references/ship-gate.md` | runtime proof protocol, build + boot + smoke (run: Phase 4, every mode) |
@@ -333,6 +340,7 @@ Load reference files **only when the phase needs them**, keeps context lean.
 | "I'll skip the gate, the user will be happy I'm fast" | The gate is the only thing protecting against misread asks. |
 | "I'll print the summary now and archive after" | The ledger blocks it. Archive (item `6c`) gates the summary (item `6d`). The doc moves to `done/` first. |
 | "I can skip this phase and catch up later" | The ledger forbids it. One item `in_progress`; no later phase starts until the current one is `completed`. |
+| "There is no to-do tool in this session, so there is no ledger" | There is one. Print it as a chat block and re-print it at every phase boundary, and in full mode keep it as work-doc section 0. On Claude Code that fallback is the normal path. The ledger degrades to visible-but-not-interactive, never to absent. |
 | "Tests after will be fine, I know what I'm building" | Tests-after pass immediately and prove nothing. |
 | "One more fix attempt before debug mode" | The 2-attempt limit is the circuit breaker. Honor it. |
 | "I can self-review a 600-LOC diff" | No, you can't. Escalate. |

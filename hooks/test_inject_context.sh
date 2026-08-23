@@ -114,10 +114,36 @@ for bad in "" "/nonexistent/rules.md"; do
   fi
 done
 
-echo "[9] all three always-on files count independently"
+echo "[9] all four always-on files count independently"
 prompt sess-c | "$HOOK" "$ROOT/rules/hard-caps.md" >/dev/null
 OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/expert-mindset.md" | ctx)
 expect "expert-mindset still gets its own turn 1" "$OUT" "## The stakes"
+OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/perf-guardrails.md" | ctx)
+expect "perf-guardrails still gets its own turn 1" "$OUT" "## The twelve guardrails"
+OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/phase-discipline.md" | ctx)
+expect "phase-discipline still gets its own turn 1" "$OUT" "## The five laws"
+
+echo "[10] the phase-discipline laws survive into the turn-2 pointer"
+# Two turns against one session id, asserting on the SECOND output. A static
+# grep of rules/phase-discipline.md proves a bullet sits in the file; it never
+# proves that bullet reaches turn 2, and every prompt after the first of a
+# session sees the digest and nothing else.
+#
+# The carve-out assertion is the load-bearing one. "unless it is trivial or
+# read-only" is 33 chars against QUALIFIER_MAX_CHARS = 34 in inject_context.py,
+# and qualifier() returns EMPTY rather than truncating when the clause runs
+# long. So a two-word reword silently deletes the scope carve-out from every
+# prompt after the first, the ledger law quietly becomes absolute, and nothing
+# anywhere else fails. A grep of the rules file cannot catch that, because the
+# sentence would still be sitting in the file. Only a digest-output assertion
+# catches it. Do not simplify this back into a grep.
+PD="$ROOT/rules/phase-discipline.md"
+prompt sess-pd | "$HOOK" "$PD" >/dev/null      # turn 1, full text
+PD_PTR=$(prompt sess-pd | "$HOOK" "$PD" | ctx) # turn 2, pointer
+expect "turn 2 is the pointer" "$PD_PTR" "[hackify always-on]"
+expect_not "turn 2 does not repeat the full laws" "$PD_PTR" "## The five laws"
+expect "wizard mandate survives the digest" "$PD_PTR" "Every question goes through the wizard tool"
+expect "scope carve-out survives the digest" "$PD_PTR" "unless it is trivial or read-only"
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

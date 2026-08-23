@@ -4,6 +4,8 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Ship the Sprint Backlog as fast as wall-clock allows by dispatching each wave to foreground parallel subagents in one message.
 
+**Ledger, at phase open.** Set `Phase 3. Implement (all waves committed)` to in-progress and re-print the whole ledger block. Never open it while `Phase 2.5. Spec review` is still open. Waves fan out INSIDE this phase; they never advance the ledger past it. Contract: [../phase-ledger.md](../phase-ledger.md).
+
 **Pre-flight, build the wave plan.**
 
 ```
@@ -91,3 +93,5 @@ third less. The 3-task cap is what keeps that from becoming ten times as long.
 ### Wave-end persistence (mandatory)
 
 **Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: tick the completed checkboxes in the Sprint Backlog, append a Daily Updates entry summarizing what each agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug, interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
+
+**Ledger, at phase exit.** Every Sprint Backlog checkbox ticked, every wave committed, both scouts dispositioned, then one line of reflection (what changed, did it pass, what is next), then tick `Phase 3. Implement` and open `Phase 4. Verify (Evidence Ledger + triad green)`. A task that turned out not to apply is ticked with a one-line reason, never deleted. Phase 3b is inserted as its own ledger item when a wave gets stuck, it is never a silent detour.

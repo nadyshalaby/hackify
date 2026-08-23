@@ -4,6 +4,17 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Land the work cleanly and archive the doc.
 
+**Ledger, at phase open.** Phase 6 is **four** ledger items, not one, so the archive cannot hide inside a finished-looking phase. Set `Phase 6a. Re-verify + land choice (Steps A, C)` to in-progress and re-print the whole block, never while `Phase 5. Review` is still open, then work the items in order.
+
+| Ledger item | Steps below |
+|---|---|
+| **6a.** Re-verify + land choice | Steps A, B, C |
+| **6b.** Cleanup sweep | Step C.5 |
+| **6c.** Archive work-doc to `done/` | Step D |
+| **6d.** Update log + HTML report | Step F |
+
+Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as items only when they apply, between 6c and 6d. Contract: [../phase-ledger.md](../phase-ledger.md).
+
 **Step A, re-run verification.** Even if Phase 4 passed. Pre-merge state drifts.
 
 **Step B, present exactly 4 options, no open-ended choice:**
@@ -41,3 +52,5 @@ If any class finds defects, **dispatch a cleanup agent per file-disjoint group, 
 **Step F. Update log + HTML report** (1 or 2 only). **Precondition: Step D archive is done**, the work-doc must already be in `docs/work/done/` with `status: done`, and ledger item `6c` `completed`, before this step runs. If it is not, go back and archive first. Print a plain-language **update log**: one block per change the user would recognize, each with five fields in this order, **Problem** / **Root cause** / **Solution** / **Verification evidence** / **Deployment status**, separated by a line containing exactly `----`. Write it the way you would explain the work out loud to someone who was not in the room: everyday words, no jargon they did not use, and never a phase number, task ID, reviewer letter or scout name. Append the same log to the archived work-doc inside Retrospective under a new `## Update log` subheading. **Then emit a styled, self-contained HTML report** (stats, inline-SVG charts, findings, action items, next steps) beside the archived work-doc at `<slug>.report.html`, see [references/html-report.md](../html-report.md). Field-by-field guidance, voice rules, and a worked example: `references/finish.md` "Step F (Update log + HTML report)".
 
 **Invoking the summary on demand.** The update log runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
+
+**Ledger, at phase exit.** Each of 6a to 6d ticks on its own exit artifact, one line of reflection first (what changed, did it pass, what is next), then the tick, then the next item opens and the block is re-printed. 6d stays unreachable while 6c is open; Steps D and F state that precondition and the ledger is what enforces it. An item that does not apply (no worktree, no entry point) is ticked with a one-line reason, never deleted. The task is done when the last item is ticked, not when the summary is printed.
