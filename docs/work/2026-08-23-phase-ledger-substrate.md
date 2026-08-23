@@ -288,6 +288,26 @@ Nine sprint corrections (always-on count in two spots on one line, tree row, inj
 
 **Version stamp caveat:** T8a stamped the new tree row and the `:386` sentence `(since v0.14.0)`, matching the column convention where every entry carries a version. If the release lands on a different number, those two spots need updating along with the badge.
 
+### 2026-08-23, T11 landed (SKILL.md drift, F1 main-goal gap closed)
+
+13 edits across four files. **F1 is closed**: `SKILL.md:366` now carries all 12 primitives in the adapter file's exact order, appended last so `runtime-adapters.md:53` ("first 8 primitives, wizard through todo tracker") stays true. T11 proved the order by printing both lists side by side rather than asserting it.
+
+**F2 closed.** `SKILL.md:199` now matches both owners operation for operation.
+
+**F3 had THREE sites, not the two I listed.** `:132` was the third, found by actually answering my "check whether SKILL.md states the batching rule anywhere else" instead of treating it as rhetorical.
+
+**F5 had a fourth site I did not list**, `yolo:14`, asserting F is standing in the same way `SKILL.md:18` did.
+
+**Two judgment calls, both right, both explained:**
+- **yolo's Option 1 left untouched.** Not merely because `yolo:55` documents the redefinition, but because `70-invariants-and-new.sh:48` pins the literal `commit to current branch locally` in that file. Renumbering it would have turned the triad red. Verified: the pin is at `:48` and the literal is still present 6 times.
+- **`SKILL.md:18` reworded, not deleted.** "A coherence reviewer in every review wave" is false after `17c4a24`, but the bullet sits in a list whose header says "Four always-on mechanisms" and the other three genuinely are unconditional. Deleting it would have broken the count; rewording to "The coherence lens is never silently absent" keeps the bullet honest AND keeps the four. This also closes the scout's third NOT SURE item, which guessed T9 might already have handled it. It had not.
+
+### SECOND VERIFICATION GOTCHA: my own acceptance grep would have false-passed
+
+I gave T11 the check `grep -n "one agent per task\b"`. Its first draft wrote **"one agent per task batch"**, which is CORRECT wording, and the grep still matched it, because the space before "batch" IS a word boundary. So my check would have reported a failure on correct text, and by the same token would have passed text that merely appended a word.
+
+T11 fixed it the right way: it adopted the owner's own noun (`phase-3-implement.md:22` says "ONE **subagent** per task BATCH"), which drops the literal `one agent per task` entirely and makes the grep meaningful again. **Same class as the `dist/` grep trap recorded above: a check that looks precise and is not.** When pinning prose, pin a phrase the correct text will not contain, not one it might contain as a prefix.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
