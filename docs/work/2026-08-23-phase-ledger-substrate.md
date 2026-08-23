@@ -2676,6 +2676,76 @@ the fragment list is 20 on disk against 20 sourced.
 returning nothing. Together with the missing `{{metrics_table}}` for B, that is two reviewers I
 under-briefed in one dispatch.
 
+## 7t. Reviewer D closes the panel: no Criticals, and every number measured
+
+**No Criticals, no scout rows.** D is the only lens this round that found nothing severe, and it is
+also the only one that put a stopwatch on every claim.
+
+**D-I1 (Important). One `awk` spawned per token, 4,229 times, to sum a number the shell can add.**
+`00-helpers.sh:103`, reached from the `:267` per-token fallback that fires on every dirty path. The
+new ban-token suite plants all 89 tokens and re-screens each against the full list
+(`10-ban-list-cases.sh:18,49`), so the cost is quadratic in a list this sprint grew to 89.
+
+Measured, not estimated:
+
+```
+suite wall clock   16.20s  (user 4.81s, sys 9.49s)     validator, for scale: 4.6s
+500 grep+awk pairs  1.823s
+500 grep + ${out##*:} 0.972s
+=> awk costs 1.70ms each, ~7.2s of that 16.20s, 44%
+```
+
+The fix is shell arithmetic on the single-file path only. The directory call sites must keep the
+awk sum, because `grep -rc` over a directory emits `file:count` per file and the shell trim would
+read the wrong field. CI at `.github/workflows/ci.yml:91` advertises "~9s" against 16.20s measured
+here, though macOS forks slower than CI's Linux, so that gap is not all regression.
+
+### Minor
+
+- `79-standing-member-invariant.sh:202`, one `awk` per discovered file, 13 today and growing because
+  discovery replaced a hardcoded list. 0.042s. D calls the per-file exit-status check a real, stated
+  trade, and I agree.
+- `76-phase-ledger-substrate.sh:280,282`, two recursive greps over `skills agents` (153 files,
+  1.7MB) per literal, called twice at `:298-299`, so four tree walks. `grep -roIF` yields both
+  numbers alone. 0.063s.
+
+### What D refused to file, and why that matters
+
+- `80-file-size-caps.sh:21` spawns `wc -l | tr` per file: **pre-existing and byte-identical at
+  `dabc333`**, so out of scope. D measured it anyway because the brief asked: 186 files, 372 spawns,
+  **0.345s against 0.012s** for a single batched `xargs wc -l`, a 29x gap. It also confirms
+  independently that this check **does not scan `dist/`**, because `CAP_SEARCH_PATHS` excludes it,
+  which corroborates B's finding that repo-root files were never inside cap enforcement at all.
+- `[80b]`'s four `python3` startups (0.085s) are a deliberate call, not waste: the second scan
+  asserts the scanner goes quiet *at* the cap, which the first cannot establish.
+- **`audit_scan.py` reads no file twice.** `read_text` is called exactly once per file from
+  `scan_file:263`. That was a specific question in the brief and it came back clean.
+
+### Credit, which is worth recording
+
+`20-templates.sh:158-205` already applied this exact catalog's fix direction earlier in the sprint:
+`basename` per file became `${f##*/}`, and 63 greps became one batched screen with the per-pair loop
+kept as a fallback. `basename` spawns fell from 229 to 97.
+
+### Net cost of the sprint
+
+```
+gate wall clock   base 4.39 / 4.41 / 4.47s
+                  head 4.56 / 4.59 / 4.62s     +3.7%
+head breakdown    90-collisions 1.564s (untouched, 34%)   20-templates 0.852s
+                  80 0.430s   71 0.398s   76 0.150s   77 0.097s   79 0.067s
+```
+
+The sprint added roughly six fragments and two always-run guards for 3.7%, and the single largest
+fragment is one this sprint never touched. Spawn counts (2377 base to 2142 head) are directional
+only, because the counting shim cannot see `/usr/bin/grep` and this diff moved several call sites
+onto that absolute path. D said so itself rather than presenting the number as clean, which is the
+right instinct and the same one this whole sprint has been about.
+
+**No third set of gate numbers.** The concern was that D might report ok-line counts conflicting
+with B's 1393/1396 and the comments' 1398/1401. D reported wall clock only and never counted ok
+lines, so there is nothing to reconcile. The stale-comment finding stands on B and F alone.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
