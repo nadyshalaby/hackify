@@ -1655,6 +1655,95 @@ All three are pre-existing rather than introduced by this sprint. D already cut 
 `[77]` by 80% earlier in this same sprint, so the cheap wins in this area are taken; these are what is
 left.
 
+## 7g. Reviewer F, and the eleventh instance sitting in the gate that ends Phase 5
+
+F came back first. One Critical, one Important, three Minor. The Critical is the same shape as the
+other ten and it is in the worst possible place.
+
+### CONFIRMED Critical: `settle all` diffs nothing
+
+`review-scope.md:19` defines `settle all` as "settle round, nothing carried over, review your whole
+assigned slice". `review-scope.md:22` then says to append the value to the diff command and to
+"strip a leading `settle ` first, it is a marker for you, not a pathspec". Followed literally, that
+leaves `all`, and `all` is not a pathspec:
+
+```
+git diff --name-only dabc333..HEAD -- all   ->  0 files, exit 0
+git diff --name-only dabc333..HEAD -- . ':(exclude)docs/work/*'  ->  59 files
+```
+
+**Exit 0, empty, no error.** A reviewer doing exactly what the contract says reads nothing and
+reports clean. I verified this myself rather than taking F's word for it.
+
+Now the part that makes it Critical rather than Important. `review-scope.md:103` says the parent may
+declare a round FULL only when every lens echoed a scope beginning with `settle ` **and F's echo was
+`settle all`**. So the single value that arms the gate ending Phase 5 is the value that produces a
+vacuous diff and a guaranteed-clean report. Ten instances of this shape were already catalogued this
+sprint. The eleventh was sitting in the exit gate the whole time.
+
+Two independent failure modes, either sufficient on its own. `all` is not a pathspec. And read
+charitably as `.`, a bare `.` carries no exclusion, so F's settle round would diff `docs/work/` and
+contradict the sentence this very sprint added at `review-scope.md:99`.
+
+**The live evidence is this dispatch.** I hand-wrote a "CRITICAL:" note into all four reviewer
+prompts spelling out the real diff command. I did that because the contract as written does not
+produce it. I patched around the defect without noticing I was patching around a defect.
+
+**Why the sprint created this asymmetry.** The exclusion was fixed at the scope-BUILDING step
+(`review-scope.md:56`) and hard-coded inside B's own METHOD
+(`phase-5-multi-review-b-quality-plan.md:112`, `:114`), which is why B is immune. The four sliced
+reviewers, A, D, E and F, share one METHOD line that relies entirely on the dispatcher-supplied
+pathspec: `phase-5-multi-review-f-coherence.md:77`, `-a-security.md:61`, `-d-performance.md:39`,
+`-e-design.md:52`, plus their four `agents/` mirrors. Ten sites.
+
+**The token cannot simply be deleted:** `70-invariants-and-new.sh:464` and `:482` both
+`check_token_present 'settle all'`. The fix has to define what `all` resolves to, not remove it.
+
+### Important: the scouts walk 61 paths, the panel grades 59
+
+`review-scope.md:52` justifies the manifest as costing no extra reads because "the scouts already
+walked the whole diff". They walk the UNEXCLUDED diff (`law-scout.md:29`, `perf-scout.md:17`).
+Measured: 61 against 59, the two extra being `docs/work/2026-08-23-phase-ledger-substrate.md` and
+`docs/work/2026-08-23-wave-implementer-migration.md`. A staged scout row on a work-doc path joins the
+address-all decision table and re-opens the loop the exclusion exists to close.
+
+I had rated this noise earlier in this sprint and F is right that I under-rated it. It is latent only
+because `.md` is not in `SCAN_EXTS`, so the work-doc currently lands in `paths_unsupported`. Any
+project passing `--text-only-ext .md`, which `law-scout.md:44` explicitly instructs for mixed repos,
+makes it live, and this work-doc is far past the 500-line cap so it would stage a real finding.
+
+### Minor, and one that is mine
+
+- `html-report.md:25`, `:26` compute "files changed" and "LOC" from the unexcluded diff, so a report
+  shows 61 against a 59-row ledger. Display only.
+- `27-marketplace-ref-pin.sh:91` records its note as discharged, but a successor is already due:
+  `v0.14.2` is uncut with five commits after the release commit, so a 0.14.3 bump reddens `[27d]`
+  unless the tag is cut first. Exactly the shape the discharged note described.
+- `law-scout.md:41` prints `N/0 paths accounted` on an unscoped run. Cosmetic.
+- **A figure of mine that moved.** I reported `[27d]` as 45 of 45; it now reads 46 of 46. Both were
+  true when measured: bumping to 0.14.2 dropped 0.14.1 below the in-flight line and added it to the
+  checked set. F's number is the current one.
+
+### What F cleared
+
+`[80b]` and `[76g]` both run, confirmed against the hand-maintained source list at
+`validate-dod.sh:58` and `:61`. All four `[76g]` counts re-derived independently: 3/1, 2/2, 2/1, 2/1,
+all matching. The eight `stats.paths_*` keys agree between producer and both consumers, and the
+reconcile arithmetic reproduces `ScanTally.accounted()` exactly. The finding object is a 10-field
+exact match after the fix. `split_lines` and `wc -l` genuinely measure the same thing. Version 0.14.2
+agrees across all five consumers. No unwired symbols.
+
+On `[80b]`'s self-reference, F declined to file a finding and said why: the probe re-derives its own
+`wc -l` rather than carrying a constant, so there is no staleness, but the check proves the counters
+agree at **a** boundary and not at the cap value 500 itself. That is the right trade and I agree with
+not filing it.
+
+### Not fixed yet, deliberately
+
+Nothing above has been touched. Reviewers A, B and D are still reading these exact files, and editing
+a file while a reviewer reads it is a Critical this project has already filed once in this sprint.
+The fix wave goes out when the panel is complete.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
