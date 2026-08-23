@@ -2594,6 +2594,88 @@ Containment is sound. Absolute entries, `..`, symlinks and NUL all fail closed i
 bypass; and the `ValueError` guard is correctly ordered ahead of `isfile`, which would otherwise
 swallow the same exception. `split_lines` is correct and its residual is documented.
 
+## 7s. Reviewer F, a corroboration, and a gate that cannot be satisfied
+
+**F-C1 (Critical). An empty path list silently becomes a whole-tree sweep.** This is the same defect
+Reviewer A filed independently as an Important, from a different lens and a different slice. Two
+reviewers who could not see each other's work landed on one bug, which settles it: **promoted to
+Critical, no refuter needed to establish existence.** F measured it end to end: hand the scanner an
+empty list and it reports `scoped_paths: 0, files_scanned: 4, findings: 7`, with every reconcile
+reading 0. `build_config` collapses "no list handed" and "empty list handed" into one state, and
+`audit_scan.py:242` branches on emptiness rather than on whether `--paths-from` was supplied, while
+the docstring at `:15-27` promises a tree walk only "Without `--paths-from`". The consumer then
+prints "no path list handed" when one *was* handed, and seven unrequested findings enter the staging
+table and the address-all table.
+
+**F-C2 (Critical, and I am not adopting F's framing). The reviewed-diff exclusion is applied
+inconsistently.** F reported "2 of 6 sites". My own sweep by content, not by line number, finds 34
+`base..HEAD` diff mentions in the skill source: **14 carry the exclusion, 20 do not.**
+
+Most of the 20 are not defects. `debug-when-stuck.md:29` is a debugging recipe, `review-scope.md:9`
+and `:30` are the resolution table that *defines* the rule, and several reviewer prompts describe
+the command generically because resolution appends the exclusion for them. The real gaps are the
+sites that feed the address-all table without it:
+
+```
+SKILL.md:189                              the orchestrator entry point
+review-and-verify.md:266
+parallel-agents/phase-5-escalation.md:68
+finish.md:148, :182, :191, :244
+```
+
+`SKILL.md:189` is the one that matters most: the entry point's own exit rule re-opens the very loop
+the exclusion exists to close. This goes to a refuter with the corrected numbers, not F's.
+
+**F-I1 (Important by F, I am raising it to Critical). The FULL-round gate is unsatisfiable, and
+this round proved it.** `review-scope.md:123` requires **every dispatched lens** to echo a scope
+beginning with `settle `. Reviewer B's prompt contains zero occurrences of `{{review_scope}}`, and
+`71-release-mechanism-pins.sh:344-347` **fails the build if B ever gains one**, with the written
+reason that B is never sliced. So one rule requires an echo that another rule forbids.
+
+I ran straight into it. I passed B `settle all`; B's template does not define the placeholder, so it
+was ignored, and B's report carries no `Scope:` line while A's and F's both do. **Under the letter of
+`review-scope.md:123` this settle round cannot be declared FULL.** That is not a technicality to
+wave through: the entire purpose of a settle round is to close the loop, and the closing condition
+is unreachable. I verified the gate against F's prompt before dispatch and called it intact. I never
+checked it against B, which is the one lens that structurally cannot comply.
+
+**F-I2 (Important). The two reconcile docs disagree on sufficiency.** `porting-scanner.md:40-45` says
+the subtraction "is not enough on its own" and mandates comparing `listed_lines` against
+`scoped_paths` directly; `law-scout.md:64` mandates only the subtraction, and `law-scout.md:56`
+prints both numbers without ever comparing them. Both sides were written this sprint, which is the
+blind-parallel signature F exists to catch.
+
+### Minor, and one correction to my own record
+
+- One concept, two names: `rules/phase-discipline.md:7` says "step ledger", `phase-ledger.md:1` says
+  "phase ledger".
+- `validate-dod.sh:183` claims 1398 where the run's own printer reported 1393, and `:172` calls a
+  shrink the direction that hides a loss. Corroborates B independently.
+- `00-helpers.sh:157`, `section_body()` has zero callers repo-wide. Predates this diff
+  (`dabc333:73`), so it is a class (g) pre-existing item, not sprint debt.
+
+**Correcting myself: `finish.md` exists.** Five times this sprint I treated a `finish.md:NNN`
+citation as a stale reference to `phase-6-finish.md` (56 lines). There are **two** files:
+`skills/hackify/references/finish.md` is 462 lines and `phases/phase-6-finish.md` is 56. F's
+`finish.md:191` resolves to a real line about the law-scout scoped to touched files. My earlier
+"correction" was the error, and it was recorded in this doc as fact.
+
+Separately, F's line numbers run about four ahead of mine in `review-scope.md` (it cites the gate at
+`:127`, the sentence is at `:123`). Both of us were citing the same live blob, so this is drift in
+the reading, not the file. Every number in this section was re-derived from the tree by content.
+
+### What F cleared
+
+`config.listed_lines` and the `lines_*` family agree across `law-scout.md`, `test_audit.py` and
+`porting-scanner.md`, and both consumers guard the `*_unaccounted` keys. The
+`perf.process.spawn-per-item` ID agrees with its consumer. Agent mirrors are 9/9 byte-identical, and
+the fragment list is 20 on disk against 20 sourced.
+
+**A second dispatch omission that was mine.** F received no `task_file_index` and no
+`work_doc_path`, so its same-wave seam ordering never ran and it proceeded degraded rather than
+returning nothing. Together with the missing `{{metrics_table}}` for B, that is two reviewers I
+under-briefed in one dispatch.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
