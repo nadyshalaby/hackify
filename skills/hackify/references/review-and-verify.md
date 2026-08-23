@@ -136,7 +136,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 ### Default: parallel multi-reviewer + self-review
 
-For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches FOUR foreground reviewers in parallel in a single message: A security/correctness, B quality/layering **and plan-consistency**, D performance, F cross-module coherence. On a UI-bearing diff, E design-conformance joins as the fifth. Cap at 5. (Reviewer C folded into B in v0.13.0: both ran on every wave and neither ever folded, so a permanent merge took a saving no evidence gate could reach.)
+For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches the panel as foreground reviewers in parallel in a single message. **The panel is evidence-gated, so its width is a decision you write down, not a constant.** B quality/layering **and plan-consistency** is the standing member and runs on every wave. A security/correctness, D performance and F cross-module coherence each run when the diff gives their lens something to look at, and fold into B when it does not. E design-conformance joins on a UI-bearing diff. Cap at 5. The gate table, naming the evidence each lens is gated on, is in [phases/phase-5-review.md](phases/phase-5-review.md). (Reviewer C folded into B in v0.13.0: both ran on every wave and neither ever folded, so a permanent merge took a saving no evidence gate could reach.)
 
 Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs. Reviewer B also takes `{{folded_lenses}}` on every dispatch, every round, `none` when the full panel ran: it names any reviewer the gate folded off this wave, and B runs that lens's residual checklist so folding moves a lens instead of dropping one ([phases/phase-5-review.md](phases/phase-5-review.md)). Every reviewer except B also takes `{{review_scope}}`, the git pathspec list for its lens, and diffs only that. **B is never sliced**, its semantic tier applies to every touched file and it re-judges every scout row, so no subset of the diff is safe to withhold; B takes `{{metrics_table}}` instead, so it judges precomputed size numbers rather than counting them by reading ([review-scope.md](review-scope.md)).
 
@@ -259,9 +259,9 @@ and adds any net-new findings the prior reviewers missed.
 
 1. Read `{{work_doc_path}}` end-to-end. Build a mental index of every
    Definition-of-Done bullet (D1, D2, …) and every Task ID (T1, T2, …).
-2. Read `{{reviewer_a_report}}`, `{{reviewer_b_report}}`,
-   `{{reviewer_c_report}}`, and `{{reviewer_d_report}}` in full. List
-   every finding (Critical / Important / Minor) each reviewer raised.
+2. Read `{{reviewer_a_report}}`, `{{reviewer_b_report}}` and
+   `{{reviewer_d_report}}` in full. List every finding (Critical /
+   Important / Minor) each reviewer raised.
    Do not summarise, keep the original wording so you can quote it
    later.
 3. Run `git diff {{base_sha}}..{{head_sha}}` inside `{{project_path}}` to
@@ -276,7 +276,7 @@ and adds any net-new findings the prior reviewers missed.
    (the line that makes the prior reviewer's claim wrong) AND a one-line
    technical reason. Bare "I agree" or "I disagree" is forbidden, every
    verdict carries a citation.
-6. Apply your specialist lenses to the diff to catch what the four prior
+6. Apply your specialist lenses to the diff to catch what the prior
    reviewers may have missed: SOLID violations, Clean Code (Martin)
    smells, when `{{sensitive_surfaces}}` mentions auth, sessions,
    tokens, crypto, or migrations, the relevant categories from the
@@ -295,8 +295,8 @@ Paste this checklist under a `## Verification` heading in your report and
 answer every item yes or no. If ANY answer is "no", loop back to METHOD
 before producing OUTPUT.
 
-1. Did you read all four prior reviewer reports end-to-end before
-   writing any verdict? (yes / no)
+1. Did you read every prior reviewer report you were given, end-to-end,
+   before writing any verdict? (yes / no)
 2. Does every CONCUR or REBUT verdict carry a file:line citation in the
    diff? (yes / no)
 3. Did you cross-reference every prior-reviewer finding against the

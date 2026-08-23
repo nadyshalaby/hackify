@@ -24,7 +24,7 @@ Surviving candidates from both scouts enter the decision table beside reviewer f
 
 ### Slice the diff before you dispatch
 
-Six reviewers reading the same whole diff in six separate contexts is the largest single line item in a sprint, and most of what they read is a file their lens cannot act on. Build the manifest once, off the file list the scouts already walked, so the classification costs no extra reads:
+The panel reading the same whole diff in full, once per lens in its own context, is the largest single line item in a sprint, and most of what each lens reads is a file it cannot act on. Build the manifest once, off the file list the scouts already walked, so the classification costs no extra reads:
 
 1. `git diff --name-only <base>..HEAD`.
 2. Assign each path to every lens whose surface it touches. Most paths get two or three.

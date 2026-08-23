@@ -1,4 +1,4 @@
-# Phase 2.5, Spec self-review (parallel, mandatory)
+# Phase 2.5, Spec self-review (1 reviewer, mandatory)
 
 Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
 
@@ -8,14 +8,13 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Ledger, at phase open.** Right after the sentinel, set `Phase 2.5. Spec review (1 reviewer, patch the doc)` to in-progress and re-print the whole ledger block. Never open it while `Phase 2. Plan + Gate` is still open. Contract: [../phase-ledger.md](../phase-ledger.md).
 
-1. **Dispatch 2 foreground reviewers in parallel in ONE message.** Each gets a self-contained prompt + absolute work-doc path:
-   - **Reviewer A. Internal consistency + goal drift, AND the execution plan.** Two lenses over one read of the doc, because the planning lens used to be a third agent (Reviewer C) whose read set was a strict subset of this one's.
-     - *Consistency.* Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach. **Drift-check:** trace every Sprint Backlog task + DoD bullet to the Primary Goal & Guardrails anchor, a task serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](../goal-anchor.md)).
-     - *Execution plan.* Build a dependency graph from the per-task file lists it extracted on that same read. Emit the topological wave plan and the per-wave dispatch batches. Flag tasks sharing a file (parallel conflict), missing prerequisites, ordering bugs (consuming a helper before its task), tasks too coarse to be 5-30 min.
-     - **Its report leads with the wave plan and the dispatch batches**, so a truncated report still carries what Phase 3 consumes.
-   - **Reviewer B. Architectural / cross-cutting risks.** Match plan against project code-quality rules, if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation. Also flag plan-time performance risk: a plan item that would bake in a `rules/performance.md` Critical before code exists, an N+1-shaped task, unbounded fan-out, a list endpoint with no pagination.
+1. **Dispatch exactly 1 reviewer, `hackify:spec-reviewer`, in ONE message.** Dispatch it by registered agent type, passing only its INPUTS (absolute work-doc path, slug, wave-size target, project root, user-global rules path). Do not open the template to paste it. It carries three lenses over one read of the doc, because the planning lens and the rules lens were each a separate agent whose read set was a strict subset of this one's:
+   - *Consistency + goal drift.* Read work-doc end-to-end. Find Q&A↔DoD↔Approach↔Sprint Backlog contradictions. Flag tasks not covered by any DoD bullet, DoD bullets not covered by any task, Q&A answers contradicting the Approach. **Drift-check:** trace every Sprint Backlog task + DoD bullet to the Primary Goal & Guardrails anchor, a task serving no In-Scope bullet → **drift (Important)**; one violating a Guardrail or Non-Goal → **Critical** (canonical wording: [references/goal-anchor.md](../goal-anchor.md)).
+   - *Execution plan.* Build a dependency graph from the per-task file lists it extracted on that same read. Emit the topological wave plan and the per-wave dispatch batches. Flag tasks sharing a file (parallel conflict), missing prerequisites, ordering bugs (consuming a helper before its task), tasks too coarse to be 5-30 min.
+   - *Architectural / cross-cutting risk.* Match plan against project code-quality rules, if a `CLAUDE.md` is at workspace or project root, honor it; otherwise apply `rules/code-quality.md`. Flag anything that would force a lint suppression, `!`, inline type, bare `Error` throw, or layering violation. Also flag plan-time performance risk: a plan item that would bake in a `rules/performance.md` Critical before code exists, an N+1-shaped task, unbounded fan-out, a list endpoint with no pagination.
+   - **Its report leads with the wave plan and the dispatch batches**, so a truncated report still carries what Phase 3 consumes.
 
-**The letter C is retired, not reassigned.** A future third spec lens takes the next free letter, so a work-doc or transcript naming "Reviewer C" always means the merged planning lens and never something new.
+**The letter C is retired, not reassigned, and so are A and B.** Phase 2.5 has no lettered reviewers left, so a work-doc or transcript naming "Reviewer A", "Reviewer B" or "Reviewer C" always means one of the three lenses the single reviewer now carries, never a separate dispatch. A future spec lens takes the next free letter. Phase 5 keeps its own lettered reviewers, a different panel in a different phase.
 2. **Aggregate findings.** Critical (plan bug forcing rework) / Important (fixable gap) / Minor (nit).
 3. **Patch the work-doc.** Apply Critical + Important in place; record Minor in Retrospective.
 4. **Re-gate ONLY if user's signed-off invariants changed** (Critical finding widened scope). Else straight to Phase 3.

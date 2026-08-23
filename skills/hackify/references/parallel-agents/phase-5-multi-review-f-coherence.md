@@ -1,8 +1,8 @@
 # Phase 5, Multi-reviewer F (cross-module coherence)
 
-The **standing fifth lens**, dispatched on every non-trivial diff alongside A, B and D (E joins on UI-bearing diffs). Reviewer F exists because Phase 3 builds in **parallel waves**: separate agents write separate files with no sight of each other. That is what makes hackify fast, and it is exactly what produces two halves of a feature that each look correct and do not agree.
+The **seam lens**, dispatched whenever the diff crosses a module boundary and folded into Reviewer B when it does not. **B is the standing member, A, D and F are evidence-gated**; E joins on UI-bearing diffs. The gate table naming the evidence each lens is gated on is in `references/phases/phase-5-review.md`. Reviewer F exists because Phase 3 builds in **parallel waves**: separate agents write separate files with no sight of each other. That is what makes hackify fast, and it is exactly what produces two halves of a feature that each look correct and do not agree.
 
-Nobody else owns this. A checks whether the code is safe, B whether it is well-built, C whether it matches the plan, D whether it is fast. None of them asks whether the **producer and the consumer describe the same thing**. F does, and only that.
+Nobody else owns this. A checks whether the code is safe, B whether it is well-built and whether it matches the plan, D whether it is fast. None of them asks whether the **producer and the consumer describe the same thing**. F does, and only that.
 
 The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Tokens in `{{...}}` are pre-substituted by the dispatching agent; tokens in `<...>` are placeholders the sub-agent fills from its own METHOD work.
 

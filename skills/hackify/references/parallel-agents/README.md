@@ -6,8 +6,8 @@
 
 | Runtime has an agent registry? | What you do |
 |---|---|
-| **Yes** (Claude Code) | Dispatch by **agent type** from the table below and pass ONLY the INPUTS values. **Do not open the template file.** |
-| **No** (the six best-effort targets, see `runtime-adapters.md`) | Open the template, substitute `{{...}}`, paste the prompt. This is the only path there. |
+| **Yes** (Claude Code, OpenCode) | Dispatch by **agent type** from the table below and pass ONLY the INPUTS values. **Do not open the template file.** |
+| **No** (Codex CLI, Codex App, Gemini CLI, Cursor and Copilot CLI, see `runtime-adapters.md`) | Open the template, substitute `{{...}}`, paste the prompt. This is the only path there. |
 
 Open a template on Claude Code for exactly two reasons: you are **authoring or auditing** it, or the phase has **no registered agent** (the two rows in the second table). Needing to know what a reviewer checks is not one of them; that is what this table and the Phase 5 lens list in `SKILL.md` are for.
 
@@ -30,7 +30,7 @@ Open a template on Claude Code for exactly two reasons: you are **authoring or a
 | Template | What it is | When to load |
 |---|---|---|
 | `phase-4-cross-package-verification.md` | one faithful exit-code reporter per project root | Phase 4 with 2+ independent roots |
-| `phase-5-escalation.md` | one specialist reviewer, lens pinned at dispatch | Phase 5 on a specialist surface beyond A/B/C/D/F, never design (that is E) |
+| `phase-5-escalation.md` | one specialist reviewer, lens pinned at dispatch | Phase 5 on a specialist surface beyond A/B/D/F, never design (that is E) |
 
 ## Contracts
 

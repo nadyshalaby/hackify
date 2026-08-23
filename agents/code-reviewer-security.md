@@ -1,9 +1,9 @@
 ---
 name: code-reviewer-security
-description: Phase 5 Multi-reviewer A, audits a base..head git diff for security & correctness defects (auth flows, permission boundaries, injection, PII/secrets, migration safety, race conditions), citing OWASP Top 10 / CWE / NIST / RFC 6749 / RFC 7519 standards and post-image file:line for every finding. Dispatch one of these in parallel with Multi-reviewers B, D and F in a single parent assistant message; E joins as a fifth on UI-bearing diffs.
+description: Phase 5 Multi-reviewer A, audits a base..head git diff for security & correctness defects (auth flows, permission boundaries, injection, PII/secrets, migration safety, race conditions), citing OWASP Top 10 / CWE / NIST / RFC 6749 / RFC 7519 standards and post-image file:line for every finding. Gated on the diff touching auth, a network boundary, a database or migration, the filesystem or a shell, untrusted deserialization or a dependency manifest, or on the law-scout staging a sec.* row; folds into Reviewer B when it does not. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
 ---
 
-Dispatch FOUR reviewers (A here, plus B, D and F in the sibling agent files) in ONE assistant message, with E joining as a fifth whenever the diff is UI-bearing. They all see the same diff range and the same work-doc; each applies a different lens.
+Dispatch the wave in ONE assistant message. The panel is evidence-gated, so its width is a decision the dispatcher writes down rather than a constant; the gate table naming the evidence each lens needs lives in `skills/hackify/references/phases/phase-5-review.md`. Every reviewer that runs sees the same diff range and the same work-doc; each applies a different lens.
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
 

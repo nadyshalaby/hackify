@@ -7,6 +7,8 @@
 #   00-helpers.sh, color printers + check_* helpers
 #   10-required-files.sh, checks [1]-[6]
 #   20-templates.sh, checks [7]-[15], [36] (template contracts incl. agents/)
+#   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match
+#                   plugin.json (stable ref, edge ref, versions)
 #   30-version-and-summary.sh, checks [16]-[20]
 #   40-quick-skill.sh, checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh, checks [24]-[26], [28]
@@ -16,9 +18,13 @@
 #   70-invariants-and-new.sh, checks [33]-[34], [37]-[39] (hook targets, perf invariants)
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
+#   76-phase-ledger-substrate.sh, check [76], where the phase ledger lives, the
+#                   per-phase tick lines, and the always-on phase laws
 #   78-dispatch-mandate.sh, check [78], no parent-authored diffs + orchestration
 #                   that is a tool call rather than a description
 #   80-file-size-caps.sh, check [80], file-size ≤ 500 LOC across primitives
+#   85-design-spec-conformance.sh, check [85], design-spec catalog conformance
+#                   (contract + WCAG AA contrast)
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
 #
 # Note: -e is intentionally omitted, modules accumulate failures into
@@ -45,6 +51,7 @@ source "$DOD_MODULES_DIR/57-doc-links.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
+source "$DOD_MODULES_DIR/76-phase-ledger-substrate.sh"
 source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"

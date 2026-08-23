@@ -8,7 +8,7 @@
       "assertions": [
         {"text": "yolo skill is invoked (auto-discovery fires on the literal 'yolo' substring)"},
         {"text": "Phase 2 plan is posted IN-CHAT (no work-doc file created under docs/work/) and auto-passed, no sign-off prompt blocks the flow"},
-        {"text": "Phase 2.5 spec-review still runs (3 parallel reviewers), yolo does NOT skip the spec-review gate"},
+        {"text": "Phase 2.5 spec-review still runs (exactly 1 reviewer, hackify:spec-reviewer, carrying three lenses), yolo does NOT skip the spec-review gate"},
         {"text": "Phase 5 multi-reviewer findings are auto-fixed in-place at every severity (Critical + Important + Minor) and a follow-up edit lands automatically; Minor findings additionally logged to chat"},
         {"text": "Phase 6 finish-menu is auto-passed: commit lands on current branch locally; no push to origin"},
         {"text": "Final commit message follows project convention and ends with the Claude Code Co-Authored-By trailer"}

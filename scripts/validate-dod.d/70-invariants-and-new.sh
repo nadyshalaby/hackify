@@ -85,16 +85,25 @@ while IFS= read -r t; do
   esac
 done <<<"$HOOK_TARGETS"
 
-yellow "[38] rules/perf-guardrails.md injected via UserPromptSubmit"
+yellow "[38] all four always-on rules files are injected via UserPromptSubmit"
 # Here-string, not `jq | grep -q`: grep -q short-circuits and can SIGPIPE the
 # producer under pipefail (see the [24] comment in 50-runtimes-and-companions.sh).
+# All four entries are checked, not just one: v0.14.0 made phase discipline
+# always-on, and an entry dropped from hooks.json is that whole law gone silently.
 UPS_HOOK_CMDS=$(jq -r '.hooks.UserPromptSubmit[].hooks[].command' hooks/hooks.json 2>/dev/null)
-if grep -qF 'rules/perf-guardrails.md' <<<"$UPS_HOOK_CMDS"; then
-  green "  ok   hooks.json UserPromptSubmit injects rules/perf-guardrails.md"
-else
-  red "  FAIL hooks.json UserPromptSubmit does not inject rules/perf-guardrails.md"
-  FAILED=$((FAILED + 1))
-fi
+for r in hard-caps expert-mindset perf-guardrails phase-discipline; do
+  if grep -qF "rules/$r.md" <<<"$UPS_HOOK_CMDS"; then
+    green "  ok   hooks.json UserPromptSubmit injects rules/$r.md"
+  else
+    red "  FAIL hooks.json UserPromptSubmit does not inject rules/$r.md"
+    FAILED=$((FAILED + 1))
+  fi
+done
+# inject-context.sh's header enumerates the always-on files BY NAME and ships to
+# dist/claude-code/; the carve-out is 33 chars against QUALIFIER_MAX_CHARS = 34 and
+# qualifier() drops rather than truncates, so a reword deletes it after prompt one.
+check_token_present 'rules/phase-discipline.md' "hooks/inject-context.sh"
+check_token_present 'unless it is trivial or read-only' "rules/phase-discipline.md"
 
 yellow "[38b] the always-on injector is session-aware, not per-prompt"
 # v0.11.0. additionalContext persists in the transcript, so re-injecting the
@@ -244,10 +253,7 @@ check_token_present '1 reviewer on the plan block' "$LEDGER"
 check_token_present '1 reviewer report aggregated' "$LEDGER"
 check_token_present 'one reviewer, three lenses' "$CONTRACT"
 check_token_present 'Dispatch the 1 reviewer' "skills/yolo/SKILL.md"
-for f in "skills/hackify/SKILL.md" "$LEDGER" "$CONTRACT" "skills/yolo/SKILL.md"; do
-  check_no_token '3 reviewers' "$f"
-  check_no_token '2 reviewers' "$f"
-done
+check_token_present 'Dispatch exactly 1 reviewer' "$P25_PHASE"
 
 # (2) The letter C is retired, not reassigned. Reusing it would silently point a
 # work-doc or a transcript at a lens that no longer exists, and Phase 5 has its
@@ -272,42 +278,39 @@ for f in "agents/spec-reviewer.md" "$PA/phase-2.5-spec-reviewer.md" \
   check_token_present 'rules/code-quality.md' "$f"
 done
 
-# (5) The Phase 5 panel is FOUR standing reviewers plus E on UI-bearing diffs,
-# since Reviewer C folded into B. Same reasoning as (1): the count is what an
-# orchestrator dispatches on, and the Phase 2.5 merge proved these go stale in
-# files nobody thinks to grep. Every file that states the number is pinned here.
+# (5) The Phase 5 panel is EVIDENCE-GATED, not a fixed count: B stands, A/D/F fold
+# into B when the diff gives their lens nothing to look at, E joins on UI-bearing
+# diffs, cap 5. These pins used to assert four reviewers always run, false since
+# 17c4a24 and the v0.13.0 C-into-B merge. Pin the GATING RULE, never the arithmetic:
+# a fixed count fails on correct text and passes on a reverted panel. And
+# orchestration.md's "4-5 reviewers" row is deliberately NOT pinned, it sizes a
+# fan-out for the orchestration tier (flat batch vs Workflow tool), an answer
+# identical at 1 reviewer and at 5, so it estimates cost rather than stating a
+# contract; with B alone standing the true floor is 1, which that range denies.
 P5_PHASE_G="skills/hackify/references/phases/phase-5-review.md"
 RAV_G="skills/hackify/references/review-and-verify.md"
 ORCH_G="skills/hackify/references/orchestration.md"
 ESC_G="$PA/phase-5-escalation.md"
-check_token_present 'Cap at 5' "$P5_PHASE_G"
-check_token_present 'FOUR foreground reviewers' "$RAV_G"
-check_token_present 'four baseline Phase 5 reviewers' "$ESC_G"
-check_token_present '4-5 reviewers' "$ORCH_G"
-check_token_present 'A, B, D and F always' "$PA/phase-5-multi-review-a-security.md"
 QUICK_G="skills/quick/SKILL.md"
-# The five agent frontmatter descriptions are pinned here too. A description is
-# NOT inside the fenced block, so the mirror check in [75h] cannot see it, and it
-# is the line an orchestrator reads when deciding who to dispatch. All three of
-# D, E and F still named a retired Reviewer C after the fold, and nothing failed.
-for f in "$P5_PHASE_G" "$RAV_G" "$ORCH_G" "$ESC_G" "$QUICK_G" \
-         "$PA/phase-5-multi-review-a-security.md" "$PA/phase-5-multi-review-f-coherence.md" \
-         "agents/code-reviewer-security.md" "agents/code-reviewer-quality-plan.md" \
-         "agents/code-reviewer-performance.md" "agents/design-conformance-reviewer.md" \
-         "agents/code-reviewer-coherence.md"; do
-  check_no_token 'A, B, C, D and F' "$f"
-  check_no_token 'A, B, C and F' "$f"
-  check_no_token 'A, B, C and D' "$f"
-  check_no_token 'B, C, D and F' "$f"
-  check_no_token 'as a sixth' "$f"
-  check_no_token 'Cap at 6' "$f"
+check_token_present 'Cap at 5' "$P5_PHASE_G"
+check_token_present 'B is the standing member of every wave' "$P5_PHASE_G"
+check_token_present 'B is the standing member of every wave' "skills/hackify/SKILL.md"
+check_token_present 'The panel is evidence-gated, so its width is a decision you write down, not a constant.' "$RAV_G"
+check_token_present 'plus E on UI-bearing diffs' "$ESC_G"
+# The five agent frontmatter descriptions carry the same gating clause, and so do the
+# two templates whose prose sits outside the fence. A description is NOT in the fenced
+# block, so [75h] cannot see it, and it is the line an orchestrator reads to pick who runs.
+PANEL_AGENTS="agents/code-reviewer-security.md agents/code-reviewer-quality-plan.md agents/code-reviewer-performance.md agents/design-conformance-reviewer.md agents/code-reviewer-coherence.md $PA/phase-5-multi-review-a-security.md $PA/phase-5-multi-review-f-coherence.md"
+for f in $PANEL_AGENTS; do check_token_present 'B is the standing member, A, D and F are evidence-gated' "$f"; done
+# Every literal below encodes a panel width nobody dispatches on any more, in either
+# phase. Banned everywhere rather than per-file because a hand-kept per-file list is the
+# thing that goes stale, and correct text cannot contain any of them. '3 reviewers' /
+# '2 reviewers' was a separate 4-file loop, folded in so work-doc-template.md is covered.
+for f in "$P5_PHASE_G" "$RAV_G" "$ORCH_G" "$ESC_G" "$QUICK_G" $PANEL_AGENTS "skills/hackify/SKILL.md" "skills/yolo/SKILL.md" "$LEDGER" "$CONTRACT" "$P25_PHASE" "$WORK_DOC_TPL"; do
+  for t in 'A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers'; do
+    check_no_token "$t" "$f"
+  done
 done
-check_no_token 'five baseline Phase 5 reviewers' "$ESC_G"
-check_no_token 'FIVE foreground reviewers' "$RAV_G"
-check_no_token 'five-to-six reviewers' "$ORCH_G"
-check_no_token 'five-to-six-parallel' "$QUICK_G"
-check_no_token '5-to-6-reviewer' "$QUICK_G"
-check_no_token '5-6 reviewers' "$ORCH_G"
 
 # No retired agent type may be named in a live instruction, in ANY mode. A dead
 # type fails at dispatch, not at validation, and quick kept dispatching
@@ -375,7 +378,6 @@ yellow "[38f] the v0.12.0 fan-out changes keep their mechanism"
 
 P3_PHASE="skills/hackify/references/phases/phase-3-implement.md"
 P5_PHASE="skills/hackify/references/phases/phase-5-review.md"
-PA="skills/hackify/references/parallel-agents"
 REFUTE_TPL="skills/hackify/references/parallel-agents/phase-5-refute.md"
 DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 
@@ -426,9 +428,7 @@ yellow "[38e] the v0.11.0 diff-slicing and carry-over changes keep their mechani
 # prose promising it stays. Pin every one to the artifact that carries it.
 
 SCOPE_REF="skills/hackify/references/review-scope.md"
-P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
 RAV_REF="skills/hackify/references/review-and-verify.md"
-PA="skills/hackify/references/parallel-agents"
 
 # (1) The four sliced reviewers take {{review_scope}}, in BOTH copies of each
 # prompt. A reviewer that never learned to scope its diff silently ignores the

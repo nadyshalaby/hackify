@@ -39,7 +39,8 @@ On the fallback substrate a tick is an edit plus a re-print, not a tool call: `-
 
 ## When to create it
 
-- **Full hackify**, opened at **task start in Phase 1** as a printed block, right after the ask is real and before any code. It becomes section 0 of the work-doc at **Phase 2 step 1**, when the file is first created, before you draft the rest of it.
+- **Full hackify**, opened at **task start in Phase 1** as a printed block, right after the ask is real and before any code. It becomes section 0 of the work-doc at **Phase 2 step 1**, before you draft the rest of it.
+- **Full hackify entered through groom**, where the work-doc already exists before Phase 1 runs, because [../../groom/SKILL.md](../../groom/SKILL.md) Step 2 creates it from the template at graduation. The rule that covers both paths is **whoever creates the file writes section 0 into it first**. So groom writes the block with every item open and prints it at handoff; **Phase 1 adopts** it, restore it into the todo tracker if the runtime has one, set Phase 1 `in_progress`, and never open a second one, groom just printed the block so the next print is the ordinary phase-boundary one; **Phase 2 step 1 still runs** and **confirms** the block is present and in sync instead of writing it. One section 0, written once, on every path.
 - **quick**, at task start, right after Phase 1.
 - **yolo**, at task start, right after Phase 1.
 
@@ -126,6 +127,7 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 | Thought | Reality |
 |---|---|
 | "I'll archive right after I show the summary" | The ledger blocks it. The summary item is unreachable while the archive item is open. Archive first. |
+| "Groom already created the work-doc, so Phase 2 step 1 has nothing to do" | It confirms section 0 is present and in sync. Confirming IS the step, and skipping it is how a groomed task runs with no durable ledger. Nobody writes the block twice, nobody writes it zero times. |
 | "The code is done. I can skip the ledger now" | The ledger opens at task start, before any code. It is the order-enforcer, not a trophy for the end. |
 | "This phase does not apply. I'll delete its item" | Do not delete. Mark it `completed` with `skipped: <reason>`. Silent deletion hides drift. |
 | "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (waves, reviewers), never across them. |
@@ -138,3 +140,4 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 - [communication-voice.md](communication-voice.md), the reflect-after-step narration.
 - [finish.md](finish.md), the Phase 6 steps the 6a, 6d ledger items map to (archive is Step D).
 - [runtime-adapters.md](runtime-adapters.md), the `todo tracker` primitive and its per-runtime mapping.
+- [../../groom/SKILL.md](../../groom/SKILL.md), the other skill that writes section 0, because on the groom path it is the one that creates the work-doc.

@@ -1,8 +1,8 @@
 # Phase 5, Multi-reviewer E (design conformance)
 
-The **standing fifth reviewer** for UI-bearing diffs. Dispatch alongside A (security), B (quality and plan consistency), D (performance) and F (cross-module coherence) in a single parent message whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome.
+The design lens, dispatched whenever the diff is UI-bearing. Send it in the same parent message as whichever reviewers the Phase 5 evidence gate put on the panel: B (quality, layering and plan consistency) is the standing member and always runs, while A (security), D (performance) and F (cross-module coherence) run only when the diff gives their lens something to look at. Dispatch E whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome. Gate table: `../phases/phase-5-review.md`.
 
-**Boundary against `phase-5-escalation.md`.** Reviewer E is the *standing* design lens, keyed to the project's committed `DESIGN.md`. The escalation reviewer stays for ad-hoc specialist surfaces the baseline roster does not cover (infrastructure, data migration, domain compliance, and deep accessibility audits beyond E's conformance checks). Dispatch E for design conformance; dispatch an escalation reviewer for anything else. They do not overlap, and the reviewer cap of 6 counts E.
+**Boundary against `phase-5-escalation.md`.** Reviewer E is the *standing* design lens, keyed to the project's committed `DESIGN.md`. The escalation reviewer stays for ad-hoc specialist surfaces the baseline roster does not cover (infrastructure, data migration, domain compliance, and deep accessibility audits beyond E's conformance checks). Dispatch E for design conformance; dispatch an escalation reviewer for anything else. They do not overlap, and the reviewer cap of 5 counts E.
 
 **Reference-image mode.** When the project has reference frames of the intended design (screenshots of the target, a Figma export, a competitor or prior-version capture), the dispatcher passes their paths and E renders the touched screen and compares the two **side by side**. This is the one place in hackify where an external visual bar exists, so it is the one place a rendered-versus-reference comparison is honest; there is no equivalent for backend code, and E must not invent one. With no reference images the dispatcher passes `NONE` and E audits against the spec alone.
 
@@ -18,7 +18,7 @@ Subagent type: general-purpose
 **ROLE**.
 You are a senior design engineer with 15+ years of experience implementing and policing design systems across web and native codebases.
 Your domain expertise covers: design-token architecture and token drift, component API and state coverage, type-scale and spacing-scale enforcement, color and contrast auditing, motion specification, and bidirectional (RTL) layout correctness.
-You apply WCAG 2.1 Level AA (contrast 1.4.3, non-text contrast 1.4.11, focus visible 2.4.7, reflow 1.4.10, target size 2.5.5), the CSS Logical Properties specification, and RFC 2119 keywords when judging whether a diff honors the project's committed design specification.
+You apply WCAG 2.2 Level AA (contrast 1.4.3, non-text contrast 1.4.11, focus visible 2.4.7, reflow 1.4.10, target size 2.5.5), the CSS Logical Properties specification, and RFC 2119 keywords when judging whether a diff honors the project's committed design specification.
 You reject: hardcoded color/size/shadow literals where a token exists, components shipped without their documented interactive states, type sizes invented outside the ramp, physical margin/padding properties in a bidirectional product, and focus indicators removed for aesthetics.
 Bias to: citing the exact token that should have been used, so every finding carries its own fix.
 Bias against: personal taste. You audit conformance to the spec that exists, never your preference for a different design.

@@ -8,7 +8,7 @@ This file is the dispatchable sub-agent prompt for the **single** Phase 2.5 spec
 
 **Consequence worth stating once:** Phase 2.5 now has a single reviewer, so nothing gives the work-doc an independent second pass. The lenses are checklist-driven rather than judgment-driven, which is what makes that acceptable here and does not make it free.
 
-The retired agent types are `hackify:spec-reviewer-dependencies` (Reviewer C) and `hackify:spec-reviewer-rules` (Reviewer B). **The letters A, B and C are retired, not reassigned.** Phase 5 has its own Reviewers A through F; those are a different panel in a different phase and are untouched.
+The retired agent types are `hackify:spec-reviewer-dependencies` (Reviewer C) and `hackify:spec-reviewer-rules` (Reviewer B). **The letters A, B and C are retired, not reassigned.** Phase 5 keeps its own lettered reviewers; those are a different panel in a different phase and are untouched.
 
 Dispatch ONE agent. The parent aggregates its findings into Critical / Important / Minor, patches the work-doc, and carries the wave plan into Phase 3 dispatch before implementation begins.
 
