@@ -2210,6 +2210,80 @@ fragment is large enough to breach 1350. Closing it needs per-source-line status
 break both `[0]`'s and `[76f]`'s `^source ` parse. Named, scoped, and left, which is the right call
 for a wave that already landed three Criticals.
 
+## 7n. Wave 24, and the finding that sharpens this whole sprint's rule
+
+Every Important and Minor from the panel is closed. The wave also produced the single best result of
+the sprint, and it is a correction to the lesson the sprint thought it had learned.
+
+### The rule was not strong enough
+
+This sprint's rule has been: **a filter must account for what it removed, because silence reads as
+coverage.** Wave 24 fixed the parse step to do exactly that, publishing `lines_blank`,
+`lines_comment`, `lines_duplicate` and `lines_unaccounted`.
+
+Then the agent checked whether asserting `lines_unaccounted == 0` would actually catch a lossy path
+list. It does not. Verified here:
+
+```
+handed 4 lines: 1 real path, 1 blank, 1 comment, 1 duplicate
+  listed_lines      : 4
+  scoped_paths      : 1
+  lines_unaccounted : 0
+```
+
+**The reconcile balances perfectly while three of four inputs vanish**, because every drop is
+bucketed and the arithmetic is honest about each one. The refinement, in the agent's words: *a
+reconcile that subtracts known buckets proves nothing about whether the buckets should have been hit
+at all.* Catching it needs the raw input compared against the output, `listed_lines` against
+`scoped_paths`, which is what `[80b]` now asserts as `1 1 1 0`.
+
+That is a strictly stronger statement of the rule and it belongs in the retrospective:
+**accounting for a removal is not the same as proving the removal was correct.**
+
+### The rest, verified rather than accepted
+
+- **`[76g]` stopped pinning a list and started discovering one.** Four hardcoded paths became **17
+  files and 48 occurrences** found under `skills` and `agents`, asserted as two numbers per literal
+  rather than seventeen per-file counts. The old shape could not see a NEW file picking up the
+  literal, which is exactly what had happened. Fewer assertions, four times the coverage.
+- **`[80b]` derives its probe from `${BASH_SOURCE[0]}`**, so the code finally has the property its
+  comment and the release notes both claimed. The CHANGELOG claim is corrected in place as a
+  historical admission rather than quietly rewritten.
+- **`[13]` went from sixty greps to one.** Measured, five runs each: 4.72 / 4.72 / 4.77 / 4.76 / 4.78
+  before, 4.44 / 4.45 / 4.41 / 4.45 / 4.40 after, with all 63 verdict lines byte-identical.
+- The four un-excluded scope sites are fixed, `perf.process.spawn-per-item` is in the catalog, the
+  NUL-byte crash fails closed into `paths_outside_root`, and the CI tag count reads 46.
+- Tests 39/39 to **44/44**. Validator 1401 to **1396 ok, 0 FAIL**.
+
+**The `ok` count went DOWN five while coverage went UP**, which is the correct reading and the agent
+made the point explicitly: exactly one block moved, `[76g]` from 13 lines to 8, because nine
+hand-written per-file numbers became four aggregate assertions. Every other block is identical line
+for line, diffed rather than assumed.
+
+### Four more corrections to my brief
+
+1. **The exclusion was in thirteen files, not twelve.** The panel missed
+   `review-and-verify.md`, which I had fixed myself in wave 23b, and I then repeated the wrong count
+   into the brief. After wave 24 it is seventeen.
+2. **My `split_lines` parenthetical was wrong.** I wrote that an unterminated file "used to read one
+   below". Measured: it reads one ABOVE `wc -l`, both before and after the fix. The fix only ever
+   changed the terminated case. The docstring now says that truthfully instead of repeating my claim.
+3. **One citation I flagged as stale was not stale.** `CAP_SEARCH_PATHS` is still where I said, so no
+   correction was needed and the agent said so rather than inventing one.
+4. That is now **five rounds running** where something I supplied from an earlier note was wrong.
+
+### The no-op tamper guard, five more times
+
+The agent reported it caught five false conclusions in this wave alone: a replacement string absent
+from the target, a subshell swallowing a variable, a confounded leak count, a `perl` edit that
+interpolated `$REPO_ROOT` as a perl variable and silently unloaded a fragment, and a Python format
+string colliding with `%s\n` so nothing was written. Across the sprint that one line of `cmp` has now
+stopped at least eleven false conclusions, several of them mine.
+
+It also built a better control than a true no-op: an edit that changed bytes (a double space) without
+changing meaning, which must report `tampered=YES` and stay green. A true no-op control cannot
+distinguish "the check is fine" from "my probe did nothing".
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
