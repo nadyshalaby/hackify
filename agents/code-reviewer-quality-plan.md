@@ -106,10 +106,15 @@ happens there, so that steps 4 onward are analysis rather than fetching.
 
 *Shared read pass.*
 1. From `{{project_root}}`, run `git diff --stat
-   {{base_sha}}..{{head_sha}}` to enumerate every file in the diff,
-   then `git diff {{base_sha}}..{{head_sha}}` for full content. You are
-   never sliced, so that is the whole diff and there is no pathspec to
-   append. Build a list of {file → hunks touched}.
+   {{base_sha}}..{{head_sha}} -- . ':(exclude)docs/work/*'` to enumerate
+   every file in the diff, then `git diff {{base_sha}}..{{head_sha}} -- .
+   ':(exclude)docs/work/*'` for full content. You are never sliced, so
+   that is the whole reviewed diff. The one pathspec you append is that
+   exclusion and it is not a slice: `docs/work/` is out because the
+   work-doc is the ruler the diff is measured against and cannot also be
+   the measured. **You still READ the work-doc in full at step 2.**
+   **It stays your authority for steps 14 to 19.** You simply do not
+   review it as a changed file. Build a list of {file → hunks touched}.
    **Read the hunks and the context around them, not whole files.** Open a
    file in full only when a candidate finding needs the contract around it
    (the function's other branches, the type it returns, the guard above it),

@@ -53,13 +53,17 @@ The scope bounds what you **diff**, not what you may **read**. When a finding ne
 
 Do this once, at Phase 5 dispatch, before the message goes out. The scouts already walked the whole diff to build their tables, so the classification costs no extra reads.
 
-1. List every changed path: `git diff --name-only <base>..<head>`.
+1. List every changed path: `git diff --name-only <base>..<head> -- . ':(exclude)docs/work/*'`. The exclusion is load-bearing, not housekeeping; the paragraph below says why.
 2. Assign each path to every lens whose surface it touches, using the table above. A path may go to several. Most go to at least two.
 3. **Any path you cannot confidently classify goes to B**, which is already reading everything, so an unclassifiable file is never an uncovered file.
 4. Write the scope ledger (below) into the work-doc Sprint Review.
 5. Pass each reviewer its own pathspec list as `{{review_scope}}`. Pass B `.`.
 
 **When a lens's list comes out empty, that lens has nothing to review.** Do not dispatch it, and record why in the gate line, exactly as you would for a folded lens. An empty slice is a gate decision and it is written down like one.
+
+### Why `docs/work/` is excluded
+
+The work-doc is the ruler the diff is measured against and cannot also be the measured. Every round writes its result into the work-doc, which changes its bytes, which kills its own verdict, which mandates another round whose result lands in the work-doc again. That loop provably cannot close; one sprint rewrote its work-doc 25 times. Nothing about the work-doc's accuracy goes unchecked, because Reviewer B still reads it in full as an INPUT and still flags any file with no authorizing task entry. The precedent is `scripts/validate-dod.d/80-file-size-caps.sh:13`, whose `CAP_SEARCH_PATHS` leaves `docs/` out for the same reason: a work log is not a primitive the caps govern.
 
 ## The scope ledger
 
@@ -90,7 +94,9 @@ Everything that fails any of the three conditions goes back into `{{review_scope
 
 The old definition was "the panel re-read every byte". The new one is:
 
-> **every byte of the diff is covered by a live verdict, and F re-read the boundary set.**
+> **every byte of the reviewed diff is covered by a live verdict, and F re-read the boundary set.**
+
+**The reviewed diff is `git diff <base>..<head> -- . ':(exclude)docs/work/*'`**, because the work-doc is the ruler the diff is measured against and cannot also be the measured.
 
 A verdict is live when the blob hash it was recorded against still matches the file on disk. This is a different guarantee from the old one, not a weaker one, but it is only as good as the ledger, so the ledger is mandatory whenever carry-over is used.
 

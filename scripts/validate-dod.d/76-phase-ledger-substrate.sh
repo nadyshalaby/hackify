@@ -186,3 +186,77 @@ if [ "$PLS_ENUM_COUNT" -lt 10 ]; then
 elif [ "$PLS_ENUM_MISSING" -eq 0 ]; then
   green "  ok   all $PLS_ENUM_COUNT sourced fragments are named in $PLS_ORCH's header enumeration"
 fi
+
+yellow "[76g] the reviewed diff excludes docs/work/, at every site that builds it and in the prose that says why"
+# The work-doc is a changed path in the sprint diff AND the authority Reviewer B
+# measures that diff against. Writing a round's result into it changes its bytes,
+# which kills its own verdict, which mandates another round whose result is
+# written into it again. One sprint rewrote its work-doc 25 times before the loop
+# was proven unclosable. The fix is the exclusion pathspec pinned below.
+#
+# THE REASON IS PINNED BESIDE THE MECHANISM, on purpose. An exclusion nobody can
+# see is indistinguishable from a silent drop, and the sprint that shipped this
+# exists to kill silent drops. A pathspec surviving with its justification gone is
+# the shape that gets "cleaned up" by the next reader who cannot tell why it is
+# there. So both halves are counted, and either one going missing reddens.
+#
+# COUNTED PER FILE, never asserted present. phase-5-review.md builds the scope at
+# two sites and restates the closure rule at a third; a presence pin stays green
+# when two of the three are dropped. Each expected count is written by hand beside
+# its path, the argument for which is above check_list_size in 00-helpers.sh.
+#
+# grep -oF, never -c and never -E. -c counts LINES, so two sites sharing one line
+# would read as one site. -E would treat the pathspec's own `*` and `(` as regex
+# metacharacters, and that literal is very nearly nothing but metacharacters.
+#
+# Existence-gated first, the [77] pattern: a typo'd path greps 0 and would read as
+# a set of dropped sites rather than as a check that never ran.
+#
+# check_no_tokens_in is deliberately NOT used here. test_ban_tokens.sh pins the
+# number of batched ban calls shipping in this directory at TB_EXPECT_CALLS=3, so
+# a fourth would redden a file this block has no business making me touch.
+PLS_XDIFF="':(exclude)docs/work/*'"
+PLS_XRULE='the ruler the diff is measured against and cannot also be'
+# path | expected pathspec sites | expected reason sites
+PLS_XSITES="skills/hackify/references/phases/phase-5-review.md|3|1"
+PLS_XSITES="$PLS_XSITES skills/hackify/references/review-scope.md|2|2"
+PLS_XSITES="$PLS_XSITES skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md|2|1"
+PLS_XSITES="$PLS_XSITES agents/code-reviewer-quality-plan.md|2|1"
+# The set's own size, written a SECOND time. Reviewer B ships as a canonical
+# template plus a byte mirror, and sync_agent_mirrors.py copies only the fenced
+# block, so dropping either row leaves one of the two copies unguarded while every
+# surviving row still prints green.
+PLS_XSITES_EXPECTED=4
+PLS_XPARSED=0
+for pls_pair in $PLS_XSITES; do
+  PLS_XPARSED=$((PLS_XPARSED + 1))
+  pls_f=${pls_pair%%|*}
+  pls_rest=${pls_pair#*|}
+  if [ ! -s "$pls_f" ]; then
+    red "  FAIL $pls_f is in the [76g] set but is missing or empty, both counts over it would report 0 and measure nothing"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  pls_got_x=$(grep -oF -- "$PLS_XDIFF" "$pls_f" | wc -l | tr -d ' ')
+  pls_got_r=$(grep -oF -- "$PLS_XRULE" "$pls_f" | wc -l | tr -d ' ')
+  check_list_size "$pls_got_x" "${pls_rest%%|*}" "$pls_f's docs/work exclusion pathspec"
+  check_list_size "$pls_got_r" "${pls_rest#*|}" "$pls_f's stated reason for that exclusion"
+done
+check_list_size "$PLS_XPARSED" "$PLS_XSITES_EXPECTED" "the [76g] file set"
+
+# B is the one reviewer that both READS the work-doc as its authority and diffs
+# the whole thing unsliced, so the exclusion has to live in its own prompt. These
+# two sentences are what keep those roles apart: drop them and a later editor
+# reads the exclusion as permission to stop reading the work-doc at all, which
+# deletes steps 14 to 19 outright and turns a scoping fix into lost coverage.
+#
+# Each is pinned WHOLE, closing `**` included, because the paragraph hard-wraps.
+# The earlier draft of this sentence spanned two lines, which would have made any
+# pin on it a prefix that stays green while the claim's second half is deleted,
+# the exact failure [76] and [76d] were both bitten by. The sentence was reflowed
+# to fit the pin rather than the pin trimmed to fit the sentence.
+for pls_bf in "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md" \
+              "agents/code-reviewer-quality-plan.md"; do
+  check_token_present '**You still READ the work-doc in full at step 2.**' "$pls_bf"
+  check_token_present '**It stays your authority for steps 14 to 19.**' "$pls_bf"
+done
