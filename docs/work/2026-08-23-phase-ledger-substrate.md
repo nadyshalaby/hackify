@@ -1846,6 +1846,85 @@ starts cost 0.05s, about 1%, and raising it would breach the catalog's own "when
 `[76g]` costs 0.02s. It also confirmed `split_lines` adds no per-line cost, one O(1) pop per file.
 Context it volunteered: `90-collisions.sh` alone is 1.587s, 34% of the run, and out of scope.
 
+## 7i. Reviewer B closes the panel: four Criticals in the round, and three corrections to my own brief
+
+### CONFIRMED Critical: AC10 went stale the same way twice
+
+`:104` reads "version bumped to **0.14.1**" and "`plugin.json` ships `0.14.1`". The diff ships
+`0.14.2` at five sites. The bullet carries a paragraph explaining that it had been signed off reading
+0.14.0, stayed stale until Phase 5, and was corrected. It then went stale again in exactly the same
+way. An acceptance criterion amended once for staleness is now the sprint's clearest example of it.
+
+### B corrected my brief three times, and it was right each time
+
+1. **`finish.md:191` does not exist.** I handed that path to F as a known un-excluded site, carried
+   from an earlier follow-up list without checking. The file is `phase-6-finish.md` and it is 56 lines
+   long, so line 191 could never have existed. The real site is `phase-6-finish.md:40`, and it uses
+   `main..HEAD`, not the base I claimed.
+2. **"Noise" holds for one of four, not four of four.** I ruled all the un-excluded scope sites
+   cosmetic. B rules that only `html-report.md:25` is. `law-scout.md:33` builds the Phase 5 path list
+   that feeds `--max-file-lines 500`, so every round hands B an unfixable `cap.file-lines` row on a
+   work-doc now past 1800 lines. `perf-scout.md:17` is the same shape for D. `phase-6-finish.md:40`
+   audits the diff against work-doc allowlists, and since the index says the work-doc cannot authorize
+   itself, finish reports the ruler as scope creep on every run. My judgement was wrong on three of
+   four and F had already flagged the shape.
+3. **A claim in the CHANGELOG is honest and one in the work-doc is not.** "All four sites that carry
+   it" is true. T53's "all three sites that build the review scope" is not, because `[76g]` is a
+   regression pin over four hardcoded paths, not a coverage pin, so nothing proves the set is complete.
+
+### `[80b]` works, and the reason written on it is false
+
+`80-file-size-caps.sh:68` hardcodes `CAP_PROBE="scripts/validate-dod.d/80-file-size-caps.sh"`, while
+`:53` and the CHANGELOG both justify self-probing on the grounds that "a pinned path dies the day that
+file is split". It IS pinned by name. `${BASH_SOURCE[0]}` is the mechanism the claim describes and it
+is available in this codebase (`validate-dod.sh:39` uses it). The check fails closed and works; the
+stated reason asserts a property the code does not have. I wrote that justification into both the
+comment and the release notes.
+
+### The rest of B's Importants
+
+- **The staged law-scout report predates the release commit.** `CHANGELOG.md` was 921 lines at
+  `e9d7ad5` and 939 from `78b30b0` on, so the scan never saw the 54-line `[0.14.2]` entry it was
+  grading. Two of nine rows are 18 lines off HEAD. I re-stamped the scope ledger when CHANGELOG moved
+  and did not re-run the scout beside it.
+- **The check manifest went stale again.** `validate-dod.sh:25` and `:30` describe fragments 76 and 80
+  without `[76g]` or `[80b]`. `[76f]` cannot catch it, and says why at
+  `76-phase-ledger-substrate.sh:155`: it asserts basename presence only, because a range assertion
+  "would fail on correct text the day a `[76g]` lands". That day was the same release.
+- **T58, T59 and T60 sit unticked at `:216` while all three are implemented**, under a ticked
+  `- [x] Phase 3. Implement (all waves committed)` at `:23`. Decision #1-A binds: no silent drops,
+  every step ends done or done with a visible one-line reason.
+- **Goal drift, unamended anchor.** In-Scope covers ledger substrate and the always-on rule and was
+  never amended across 21 waves. The four lawkeeper paths serve no In-Scope bullet. B rated it
+  Important rather than Critical on its own reasoning: repairing a live bug in the scanner Phase 5
+  itself runs is not the opportunistic tidying Out-of-Scope excludes.
+- **Three fragments cannot gain a line.** `77-reviewer-roster.sh` 499, `scripts/test_ban_tokens.sh`
+  499, `70-invariants-and-new.sh` exactly 500, against "500 lines maximum per file. No exceptions."
+  Two of those were BORN at 499 in this sprint. No function breaks the 40-line cap (largest is 37),
+  but `27-marketplace-ref-pin.sh` and `77-reviewer-roster.sh` define no functions at all, so neither
+  splits cheaply.
+
+Minors: `review-scope.md:67` justifies the exclusion as "a work log is not a primitive the caps
+govern", but the same `CAP_SEARCH_PATHS` also exempts `CHANGELOG.md`, which is not a work log, so the
+written reason covers less than the variable does. `ci.yml:44` and `:50` say "43 release tags" where
+`git tag` now returns 46, the three backfills being this sprint's own. `[76g]` pins a Phase 5 rule
+inside a fragment named for the phase ledger.
+
+**E's folded checklist was run and reported.** Every WCAG citation the diff touches is correct at the
+level claimed, 2.5.8 being the AA Minimum rather than 2.5.5 Enhanced. No findings under the folded
+lens, and B said so explicitly rather than staying silent.
+
+## Round tally
+
+Four Criticals, all reproduced by me rather than accepted on argument:
+
+| # | Lens | Finding | Verified how |
+|---|---|---|---|
+| C1 | F | `settle all` resolves to a non-pathspec; the diff comes back empty, exit 0, and it is the value the exit gate keys on | `git diff dabc333..HEAD -- all` returns 0 files against 59 |
+| C2 | A | `[27d]` prints a clean verdict over an empty set, `ok 0 of 0 ... resolve to a real git tag` | reproduced the counter arithmetic; all three start at zero |
+| C3 | A | `check_no_token` returns green on grep rc 2 and rc 127, now sitting under a fail-closed caller that reds on the same condition | the pipeline exits 0 on a missing path |
+| C4 | B | AC10 claims 0.14.1 while the diff ships 0.14.2, in a bullet already amended once for this | read at `:104` |
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
