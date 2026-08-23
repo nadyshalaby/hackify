@@ -2421,6 +2421,30 @@ the diff, checked by extension, and the fold is recorded here rather than left s
 | `skills/yolo/SKILL.md` | `e9da33f` | B,F |
 | `skills/yolo/evals/evals.json` | `6beb47e` | B,F |
 
+## 7p. Wizard decisions #26, #27, #28
+
+**#26, the uncut release: wait until the next sprint finalizes.** Not option A, B, C or D as
+offered. The user's answer was to defer the whole release until the wave-implementer migration
+sprint closes, so one release covers both sprints. Consequences, written down so nothing is assumed
+later: `v0.14.2` stays uncut, the release commit `78b30b0` keeps no matching tag for now, and
+nothing is pushed. Sixty-one commits live only on this machine until then. The `[27d]` reddening
+does not bite until someone bumps a version, which now will not happen until the next sprint's
+release, so the constraint is real but not yet load-bearing.
+
+**#27-A, exempt append-only files.** A written carve-out for files that only ever grow by appending.
+The 500-line cap still applies to everything else. This is the honest fix: the cap exists to force
+splitting by responsibility, and a changelog has exactly one responsibility already. Leaving it red
+forever would train us to skim the scan, which is the same failure mode as a check nobody reads.
+
+**#28-A, exempt test fixtures and rule documentation.** The scanner must stop flagging the file
+whose job is to prove the rule fires and the file whose job is to describe it. `carve-outs.md:16`
+already exempts test files from four rules; this extends that to the two hygiene rules and adds the
+rule documentation. Eight standing false positives go away.
+
+**Sequencing.** Neither carve-out lands while the settle panel is running. `checks.py` and
+`audit_scan.py` are both in the ledger and both under Reviewer A and F right now, and moving HEAD
+under a running reviewer already cost one round this sprint. The fixes wait for the panel.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
