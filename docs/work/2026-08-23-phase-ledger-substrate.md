@@ -3333,6 +3333,49 @@ were about. One more round on the touched set only, roughly ten files rather tha
 rest carried over untouched. That is the carry-over law working, not thrash: the loop closes on the
 first round that finds nothing AND changes nothing.
 
+## 7ad. Fix group B, and the seventeenth instance found by a probe that was supposed to be routine
+
+All five items landed. Two things came out of it that were not asked for, and both are worth more than
+the items themselves.
+
+**The seventeenth instance, found while probing for something else.** Setting up the "unreadable
+import" tamper case, the agent pointed `CAP_EXEMPTIONS` at `lexer.py` and the check printed **green**,
+naming `lexer.py` in its ok line. `cap_scanner_exempt` passes only `"${CAP_EXEMPTIONS%/*}"`, the
+DIRECTORY, and the snippet hardcodes `from exemptions import APPEND_ONLY_BASENAMES`. So the
+`[ -f "$CAP_EXEMPTIONS" ]` existence guard tests one file while the import reads another, and the two
+can disagree about which file the check is even about. Verified against disk. It is the same shape as
+everything else in this entry, in a check written **this sprint** to close a gap of exactly this kind,
+and it was found because a tamper probe was set up honestly rather than assumed to pass. Sent back to
+the same agent to fix, with the derived module name guarded so an empty value fails loudly.
+
+**A draft that would have shipped a claim its own source retracts.** The agent's first version of the
+scope-gate bullet argued the validator pin is stronger evidence than the echo. It then read the
+sibling's landed text, found that file explicitly retracting that reasoning, and rewrote the bullet to
+carry the corrected argument. It also checked the `Round: settle` marker was actually on disk before
+mentioning it, rather than trusting the sibling to land it. Had the first draft shipped, the release
+notes would have carried a claim the source file it describes disowns, which is precisely the C1
+defect, reintroduced one bullet away from where C1 is corrected.
+
+**The count was wrong in the direction I did not check.** I briefed "three files split, four were", from
+Reviewer B. The agent verified rather than accepting it: four parents, pre-split sizes 500, 499, 499 and
+493, roughly 1150 lines moved, so "a thousand" became "eleven hundred". It also caught that the same
+bullet ends with a second "three" that is CORRECT and must stay three, because `test_scoping.py` arrives
+by `import` and not by `source`, so it cannot suffer the missing-source-line failure that sentence is
+about. It scope-tagged that one "three single SHELL files" so the next reader does not re-flag it. That
+is the right instinct: the fix for a miscount is not to change every number that looks like it.
+
+**On B4 it declined the obvious fix and was right to.** Normalizing `CAP_APPEND_ONLY` itself would have
+broken two other consumers that need real paths, and would have silently un-exempted a future non-root
+entry while the cross-check still printed green. It normalized at the comparison site only. Its P4 probe
+is the one that proves the fix rather than proving it broke nothing: with `CAP_APPEND_ONLY="docs/CHANGELOG.md"`
+the old code reddened on a false mismatch and the new code stays green.
+
+**The validator flapped mid-run and none of it was ours.** Three identical runs gave exit 0, 1, 1 with
+the agent's own changes constant, because the sibling was still landing the fourth site of a new
+`[76h]` gate-wording check. Polling until the tree hashed stable was the correct response, and it is
+worth recording that a wave running two agents over one repo can produce a red that belongs to neither
+agent's diff.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
