@@ -88,21 +88,25 @@ fi
 # next version bump rather than never. That bump is the earliest moment the two
 # cases are distinguishable at all.
 #
-# NOTE FOR THE NEXT RELEASE: 0.14.1 is exempt only while it is in flight.
-# Bumping plugin.json to 0.14.2 drops it out of the window, and if v0.14.1 still
-# has not been cut this check goes red on it. That is the check working, not the
-# check breaking. Cut v0.14.1 at its release commit before bumping.
-
+# THE NOTE THAT USED TO SIT HERE HAS BEEN DISCHARGED. It warned that 0.14.1 was
+# exempt only while in flight and that bumping to 0.14.2 would drop it out of the
+# window and redden this check unless v0.14.1 was cut first. That is exactly what
+# happened, and the tag was cut first: v0.3.1, v0.14.0 and v0.14.1 were all
+# backfilled at their release commits, each verified against the version recorded
+# in plugin.json at that commit rather than against the commit subject.
+#
 # Releases that went out untagged BEFORE this check existed. A ratchet, not a
 # suppression: MRP_KNOWN_UNTAGGED_EXPECTED below is this list's own length
 # written out a second time by hand, so appending a version to silence a
 # genuinely untagged release cannot land without also editing that number, which
 # is the line a reviewer actually reads. Deleting an entry while its tag is still
-# missing turns this check red rather than quiet. Backfilling either tag is a
-# one-line git command, which is why they are recorded here instead of being
-# scoped away. The paragraph above names the release commit each one belongs at.
-MRP_KNOWN_UNTAGGED="0.3.1
-0.14.0"
+# missing turns this check red rather than quiet.
+#
+# THE LIST IS NOW EMPTY, and empty is the state to defend. Every release this
+# repo has shipped resolves to a real tag. An entry appearing here again means
+# someone chose to ship a version without cutting its tag, which the paired count
+# below forces them to write down twice.
+MRP_KNOWN_UNTAGGED=""
 
 MRP_NL='
 '
@@ -119,7 +123,7 @@ yellow "[27d] every released version below the in-flight one resolves to a real 
 # catch. It still sits below the two early returns at the top of this fragment
 # (no jq, unreadable plugin.json), which take [27] out entirely; those are the
 # limit of this pin's reach, not something it covers.
-MRP_KNOWN_UNTAGGED_EXPECTED=2
+MRP_KNOWN_UNTAGGED_EXPECTED=0
 mrp_known_total=0
 while IFS= read -r mrp_entry; do
   [ -n "$mrp_entry" ] || continue

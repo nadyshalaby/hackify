@@ -70,18 +70,28 @@ CAP_PROBE_LIST=""
 
 yellow "[80b] the two ${CAP_MAX_LOC}-LOC counters agree, wc -l and the lawkeeper scanner"
 
-# Echo "<files_scanned> <reported_loc>" for one scan of $CAP_PROBE at cap $1.
-# reported_loc is 0 when the scan raised no cap.file-lines finding. A scanner
-# that errors prints nothing, which fails the files_scanned assertion below
-# rather than reading as clean.
+# Echo "<scoped_paths> <files_scanned> <reported_loc>" for one scan of $CAP_PROBE
+# at cap $1. reported_loc is 0 when the probe raised no cap.file-lines finding.
+#
+# All three numbers are echoed because only the third is the answer and the first
+# two are what make it readable. An empty or unwritten path list makes
+# audit_scan.py fall back to WALKING THE WHOLE TREE, which scans hundreds of
+# unrelated .sh files and would hand a verdict built on some other file's length
+# back as if it were the probe's. scoped_paths pins that the scan was scoped at
+# all, files_scanned pins that it reached exactly one file, and the finding is
+# filtered to the probe's own path rather than max()'d across whatever turned up.
+# A scanner that errors prints nothing, which fails all three.
 cap_scan_probe() {
   python3 "$CAP_SCANNER" . --paths-from "$CAP_PROBE_LIST" \
     --text-only-ext .sh --max-file-lines "$1" 2>/dev/null | python3 -c '
 import json, sys
 report = json.load(sys.stdin)
-hits = [f["end_line"] for f in report["findings"] if f["rule_id"] == "cap.file-lines"]
-print(report["stats"]["files_scanned"], max(hits) if hits else 0)
-' 2>/dev/null
+probe = sys.argv[1]
+hits = [f["end_line"] for f in report["findings"]
+        if f["rule_id"] == "cap.file-lines" and f["file"] == probe]
+print(report["config"]["scoped_paths"], report["stats"]["files_scanned"],
+      hits[0] if len(hits) == 1 else 0)
+' "$CAP_PROBE" 2>/dev/null
 }
 
 cap_agree_ready() {
@@ -97,16 +107,16 @@ cap_agree_verdict() {
   local loc="$1" over under
   over=$(cap_scan_probe $((loc - 1)))
   under=$(cap_scan_probe "$loc")
-  if [ "${over% *}" != "1" ] || [ "${under% *}" != "1" ]; then
-    red "  FAIL the scanner never reached $CAP_PROBE (files_scanned '${over% *}' and '${under% *}', expected 1 each), so its silence proves nothing"
+  if [ "${over% *}" != "1 1" ] || [ "${under% *}" != "1 1" ]; then
+    red "  FAIL the scan did not land on $CAP_PROBE alone (scoped_paths/files_scanned were '${over% *}' and '${under% *}', expected '1 1' each), so its verdict is about some other file or about nothing"
     FAILED=$((FAILED + 1))
-  elif [ "${over#* }" = "0" ]; then
+  elif [ "${over##* }" = "0" ]; then
     red "  FAIL the lawkeeper scanner did not flag $CAP_PROBE at a cap of $((loc - 1)), so it counts the file at fewer than the $loc lines wc -l counts, the two ${CAP_MAX_LOC}-LOC enforcers disagree"
     FAILED=$((FAILED + 1))
-  elif [ "${over#* }" != "$loc" ]; then
-    red "  FAIL wc -l reads $CAP_PROBE as $loc LOC, the lawkeeper scanner reads it as ${over#* }, the two ${CAP_MAX_LOC}-LOC enforcers disagree"
+  elif [ "${over##* }" != "$loc" ]; then
+    red "  FAIL wc -l reads $CAP_PROBE as $loc LOC, the lawkeeper scanner reads it as ${over##* }, the two ${CAP_MAX_LOC}-LOC enforcers disagree"
     FAILED=$((FAILED + 1))
-  elif [ "${under#* }" != "0" ]; then
+  elif [ "${under##* }" != "0" ]; then
     red "  FAIL the lawkeeper scanner flags $CAP_PROBE at a cap of $loc, but a file of exactly $loc lines is AT the cap, not over it"
     FAILED=$((FAILED + 1))
   else
@@ -119,6 +129,11 @@ if ! cap_agree_ready; then
 else
   CAP_PROBE_LIST=$(mktemp)
   printf '%s\n' "$CAP_PROBE" > "$CAP_PROBE_LIST"
-  cap_agree_verdict "$(wc -l < "$CAP_PROBE" | tr -d ' ')"
+  if [ ! -s "$CAP_PROBE_LIST" ]; then
+    red "  FAIL could not write the scoped path list, and an empty one silently widens the scan to the whole tree"
+    FAILED=$((FAILED + 1))
+  else
+    cap_agree_verdict "$(wc -l < "$CAP_PROBE" | tr -d ' ')"
+  fi
   rm -f "$CAP_PROBE_LIST"
 fi
