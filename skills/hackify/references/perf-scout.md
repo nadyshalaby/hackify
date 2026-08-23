@@ -93,6 +93,17 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 | `[[:space:]]in[[:space:]]+\[` (loop-window) | perf.algorithmic.scan-in-loop | Membership against a literal list per iteration, use a set. `x in some_list` variants need type knowledge (semantic). |
 | `global[[:space:]]+[a-z_]` | perf.memory.global-accumulator | Candidate when mutated inside request handlers; bounded module registries are fine. |
 
+### Shell / subprocess (loop-window)
+
+Added after a Phase 5 round found this repo spending roughly 15% of its own pre-commit gate here with
+no catalog ID to file it under. The scout's ground rule is that every pattern cites a real ID, and for
+two rounds this family had none, so findings were filed under an ID that did not exist.
+
+| Pattern (ERE) | Catalog ID | Notes / false-positive guard |
+|---|---|---|
+| `\$\((wc|basename|dirname|stat|date|cut|sed|awk)[[:space:]]` (loop-window) | perf.process.spawn-per-item | One fork per item where one invocation covers the set. `wc -l` per file becomes one `xargs wc -l`; `basename` per file becomes a parameter expansion. Bounded constant lists are fine, and a single spawn outside the loop is the fix, not the finding. |
+| `echo[[:space:]]+"\$[A-Za-z_]+"[[:space:]]*\|[[:space:]]*grep` (loop-window) | perf.process.spawn-per-item | A grep per token over the same held text. Batch the tokens into one `grep -f`, then fall back to the per-token loop only for inputs that screen dirty, so no diagnostic detail is lost. |
+
 ### SQL (run with `grep -i -E`)
 
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
