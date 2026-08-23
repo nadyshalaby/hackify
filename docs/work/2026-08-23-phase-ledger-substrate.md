@@ -3294,6 +3294,45 @@ and it declined to print `None.` over a table that was never handed to it. B is 
 distinction it drew is the sprint's own rule turned back on my dispatch: "found nothing" and "measured
 nothing" are not the same verdict. The round cannot close until a scanner run reaches B.
 
+## 7ac. The scout table B was owed, and what "0 findings" is worth on this repo
+
+I dispatched B with no `{{law_scout_report}}` and it declined to print `None.` over a table it had
+never been handed, on the grounds that "found nothing" and "measured nothing" are different verdicts.
+That is the sprint's own central rule aimed back at my dispatch, and it was right to refuse.
+
+**The first run of the scout was itself vacuous, and the release caught it.** Invoking the scanner
+without `--text-only-ext` gave `files_scanned = 0`, `paths_unsupported = 17`, `findings = 0`. The full
+check suite is ECMAScript-family only, so every `.py`, `.sh` and `.md` path fell out as unsupported.
+It did not go quiet: it published `paths_unsupported = 17` right beside the zero, which is the counter
+family this very release shipped, catching a hollow scan on its first real outing. The corrected run
+with the documented flags gives `files_scanned = 17`, every drop bucket `0`, `findings = 0`.
+
+**B then judged the run rather than the summary, and found the number worth less than it looks.** Text
+mode runs `run_text_only`, no `--ban-patterns` was passed and this repo ships no ban-patterns file at
+`.claude/hooks/ban-patterns.txt`, so `check_extra_bans` contributed nothing. B put the surviving
+coverage at exactly one rule. Measured against `rule_exempt`, that is too harsh: **30 of 51
+rule-instances across the seventeen paths are live**, because the seven shell and Python non-test files
+carry all three of `cap.file-lines`, `clean.removed-comment` and `clean.debt-marker`. The `.md` files
+and the test files carry the line cap alone, which is what the two carve-outs this sprint added were
+for.
+
+But B's sharpest point survives the correction intact, and it is the one that matters. `CHANGELOG.md`
+is 952 lines, the only file among the seventeen that could possibly have fired the line cap, and it
+carries **zero** live rules: `is_append_only` waives the cap through the carve-out this same diff
+introduced. So the one rule with something to say was silenced on the one file it had something to say
+about. The scan is not hollow in the `paths_unsupported` sense, the files were genuinely opened and
+counted. It is simply thinner evidence than a bare "0 findings" suggests, and the semantic tier B runs
+by hand is carrying nearly all of the weight on this repo.
+
+B also reconstructed `scoped_paths` and `listed_lines` from the subtractions I did publish, and asked
+that they be published directly rather than derived. Fair, and cheap to do.
+
+**B will not close its lens, and it is right.** The fix agents are moving `CHANGELOG.md` and the
+scope-rule files as I write this, so the verdicts B just gave die on exactly the paths its findings
+were about. One more round on the touched set only, roughly ten files rather than seventeen, with the
+rest carried over untouched. That is the carry-over law working, not thrash: the loop closes on the
+first round that finds nothing AND changes nothing.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
