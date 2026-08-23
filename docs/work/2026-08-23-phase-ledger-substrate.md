@@ -46,6 +46,13 @@ sprint_goal: The phase ledger never silently vanishes again, on any runtime, in 
 - Explicit ledger open/tick instructions in every per-phase protocol file, especially Phase 2.5 and Phase 3, which have none today.
 - Ledger opened at task start in every mode as a printed block, then written into the work-doc as section 0 at Phase 2 step 1 in full mode. This closes the Phase 1 window where full mode had no visible tracker, without claiming a file can exist before the ask has a slug.
 - Validator pins so each of the above regresses loudly, not silently.
+- **Amended at Phase 5, wave 21, after Reviewer B filed goal drift.** The lawkeeper scanner
+  (`audit_scan.py`, `checks.py`, `test_audit.py`, `porting-scanner.md`) came into scope because Phase 5
+  itself runs that scanner, and two live defects in it made the review unable to report honestly: it
+  silently discarded every dotfile it was handed, and it counted one line more than `wc -l` on every
+  terminated file. Repairing a tool the review depends on is not the opportunistic tidying the
+  Out-of-Scope bullet excludes, which is B's own reasoning for rating this Important rather than
+  Critical. Recording the amendment rather than leaving the anchor to disagree with 21 waves of work.
 - Runtime mirrors, README, CHANGELOG, version bump.
 
 **Out-of-Scope and Non-Goals.**
@@ -101,7 +108,7 @@ sprint_goal: The phase ledger never silently vanishes again, on any runtime, in 
 7. All six files in `references/phases/` name the ledger at phase open and at phase exit; `phase-2.5-spec-review.md` and `phase-3-implement.md` go from zero mentions to explicit ones.
 8. The ledger **opens at task start in every mode** as a printed block, and in full hackify **it is written into the work-doc as section 0 at Phase 2 step 1**. That bolded clause is the canonical sentence: it appears verbatim in `phase-ledger.md` and in `skills/hackify/SKILL.md`, and `70-invariants-and-new.sh` pins the literal string `written into the work-doc as section 0 at Phase 2 step 1` in both. `SKILL.md:69` ("created at the **start of Phase 2**") and `SKILL.md:74` ("Resume rebuilds the ledger") are the two lines that contradict it today and must be rewritten.
 9. `scripts/validate-dod.sh` exits 0, and a new check block fails if the Claude Code fallback cell, the fourth injected rules registration, the refuse-to-advance law, the canonical sentence, or any per-phase ledger mention is removed.
-10. All seven `dist/` runtimes are regenerated and mirror-complete; README and CHANGELOG record the release; version bumped to **0.14.1**. **This criterion was signed off reading 0.14.0 and stayed stale until Phase 5.** Wizard decision #6-A, recorded under "User decisions, taken through the wizard after Reviewer B caught the breach", moved the release to a patch bump after the settle-round fix wave, and `plugin.json` ships `0.14.1`. Correcting the number here closes a stale sign-off artifact; it is not scope creep, because the authorization predates the edit and is written down.
+10. All seven `dist/` runtimes are regenerated and mirror-complete; README and CHANGELOG record the release; version bumped to **0.14.2**. **This criterion has now gone stale twice in the same way, and that is the finding.** Wizard decision #6-A, recorded under "User decisions, taken through the wizard after Reviewer B caught the breach", moved the release to a patch bump after the settle-round fix wave. It was corrected from 0.14.0 to 0.14.1 then, and went stale again the moment wizard decision #21-B cut 0.14.2. `plugin.json` ships `0.14.2`, and so do `marketplace.json` twice, the README badge and the CHANGELOG heading. Reviewer B caught the repeat. A bullet that hardcodes a version number will go stale on every release, which is why the wording now names the failure rather than only the number: the next person to bump this must edit here too.
 
 ## 4. Approach
 
@@ -213,9 +220,9 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 
 ### Wave 21, wizard decisions #19-B and #20-A, found by the fix in Wave 20
 
-- [ ] **T58.** `checks.py:81` splits on newlines, so a well-formed file ending in a newline gains a phantom line. A 500-line file reports 501 and is flagged while the same content missing its trailing newline passes, which is backwards. Files: `skills/lawkeeper/scripts/checks.py`, `skills/lawkeeper/scripts/test_audit.py`.
-- [ ] **T59.** Two things in this repo enforce a 500-line cap and they disagree by one. Pin them against each other so the agreement is checkable rather than incidental. Placement handed to the implementer, because the two obvious homes own different concerns and the two closest fragments are both at their line cap. Files: one of `scripts/validate-dod.d/80-file-size-caps.sh`, `scripts/validate-dod.d/76-phase-ledger-substrate.sh`, plus `scripts/validate-dod.sh` only if a new fragment needs registering.
-- [ ] **T60.** The scanner's report grew from three stats keys to eight, so the template telling authors to copy that shape is now incomplete, and nothing tells whoever runs the law scout to read the new reconciliation numbers. That second gap is how the Wave 20 bug survived a whole sprint: the report said clean and no step asked whether the scan covered what it was handed. Files: `skills/lawkeeper/references/porting-scanner.md`, `skills/hackify/references/law-scout.md`.
+- [x] **T58.** `checks.py:81` splits on newlines, so a well-formed file ending in a newline gains a phantom line. A 500-line file reports 501 and is flagged while the same content missing its trailing newline passes, which is backwards. Files: `skills/lawkeeper/scripts/checks.py`, `skills/lawkeeper/scripts/test_audit.py`.
+- [x] **T59.** Two things in this repo enforce a 500-line cap and they disagree by one. Pin them against each other so the agreement is checkable rather than incidental. Placement handed to the implementer, because the two obvious homes own different concerns and the two closest fragments are both at their line cap. Files: one of `scripts/validate-dod.d/80-file-size-caps.sh`, `scripts/validate-dod.d/76-phase-ledger-substrate.sh`, plus `scripts/validate-dod.sh` only if a new fragment needs registering.
+- [x] **T60.** The scanner's report grew from three stats keys to eight, so the template telling authors to copy that shape is now incomplete, and nothing tells whoever runs the law scout to read the new reconciliation numbers. That second gap is how the Wave 20 bug survived a whole sprint: the report said clean and no step asked whether the scan covered what it was handed. Files: `skills/lawkeeper/references/porting-scanner.md`, `skills/hackify/references/law-scout.md`.
 
 **One wave carries no task IDs at all, and that is recorded rather than papered over.** The fix wave that landed as `fac7478` addressed the round-one decision-table findings, and it was dispatched off finding IDs, never off task numbers. No T number was ever assigned to any of it. Those thirteen paths appear in the index below keyed on their finding ID instead, marked `no task ID`, and the count of paths whose ONLY authorization is such a row is given with the index so the weakness is countable rather than described.
 
@@ -1924,6 +1931,69 @@ Four Criticals, all reproduced by me rather than accepted on argument:
 | C2 | A | `[27d]` prints a clean verdict over an empty set, `ok 0 of 0 ... resolve to a real git tag` | reproduced the counter arithmetic; all three start at zero |
 | C3 | A | `check_no_token` returns green on grep rc 2 and rc 127, now sitting under a fail-closed caller that reds on the same condition | the pipeline exits 0 on a missing path |
 | C4 | B | AC10 claims 0.14.1 while the diff ships 0.14.2, in a bullet already amended once for this | read at `:104` |
+
+## 7j. Wizard decisions #23, #24, #25, and the fix plan
+
+The panel closed with four Criticals, roughly eleven Importants and nine Minors. Three decisions
+taken through the wizard, all three at the widest option offered:
+
+| # | Question | Answer |
+|---|---|---|
+| 23 | How much of the panel to fix | **#23-C. Everything, Minors included.** Not just this sprint's own damage, and not Criticals only. Pre-existing findings are in. |
+| 24 | The three files at the line cap | **#24-A. Split them as the first wave, before any fix lands.** Not a fresh fragment to dodge the cap, and not unpinned fixes. |
+| 25 | The fail-open `check_no_token` | **#25-A. Fix the helper properly and repair whatever it reddens.** Blast radius unknown by design; that is how many vacuous checks get counted. |
+
+I recommended #23-A and was overruled toward the wider option. Recording that, because the narrower
+scope I proposed would have left a known-false justification in shipped release notes and a silent
+drop upstream of this sprint's own drop-accounting fix.
+
+### Wave order, and why the splits go first
+
+Wave 22, dispatched: split `70-invariants-and-new.sh` (exactly 500), `77-reviewer-roster.sh` (499)
+and `scripts/test_ban_tokens.sh` (499). Two of those were BORN at 499 in this sprint. Nothing behind
+them can add a pin until they can take a line, which is why #24-A puts them first. One agent rather
+than three, because all three splits edit the same hand-maintained source list at
+`validate-dod.sh:41` and would collide.
+
+The brief also folds in B's stale-manifest Important, since the agent is already editing that comment
+block and leaving a known-false description beside a new true one is worse than either.
+
+### Queued behind it
+
+**The four Criticals.** C1 `settle all` resolving to a non-pathspec, ten sites, and the fix must
+define what `all` means rather than delete a token that `70-invariants-and-new.sh:464` and `:482`
+both pin. C2 the `[27d]` empty-set floor, one line, modelled on `77-reviewer-roster.sh:483` which
+already refuses exactly this state. C3 `check_no_token` fail-closed plus every check that reddens.
+C4 AC10, **done, see below**.
+
+**The Importants.** The parse-step drop in `load_paths_from`. `[80b]` switching to
+`${BASH_SOURCE[0]}` so its code matches the reason written on it, and the same correction in the
+CHANGELOG where I repeated the claim. Re-running the law scout at HEAD, since the staged one predates
+the release commit it was grading. The `docs/work/` exclusion at `law-scout.md:33`,
+`perf-scout.md:17` and `phase-6-finish.md:40`, which B rules are real rather than the noise I called
+them. D's `20-templates.sh:162` grep-in-loop, 0.19s of a 4.70s gate. The NUL-byte crash in
+`_escapes_root`. T53's "all three sites that build the review scope", which is a claim nothing proves.
+
+**The Minors**, now in scope under #23-C: the `mktemp` EXIT trap, the two bare `grep` calls beside a
+comment claiming one binary, `review-scope.md:67`'s justification being narrower than the variable it
+cites, `ci.yml`'s "43 release tags" against the 46 that now exist, `html-report.md:25`,
+`law-scout.md:41`'s cosmetic `N/0`, `[76g]`'s placement in a fragment named for the phase ledger, the
+unterminated-file residual on the line-count fix, and D's recommendation to ADD
+`perf.process.spawn-per-item` to the catalog rather than stretch an existing ID.
+
+### Closed already, in this file, while wave 22 runs
+
+Three findings live in the work-doc, which no dispatched agent touches and which is excluded from the
+reviewed diff, so closing them now collides with nothing and kills no verdict.
+
+- **C4, AC10.** Corrected to 0.14.2. The wording now names the failure rather than only the number,
+  because a bullet hardcoding a version goes stale on every release and this one has now done it
+  twice.
+- **T58, T59 and T60 ticked.** All three were implemented in `b95a3a2` and left unticked under a
+  ticked "Phase 3. Implement (all waves committed)". Decision #1-A forbids exactly that.
+- **The Primary Goal anchor amended** for the lawkeeper scope, with B's own reasoning recorded: a
+  scanner that Phase 5 runs, carrying two live defects that stopped the review reporting honestly, is
+  not the opportunistic tidying the Out-of-Scope bullet excludes.
 
 ## 8. Retrospective
 
