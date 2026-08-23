@@ -84,6 +84,15 @@ check_no_token() {
   # function IS that function's fallback, so the two must be one binary and not
   # two resolutions. See the comment above check_no_tokens_in for which shell
   # resolves bare grep to what.
+  #
+  # THE ABSOLUTE PATH IS SCOPED TO THIS PAIR, and the rest of this file uses bare
+  # `grep` on purpose. The claim used to read as if it covered the whole file,
+  # which it never did (check_token_present and check_role below are both bare).
+  # The line is WHICH WAY A WRAPPER FAILS YOU. Here a grep that honours ignore
+  # files skips a file and the ban prints GREEN over content it never read, so the
+  # matcher has to be pinned. In a presence check a skipped file makes a token that
+  # IS there look missing, which is a RED, loud and immediately investigated. Pin
+  # the matcher where a wrapper buys a false pass, not where it buys a false alarm.
   out=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null)
   rc=$?
   if [ "$rc" -gt 1 ]; then

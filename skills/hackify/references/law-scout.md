@@ -16,7 +16,7 @@ Sibling protocol to [perf-scout.md](perf-scout.md). Same contract, different law
 | Run point | Scope | What happens with findings |
 |---|---|---|
 | **Phase 3, every wave-end** | Union of the wave's file allowlists, before tasks tick | Trivial fixes inside the wave's allowlist land in-wave (mark `fixed`); everything else is `staged` |
-| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD`) | Staging table handed to Reviewer B as `{{law_scout_report}}`; `staged` rows join the address-all decision table |
+| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to Reviewer B as `{{law_scout_report}}`; `staged` rows join the address-all decision table |
 | **quick (5-lite mirror)** | Touched files, before the single-lens review | Resolved in the same pass; the quick lens carries the law lens too |
 | **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop, auto-fixed at every severity |
 
@@ -26,7 +26,12 @@ The write-time ban hook (`hooks/block-banned-tokens.sh`) already blocks some of 
 
 ```bash
 # 1. Build the scoped path list for this run point.
-git diff --name-only "<base_sha>..HEAD" > "$SCOUT_PATHS"          # Phase 5 start
+git diff --name-only "<base_sha>..HEAD" -- . ':(exclude)docs/work/*' > "$SCOUT_PATHS"   # Phase 5 start
+# The exclusion is the SAME literal Phase 5 builds its reviewed diff with, and it is
+# not optional here. Without it the scout walks the work-doc, stages rows against a
+# file no reviewer grades, and those rows rejoin the address-all table, which reopens
+# the loop the exclusion exists to close. Latent only while `.md` sits outside the
+# scanner's default extensions, and the `--text-only-ext .md` line below makes it live.
 # ... or the union of the wave's file allowlists, one path per line, at wave-end.
 
 # 2. Run the bundled scanner over ONLY those paths.
@@ -40,16 +45,23 @@ python3 "<plugin-root>/skills/lawkeeper/scripts/audit_scan.py" "<project_root>" 
 python3 - "$SCOUT_REPORT" <<'RECONCILE'
 import json, sys
 report = json.load(open(sys.argv[1]))
-stats, handed = report['stats'], report['config']['scoped_paths']
+stats, config = report['stats'], report['config']
+handed, lines = config['scoped_paths'], config['listed_lines']
 drops = sum(v for k, v in stats.items() if k.startswith('paths_') and k != 'paths_unaccounted')
+lost = sum(v for k, v in stats.items() if k.startswith('lines_') and k != 'lines_unaccounted')
 covered = stats['files_scanned'] + stats['files_skipped'] + drops
-print(f"{covered}/{handed} paths accounted, {stats['paths_unaccounted']} unaccounted")
+if not lines:
+    print('whole-tree sweep, no path list handed, so both reconciles read 0 by construction')
+else:
+    print(f"{lines} lines in, {handed} paths out ({lost} dropped at parse, "
+          f"{stats['lines_unaccounted']} unaccounted)")
+    print(f"{covered}/{handed} paths accounted, {stats['paths_unaccounted']} unaccounted")
 RECONCILE
 ```
 
 Resolve `<plugin-root>` from the `Base directory for this skill:` line surfaced when hackify loads, then walk up two levels from `skills/hackify/`. Pass `--text-only-ext .py --text-only-ext .go` (etc.) for a mixed repo, those files get the file-line cap and the project's own bans only, so the JS checks cannot misfire on other syntax.
 
-**Reconcile before you trust the result.** `stats.paths_unaccounted` must read 0, and `files_scanned + files_skipped +` the four `paths_*` drop buckets must add up to `config.scoped_paths`. A non-zero drop bucket is normal and expected (`paths_not_found` counts files the diff deleted, `paths_unsupported` counts every path whose extension the scanner does not read); a shortfall in the total is not. Treat any shortfall as MISSING COVERAGE, say so in the staging table, and re-run with the gap closed. A scan that quietly covered less than the diff it was handed reports as clean, and that is precisely how a scoped-path bug once survived a whole sprint.
+**Reconcile before you trust the result, at BOTH stages.** The scanner loses inputs in two places and publishes a subtraction for each. Parse stage: `stats.lines_unaccounted` must read 0, and `config.scoped_paths +` the `lines_*` drop buckets (blank, comment, duplicate) must add up to `config.listed_lines`. Scan stage: `stats.paths_unaccounted` must read 0, and `files_scanned + files_skipped +` the four `paths_*` drop buckets must add up to `config.scoped_paths`. The parse stage runs FIRST, so a line lost there never reaches `scoped_paths` and the scan stage reconciles cleanly over a list that had already shrunk, which is why one number was never enough. A non-zero drop bucket is normal and expected (`paths_not_found` counts files the diff deleted, `paths_unsupported` counts every path whose extension the scanner does not read); a shortfall in the total is not. Treat any shortfall as MISSING COVERAGE, say so in the staging table, and re-run with the gap closed. A scan that quietly covered less than the diff it was handed reports as clean, and that is precisely how a scoped-path bug once survived a whole sprint.
 
 **Non-JS stacks.** The bundled scanner's full check suite is ECMAScript-family only. On a Python / Go / Rust / Java project the deterministic tier covers the file-line cap plus the project's `ban-patterns.txt` through `--text-only-ext`, and the semantic tier below carries the rest. Say so in the staging table rather than reporting a thin scan as a clean one.
 

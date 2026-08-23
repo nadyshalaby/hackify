@@ -22,8 +22,8 @@ Compute each from git + the work-doc. Show `0` / "none" honestly when a value is
 | Stat | Source |
 |---|---|
 | Tasks done (n / total) | Count ticked vs total Sprint Backlog checkboxes. |
-| Files changed | `git diff --stat <base>..HEAD` file count (or `--staged` / working tree for quick/yolo pre-commit). |
-| LOC added / removed | `git diff --numstat <base>..HEAD` summed. |
+| Files changed | `git diff --stat <base>..HEAD -- . ':(exclude)docs/work/*'` file count (or `--staged` / working tree for quick/yolo pre-commit). |
+| LOC added / removed | `git diff --numstat <base>..HEAD -- . ':(exclude)docs/work/*'` summed. |
 | Commits | `git rev-list --count <base>..HEAD`. |
 | Findings by severity | Phase 5 decision table: Critical / Important / Minor counts + how many fixed. |
 | Phase timeline | Which phases ran (1 → 6) and each one's outcome. |

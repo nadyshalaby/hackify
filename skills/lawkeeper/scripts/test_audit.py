@@ -237,6 +237,13 @@ def _accounted(stats):
   return stats['files_scanned'] + stats['files_skipped'] + dropped
 
 
+def _line_accounted(stats, config):
+  """scoped_paths + every lines_* drop bucket; the parse step's half of the reconcile."""
+  dropped = sum(value for key, value in stats.items()
+                if key.startswith('lines_') and key != 'lines_unaccounted')
+  return config['scoped_paths'] + dropped
+
+
 def _scan_scoped(root, listed):
   return sorted({f['file'] for f in _scoped_report(root, listed)['findings']})
 
@@ -275,8 +282,8 @@ def test_load_paths_from_preserves_leading_dots():
   root = tempfile.mkdtemp()
   try:
     listed = ['.github/workflows/ci.yml', '.env', './src/a.ts', 'src/b.ts']
-    parsed = load_paths_from(_write_list(root, listed))
-    assert parsed == frozenset({'.github/workflows/ci.yml', '.env', 'src/a.ts', 'src/b.ts'})
+    parsed = load_paths_from(_write_list(root, listed)).paths
+    assert parsed == {'.github/workflows/ci.yml', '.env', 'src/a.ts', 'src/b.ts'}
   finally:
     shutil.rmtree(root, ignore_errors=True)
 
@@ -345,7 +352,14 @@ def test_unaccounted_reports_a_path_that_left_uncounted():
   from audit_scan import ScanTally, build_stats
   tally = ScanTally()
   tally.scanned = 1
-  config = SimpleNamespace(only_paths=frozenset({'a.ts', 'b.ts', 'c.ts'}))
+  # path_lines is built EXPLICITLY rather than defaulted inside build_stats. A
+  # getattr fallback there would let a caller that never parsed a list publish a
+  # tidy zero, which is the "check that passes while measuring nothing" shape this
+  # whole counter family exists to refuse.
+  listing = load_paths_from(None)
+  listing.paths.update({'a.ts', 'b.ts', 'c.ts'})
+  listing.lines_read = 3
+  config = SimpleNamespace(only_paths=frozenset(listing.paths), path_lines=listing)
   stats = build_stats(config, tally, 0)
   assert stats['paths_unaccounted'] == 2
   assert _accounted(stats) == 1
@@ -363,6 +377,95 @@ def test_walked_scan_reports_zero_drop_buckets():
     assert 'paths_unaccounted' in stats, f'no reconciliation counters in stats: {sorted(stats)}'
     assert stats['files_scanned'] == 2 and stats['paths_unaccounted'] == 0
     assert _accounted(stats) == stats['files_scanned']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_paths_from_accounts_for_every_input_line():
+  """T64 regression: the PARSE step used to discard lines with no bucket behind it.
+
+  Seven lines in, two paths out, and the four lines that vanished (one empty, one
+  whitespace-only, one comment, one duplicate) moved no counter at all. The scan
+  loop had reconciled since v0.14.2; the parse step in front of it had not, so the
+  loss happened BEFORE the number everything downstream reconciles against.
+  """
+  root = tempfile.mkdtemp()
+  try:
+    listed = ['src/a.ts', '', '   ', '#comment.ts', 'src/a.ts', './src/b.ts', 'src/b.ts']
+    listing = load_paths_from(_write_list(root, listed))
+    assert listing.lines_read == 7, listing.lines_read
+    assert set(listing.paths) == {'src/a.ts', 'src/b.ts'}, sorted(listing.paths)
+    assert listing.dropped['blank'] == 2, listing.dropped
+    assert listing.dropped['comment'] == 1, listing.dropped
+    assert listing.dropped['duplicate'] == 2, listing.dropped
+    assert listing.accounted() == 7, listing.accounted()
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_scoped_stats_publish_the_line_level_reconcile():
+  """The parse buckets reach the REPORT, not just the parser. A counter nobody can
+  read from the JSON is the same silence, one layer further in."""
+  root = _scoped_tree()
+  try:
+    listed = ['src/touched.ts', '', '#note', 'src/touched.ts', 'src/untouched.ts']
+    report = _scoped_report(root, listed)
+    stats, config = report['stats'], report['config']
+    assert config['listed_lines'] == 5, config
+    assert config['scoped_paths'] == 2, config
+    assert stats['lines_blank'] == 1 and stats['lines_comment'] == 1, stats
+    assert stats['lines_duplicate'] == 1, stats
+    assert stats['lines_unaccounted'] == 0, stats
+    assert _line_accounted(stats, config) == config['listed_lines']
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_lines_unaccounted_reports_a_line_that_left_uncounted():
+  """The line-level guard must BITE, the same way paths_unaccounted does.
+
+  A future parse branch added without its own bucket has to surface here rather
+  than read 0. Built by hand because the point is a parser that HAS lost lines.
+  """
+  from audit_scan import ScanTally, build_stats
+  listing = load_paths_from(None)
+  listing.lines_read = 9
+  listing.paths.update({'a.ts', 'b.ts'})
+  listing.dropped['blank'] = 1
+  config = SimpleNamespace(only_paths=frozenset(listing.paths), path_lines=listing)
+  stats = build_stats(config, ScanTally(), 0)
+  assert stats['lines_unaccounted'] == 6, stats
+
+
+def test_paths_from_dot_slash_escapes_the_comment_rule():
+  """`#foo.ts` is a legal POSIX filename, so the comment rule needs a way out.
+
+  The `#` test runs BEFORE the `./` prefix strip, which makes `./#foo.ts` name the
+  real file `#foo.ts`. Without this the only two options were "lose comments" or
+  "lose the file", and this repo does not accept losing the file.
+  """
+  root = tempfile.mkdtemp()
+  try:
+    listing = load_paths_from(_write_list(root, ['./#foo.ts', '#foo.ts']))
+    assert set(listing.paths) == {'#foo.ts'}, sorted(listing.paths)
+    assert listing.dropped['comment'] == 1, listing.dropped
+  finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def test_nul_separated_input_is_contained_not_fatal():
+  """T71: `git diff --name-only -z` is NUL-separated, so the whole dump arrives as ONE
+  line carrying NUL bytes. `os.path.realpath` raises ValueError on those, unguarded,
+  on the FIRST caller-supplied string the scan touched, and aborted the entire run.
+  It is a containment refusal now, counted like every other one."""
+  root = _scoped_tree()
+  try:
+    report = _scoped_report(root, ['src/touched.ts\x00src/untouched.ts\x00'])
+    stats = report['stats']
+    assert stats['paths_outside_root'] == 1, stats
+    assert stats['files_scanned'] == 0, stats
+    assert stats['paths_unaccounted'] == 0, stats
+    assert _accounted(stats) == report['config']['scoped_paths']
   finally:
     shutil.rmtree(root, ignore_errors=True)
 

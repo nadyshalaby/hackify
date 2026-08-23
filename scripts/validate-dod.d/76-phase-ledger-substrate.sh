@@ -200,49 +200,103 @@ yellow "[76g] the reviewed diff excludes docs/work/, at every site that builds i
 # the shape that gets "cleaned up" by the next reader who cannot tell why it is
 # there. So both halves are counted, and either one going missing reddens.
 #
-# COUNTED PER FILE, never asserted present. phase-5-review.md builds the scope at
-# two sites and restates the closure rule at a third; a presence pin stays green
-# when two of the three are dropped. Each expected count is written by hand beside
-# its path, the argument for which is above check_list_size in 00-helpers.sh.
+# THE FILE SET IS DISCOVERED, NOT LISTED, and that changed here. It shipped as four
+# hardcoded paths. Twelve more files picked the literal up in the two waves after,
+# the eight that matter being the four sliced reviewer prompts and their four
+# agents/ mirrors, which is where the executing review contract now lives, and the
+# hand-written list saw none of them: an editor could have stripped the exclusion
+# from every sliced reviewer with this check still green. Discovery is the [79]
+# argument, a hand-kept list is the next thing to go stale.
+#
+# TWO NUMBERS, NOT SEVENTEEN. The four paths carried a per-file expected count each.
+# At seventeen files that is seventeen hand-written numbers, seventeen chances to
+# write the wrong one, and a rewrite of this block every time a reviewer prompt is
+# reworded, which is a pin that breaks on progress. It is also the shape that made a
+# previous wave restructure a doc to satisfy PLS_XSITES_EXPECTED. What the pin has
+# to catch is a SITE DISAPPEARING, and the discovered file count plus the grand
+# occurrence total catch strictly more of that than the per-file counts did: a file
+# losing the literal entirely drops out of discovery and moves the file count, a
+# single site deleted anywhere moves the total, and a NEW file that picks the
+# literal up without anyone noticing, the failure that actually happened, moves the
+# file count the other way. Both numbers are written by hand beside the check, per
+# the argument above check_list_size in 00-helpers.sh.
 #
 # grep -oF, never -c and never -E. -c counts LINES, so two sites sharing one line
 # would read as one site. -E would treat the pathspec's own `*` and `(` as regex
-# metacharacters, and that literal is very nearly nothing but metacharacters.
+# metacharacters, and that literal is very nearly nothing but metacharacters. -I
+# skips binaries so a stray __pycache__ blob cannot be counted as a site.
 #
-# Existence-gated first, the [77] pattern: a typo'd path greps 0 and would read as
-# a set of dropped sites rather than as a check that never ran.
+# /usr/bin/grep by absolute path HERE and bare `grep` in the rest of this fragment,
+# for the reason spelled out above check_no_token in 00-helpers.sh: this is the only
+# scan in the file that RECURSES a directory tree, which is precisely where a grep
+# honouring ignore files would silently shrink the discovered set. The other greps
+# here read one named file each, where the distinction cannot bite.
+#
+# SCAN ROOTS ARE skills AND agents, which is the whole of where the review contract
+# ships. docs/ is deliberately not among them, so the work-doc excludes itself from
+# the check about excluding the work-doc; scripts/ is not either, so this fragment's
+# own PLS_XDIFF assignment does not count itself as a site.
 #
 # check_no_tokens_in is deliberately NOT used here. test_ban_tokens.sh pins the
 # number of batched ban calls shipping in this directory at TB_EXPECT_CALLS=3, so
 # a fourth would redden a file this block has no business making me touch.
+#
+# WHERE THIS BELONGS. Reviewer B is right that [76g] pins a Phase 5 rule inside a
+# fragment named for the phase ledger. It stays for now because moving it is a
+# rename with no coverage in it, and the move is not free: the manifest comment at
+# scripts/validate-dod.sh:5-35 is hand-maintained, [76f] checks that every SOURCED
+# fragment is named there, and [0] checks both directions of the wiring. A new
+# fragment has to land in all three or the validator reddens on the move itself.
 PLS_XDIFF="':(exclude)docs/work/*'"
 PLS_XRULE='the ruler the diff is measured against and cannot also be'
-# path | expected pathspec sites | expected reason sites
-PLS_XSITES="skills/hackify/references/phases/phase-5-review.md|3|1"
-PLS_XSITES="$PLS_XSITES skills/hackify/references/review-scope.md|2|2"
-PLS_XSITES="$PLS_XSITES skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md|2|1"
-PLS_XSITES="$PLS_XSITES agents/code-reviewer-quality-plan.md|2|1"
-# The set's own size, written a SECOND time. Reviewer B ships as a canonical
-# template plus a byte mirror, and sync_agent_mirrors.py copies only the fenced
-# block, so dropping either row leaves one of the two copies unguarded while every
-# surviving row still prints green.
-PLS_XSITES_EXPECTED=4
-PLS_XPARSED=0
-for pls_pair in $PLS_XSITES; do
-  PLS_XPARSED=$((PLS_XPARSED + 1))
-  pls_f=${pls_pair%%|*}
-  pls_rest=${pls_pair#*|}
-  if [ ! -s "$pls_f" ]; then
-    red "  FAIL $pls_f is in the [76g] set but is missing or empty, both counts over it would report 0 and measure nothing"
+PLS_XROOTS="skills agents"
+# Hand-written, and independent of the lists they police. Today: the pathspec sits
+# at 48 occurrences over 17 files, its stated reason at 6 over 5.
+PLS_XFILES_EXPECTED=17
+PLS_XOCCUR_EXPECTED=48
+PLS_XRULE_FILES_EXPECTED=5
+PLS_XRULE_OCCUR_EXPECTED=6
+
+# $1 the literal, $2 expected files, $3 expected occurrences.
+#
+# STATUS IS GREP'S ALONE. Both greps sit in a plain command substitution with no
+# pipe inside it. Under `pipefail` a `grep ... | wc -l` hands back wc's status and
+# wc succeeds on empty input, so a grep that exited 2 on an unreadable root would
+# arrive here as a tidy 0 and print a red about missing sites rather than about a
+# scan that never happened. rc 1 is the honest "no match" and counts as 0.
+#
+# THE SCAN RUNS IN THIS FUNCTION, not in one called through `$(...)`. The first
+# draft of this block returned the two counts through a command substitution and
+# set the discovered path list in a variable beside them. A command substitution
+# is a SUBSHELL, so that variable never came back, and the actionable half of the
+# red line rendered as one blank line under a heading promising a file list. Found
+# by tampering, not by reading, which is the argument for tampering.
+#
+# The list prints on the FAILURE path only: naming seventeen files that are all
+# fine is noise, naming them the moment the count moves is the whole diagnosis.
+pls_x_assert() {
+  local lit="$1" want_f="$2" want_o="$3"
+  local files occs rc_f rc_o n_files=0 n_occs=0
+  files=$(/usr/bin/grep -rlIF -- "$lit" $PLS_XROOTS 2>/dev/null)
+  rc_f=$?
+  occs=$(/usr/bin/grep -roIF -- "$lit" $PLS_XROOTS 2>/dev/null)
+  rc_o=$?
+  if [ "$rc_f" -gt 1 ] || [ "$rc_o" -gt 1 ]; then
+    red "  FAIL [76g] could not scan $PLS_XROOTS for '$lit' (grep exited $rc_f then $rc_o), so a count of 0 here would be a count of nothing"
     FAILED=$((FAILED + 1))
-    continue
+    return
   fi
-  pls_got_x=$(grep -oF -- "$PLS_XDIFF" "$pls_f" | wc -l | tr -d ' ')
-  pls_got_r=$(grep -oF -- "$PLS_XRULE" "$pls_f" | wc -l | tr -d ' ')
-  check_list_size "$pls_got_x" "${pls_rest%%|*}" "$pls_f's docs/work exclusion pathspec"
-  check_list_size "$pls_got_r" "${pls_rest#*|}" "$pls_f's stated reason for that exclusion"
-done
-check_list_size "$PLS_XPARSED" "$PLS_XSITES_EXPECTED" "the [76g] file set"
+  [ -n "$files" ] && n_files=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
+  [ -n "$occs" ] && n_occs=$(printf '%s\n' "$occs" | wc -l | tr -d ' ')
+  check_list_size "$n_files" "$want_f" "the files under $PLS_XROOTS carrying '$lit'"
+  check_list_size "$n_occs" "$want_o" "the occurrences of '$lit' under $PLS_XROOTS"
+  [ "$n_files" -eq "$want_f" ] && return
+  red "  ---- the $n_files discovered file(s) were:"
+  printf '        %s\n' $files
+}
+
+pls_x_assert "$PLS_XDIFF" "$PLS_XFILES_EXPECTED" "$PLS_XOCCUR_EXPECTED"
+pls_x_assert "$PLS_XRULE" "$PLS_XRULE_FILES_EXPECTED" "$PLS_XRULE_OCCUR_EXPECTED"
 
 # B is the one reviewer that both READS the work-doc as its authority and diffs
 # the whole thing unsliced, so the exclusion has to live in its own prompt. These

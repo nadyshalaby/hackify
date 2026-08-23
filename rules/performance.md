@@ -167,6 +167,12 @@ IDs are stable slugs `perf.<domain>.<slug>`. Scout grep tables, staged findings,
 | perf.bundle.unoptimized-fonts | Full font families, no woff2/subset | I | Hundreds of KB plus invisible/flashing text | ttf/otf served; many unused weights | woff2, subset glyphs/weights, font-display strategy |
 | perf.bundle.dev-artifacts-in-prod | Dev-only deps, source maps, debug flags in production builds | I | Bigger bundles, slower runtime checks, leak risk | dev flags / public maps / non-prod mode in prod | Production build flags; strip or privately host maps |
 
+## Process / subprocess
+
+| ID | Violation | Sev | Why it hurts | Detect (hint) | Fix direction |
+|---|---|---|---|---|---|
+| perf.process.spawn-per-item | A process spawned per item where one invocation covers the whole set | I | fork plus exec is milliseconds of pure overhead per item and it scales with the list, not the work: 360 `wc -l` spawns measured 0.33s against 0.01s for one `xargs wc -l` over the same files | a command substitution, pipe or helper binary inside a per-file / per-token / per-row loop | One invocation over the batch (`xargs`, a pattern file, a single alternation pass), a shell builtin where one exists, or a batched screen with the per-item loop kept as the fallback |
+
 ## Logging / observability
 
 | ID | Violation | Sev | Why it hurts | Detect (hint) | Fix direction |

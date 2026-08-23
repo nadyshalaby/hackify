@@ -86,6 +86,18 @@ def split_lines(src):
   every other rule's findings, and `masked` rejoins this list with `\n` before handing it
   to the lexer, so a split on any other character would silently rewrite the source the
   masker sees. A pure newline split keeps lines 1..N byte-identical to the file.
+
+  RESIDUAL ON AN UNTERMINATED FILE, written down rather than smoothed over, because
+  the release that shipped the fix above claimed the two 500-line enforcers now agree
+  and they agree only where both count the same thing. `wc -l` counts NEWLINE
+  CHARACTERS, so a file whose last line carries no terminator has one fewer newline
+  than it has lines, and this function reads one ABOVE `wc -l` there. Measured on a
+  three-line body: terminated, `wc -l` 3 and this 3; unterminated, `wc -l` 2 and this
+  3. That gap is NOT new and the fix did not widen it, the old split read one above
+  `wc -l` in BOTH cases; what the fix bought is agreement on the terminated case,
+  which is every well-formed POSIX text file. Check `[80b]` in the validator does not
+  cover the unterminated case either: it asserts newline termination FIRST and
+  reddens, so the agreement it proves is exactly the agreement that exists.
   """
   lines = src.split('\n')
   if lines and lines[-1] == '':

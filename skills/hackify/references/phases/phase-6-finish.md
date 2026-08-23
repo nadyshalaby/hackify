@@ -37,7 +37,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 | c | TODO/FIXME without owners | grep diff for new `TODO`/`FIXME` lacking an explicit owner or follow-up issue. |
 | d | Empty directories left after file moves | `find` for empty dirs under primitives. |
 | e | Dead branches | local + remote branches created during the sprint that won't be merged. |
-| f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD` cross-checked against work-doc Sprint Backlog file allowlists. |
+| f | Unrelated changes that snuck in | final scope-creep audit: `git diff main..HEAD -- . ':(exclude)docs/work/*'` cross-checked against work-doc Sprint Backlog file allowlists. The exclusion is load-bearing: this audit measures the diff against the work-doc's own allowlists, and the work-doc cannot authorize itself, so without it finish reports the ruler as scope creep on every single run. |
 | g | Pre-existing errors + dead code in touched files (lint/type/test failures, dead code) | detect against the sprint-start baseline; surface and **offer to fix** so touched files end with nothing a reviewer would flag (auto-fix in yolo). Defer only if too large, with explicit user sign-off. |
 | h | Work-doc references to file paths that just changed | grep the work-doc itself + any sibling work-docs for paths that moved/deleted in this sprint. |
 

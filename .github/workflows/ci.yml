@@ -41,14 +41,14 @@ jobs:
           # Check [27d] in the validator asks git which release tags actually
           # exist, so this checkout has to land them. Both keys below are
           # load-bearing and neither works on its own. Measured against this
-          # repo's 43 release tags, over all four combinations this action can
+          # repo's 46 release tags, over all four combinations this action can
           # produce:
           #   depth 1, fetch-tags false: 0 tags, `--no-tags` asks for none.
           #   depth 1, fetch-tags true:  0 tags. Git follows only tags pointing
           #     at the one commit it fetched. A probe tag planted on HEAD did
           #     land; every real release tag sits further back and did not.
           #   depth 0, fetch-tags false: 0 tags, `--no-tags` still suppresses.
-          #   depth 0, fetch-tags true:  all 43.
+          #   depth 0, fetch-tags true:  all 46.
           # Only the last row lets [27d] run, and this file used to be the
           # second: the check shipped silently disabled, taking its written skip
           # on every CI run.

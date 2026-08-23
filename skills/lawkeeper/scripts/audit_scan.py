@@ -12,12 +12,20 @@ starting map. Run it directly:
 
 `--paths-from` narrows the scan to a newline-delimited list of root-relative paths (a
 `git diff --name-only` dump), so a caller auditing one sprint's touched files pays for
-those files instead of a whole-tree walk. Every listed path lands in exactly one counter:
-it is scanned, skipped, or dropped into a `stats.paths_*` bucket saying why, and
-`stats.paths_unaccounted` is the self-check that the buckets still add up to
-`config.scoped_paths`. A path that no longer exists is dropped into `paths_not_found`,
-which is EXPECTED, not an error, a diff list names deleted files too. Without
-`--paths-from` the whole tree is walked, the default sweep, and every bucket reads 0.
+those files instead of a whole-tree walk. Every line handed in lands in exactly one
+counter, across TWO reconciles that chain:
+
+  parse: `config.listed_lines` == `config.scoped_paths` + every `stats.lines_*` bucket
+          (blank, comment, duplicate), and `stats.lines_unaccounted` is the remainder.
+  scan:  `config.scoped_paths`  == files_scanned + files_skipped + every `stats.paths_*`
+          bucket, and `stats.paths_unaccounted` is the remainder.
+
+Both remainders read 0 on a healthy run. They are two families and not one because both
+this file's consumers sum drop buckets by NAME PREFIX; a parse bucket named `paths_*`
+would inflate the scan total past `scoped_paths` and report a surplus that is not real.
+A path that no longer exists is dropped into `paths_not_found`, which is EXPECTED, not
+an error, a diff list names deleted files too. Without `--paths-from` the whole tree is
+walked, the default sweep, and every bucket reads 0.
 
 The full JS/TS check suite runs on the ECMAScript family. `--text-only-ext` adds extensions
 that get ONLY the language-agnostic checks (file-line cap + project ban-patterns), so a
@@ -81,24 +89,76 @@ def _norm_exts(exts):
   return tuple(ext if ext.startswith('.') else '.' + ext for ext in exts)
 
 
-def load_paths_from(path):
-  """Parse a newline-delimited path list (git diff --name-only shape) into a rel-path set.
+# Why an input LINE never becomes a path. Every one of these is a `stats.lines_*`
+# key, so a line can leave the parser only through a counter, never through silence.
+# Separate family from DROP_REASONS below, and deliberately so: `paths_*` answers
+# "what happened to a parsed path", `lines_*` answers "what happened to an input
+# line". Both the law-scout's reconcile snippet and this suite's own `_accounted`
+# helper sum the drop buckets BY NAME PREFIX, so a fourth `paths_*` key here would
+# inflate their total past `config.scoped_paths` and print a surplus that is not real.
+PARSE_DROPS = ('blank', 'comment', 'duplicate')
 
-  Normalisation is exactly one thing: drop a single leading `./`, the only prefix a
-  `find .` or hand-written dump adds on top of git's already-relative output. It is a
-  PREFIX removal, not `lstrip('./')`, which takes a character SET and so ate the dot off
-  every `.github/...`, `.claude-plugin/...` and bare `.env` entry. Whether a path is
-  reachable, contained, or scannable is decided later, where it can be counted.
+
+class PathListing:
+  """One parsed `--paths-from` file: the unique paths, plus why every other line went."""
+
+  def __init__(self):
+    self.paths = set()
+    self.lines_read = 0
+    self.dropped = dict.fromkeys(PARSE_DROPS, 0)
+
+  def accounted(self):
+    return len(self.paths) + sum(self.dropped.values())
+
+
+def _classify_line(raw, seen):
+  """One input line to `(rel_path, drop_reason)`, with exactly one of the two set."""
+  entry = raw.strip().replace(os.sep, '/')
+  if not entry:
+    return None, 'blank'
+  # `#` LEADS A COMMENT, NOT A FILENAME, and that is a deliberate lossy choice.
+  # `#foo.ts` is a legal POSIX name and `git diff --name-only` emits it unquoted, so
+  # this rule really can eat a real file. It is kept because the same rule has meant
+  # "comment" in this repo's other list format (ban-patterns.txt, `load_extra_bans`
+  # above) since it shipped, and silently changing what `#` means is a worse trade
+  # than the case it costs. What changes is that the loss stops being invisible:
+  # the line lands in `lines_comment`, and the ESCAPE HATCH is real, because this
+  # test runs BEFORE the `./` strip below, so `./#foo.ts` names the file `#foo.ts`.
+  if entry.startswith('#'):
+    return None, 'comment'
+  # A single leading `./`, the only prefix a `find .` or hand-written dump adds on
+  # top of git's already-relative output. PREFIX removal, not `lstrip('./')`, which
+  # takes a character SET and so ate the dot off every `.github/...` and bare `.env`.
+  rel = entry.removeprefix('./')
+  return (None, 'duplicate') if rel in seen else (rel, None)
+
+
+def load_paths_from(path):
+  """Parse a newline-delimited path list (git diff --name-only shape) into a PathListing.
+
+  EVERY LINE READ LANDS IN EXACTLY ONE COUNTER. It becomes a path or it lands in a
+  `lines_*` bucket saying why not, and `stats.lines_unaccounted` is the subtraction
+  that proves the two still add up. This step used to drop blank, whitespace-only,
+  commented and duplicate lines through a bare condition with no counter behind it:
+  seven lines in, two paths out, and nothing anywhere in the report said so. That is
+  the same defect the scan loop below was fixed for in v0.14.2, sitting one stage
+  earlier, in front of the very number the whole chain reconciles against.
+
+  Whether a path is reachable, contained, or scannable is still decided later, where
+  it can be counted by the `paths_*` family.
   """
+  listing = PathListing()
   if not path or not os.path.isfile(path):
-    return frozenset()
-  out = set()
+    return listing
   with open(path, encoding='utf-8', errors='replace') as handle:
     for raw in handle:
-      rel = raw.strip().replace(os.sep, '/').removeprefix('./')
-      if rel and not rel.startswith('#'):
-        out.add(rel)
-  return frozenset(out)
+      listing.lines_read += 1
+      rel, reason = _classify_line(raw, listing.paths)
+      if reason:
+        listing.dropped[reason] += 1
+      else:
+        listing.paths.add(rel)
+  return listing
 
 
 # Why a listed path never reaches the scanner. Every one of these is a `stats.paths_*`
@@ -126,8 +186,24 @@ def _in_skipped_dir(rel_path):
 
 
 def _escapes_root(root_prefix, abs_path):
-  """True when a listed path resolves outside the scan root (absolute entry, `..` segment)."""
-  return not (os.path.realpath(abs_path) + os.sep).startswith(root_prefix)
+  """True when a listed path is not PROVABLY inside the scan root.
+
+  Absolute entries and `..` segments are the ordinary cases. The guard is there for
+  a third: `os.path.realpath` raises ValueError on an embedded NUL byte, and that is
+  REACHABLE, because `git diff --name-only -z` is NUL-separated, so its whole dump
+  arrives as one read line carrying NULs. Unguarded, that killed the entire scan on
+  the first caller-supplied string it touched. A string the OS refuses to resolve
+  cannot be shown to be contained, so it fails CLOSED into `paths_outside_root`
+  alongside every other containment refusal rather than opening a fifth bucket.
+
+  THIS GUARD MUST STAY AHEAD OF THE `os.path.isfile` CALL in `_iter_listed_files`.
+  isfile swallows the same ValueError and answers False, so putting it first would
+  move the abort to `paths_not_found` rather than remove it.
+  """
+  try:
+    return not (os.path.realpath(abs_path) + os.sep).startswith(root_prefix)
+  except ValueError:
+    return True
 
 
 def _iter_listed_files(root, config, tally):
@@ -210,16 +286,27 @@ def run_scan(root, config):
 
 
 def build_stats(config, tally, finding_count):
-  """`files_scanned + files_skipped + every paths_* bucket` MUST equal `config.scoped_paths`.
+  """Two reconciles, one per stage, each published as a subtraction rather than asserted.
 
-  `paths_unaccounted` is that subtraction, published rather than asserted. It reads 0 on
-  every healthy run, and any future drop path added without its own bucket makes it
-  non-zero, so the report says the scan lost files instead of quietly under-covering.
+  SCAN STAGE: `files_scanned + files_skipped + every paths_* bucket` MUST equal
+  `config.scoped_paths`, and `paths_unaccounted` is that subtraction.
+
+  PARSE STAGE: `config.scoped_paths + every lines_* bucket` MUST equal
+  `config.listed_lines`, and `lines_unaccounted` is that one. The parse stage runs in
+  FRONT of the scan stage, so a line lost here never reaches `scoped_paths` and the
+  scan-stage reconcile reads a clean 0 over a list that had already shrunk.
+
+  Both read 0 on a healthy run, and any future drop path added without its own bucket
+  makes its stage non-zero, so the report says the scan lost inputs instead of quietly
+  under-covering.
   """
+  listing = config.path_lines
   stats = {'files_scanned': tally.scanned, 'files_skipped': tally.skipped}
   stats.update({f'paths_{reason}': tally.dropped[reason] for reason in DROP_REASONS})
   handed = len(config.only_paths)
   stats['paths_unaccounted'] = handed - tally.accounted() if handed else 0
+  stats.update({f'lines_{reason}': listing.dropped[reason] for reason in PARSE_DROPS})
+  stats['lines_unaccounted'] = listing.lines_read - listing.accounted()
   stats['findings'] = finding_count
   return stats
 
@@ -232,7 +319,8 @@ def build_report(root, config, result):
     'config': {'max_file_lines': config.max_file_lines,
                'extra_bans': len(config.extra_bans),
                'text_only_exts': list(config.text_exts),
-               'scoped_paths': len(config.only_paths)},
+               'scoped_paths': len(config.only_paths),
+               'listed_lines': config.path_lines.lines_read},
     'stats': build_stats(config, tally, len(findings)),
     'findings': sorted(findings, key=lambda f: (f['file'], f['line'])),
   }
@@ -250,12 +338,17 @@ def parse_args(argv):
 
 
 def build_config(args):
+  # `path_lines` is carried beside `only_paths`, not folded into it: `only_paths` is
+  # the set the iterator walks and every caller reads it as one, while the parse
+  # counters have to survive as far as build_stats to be reconciled at all.
+  listing = load_paths_from(args.paths_from)
   return SimpleNamespace(
     max_file_lines=args.max_file_lines,
     extra_generated=tuple(args.extra_generated),
     extra_bans=load_extra_bans(args.ban_patterns),
     text_exts=_norm_exts(args.text_only_ext),
-    only_paths=load_paths_from(args.paths_from),
+    only_paths=frozenset(listing.paths),
+    path_lines=listing,
   )
 
 

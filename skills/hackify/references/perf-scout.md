@@ -14,7 +14,7 @@ A predictable, grep-based scan that surfaces performance-violation **candidates*
 | Run point | Scope | What happens with findings |
 |---|---|---|
 | **Phase 3, every wave-end** | Union of the wave's file allowlists (wave-touched files), before tasks tick | Trivial fixes inside the wave's allowlist may land in-wave (mark `fixed`); everything else is `staged` |
-| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
+| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
 | **quick (5-lite mirror)** | Touched files, before the single-lens review | Findings resolved in the same pass, the quick lens includes performance |
 | **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop, auto-fixed at every severity |
 

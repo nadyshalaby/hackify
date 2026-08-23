@@ -156,36 +156,72 @@ is_pa_non_template() {
   done
   return 1
 }
-for path in '/Users/' '/home/' '/tmp/'; do
-  for f in "$PA_DIR"/*.md; do
-    is_pa_non_template "$(basename "$f")" && continue
-    hits=$(grep -c -- "$path" "$f")
-    if [ "$hits" -eq 0 ]; then
-      green "  ok   no '$path' in $(basename "$f")"
-    else
-      red "  FAIL '$path' appeared $hits time(s) in $(basename "$f")"
-      FAILED=$((FAILED + 1))
-    fi
-  done
-  for f in "$CQ_DIR"/*.md; do
-    [ "$(basename "$f")" = "README.md" ] && continue
-    hits=$(grep -c -- "$path" "$f")
-    if [ "$hits" -eq 0 ]; then
-      green "  ok   no '$path' in $(basename "$f")"
-    else
-      red "  FAIL '$path' appeared $hits time(s) in $(basename "$f")"
-      FAILED=$((FAILED + 1))
-    fi
-  done
-  hits=$(grep -c -- "$path" "$RAV_FILE")
-  if [ "$hits" -eq 0 ]; then
-    green "  ok   no '$path' in review-and-verify.md"
+
+# THE FILE SET, BUILT ONCE. It used to be re-globbed and re-filtered once per
+# banned path, and `basename` was a fork per file per path. Globs and ${f##*/} are
+# shell builtins; the two together were 72 of the ~130 processes this block spent.
+TPL_LEAK_FILES=()
+for f in "$PA_DIR"/*.md; do
+  is_pa_non_template "${f##*/}" && continue
+  TPL_LEAK_FILES+=("$f")
+done
+for f in "$CQ_DIR"/*.md; do
+  [ "${f##*/}" = "README.md" ] && continue
+  TPL_LEAK_FILES+=("$f")
+done
+TPL_LEAK_FILES+=("$RAV_FILE")
+
+# One verdict line for one (banned path, file) pair, worded exactly as before.
+# Two parameters and a global for the path, at the 3-parameter cap with room to
+# spare, so the slow path below stays a plain double loop.
+tpl_leak_verdict() {
+  local path="$1" file="$2" hits rc
+  hits=$(/usr/bin/grep -cF -- "$path" "$file" 2>/dev/null)
+  rc=$?
+  # rc 2 or more is grep failing to read, not a clean file. It used to arrive here
+  # as an empty $hits, which `[ "" -eq 0 ]` rejects, so it reddened by accident with
+  # a blank count in the message. It reddens on purpose now, and says which it is.
+  if [ "$rc" -gt 1 ]; then
+    red "  FAIL '$path' was never screened in ${file##*/}, grep exited $rc (unreadable file); a count of 0 here would be a count of nothing"
+    FAILED=$((FAILED + 1))
+  elif [ "$hits" -eq 0 ]; then
+    green "  ok   no '$path' in ${file##*/}"
   else
-    red "  FAIL '$path' appeared $hits time(s) in review-and-verify.md"
+    red "  FAIL '$path' appeared $hits time(s) in ${file##*/}"
     FAILED=$((FAILED + 1))
   fi
-done
+}
 
+# BATCHED SCREEN THEN FALLBACK, the shape check_no_tokens_in in 00-helpers.sh
+# already uses for [70] and [77] and for the same reason. This block ran one grep
+# per (banned path x file), 3 x 21 = 63 greps, rescanning the whole template corpus
+# three times to answer a question one pass can answer. Measured at 0.19s of a
+# 4.72s pre-commit gate, against 0.00s for the single screen.
+#
+# The screen decides ONLY "does any banned path appear anywhere in this set". The
+# moment the answer is yes, the original per-pair loop re-runs and words every
+# failure exactly as it did before, so no diagnostic detail is traded for the
+# speed. The common case is a clean set, which now costs one process.
+#
+# rc 2 OR MORE FALLS THROUGH TO THE SLOW PATH, it does not print green. A screen
+# that could not read its files must never be the reason 63 lines print clean;
+# the slow path then reddens per file with grep's own status behind it.
+#
+# -F because every banned path is a literal, and /usr/bin/grep by absolute path
+# for the reason spelled out above check_no_tokens_in: under the interactive zsh
+# in this environment bare `grep` is a shell function honouring ignore files, and
+# a screen that skips a file is a screen that clears it.
+/usr/bin/grep -qF -e '/Users/' -e '/home/' -e '/tmp/' -- "${TPL_LEAK_FILES[@]}" 2>/dev/null
+tpl_leak_rc=$?
+for path in '/Users/' '/home/' '/tmp/'; do
+  for f in "${TPL_LEAK_FILES[@]}"; do
+    if [ "$tpl_leak_rc" -eq 1 ]; then
+      green "  ok   no '$path' in ${f##*/}"
+    else
+      tpl_leak_verdict "$path" "$f"
+    fi
+  done
+done
 yellow "[15] OUTPUT word cap presence in every sub-agent template"
 WORD_CAP_RX='≤[0-9]+\s*word|≤\s*`?\{\{[a-z_]+\}\}`?\s*word|word cap|Total cap|Cap response at'
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do

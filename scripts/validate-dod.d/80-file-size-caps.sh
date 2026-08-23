@@ -50,9 +50,23 @@ fi
 # length, where the scanner must go quiet. A count that reads one high fails
 # the first assertion; one that reads one low fails the second.
 #
-# THE PROBE IS THIS FILE. A fragment pinned by name is a path that dies the day
-# it is split, and the two fragments sitting at the cap are already queued for
-# exactly that. This file cannot go missing while the check that reads it runs.
+# THE PROBE IS THIS FILE, AND THE PATH IS DERIVED FROM ${BASH_SOURCE[0]}, NOT
+# TYPED. That second half is the correction. This block shipped in v0.14.2 saying
+# the probe survives the day the fragment is split or renamed, while CAP_PROBE was
+# a string literal naming this exact path, so the code did not have the property
+# the prose claimed and a rename would have reddened the check rather than moved
+# it. ${BASH_SOURCE[0]} is the mechanism the claim describes, it is available in a
+# sourced fragment, and the orchestrator already uses it two levels up.
+#
+# MADE RELATIVE TO REPO_ROOT, never used bare. DOD_MODULES_DIR is absolute, so bare
+# BASH_SOURCE hands back an absolute path, and audit_scan.py tests EVERY component
+# of a listed path against its skipped-directory set. `dist`, `build`, `out`,
+# `vendor` and `.cache` are all in that set, so a checkout living under any of them
+# (a CI temp path, a worktree) would land the probe in paths_in_skipped_dir,
+# files_scanned would read 0, and the check would redden on a perfectly correct
+# repo purely because of where it was cloned. The relative form cannot do that.
+# The guard below refuses an absolute CAP_PROBE outright rather than scanning with
+# it, because a REPO_ROOT that did not match would otherwise reopen this silently.
 #
 # NEWLINE-TERMINATION IS ASSERTED FIRST. `wc -l` counts newline characters, the
 # scanner counts real lines, and those two agree only on a terminated file. On
@@ -65,22 +79,37 @@ fi
 # result, and this repo has already been handed one false conclusion by exactly
 # that shape.
 CAP_SCANNER="skills/lawkeeper/scripts/audit_scan.py"
-CAP_PROBE="scripts/validate-dod.d/80-file-size-caps.sh"
+CAP_PROBE="${BASH_SOURCE[0]#"${REPO_ROOT:-}"/}"
 CAP_PROBE_LIST=""
 
 yellow "[80b] the two ${CAP_MAX_LOC}-LOC counters agree, wc -l and the lawkeeper scanner"
 
-# Echo "<scoped_paths> <files_scanned> <reported_loc>" for one scan of $CAP_PROBE
-# at cap $1. reported_loc is 0 when the probe raised no cap.file-lines finding.
+# Echo "<listed_lines> <scoped_paths> <files_scanned> <lines_unaccounted> <reported_loc>"
+# for one scan of $CAP_PROBE at cap $1. reported_loc is 0 when the probe raised no
+# cap.file-lines finding.
 #
-# All three numbers are echoed because only the third is the answer and the first
-# two are what make it readable. An empty or unwritten path list makes
-# audit_scan.py fall back to WALKING THE WHOLE TREE, which scans hundreds of
-# unrelated .sh files and would hand a verdict built on some other file's length
-# back as if it were the probe's. scoped_paths pins that the scan was scoped at
-# all, files_scanned pins that it reached exactly one file, and the finding is
-# filtered to the probe's own path rather than max()'d across whatever turned up.
-# A scanner that errors prints nothing, which fails all three.
+# ONLY THE LAST NUMBER IS THE ANSWER. The four ahead of it are what make it
+# readable, and each one refuses a different way of getting a confident verdict
+# about the wrong thing:
+#   listed_lines      how many lines the parse stage READ out of the path list
+#   scoped_paths      how many paths it got OUT of them
+#   files_scanned     how many files the scan actually opened
+#   lines_unaccounted lines that reached no counter at all, which must be 0
+# An empty or unwritten path list makes audit_scan.py fall back to WALKING THE
+# WHOLE TREE, which scans hundreds of unrelated .sh files and would hand a verdict
+# built on some other file's length back as if it were the probe's. scoped_paths
+# refuses that, files_scanned pins that the scan reached exactly one file, and the
+# finding is filtered to the probe's own path rather than max()'d across whatever
+# turned up. A scanner that errors prints nothing, which fails all five.
+#
+# listed_lines IS THE ONE THAT CATCHES A LOSSY LIST, and lines_unaccounted is not
+# a substitute for it. audit_scan.py drops a blank, a `#` comment and a repeated
+# path at parse time, on purpose, and BUCKETS each drop, so lines_unaccounted stays
+# 0 through all three. MEASURED: a list of the probe plus a blank, a duplicate and
+# a comment reports listed_lines 4, scoped_paths 1, lines_unaccounted 0. Reading
+# only the reconcile would have called that clean. Asserting listed_lines ==
+# scoped_paths == 1 is what says every line the list carried became the one path
+# the probe needs, with nothing eaten quietly on the way in.
 cap_scan_probe() {
   python3 "$CAP_SCANNER" . --paths-from "$CAP_PROBE_LIST" \
     --text-only-ext .sh --max-file-lines "$1" 2>/dev/null | python3 -c '
@@ -89,7 +118,8 @@ report = json.load(sys.stdin)
 probe = sys.argv[1]
 hits = [f["end_line"] for f in report["findings"]
         if f["rule_id"] == "cap.file-lines" and f["file"] == probe]
-print(report["config"]["scoped_paths"], report["stats"]["files_scanned"],
+print(report["config"]["listed_lines"], report["config"]["scoped_paths"],
+      report["stats"]["files_scanned"], report["stats"]["lines_unaccounted"],
       hits[0] if len(hits) == 1 else 0)
 ' "$CAP_PROBE" 2>/dev/null
 }
@@ -97,6 +127,9 @@ print(report["config"]["scoped_paths"], report["stats"]["files_scanned"],
 cap_agree_ready() {
   [ -f "$CAP_SCANNER" ] || { red "  FAIL $CAP_SCANNER missing, cannot cross-check the two counters"; return 1; }
   [ -f "$CAP_PROBE" ] || { red "  FAIL probe $CAP_PROBE missing, cannot cross-check the two counters"; return 1; }
+  case "$CAP_PROBE" in
+    /*) red "  FAIL probe path '$CAP_PROBE' is absolute, so REPO_ROOT did not match \${BASH_SOURCE[0]}; audit_scan.py would test every leading directory against its skip set and could drop the probe into paths_in_skipped_dir"; return 1 ;;
+  esac
   command -v python3 > /dev/null 2>&1 || { red "  FAIL python3 not available, cannot cross-check the two counters"; return 1; }
   [ "$(tail -c 1 "$CAP_PROBE" | wc -l | tr -d ' ')" = "1" ] || { red "  FAIL probe $CAP_PROBE is not newline-terminated, so wc -l and the scanner do not measure the same thing on it"; return 1; }
   return 0
@@ -105,10 +138,11 @@ cap_agree_ready() {
 # $1 is the probe's wc -l count. Reads the scanner at both sides of that cap.
 cap_agree_verdict() {
   local loc="$1" over under
+  local want="1 1 1 0"
   over=$(cap_scan_probe $((loc - 1)))
   under=$(cap_scan_probe "$loc")
-  if [ "${over% *}" != "1 1" ] || [ "${under% *}" != "1 1" ]; then
-    red "  FAIL the scan did not land on $CAP_PROBE alone (scoped_paths/files_scanned were '${over% *}' and '${under% *}', expected '1 1' each), so its verdict is about some other file or about nothing"
+  if [ "${over% *}" != "$want" ] || [ "${under% *}" != "$want" ]; then
+    red "  FAIL the scan did not land on $CAP_PROBE alone and whole (listed_lines/scoped_paths/files_scanned/lines_unaccounted were '${over% *}' and '${under% *}', expected '$want' each), so its verdict is about some other file, about nothing, or about a list the parse stage quietly ate a line from"
     FAILED=$((FAILED + 1))
   elif [ "${over##* }" = "0" ]; then
     red "  FAIL the lawkeeper scanner did not flag $CAP_PROBE at a cap of $((loc - 1)), so it counts the file at fewer than the $loc lines wc -l counts, the two ${CAP_MAX_LOC}-LOC enforcers disagree"
@@ -128,6 +162,18 @@ if ! cap_agree_ready; then
   FAILED=$((FAILED + 1))
 else
   CAP_PROBE_LIST=$(mktemp)
+  # EXIT trap, matching scripts/test_ban_tokens.sh. The `rm -f` below is on the
+  # happy path only, so anything that leaves between the mktemp above and it, a
+  # Ctrl-C during either python3 call being the realistic one, strands the file.
+  # MEASURED, not assumed: an `exit` planted inside that window leaks one temp file
+  # without this line and zero with it.
+  #
+  # Armed and cleared around the window rather than left standing. A sourced
+  # fragment shares one trap table with the whole run, so a standing EXIT trap here
+  # would silently replace the next fragment's if one is ever added, and there is
+  # nothing left to clean up once `rm -f` has run. Nothing else in the validator
+  # traps EXIT today, which is what makes the clearing cheap rather than lossy.
+  trap 'rm -f "$CAP_PROBE_LIST"' EXIT
   printf '%s\n' "$CAP_PROBE" > "$CAP_PROBE_LIST"
   if [ ! -s "$CAP_PROBE_LIST" ]; then
     red "  FAIL could not write the scoped path list, and an empty one silently widens the scan to the whole tree"
@@ -136,4 +182,5 @@ else
     cap_agree_verdict "$(wc -l < "$CAP_PROBE" | tr -d ' ')"
   fi
   rm -f "$CAP_PROBE_LIST"
+  trap - EXIT
 fi
