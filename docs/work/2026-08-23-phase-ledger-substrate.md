@@ -2058,6 +2058,68 @@ the manifest block at 5-35 not 20-35, and B's two stale manifest rows at 21-22 a
 `:25` and `:30`. It found the real ones and fixed both stale rows. That is the third round in a row
 where a line number I supplied from an older note was wrong.
 
+## 7l. Wave 23b, C1 closed, and two doors the fix would have left open
+
+`settle all` now resolves to 65 paths where it resolved to 0. Verified independently, and the
+exclusion holds: zero `docs/work/` paths in the result.
+
+**Both fixes, not either.** Defining `all` only in `review-scope.md` leaves the four prompts literally
+instructing the broken substitution, and those prompts only POINT at the reference rather than
+requiring it be loaded. Adding the exclusion only to the four METHOD lines leaves `all` still not a
+pathspec, so `-- all ':(exclude)docs/work/*'` is still zero files. The normative rule lives in
+`review-scope.md`; the full three-step resolution is inlined in all four sliced prompts. Step three,
+appending the exclusion unconditionally, is what closes the bare-`.` and absent-value cases at the
+same time.
+
+**65 rather than the 59 in my brief**, because `6f8d05e` added six paths after the panel ran: the two
+new validator fragments and the four ban-token fragments. The agent traced that per commit rather
+than assuming my number was wrong or that its own was.
+
+### Two doors the agent closed that nobody asked it to
+
+1. **The echo would have disarmed the gate being fixed.** `review-scope.md:103` arms a FULL round on
+   F's echo being exactly `settle all`. A reviewer that resolves and then echoes reports
+   `Scope: settle .`, which can never be declared FULL. Fixing the resolution without this would have
+   traded a vacuous-clean gate for a permanently-closed one. All five files now state that resolution
+   rewrites the diff command and never the echo.
+2. **A non-empty scope can still resolve to an empty diff.** `settle docs/work/notes.md` reaches the
+   same vacuous clean through a different door. All four prompts now require reporting an empty scope
+   explicitly rather than returning clean.
+
+### A validator pin shaped the fix, and the agent said so rather than working around it
+
+`[76g]` pins `review-scope.md` at EXACTLY 2 occurrences of the exclusion literal. The first draft
+added 7 and reddened. That fragment was outside the agent's allowlist and owned by a concurrent
+agent, so it restructured: the reference doc points at its two existing sites, and the four prompts
+each carry the literal verbatim, which keeps the executing contract self-contained since the prompts
+are what reviewers actually load. It named this as a constraint rather than a preference, which is
+the right way to report a compromise.
+
+**A consequence worth naming:** F now diffs the whole reviewed diff on a settle round, a superset of
+its boundary set. Strictly better than the 0 paths it read before, and the only resolvable meaning
+given the `:103` gate, but it is a real token cost against what slicing exists to buy.
+
+### Two follow-ups it found, one closed here, one still open
+
+**Closed.** `review-and-verify.md:431` stated the exit bar as "every byte of
+`git diff <base>..HEAD`" with no exclusion at all. That contradicts `review-scope.md:99` and
+`phase-5-review.md:110` and describes precisely the unclosable loop this sprint removed. It is a
+fifth site Wave 19 missed. Fixed, and only one pin reads that file (`check_token_present 'settle
+all'`), which the edit preserves.
+
+**Still open, and it needs `[76g]` widened.** Twelve files now carry the exclusion literal; `[76g]`
+pins four. The eight unguarded ones are the four sliced reviewer prompts and their four `agents/`
+mirrors, which is exactly where the executing contract now lives. A future editor can strip the
+exclusion from every sliced reviewer and the validator stays green. That is the failure class `[76g]`
+exists to catch, currently blind to the sites that matter most. Queued behind the concurrent agent
+that owns that fragment.
+
+**And T53's claim is retracted in place.** It said "all three sites that build the review scope". B
+showed nothing proved that set complete, and it was not: `review-and-verify.md:431` went unfixed,
+three scout and finish sites were left out on my own wrong ruling that they were noise, and `[76g]`
+is a regression pin over hardcoded paths rather than a coverage pin, so it could never have caught the
+gap.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
