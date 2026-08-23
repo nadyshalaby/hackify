@@ -2532,10 +2532,20 @@ abs=$(grep -rcI '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin
 if [ "$abs" -eq 0 ]; then green "  ok   0 absolute /Users/corecave/ paths in shipped content"
 ```
 
-`awk`'s `END {print s+0}` always prints a number, `2>/dev/null` hides the error, and the pipe
-discards grep's status. rc 2 (unreadable file) and rc 127 (no matcher on PATH) both arrive as
-`abs=0` and print green. A measured it with a mode-000 file under `skills/`: the pipeline yields 0
-while the repaired `check_no_token` form yields rc 2.
+`awk`'s `END {print s+0}` always prints a number and `2>/dev/null` hides the error, so `abs=0` and
+the branch prints green. A measured it with a mode-000 file under `skills/`.
+
+**Mechanism corrected by the refuter, and I had repeated A's version.** A said the pipe discards
+grep's status, and I wrote that here and told the user it. It is wrong. `validate-dod.sh:59` sets
+`set -uo pipefail`, so the substitution's `$?` **is** grep's 2. Measured directly:
+
+```
+abs=0  rc=2      => the status is visible; nothing tests it before [ "$abs" -eq 0 ]
+```
+
+The pipe launders nothing. The defect is narrower and more ordinary than the one filed: an exit
+status that is right there, unexamined. That distinction matters for the fix, because "add pipefail"
+or "restructure the pipe" would both have been no-ops.
 
 Read the block in full and the lesson is unmissable. Lines 68 to 70 loop the personal handles
 through `check_no_token`, the helper this sprint repaired. Line 72 inlines the broken pattern for
@@ -2798,6 +2808,48 @@ real work go unrecorded. The exit condition measured a list that had stopped gro
 and never parses the work-doc. The sole consumer is a dispatched Reviewer B. The refuter was careful
 to say this bounds urgency and is **not** a soft refutation, which is the right distinction and one
 I should not blur when I come to fix it.
+
+## 7v. Refuter on the privacy scan: UPHELD, with the mechanism corrected and the trigger narrowed
+
+**UPHELD at Critical confidence, measured end to end** in a throwaway worktree that was removed
+afterwards, with no file's permissions left changed in the working tree.
+
+The reproduction that matters: an unreadable file under `.claude-plugin/` containing a real
+`/Users/corecave/Code/hackify` string makes grep exit 2, `abs` becomes 0, line 74 prints green, and
+**the whole run exits 0 with `ALL CHECKS PASSED` and zero reds.** The same file readable gives
+`FAIL 1 absolute /Users/corecave/ paths found`. A live home-path leak ships past a green validator.
+
+**Three corrections the refuter made, two of them to claims I had passed along.**
+
+1. **The pipe launders nothing.** Recorded in 7r above. `pipefail` is set and `$?` is grep's 2. The
+   defect is an unexamined status, not a lost one.
+2. **A's own probe was weaker than A thought.** A demonstrated with a mode-000 file under `skills/`,
+   but that case reddens six times at `:61` and the run exits 1. Line 74's green is unearned there,
+   but it is not silent, and A presented it as though it were.
+3. **rc 127 is not a live trigger.** With grep off PATH the line does print green, but the run reds
+   636 times at `[0]` first, because those call sites use bare `grep`. `check_no_token` is immune,
+   calling `/usr/bin/grep`. So the finding narrows to rc 2 alone.
+
+**Where it is genuinely silent.** `:61-64` already cover `skills/` and `README.md` redundantly, since
+the fixed string `corecave` is a substring of the home path. An unreadable `CHANGELOG.md` reds at
+`[27d]`, and the two JSON files red at `check_jq`. The unique, silent surface is **an unreadable path
+under `.claude-plugin/` that no other check reads**. That is narrow, and it is real.
+
+**How live, honestly.** It needs a `chmod`: git tracks neither mode 000 nor unreadable directories,
+so this cannot arrive from a clone or a checkout. Both chmod-free candidates the refuter tried fail
+on BSD grep (a dangling symlink and a `ln -s .` loop each exit 1, not 2). GNU grep, which is what CI
+runs, was untested because no `ggrep` is installed here. So: reachable on a developer machine after a
+manual permission change, unproven on CI, and worth stating that way rather than louder.
+
+**Scope: fix it in this sprint's wave, against the advisor's suggestion to defer it.** The reasoning
+is concrete rather than a preference. It is the last unrepaired instance of the exact pattern
+repaired at `00-helpers.sh:96-102`, it sits eleven lines beneath three loops that already call that
+repaired helper, and the fix is one helper call. Deferring the last copy of a defect whose other
+copies were all fixed this sprint is how it survives to the next one.
+
+**The fix, with a constraint.** `check_no_token '/Users/corecave/' <path>` **per path, singular**, not
+the batched multi-path form, because `test_ban_tokens.d/30-inventory-pins.sh:25` inventories the
+batched form and would break.
 
 ## 8. Retrospective
 
