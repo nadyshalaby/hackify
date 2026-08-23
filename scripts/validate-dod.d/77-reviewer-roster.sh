@@ -335,7 +335,7 @@ done
 # under skills/, only in CHANGELOG.md and docs/work/, which this set never reads.
 # These six carry their OWN count now; they were counted NOWHERE, so the header's
 # "counted separately from those 60" was true of the intent and false of the code.
-# Still open: test_ban_tokens.sh parses RR_BANS lines only, so no plant test here.
+# Covered: test_ban_tokens.sh parses RR_RPT too and plants every token in it.
 RR_RAV="skills/hackify/references/review-and-verify.md"
 RR_RPT=(reviewer_a_report reviewer_b_report reviewer_c_report reviewer_d_report reviewer_e_report reviewer_f_report)
 RR_RPT_EXPECTED=6

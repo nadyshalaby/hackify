@@ -35,6 +35,10 @@ TB_OUT="$TB_TMP/out.txt"
 TB_PASS=0
 TB_BAD=0
 TB_LIST=()
+# Moved by tb_plant_case and by nothing else, so it counts plants that actually
+# happened rather than plants the run order implies. Read twice: tb_plant_every_token
+# takes a delta across its own loop, tb_check_plant_total takes the grand total.
+TB_PLANTED=0
 
 # Counts written a SECOND time, on purpose, the same way [77] writes RR_EXPECTED
 # next to its file list. A bound derived from the list cannot police the list: if
@@ -42,6 +46,10 @@ TB_LIST=()
 # stays green while coverage quietly shrinks.
 TB_EXPECT_70=23
 TB_EXPECT_77=60
+# A THIRD list, and the one this suite used to miss entirely. [77] enforces it
+# against one named file instead of the six-file sweep, so it is counted apart
+# from the 60 above and pinned apart from them too.
+TB_EXPECT_RPT=6
 
 # The two files whose ban lists this test re-reads on every run, so it always
 # tests what ships rather than a copy that can drift away from it.
@@ -71,16 +79,25 @@ if len(hits70) != 1:
     sys.exit("expected exactly 1 batched ban call in %s, found %d" % (src70, len(hits70)))
 toks70 = shlex.split(hits70[0])
 
-toks77 = []
-for line in io.open(src77, encoding="utf-8"):
-    m = re.match(r'^RR_BANS\+?=\((.*)\)\s*$', line)
-    if m:
-        toks77.extend(shlex.split(m.group(1)))
+# Both [77] arrays live in the same file, so one parser serves both, and it reads
+# bare words and quoted words alike. An empty parse exits non-zero right here
+# instead of writing an empty list, because a section handed nothing to plant
+# prints nothing and passes, which is the exact bug this suite exists to refuse.
+def parse_array(path, name):
+    pat = re.compile(r'^%s\+?=\((.*)\)\s*$' % name)
+    toks = []
+    for line in io.open(path, encoding="utf-8"):
+        m = pat.match(line)
+        if m:
+            toks.extend(shlex.split(m.group(1)))
+    if not toks:
+        sys.exit("no %s group parsed from %s" % (name, path))
+    return toks
 
-if not toks77:
-    sys.exit("no RR_BANS group parsed from %s" % src77)
-
-for name, toks in (("tokens70.txt", toks70), ("tokens77.txt", toks77)):
+lists = (("tokens70.txt", toks70),
+         ("tokens77.txt", parse_array(src77, "RR_BANS")),
+         ("tokens77rpt.txt", parse_array(src77, "RR_RPT")))
+for name, toks in lists:
     with io.open(os.path.join(tmp, name), "w", encoding="utf-8") as fh:
         fh.write("".join(t + "\n" for t in toks))
 PY
@@ -140,6 +157,7 @@ tb_plant_case() {
   local token="$1"
   local before="$FAILED"
   local planted="$TB_TMP/planted.md"
+  TB_PLANTED=$((TB_PLANTED + 1))
   printf 'Reviewer prose above the plant.\n%s\nReviewer prose below it.\n' "$token" > "$planted"
   check_no_tokens_in "$planted" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
   if [ "$FAILED" -le "$before" ]; then
@@ -153,10 +171,20 @@ tb_plant_case() {
   tb_ok "planted [$token] reddens and is named"
 }
 
+# Every sweep proves its OWN coverage: this list, this many tokens, actually
+# screened. A grand total alone is permutation-blind, because swapping two sweeps'
+# lists leaves the sum unchanged while one list gets screened by the wrong array,
+# and the list-size pins cannot see it either since they measure the parsed files
+# rather than which array each sweep screens against. The bound is a delta on
+# TB_PLANTED, which only tb_plant_case moves. Deriving it from ${#TB_LIST[@]}
+# instead would pass by construction: that length stays 23 whether the loop below
+# ran 23 times or broke after five.
 tb_plant_every_token() {
   local listfile="$1"
-  local label="$2"
-  local t
+  local want="$2"
+  local label="$3"
+  local before="$TB_PLANTED"
+  local t moved
   tb_load_list "$listfile"
   if [ "${#TB_LIST[@]}" -eq 0 ]; then
     tb_bad "$label: no tokens parsed, so this whole section would have measured nothing"
@@ -165,6 +193,12 @@ tb_plant_every_token() {
   for t in "${TB_LIST[@]}"; do
     tb_plant_case "$t"
   done
+  moved=$((TB_PLANTED - before))
+  if [ "$moved" -eq "$want" ]; then
+    tb_ok "$label: $moved tokens actually planted, matching the expected $want"
+    return
+  fi
+  tb_bad "$label: $moved tokens actually planted, expected $want (this sweep is screening another list, or its loop stopped early)"
 }
 
 # ---------------------------------------------------------------------------
@@ -340,11 +374,51 @@ tb_check_list_size() {
   fi
 }
 
+# Kept alongside the per-sweep deltas, because exactly two tampers walk past them
+# and this catches both. A sweep that runs TWICE passes its own delta each time,
+# 23 against 23, and only the grand total moves. And an exit taken part way down
+# the run order skips whole sweeps, taking their deltas out of the run with them,
+# so a total firing from the EXIT trap is the last assertion still standing.
+# TB_PLANTED is moved by tb_plant_case alone, so this counts what the run really
+# screened rather than what the run order implies.
+tb_check_plant_total() {
+  local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT))
+  if [ "$TB_PLANTED" -eq "$want" ]; then
+    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all three lists"
+    return
+  fi
+  tb_bad "plant total: $TB_PLANTED tokens actually planted, expected $want (a plant section is pointed at the wrong list, planted twice, or not running at all)"
+}
+
+# The verdict runs from the EXIT trap, not from the foot of the script, so no
+# exit path reaches the shell without it. An early exit is exactly what would
+# skip the pin above, and a suite that leaves without printing a verdict is
+# itself the silent pass. $? is read first, on one line, because `local` on its
+# own line would overwrite it: a completed run arrives here as 0 and anything
+# else means the suite died on the way.
+tb_finish() {
+  local rc=$?
+  tb_check_plant_total
+  printf '\n[test_ban_tokens] %s passed, %s failed\n' "$TB_PASS" "$TB_BAD"
+  rm -rf "$TB_TMP"
+  if [ "$TB_BAD" -eq 0 ] && [ "$TB_PASS" -gt 0 ] && [ "$rc" -eq 0 ]; then
+    green "ALL BAN-TOKEN TAMPER TESTS PASSED"
+    exit 0
+  fi
+  red "$TB_BAD BAN-TOKEN TAMPER TEST(S) FAILED"
+  exit 1
+}
+
+# Armed here rather than beside mktemp because every function it calls has to
+# exist by the time it fires. Above this line the plain cleanup trap still runs.
+trap tb_finish EXIT
+
 printf '[test_ban_tokens] batched token ban, tamper tests\n'
 
 tb_extract_lists
 tb_check_list_size "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_check_list_size "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
+tb_check_list_size "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
 
 tb_load_list "$TB_TMP/tokens70.txt"
 tb_case_green_path
@@ -360,13 +434,16 @@ tb_case_blank_token_end_to_end
 tb_case_zero_tokens
 tb_case_exit_wiring
 
-tb_plant_every_token "$TB_TMP/tokens70.txt" "[70] ban list"
-tb_plant_every_token "$TB_TMP/tokens77.txt" "[77] ban list"
+tb_plant_every_token "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
+tb_plant_every_token "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 
-printf '\n[test_ban_tokens] %s passed, %s failed\n' "$TB_PASS" "$TB_BAD"
-if [ "$TB_BAD" -eq 0 ] && [ "$TB_PASS" -gt 0 ]; then
-  green "ALL BAN-TOKEN TAMPER TESTS PASSED"
-  exit 0
-fi
-red "$TB_BAD BAN-TOKEN TAMPER TEST(S) FAILED"
-exit 1
+# The report-input bans, screened the way [77] screens them: check_no_tokens_in
+# takes one path and the whole array at both call sites, so the only thing that
+# differs between this section and the one above it is which array screens the
+# plant. Planting these with the RR_BANS array would prove nothing about them.
+tb_plant_every_token "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
+
+# Ran to completion. tb_finish reads this status, so a finished run is
+# distinguishable from an exit taken anywhere above rather than being whatever
+# the last plant call happened to return.
+exit 0
