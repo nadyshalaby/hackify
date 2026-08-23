@@ -258,6 +258,20 @@ The investigator read 29 files end to end plus mechanical greps over all 115 sou
 
 **Mirror hazard for whoever fixes F4 and F6:** `parallel-agents/phase-5-multi-review-e-design.md` is byte-mirrored into `agents/design-conformance-reviewer.md` and check `[75h]` diffs them. Editing one without re-running `scripts/sync_agent_mirrors.py` turns the triad red.
 
+### 2026-08-23, T9 landed, plus a verification-integrity gotcha worth keeping
+
+**T9** fixed all five listed sites plus the two I sent mid-flight, then found **four more nobody had listed**: `yolo/SKILL.md:25` ("B/C/F standing" inside a code fence, which its own first grep missed because the line contains neither "reviewer" nor "Phase 2.5"), `yolo:67`, `yolo:114` ("5-to-6 parallel reviewers", where the existing bans all miss the space-separated form), and both Phase 2.5 headings still saying "(parallel, mandatory)" for a fan-out that no longer exists. It also **caught and reverted a regression in its own draft**: its first retirement note ended "Phase 5 keeps its own Reviewers A through F", which would have reintroduced a live Reviewer C while removing one.
+
+Every fix reuses an already-pinned literal where one existed (`1 reviewer scrutinizes work-doc`, `Dispatch the 1 reviewer`), so the new text is guarded by checks that already exist.
+
+**Pin handoff for T7, from T9:** `check_token_present 'Dispatch exactly 1 reviewer'` on the phase file (which today has NO pin asserting a count at all, which is exactly why it drifted unguarded) and `'B is the standing member of every wave'` on `SKILL.md`. `check_no_token` on `3 parallel reviewers`, `Dispatch 2 foreground reviewers`, `Parallel agents scrutinize`, `Cap B at`, `B/C/F`, `5-to-6 parallel reviewers`. **Do NOT ban the generic `parallel reviewers`**: Phase 5 legitimately has a panel and that prose lives in the same files, so it would false-fire.
+
+### VERIFICATION GOTCHA: recursive grep silently skips `dist/`
+
+`grep` in this environment is a **shell function wrapping `ugrep`**, and ugrep honors ignore files. `dist/.gitignore` contains `*`, so **`grep -rn "<anything>" dist/` returns nothing and exits 0 even when the string is present.** `/usr/bin/grep -rn` on the same pattern found 18 hits.
+
+This is not a product defect, it is a trap for anyone verifying mirror freshness: a recursive grep over `dist/` looks clean while being completely vacuous. **Verify the built tree with `/usr/bin/grep`, or with `find dist ... | xargs /usr/bin/grep`, never with a bare recursive `grep`.** The validator is unaffected: check `[55]` uses `git ls-files`, `[57]` delegates to `check_doc_links.py`, and no `check_no_token` call targets `dist/`.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
