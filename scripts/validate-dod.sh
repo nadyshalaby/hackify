@@ -176,17 +176,33 @@ source "$DOD_MODULES_DIR/90-collisions.sh"
 # ok line and sails over this floor, which is why [0] does the per-fragment work.
 # What this catches instead is the wholesale gutting [0] is blind to.
 #
-# THE NUMBER IS THE SHELL-SIDE TOTAL, three below a `grep -c` over the transcript,
-# because [57] and [85] delegate to Python checkers that print their own ok lines.
-# See the comment above DOD_OK_COUNT in 00-helpers.sh for why that gap is safe.
+# THE NUMBER IS THE SHELL-SIDE TOTAL, and it sits below a `grep -c` over the
+# transcript, because [57] and [85] delegate to Python checkers that print their
+# own ok lines without passing through green(). See the comment above
+# DOD_OK_COUNT in 00-helpers.sh for why that gap is safe to leave.
+#
+# THE GAP IS PER INVOCATION, NOT PER CHECKER, and reading it the other way is
+# what has had this number quoted wrong three times. Two checkers print three
+# delegated ok lines: [57] runs scripts/check_doc_links.py TWICE, once over the
+# source tree and once over dist/claude-code, and [85] runs
+# scripts/check_design_specs.py once. It is not a constant either. dist/ is
+# gitignored, so on a tree that has never run scripts/sync-runtimes.sh [57]
+# prints `skip` for the second invocation and the gap is 2.
+#
 # The floor is set against THIS counter, so compare like with like before moving
-# it: today's run counts 1398 here and prints 1401 ok lines.
+# it. MEASURED, both halves of the same run: 1397 counted here against 1400 ok
+# lines in the transcript on a built tree, and 1397 against 1399 with dist/
+# absent. The absolute moves with every wave that adds a check, so read the two
+# halves and the gap between them as the point of this note, and when the number
+# needs updating take BOTH from one run of your own rather than adjusting one of
+# them against the other. Every wrong version of this line so far was quoted from
+# whoever wrote it last.
 DOD_OK_FLOOR=1350
 if [ "${DOD_OK_COUNT:-0}" -lt "$DOD_OK_FLOOR" ]; then
   printf '\033[31m%s\033[0m\n' "  FAIL this run printed only ${DOD_OK_COUNT:-0} ok lines against a floor of $DOD_OK_FLOOR; checks did not fail, they stopped running, so find what went quiet before trusting this verdict"
   FAILED=$((FAILED + 1))
 else
-  printf '\033[33m%s\033[0m\n' "  note $DOD_OK_COUNT ok lines counted through the shell printers, at or above the floor of $DOD_OK_FLOOR (the transcript carries 3 more from the delegated Python checkers in [57] and [85])"
+  printf '\033[33m%s\033[0m\n' "  note $DOD_OK_COUNT ok lines counted through the shell printers, at or above the floor of $DOD_OK_FLOOR (the transcript carries more from the delegated Python checkers, 3 on a built tree and 2 where dist/ has never been synced)"
 fi
 
 if [ "$FAILED" -eq 0 ]; then

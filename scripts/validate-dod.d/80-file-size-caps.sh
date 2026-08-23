@@ -12,25 +12,110 @@
 CAP_MAX_LOC=500
 CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"
 
+# THE REPO ROOT WAS NEVER IN THIS SCAN. CAP_SEARCH_PATHS is six DIRECTORIES, and
+# `find` on a directory never climbs out of it, so CHANGELOG.md and README.md,
+# the two longest markdown files this repo ships, sat outside the only mechanism
+# enforcing the 500-line cap for the whole life of this check. The cap was not
+# being relaxed for them, it had never been applied to them at all, which is the
+# same coverage-shaped hole every other block in this fragment exists to refuse.
+#
+# `-maxdepth 1` and no deeper. Everything below the root either already lives in
+# one of the six directories above or is generated output (dist/ is gitignored
+# and rebuilt by scripts/sync-runtimes.sh), which this cap has never claimed.
+#
+# THE `./` PREFIX IS STRIPPED HERE, not at each use. `find .` emits `./README.md`
+# while `find skills` emits `skills/...`, and every consumer below (the exemption
+# set membership, the root-witness comparison, the FAIL line a reader has to
+# paste into an editor) compares against a repo-relative path. Normalising once
+# at the source is what stops a file being scanned under one spelling and
+# exempted under another, which would leave README.md unenforced while the check
+# still printed a count that included it.
+cap_file_list() {
+  find $CAP_SEARCH_PATHS -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.py' \) 2>/dev/null
+  find . -maxdepth 1 -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.py' \) 2>/dev/null | sed 's|^\./||'
+}
+
+# APPEND-ONLY EXEMPTION, and the only class of file that gets one. A changelog
+# grows by one entry per release and never by a refactor, so "split it by
+# responsibility", the remedy the 500-line cap exists to force, has no meaning
+# here: there is no second responsibility to split out, and the file is read by
+# jumping to a heading rather than end to end. The rationale ships beside the
+# other carve-outs in skills/lawkeeper/references/carve-outs.md; this list is the
+# mechanical half of it, and neither half is any use alone. An exemption written
+# down with no scan behind it leaves README.md silently unenforced while looking
+# like coverage, and a scan with no exemption reddens on a file nobody intends to
+# split.
+#
+# EXEMPTION IS FROM THE CAP, NEVER FROM THE SCAN. An exempt file is still opened,
+# still counted in cap_total, and still reported through cap_exempt, so it cannot
+# quietly leave the set the way a `find`-level exclusion would let it.
+CAP_APPEND_ONLY="CHANGELOG.md"
+
+# The list's LENGTH, written a SECOND time, per the argument above
+# check_list_size in 00-helpers.sh and the same pin [27d] carries over
+# MRP_KNOWN_UNTAGGED. Appending a file here to silence a cap failure cannot land
+# without also editing this number, which is the line a reviewer actually reads.
+CAP_APPEND_ONLY_EXPECTED=1
+
+# The one root file this check actually ENFORCES, named rather than counted. With
+# CHANGELOG.md exempt, a bare "the root scan found N files" floor is satisfied by
+# the exempt file alone, so the scan could reach the root, enforce nothing, and
+# still print a confident count. Naming the witness is what makes the root half
+# of this check non-vacuous. It costs a visible edit the day README.md is renamed,
+# which is the trade every hand-written pin in this validator makes on purpose.
+CAP_ROOT_WITNESS="README.md"
+
+CAP_NL='
+'
+
 yellow "[80] File-size cap, every tracked primitive file ≤ ${CAP_MAX_LOC} LOC"
 
 cap_total=0
+cap_root=0
 cap_oversize=0
+cap_exempt=0
+cap_witness=0
 while IFS= read -r f; do
+  [ -n "$f" ] || continue
   cap_total=$((cap_total + 1))
+  case "$f" in */*) ;; *) cap_root=$((cap_root + 1)) ;; esac
+  [ "$f" = "$CAP_ROOT_WITNESS" ] && cap_witness=1
   loc=$(wc -l < "$f" | tr -d ' ')
-  if [ "$loc" -gt "$CAP_MAX_LOC" ]; then
-    red "  FAIL ${f} is ${loc} LOC (cap: ${CAP_MAX_LOC})"
-    FAILED=$((FAILED + 1))
-    cap_oversize=$((cap_oversize + 1))
-  fi
-done < <(find $CAP_SEARCH_PATHS -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.py' \) 2>/dev/null | sort)
+  [ "$loc" -gt "$CAP_MAX_LOC" ] || continue
+  case "$CAP_NL$CAP_APPEND_ONLY$CAP_NL" in
+    *"${CAP_NL}${f}${CAP_NL}"*) cap_exempt=$((cap_exempt + 1)); continue ;;
+  esac
+  red "  FAIL ${f} is ${loc} LOC (cap: ${CAP_MAX_LOC})"
+  FAILED=$((FAILED + 1))
+  cap_oversize=$((cap_oversize + 1))
+done < <(cap_file_list | sort)
+
+# An exemption whose file has been split, or renamed, or deleted takes no branch
+# above and would outlive its reason in silence. Same shape as [27d]'s mrp_stale.
+cap_known_total=0
+cap_stale=""
+while IFS= read -r cap_x; do
+  [ -n "$cap_x" ] || continue
+  cap_known_total=$((cap_known_total + 1))
+  [ -f "$cap_x" ] || { cap_stale="$cap_stale $cap_x(gone)"; continue; }
+  [ "$(wc -l < "$cap_x" | tr -d ' ')" -gt "$CAP_MAX_LOC" ] || cap_stale="$cap_stale $cap_x(now under the cap)"
+done <<CAP_EXEMPT_EOF
+$CAP_APPEND_ONLY
+CAP_EXEMPT_EOF
+check_list_size "$cap_known_total" "$CAP_APPEND_ONLY_EXPECTED" "the [80] CAP_APPEND_ONLY exemption list"
 
 if [ "$cap_total" -eq 0 ]; then
   red "  FAIL no files matched the cap search paths, refusing to declare green"
   FAILED=$((FAILED + 1))
+elif [ "$cap_witness" -eq 0 ]; then
+  red "  FAIL the cap scan never reached $CAP_ROOT_WITNESS, so the repo root went unenforced while $cap_total files were counted; the root half of this scan is measuring nothing"
+  FAILED=$((FAILED + 1))
 elif [ "$cap_oversize" -eq 0 ]; then
-  green "  ok   ${cap_total} files scanned; all ≤ ${CAP_MAX_LOC} LOC"
+  green "  ok   ${cap_total} files scanned (${cap_root} at the repo root, ${CAP_ROOT_WITNESS} among them); all ≤ ${CAP_MAX_LOC} LOC bar ${cap_exempt} append-only exemption(s)"
+fi
+
+if [ -n "$cap_stale" ]; then
+  yellow "  note CAP_APPEND_ONLY still exempts$cap_stale, prune the entry and drop CAP_APPEND_ONLY_EXPECTED to match so the list keeps shrinking"
 fi
 
 # ---------------------------------------------------------------------------

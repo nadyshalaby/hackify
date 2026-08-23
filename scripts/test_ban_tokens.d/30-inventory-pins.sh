@@ -83,9 +83,50 @@ tb_check_list_size() {
 # screened rather than what the run order implies.
 tb_check_plant_total() {
   local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT))
+  # Both totals fire from this one EXIT-trap call, and the fail-closed one goes
+  # FIRST so a plant verdict returning early cannot take it out of the run.
+  tb_check_failclosed_total
+  tb_check_miscount_total
   if [ "$TB_PLANTED" -eq "$want" ]; then
     tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all three lists"
     return
   fi
   tb_bad "plant total: $TB_PLANTED tokens actually planted, expected $want (a plant section is pointed at the wrong list, planted twice, or not running at all)"
+}
+
+# The fail-closed cases, counted the way the plants are, and for a sharper reason.
+# They hang off tb_case_green_path rather than off their own line in the run
+# order, so the run order cannot show they happened; the wiring gate cannot see
+# them either, because it lists four names for 10-ban-list-cases.sh and all four
+# survive deleting these. Delete the call and every remaining assertion still
+# passes over a suite that stopped testing the one branch it was written for. A
+# total read from the EXIT trap is what is left, and it fires whether the run
+# finished or died half way down.
+#
+# Written by hand rather than derived, the same trade TB_EXPECT_70 makes: three is
+# one case per fail-closed branch (check_no_token's and check_no_tokens_in's) plus
+# the missing-path route into the first. A bound counting the functions that exist
+# would drop with them and stay green.
+TB_EXPECT_FAILCLOSED=3
+
+tb_check_failclosed_total() {
+  if [ "$TB_FAILCLOSED" -eq "$TB_EXPECT_FAILCLOSED" ]; then
+    tb_ok "fail-closed total: $TB_FAILCLOSED cases actually ran, matching the expected $TB_EXPECT_FAILCLOSED"
+    return
+  fi
+  tb_bad "fail-closed total: $TB_FAILCLOSED cases actually ran, expected $TB_EXPECT_FAILCLOSED (a fail-closed case is no longer being called, or is being called twice)"
+}
+
+# Counted apart from the fail-closed cases for the same reason it is written as a
+# separate case: a count never taken and a count read wrong are two defects, and a
+# pin that merged them would go green with either one of its cases missing. One
+# case today, and the pin is what makes a second one impossible to add silently.
+TB_EXPECT_MISCOUNT=1
+
+tb_check_miscount_total() {
+  if [ "$TB_MISCOUNT" -eq "$TB_EXPECT_MISCOUNT" ]; then
+    tb_ok "miscount total: $TB_MISCOUNT case actually ran, matching the expected $TB_EXPECT_MISCOUNT"
+    return
+  fi
+  tb_bad "miscount total: $TB_MISCOUNT case(s) actually ran, expected $TB_EXPECT_MISCOUNT (the colon-filename case is no longer being called, or is being called twice)"
 }

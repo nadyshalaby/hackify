@@ -47,21 +47,33 @@ import json, sys
 report = json.load(open(sys.argv[1]))
 stats, config = report['stats'], report['config']
 handed, lines = config['scoped_paths'], config['listed_lines']
-drops = sum(v for k, v in stats.items() if k.startswith('paths_') and k != 'paths_unaccounted')
-lost = sum(v for k, v in stats.items() if k.startswith('lines_') and k != 'lines_unaccounted')
-covered = stats['files_scanned'] + stats['files_skipped'] + drops
-if not lines:
-    print('whole-tree sweep, no path list handed, so both reconciles read 0 by construction')
+def family(prefix):  # sums a bucket family by name prefix, minus its own subtraction
+    return sum(v for k, v in stats.items()
+               if k.startswith(prefix) and not k.endswith('_unaccounted'))
+# COVERED IS files_scanned AND NOTHING ELSE. It used to add `files_skipped` in, which is
+# how a readable 2.3MB file 400x over the line cap reconciled as covered and reported 0
+# findings. Unread is its own family now, and it is not coverage.
+if not config['path_list_supplied']:
+    print('whole-tree sweep, no path list handed, so both path reconciles read 0 by construction')
 else:
-    print(f"{lines} lines in, {handed} paths out ({lost} dropped at parse, "
-          f"{stats['lines_unaccounted']} unaccounted)")
-    print(f"{covered}/{handed} paths accounted, {stats['paths_unaccounted']} unaccounted")
+    print(f"parse: {lines} lines in, {handed} paths out ({family('lines_')} dropped, "
+          f"{stats['lines_unaccounted']} unaccounted). Equality is the check, not the subtraction.")
+    print(f"scan:  {stats['files_scanned']}/{handed} paths READ, {family('paths_')} dropped "
+          f"(deleted or unsupported, expected), {stats['paths_unaccounted']} unaccounted")
+print(f"unread: {family('unread_')} file(s) located but never opened. Never covered, in any mode.")
 RECONCILE
 ```
 
 Resolve `<plugin-root>` from the `Base directory for this skill:` line surfaced when hackify loads, then walk up two levels from `skills/hackify/`. Pass `--text-only-ext .py --text-only-ext .go` (etc.) for a mixed repo, those files get the file-line cap and the project's own bans only, so the JS checks cannot misfire on other syntax.
 
-**Reconcile before you trust the result, at BOTH stages.** The scanner loses inputs in two places and publishes a subtraction for each. Parse stage: `stats.lines_unaccounted` must read 0, and `config.scoped_paths +` the `lines_*` drop buckets (blank, comment, duplicate) must add up to `config.listed_lines`. Scan stage: `stats.paths_unaccounted` must read 0, and `files_scanned + files_skipped +` the four `paths_*` drop buckets must add up to `config.scoped_paths`. The parse stage runs FIRST, so a line lost there never reaches `scoped_paths` and the scan stage reconciles cleanly over a list that had already shrunk, which is why one number was never enough. A non-zero drop bucket is normal and expected (`paths_not_found` counts files the diff deleted, `paths_unsupported` counts every path whose extension the scanner does not read); a shortfall in the total is not. Treat any shortfall as MISSING COVERAGE, say so in the staging table, and re-run with the gap closed. A scan that quietly covered less than the diff it was handed reports as clean, and that is precisely how a scoped-path bug once survived a whole sprint.
+**Reconcile before you trust the result, at BOTH stages, and read the unread bucket as neither.** The scanner loses inputs in two places and publishes a subtraction for each. The parse stage runs FIRST, so a line lost there never reaches `scoped_paths` and the scan stage then reconciles cleanly over a list that had already shrunk, which is why one number was never enough.
+
+- **Parse stage, where equality is the check and the subtraction is not.** `config.scoped_paths +` the `lines_*` buckets (blank, comment, duplicate, malformed) must add up to `config.listed_lines`, and `stats.lines_unaccounted` must read 0. That balances perfectly for a list carrying a blank, a duplicate and a comment while three of its four lines never become paths, because each drop is bucketed. A `git diff --name-only` dump contains none of those shapes, so compare `config.listed_lines` against `config.scoped_paths` DIRECTLY: anything but equality means the list you handed in is not the list that got scanned. Check `[80b]` in this repo asserts exactly that pair.
+- **Scan stage, where a non-zero drop bucket is normal.** `files_scanned +` the `unread_*` buckets `+` the four `paths_*` buckets must add up to `config.scoped_paths`, and `stats.paths_unaccounted` must read 0. `paths_not_found` counts files the diff deleted and `paths_unsupported` counts paths whose extension the scanner does not read; both are expected on a real diff. A shortfall in the total is not.
+- **Unread is never covered.** `unread_too_large` (past the scanner's 2MB ceiling) and `unread_unreadable` (permissions, binary, non-UTF-8) count files that were located, were in scope, and had not one rule run against them. They balance the arithmetic and cover nothing, which is why they are their own family and not a `paths_*` bucket that every prefix-summing consumer would fold into "covered". Any value above 0, in scoped or whole-tree mode alike, is MISSING COVERAGE: name the file in the staging table, then split it or raise the ceiling and re-run.
+- **A supplied path list is never a tree walk.** `config.path_list_supplied` says whether `--paths-from` was passed at all, which `scoped_paths: 0` cannot: a whole-tree sweep covers everything and a scoped run handed an empty list covers nothing, and both print 0.
+
+Treat any shortfall as MISSING COVERAGE, say so in the staging table, and re-run with the gap closed. A scan that quietly covered less than the diff it was handed reports as clean, and that is precisely how a scoped-path bug once survived a whole sprint.
 
 **Non-JS stacks.** The bundled scanner's full check suite is ECMAScript-family only. On a Python / Go / Rust / Java project the deterministic tier covers the file-line cap plus the project's `ban-patterns.txt` through `--text-only-ext`, and the semantic tier below carries the rest. Say so in the staging table rather than reporting a thin scan as a clean one.
 

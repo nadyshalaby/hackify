@@ -8,6 +8,60 @@
 tb_ok()  { TB_PASS=$((TB_PASS + 1)); printf '  pass %s\n' "$1"; }
 tb_bad() { TB_BAD=$((TB_BAD + 1)); printf '  BAD  %s\n' "$1"; }
 
+# Fail-closed cases that actually RAN, moved by those cases in
+# 10-ban-list-cases.sh and read once by tb_check_failclosed_total in
+# 30-inventory-pins.sh. Same bargain TB_PLANTED makes: these cases hang off
+# tb_case_green_path rather than off their own line in the run order, so nothing
+# in the run order can show they happened, and a counter is the only thing that
+# tells "ran and passed" apart from "was never called".
+TB_FAILCLOSED=0
+
+# The neighbouring defect, counted apart from it because it is not the same one.
+# Fail-closed is a count that was never taken; a miscount is a count that was
+# taken and read wrong. Both end in a green over content the check did not
+# actually clear, and both hang off tb_case_green_path, so both need a counter.
+TB_MISCOUNT=0
+
+# ---------------------------------------------------------------------------
+# The unreadable-path fixture. grep exits 2 on a path it cannot read, which is
+# the branch the fail-closed cases exist for, and the ONLY reliable way to
+# produce that status is a real permission bit.
+#
+# EXACTLY ONE FILE IN THE DIRECTORY, and it is sealed. A readable sibling would
+# print its own count line, so the substitution would come back non-empty and the
+# failure would hide behind a number instead of an empty stdout, which is the
+# harder shape and not the one being tested here.
+#
+# THE MODE IS PROVED, NOT ASSUMED. `chmod 000` is a no-op for root and on
+# filesystems that ignore modes, and `[ -r ]` answers yes for root regardless, so
+# the precondition is checked by running the matcher itself and requiring the
+# status the cases are about to assert against. A fail-closed case that quietly
+# could not seal anything is the measures-nothing shape this whole suite refuses.
+# Caller owns cleanup through tb_drop_unreadable.
+# ---------------------------------------------------------------------------
+tb_make_unreadable() {
+  local dir="$1"
+  local rc
+  rm -rf "$dir"
+  mkdir -p "$dir" || return 1
+  printf 'panel is five\n' > "$dir/sealed.md" || return 1
+  chmod 000 "$dir/sealed.md" || return 1
+  /usr/bin/grep -rcFiI -- 'panel is five' "$dir" > /dev/null 2>&1
+  rc=$?
+  [ "$rc" -gt 1 ]
+}
+
+# THE MODE IS RESTORED BEFORE THE REMOVAL, and the file is sealed rather than its
+# parent for the same reason: `rm -rf` needs write on the DIRECTORY, so a sealed
+# file still unlinks while a sealed directory would defeat the EXIT trap and leave
+# temp trees behind for good. Restoring here rather than leaning on the trap also
+# means a case that dies half way through leaves nothing at mode 000.
+tb_drop_unreadable() {
+  local dir="$1"
+  chmod 644 "$dir/sealed.md" 2>/dev/null
+  rm -rf "$dir"
+}
+
 # ---------------------------------------------------------------------------
 # Token-list extraction. shlex parses the shell single-quoting exactly, so a
 # token containing spaces survives, and newline-delimited output is safe because

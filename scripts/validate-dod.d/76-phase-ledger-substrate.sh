@@ -251,11 +251,20 @@ PLS_XDIFF="':(exclude)docs/work/*'"
 PLS_XRULE='the ruler the diff is measured against and cannot also be'
 PLS_XROOTS="skills agents"
 # Hand-written, and independent of the lists they police. Today: the pathspec sits
-# at 48 occurrences over 17 files, its stated reason at 6 over 5.
-PLS_XFILES_EXPECTED=17
-PLS_XOCCUR_EXPECTED=48
-PLS_XRULE_FILES_EXPECTED=5
-PLS_XRULE_OCCUR_EXPECTED=6
+# at 49 occurrences over 18 files, its stated reason at 7 over 6.
+#
+# MEASURE ALL FOUR TOGETHER, from one run, with the literals read out of the two
+# variables above rather than retyped. Every one of these moved by exactly +1 when
+# SKILL.md:189 gained the exclusion, and the +1 is what composes: a later wave that
+# closes another site moves them again by the same step. The first attempt to
+# re-derive them by hand searched for "the ruler" as a prefix and got 15 files and
+# 16 occurrences, because PLS_XRULE is a full sentence, not its opening words. A
+# prefix that is not the pinned literal measures a different thing and agrees with
+# nothing.
+PLS_XFILES_EXPECTED=18
+PLS_XOCCUR_EXPECTED=49
+PLS_XRULE_FILES_EXPECTED=6
+PLS_XRULE_OCCUR_EXPECTED=7
 
 # $1 the literal, $2 expected files, $3 expected occurrences.
 #

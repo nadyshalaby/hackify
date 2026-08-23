@@ -153,6 +153,7 @@ MIRROR_SOURCES=(
   "skills/lawkeeper/scripts/exemptions.py"
   "skills/lawkeeper/scripts/lexer.py"
   "skills/lawkeeper/scripts/test_audit.py"
+  "skills/lawkeeper/scripts/test_scoping.py"
   "skills/lawkeeper/evals/evals.json"
   "commands/summary.md"
   "commands/designify.md"

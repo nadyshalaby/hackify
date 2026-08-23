@@ -68,12 +68,24 @@ done
 for token in Syanat SyanatBackend SyanatFrontend graphify corecave nadyshalaby; do
   check_no_token "$token" "skills/hackify/evals/evals.json"
 done
-# Absolute /Users/corecave/ paths in shipped content (not docs/work/)
-abs=$(grep -rcI '/Users/corecave/' skills/ README.md CHANGELOG.md .claude-plugin/ 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
-if [ "$abs" -eq 0 ]; then
-  green "  ok   0 absolute /Users/corecave/ paths in shipped content"
-else
-  red "  FAIL $abs absolute /Users/corecave/ paths found"
-  FAILED=$((FAILED + 1))
-fi
+# Absolute /Users/corecave/ paths in shipped content (not docs/work/).
+#
+# ONE CALL PER PATH, THROUGH check_no_token, and neither half of that is
+# cosmetic. The bare grep this replaced read its number out of an awk pipeline and
+# never tested grep's own status, so an unreadable file under any of these four
+# trees made grep exit 2, print no counts, land the sum on 0 and print this line
+# GREEN over content it had not opened. Reproduced end to end: a real
+# /Users/corecave/ path planted in .claude-plugin/ and chmod 000'd carried the
+# WHOLE run to ALL CHECKS PASSED with zero red lines, while the same file readable
+# correctly reddened. check_no_token reds when grep exits above 1, which is the
+# repaired matcher the personal-handle loops above already screen through; this
+# was the last copy of the old pattern in the file.
+#
+# SINGULAR, NOT THE BATCHED check_no_tokens_in. There is one token here, so
+# batching would save nothing, and scripts/test_ban_tokens.d/30-inventory-pins.sh
+# pins how many batched call sites ship across scripts/validate-dod.d/ against the
+# number CHANGELOG.md claims.
+for abs_path in skills/ README.md CHANGELOG.md .claude-plugin/; do
+  check_no_token '/Users/corecave/' "$abs_path"
+done
 

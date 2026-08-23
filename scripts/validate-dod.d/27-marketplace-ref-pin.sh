@@ -52,8 +52,10 @@ else
 fi
 
 mismatched=0
+ch_total=0
 while IFS= read -r line; do
   [ -n "$line" ] || continue
+  ch_total=$((ch_total + 1))
   ch_name="${line%%|*}"
   ch_version="${line##*|}"
   if [ "$ch_version" != "$PLUGIN_VERSION" ]; then
@@ -63,8 +65,25 @@ while IFS= read -r line; do
   fi
 done < <(jq -r '.plugins[] | "\(.name)|\(.version)"' .claude-plugin/marketplace.json 2>/dev/null)
 
-if [ "$mismatched" -eq 0 ]; then
-  green "  ok   every channel version equals plugin.json ($PLUGIN_VERSION)"
+# FLOOR ON THE COMPARISON, the same one [27d] already carries and this rule did
+# not. mismatched starts at zero, so a `.plugins` array that is empty, that jq
+# could not parse, or that the query no longer matches leaves the loop body
+# unexecuted and prints "ok every channel version equals plugin.json" over a set
+# nothing was ever compared against.
+#
+# MEASURED, not feared: with .claude-plugin/marketplace.json set to
+# `{"plugins": []}` this line printed green while rules (a) and (b) above
+# correctly reddened, so the run carried one green claim about zero channels.
+#
+# THE FLOOR IS ZERO, not two. Rules (a) and (b) already assert that the `hackify`
+# and `hackify-edge` channels each exist by name and redden when either is gone,
+# so a per-channel floor here would be a second copy of their work. What is
+# unpinned is only the vacuous case: a clean verdict over an empty set.
+if [ "$ch_total" -eq 0 ]; then
+  red "  FAIL rule (c) compared 0 channels, so its clean verdict measured nothing; .claude-plugin/marketplace.json has an empty '.plugins' array, is unparseable, or no longer carries '.name' and '.version' per channel"
+  FAILED=$((FAILED + 1))
+elif [ "$mismatched" -eq 0 ]; then
+  green "  ok   all $ch_total channel version(s) equal plugin.json ($PLUGIN_VERSION)"
 fi
 
 # --- [27d] tags that were never cut ------------------------------------------

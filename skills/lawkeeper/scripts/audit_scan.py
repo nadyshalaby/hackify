@@ -12,20 +12,31 @@ starting map. Run it directly:
 
 `--paths-from` narrows the scan to a newline-delimited list of root-relative paths (a
 `git diff --name-only` dump), so a caller auditing one sprint's touched files pays for
-those files instead of a whole-tree walk. Every line handed in lands in exactly one
-counter, across TWO reconciles that chain:
+those files instead of a whole-tree walk. SUPPLYING THE FLAG IS WHAT SCOPES THE RUN,
+never the size of the list it points at. An empty list, or one whose every line the
+parser drops, scans nothing; collapsing either into "no `--paths-from`" turned a
+zero-path scope into a whole-tree walk that reported findings nobody asked for, over a
+reconcile that was hardcoded to 0 in exactly that mode.
+
+Every line handed in lands in exactly one counter, across TWO reconciles that chain:
 
   parse: `config.listed_lines` == `config.scoped_paths` + every `stats.lines_*` bucket
-          (blank, comment, duplicate), and `stats.lines_unaccounted` is the remainder.
-  scan:  `config.scoped_paths`  == files_scanned + files_skipped + every `stats.paths_*`
-          bucket, and `stats.paths_unaccounted` is the remainder.
+          (blank, comment, duplicate, malformed), and `stats.lines_unaccounted` is the
+          remainder.
+  scan:  `config.scoped_paths`  == files_scanned + every `stats.unread_*` bucket + every
+          `stats.paths_*` bucket, and `stats.paths_unaccounted` is the remainder.
 
-Both remainders read 0 on a healthy run. They are two families and not one because both
-this file's consumers sum drop buckets by NAME PREFIX; a parse bucket named `paths_*`
-would inflate the scan total past `scoped_paths` and report a surplus that is not real.
-A path that no longer exists is dropped into `paths_not_found`, which is EXPECTED, not
-an error, a diff list names deleted files too. Without `--paths-from` the whole tree is
-walked, the default sweep, and every bucket reads 0.
+Both remainders read 0 on a healthy run. These are THREE families and not one because
+this file's consumers sum drop buckets by NAME PREFIX. A parse bucket named `paths_*`
+would inflate the scan total past `scoped_paths` and report a surplus that is not real,
+and an unread file folded under `paths_*` gets summed into "covered" by every caller
+that does it, which is how a 2.3MB file 400x over the line cap once passed for a clean
+scan. A path that no longer exists is dropped into `paths_not_found`, which is EXPECTED,
+not an error, a diff list names deleted files too; an `unread_*` file never is, it was
+located and in scope and nothing in it was checked. Without `--paths-from` the whole
+tree is walked, the default sweep, and every `paths_*` and `lines_*` bucket reads 0,
+while `unread_*` still counts, because a file that could not be read is missing coverage
+in every mode.
 
 The full JS/TS check suite runs on the ECMAScript family. `--text-only-ext` adds extensions
 that get ONLY the language-agnostic checks (file-line cap + project ban-patterns), so a
@@ -94,15 +105,20 @@ def _norm_exts(exts):
 # Separate family from DROP_REASONS below, and deliberately so: `paths_*` answers
 # "what happened to a parsed path", `lines_*` answers "what happened to an input
 # line". Both the law-scout's reconcile snippet and this suite's own `_accounted`
-# helper sum the drop buckets BY NAME PREFIX, so a fourth `paths_*` key here would
-# inflate their total past `config.scoped_paths` and print a surplus that is not real.
-PARSE_DROPS = ('blank', 'comment', 'duplicate')
+# helper sum the drop buckets BY NAME PREFIX, so a `paths_*` key here would inflate
+# their total past `config.scoped_paths` and print a surplus that is not real.
+PARSE_DROPS = ('blank', 'comment', 'duplicate', 'malformed')
 
 
 class PathListing:
-  """One parsed `--paths-from` file: the unique paths, plus why every other line went."""
+  """One parsed `--paths-from` file: the unique paths, plus why every other line went.
 
-  def __init__(self):
+  `supplied` records whether the FLAG was given, which is a different question from
+  whether the list produced any paths, and it is the one that decides scoped-vs-walk.
+  """
+
+  def __init__(self, supplied=False):
+    self.supplied = supplied
     self.paths = set()
     self.lines_read = 0
     self.dropped = dict.fromkeys(PARSE_DROPS, 0)
@@ -130,6 +146,14 @@ def _classify_line(raw, seen):
   # top of git's already-relative output. PREFIX removal, not `lstrip('./')`, which
   # takes a character SET and so ate the dot off every `.github/...` and bare `.env`.
   rel = entry.removeprefix('./')
+  # A line that carries no path once normalized. `./` strips to `''`, which used to be
+  # ADMITTED as a path, join to the root itself, fail `isfile`, and land in
+  # `paths_not_found`, a bucket that means "the diff deleted this file" and so read as
+  # expected. A bare `.` is the same shape from the same source: `find .`, named above
+  # as a producer of this format, emits it as its very first line. Neither is a path,
+  # so both are a PARSE-stage malformation and are counted as one.
+  if rel in ('', '.'):
+    return None, 'malformed'
   return (None, 'duplicate') if rel in seen else (rel, None)
 
 
@@ -147,7 +171,10 @@ def load_paths_from(path):
   Whether a path is reachable, contained, or scannable is still decided later, where
   it can be counted by the `paths_*` family.
   """
-  listing = PathListing()
+  # `path is not None`, never truthiness: `--paths-from ''` (an unset shell variable
+  # expanding to nothing) is a SUPPLIED flag pointing at no list, and must scan
+  # nothing rather than quietly reverting to a whole-tree walk.
+  listing = PathListing(supplied=path is not None)
   if not path or not os.path.isfile(path):
     return listing
   with open(path, encoding='utf-8', errors='replace') as handle:
@@ -165,30 +192,47 @@ def load_paths_from(path):
 # key, so a path can leave the iterator only through a counter, never through silence.
 DROP_REASONS = ('outside_root', 'in_skipped_dir', 'not_found', 'unsupported')
 
+# Why a located file yields no findings even though it WAS in scope. A THIRD family,
+# `stats.unread_*`, for the same prefix-summing reason `lines_*` is a second one: these
+# used to share one `files_skipped` counter that the documented reconcile added straight
+# into `covered`, so a 2.3MB file 400x over the line cap reported as a balanced, clean
+# scan. A `paths_*` name here would rejoin that sum and recreate it. Unlike a `paths_*`
+# drop, a non-zero bucket here is NEVER expected: the file was found, in scope, and not
+# one rule ran against it, which is missing coverage in scoped and whole-tree mode alike.
+UNREAD_REASONS = ('too_large', 'unreadable')
+
 
 class ScanTally:
   """Reconciling counters for one scan: every handed path lands in exactly one bucket."""
 
   def __init__(self):
     self.scanned = 0
-    self.skipped = 0
+    self.unread = dict.fromkeys(UNREAD_REASONS, 0)
     self.dropped = dict.fromkeys(DROP_REASONS, 0)
 
   def drop(self, reason):
     self.dropped[reason] += 1
 
   def accounted(self):
-    return self.scanned + self.skipped + sum(self.dropped.values())
+    return self.scanned + sum(self.unread.values()) + sum(self.dropped.values())
 
 
 def _in_skipped_dir(rel_path):
   return any(is_skipped_dir(part) for part in rel_path.split('/')[:-1])
 
 
-def _escapes_root(root_prefix, abs_path):
-  """True when a listed path is not PROVABLY inside the scan root.
+def _contained_path(root_prefix, abs_path):
+  """The RESOLVED path when it is provably inside the scan root, else None.
 
-  Absolute entries and `..` segments are the ordinary cases. The guard is there for
+  It hands back the resolved string rather than a yes/no because containment was
+  decided on `os.path.realpath(abs_path)` while `os.path.isfile` and `open` then ran
+  on the unresolved one. Two paths answering two questions about one entry is the
+  check-then-use window of CWE-367: swap the symlink between the two and the file
+  that was proved contained is not the file that gets read. Resolving ONCE and
+  carrying that result forward closes it, and makes the ordering rule below
+  structural instead of a comment somebody has to obey.
+
+  Absolute entries and `..` segments are the ordinary refusals. The try is there for
   a third: `os.path.realpath` raises ValueError on an embedded NUL byte, and that is
   REACHABLE, because `git diff --name-only -z` is NUL-separated, so its whole dump
   arrives as one read line carrying NULs. Unguarded, that killed the entire scan on
@@ -196,22 +240,26 @@ def _escapes_root(root_prefix, abs_path):
   cannot be shown to be contained, so it fails CLOSED into `paths_outside_root`
   alongside every other containment refusal rather than opening a fifth bucket.
 
-  THIS GUARD MUST STAY AHEAD OF THE `os.path.isfile` CALL in `_iter_listed_files`.
+  THIS RESOLUTION MUST STAY AHEAD OF THE `os.path.isfile` CALL in `_iter_listed_files`.
   isfile swallows the same ValueError and answers False, so putting it first would
-  move the abort to `paths_not_found` rather than remove it.
+  move the abort to `paths_not_found` rather than remove it. It now feeds isfile its
+  argument, so the order cannot be reversed by accident.
   """
   try:
-    return not (os.path.realpath(abs_path) + os.sep).startswith(root_prefix)
+    real = os.path.realpath(abs_path)
   except ValueError:
-    return True
+    return None
+  return real if (real + os.sep).startswith(root_prefix) else None
 
 
 def _iter_listed_files(root, config, tally):
   """Yield the listed paths that can be scanned; every other one lands in a drop bucket."""
   root_prefix = os.path.realpath(root) + os.sep
   for rel_path in sorted(config.only_paths):
-    abs_path = os.path.join(root, rel_path)
-    if _escapes_root(root_prefix, abs_path):
+    # `rel_path` stays the LISTED name past this point: findings, carve-outs and the
+    # caller's own diff list are all keyed on it, not on wherever a link resolved to.
+    abs_path = _contained_path(root_prefix, os.path.join(root, rel_path))
+    if abs_path is None:
       tally.drop('outside_root')
       continue
     if _in_skipped_dir(rel_path):
@@ -239,19 +287,30 @@ def _iter_walked_files(root, config):
 
 
 def iter_source_files(root, config, tally):
-  if config.only_paths:
+  # BRANCH ON WHETHER THE FLAG WAS SUPPLIED, never on whether the list came out
+  # non-empty. `--paths-from` pointing at an empty list, or at one whose every line
+  # the parser dropped, is a scope of zero paths and must scan zero files; reading
+  # it as "no list given" silently widened it to the whole tree.
+  if config.path_lines.supplied:
     return _iter_listed_files(root, config, tally)
   return _iter_walked_files(root, config)
 
 
 def read_text(abs_path):
+  """`(source, None)` when the file was read, or `(None, reason)` naming why it was not.
+
+  The reason is carried out rather than collapsed into a bare None because these two
+  cases used to share one counter with no way to tell them apart: a file over the size
+  ceiling (which the caller can fix by raising it, and which very often IS the cap
+  finding) and a file the decoder refused (permissions, binary, non-UTF-8).
+  """
   try:
     if os.path.getsize(abs_path) > MAX_BYTES:
-      return None
+      return None, 'too_large'
     with open(abs_path, encoding='utf-8', errors='strict') as handle:
-      return handle.read()
+      return handle.read(), None
   except (OSError, UnicodeDecodeError):
-    return None
+    return None, 'unreadable'
 
 
 def _finalize(raw, rel_path):
@@ -259,26 +318,27 @@ def _finalize(raw, rel_path):
 
 
 def scan_file(located, config):
+  """`(findings, None)` for a file that was read, `(None, reason)` for one that was not."""
   abs_path, rel_path, mode = located
-  src = read_text(abs_path)
-  if src is None:
-    return None
+  src, unread = read_text(abs_path)
+  if unread:
+    return None, unread
   ctx = FileContext(rel_path, src)
   bans = config.extra_bans if not is_test(rel_path) else []
   if mode == 'text':
-    return _finalize(ctx.run_text_only(config.max_file_lines, bans), rel_path)
+    return _finalize(ctx.run_text_only(config.max_file_lines, bans), rel_path), None
   raw = ctx.run_all(config.max_file_lines)
   if bans:
     raw.extend(ctx.check_extra_bans(bans))
-  return _finalize(raw, rel_path)
+  return _finalize(raw, rel_path), None
 
 
 def run_scan(root, config):
   findings, tally = [], ScanTally()
   for located in iter_source_files(root, config, tally):
-    result = scan_file(located, config)
-    if result is None:
-      tally.skipped += 1
+    result, unread = scan_file(located, config)
+    if unread:
+      tally.unread[unread] += 1
       continue
     tally.scanned += 1
     findings.extend(result)
@@ -288,8 +348,10 @@ def run_scan(root, config):
 def build_stats(config, tally, finding_count):
   """Two reconciles, one per stage, each published as a subtraction rather than asserted.
 
-  SCAN STAGE: `files_scanned + files_skipped + every paths_* bucket` MUST equal
-  `config.scoped_paths`, and `paths_unaccounted` is that subtraction.
+  SCAN STAGE: `files_scanned + every unread_* bucket + every paths_* bucket` MUST equal
+  `config.scoped_paths`, and `paths_unaccounted` is that subtraction. Balancing is not
+  the same as covering: an `unread_*` file balances the arithmetic and was checked by
+  nothing, which is why it is counted apart from both `files_scanned` and `paths_*`.
 
   PARSE STAGE: `config.scoped_paths + every lines_* bucket` MUST equal
   `config.listed_lines`, and `lines_unaccounted` is that one. The parse stage runs in
@@ -301,10 +363,15 @@ def build_stats(config, tally, finding_count):
   under-covering.
   """
   listing = config.path_lines
-  stats = {'files_scanned': tally.scanned, 'files_skipped': tally.skipped}
+  stats = {'files_scanned': tally.scanned}
+  stats.update({f'unread_{reason}': tally.unread[reason] for reason in UNREAD_REASONS})
   stats.update({f'paths_{reason}': tally.dropped[reason] for reason in DROP_REASONS})
   handed = len(config.only_paths)
-  stats['paths_unaccounted'] = handed - tally.accounted() if handed else 0
+  # Published only for a run that WAS handed a list. A whole-tree sweep hands none, so
+  # the subtraction would read negative rather than 0; the guard is on `supplied` and
+  # not on `handed` because a supplied-but-empty list is a real scope of zero paths,
+  # and hardcoding its reconcile to 0 is what hid the tree walk it used to become.
+  stats['paths_unaccounted'] = handed - tally.accounted() if listing.supplied else 0
   stats.update({f'lines_{reason}': listing.dropped[reason] for reason in PARSE_DROPS})
   stats['lines_unaccounted'] = listing.lines_read - listing.accounted()
   stats['findings'] = finding_count
@@ -316,9 +383,13 @@ def build_report(root, config, result):
   return {
     'schema_version': 1,
     'root': os.path.abspath(root),
+    # `path_list_supplied` is published because `scoped_paths: 0` alone cannot tell a
+    # whole-tree sweep from a scoped run handed an empty list, and a reader that guesses
+    # gets the two backwards: the first covers everything, the second covers nothing.
     'config': {'max_file_lines': config.max_file_lines,
                'extra_bans': len(config.extra_bans),
                'text_only_exts': list(config.text_exts),
+               'path_list_supplied': config.path_lines.supplied,
                'scoped_paths': len(config.only_paths),
                'listed_lines': config.path_lines.lines_read},
     'stats': build_stats(config, tally, len(findings)),
@@ -356,6 +427,12 @@ def main(argv):
   args = parse_args(argv)
   if not os.path.isdir(args.root):
     print(f'lawkeeper: not a directory: {args.root}', file=sys.stderr)
+    return 2
+  # A supplied `--paths-from` whose file is not there is the same silence as the empty
+  # list one line over: the run would scope to zero paths, scan nothing, and print a
+  # report indistinguishable from a clean one. Every real caller writes the list first.
+  if args.paths_from is not None and not os.path.isfile(args.paths_from):
+    print(f'lawkeeper: no such path list: {args.paths_from}', file=sys.stderr)
     return 2
   config = build_config(args)
   report = build_report(args.root, config, run_scan(args.root, config))

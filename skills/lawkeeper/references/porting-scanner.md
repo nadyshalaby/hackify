@@ -17,32 +17,51 @@ rule analogs).
 2. **Same output schema.** Emit one JSON object identical in shape to the bundled scanner so
    Phase 4 merges it uniformly:
    ```json
-   {"schema_version": 1, "root": "...", "config": {...},
-    "stats": {"files_scanned": N, "files_skipped": M, "paths_outside_root": 0,
-              "paths_in_skipped_dir": 0, "paths_not_found": 0, "paths_unsupported": 0,
-              "paths_unaccounted": 0, "lines_blank": 0, "lines_comment": 0,
-              "lines_duplicate": 0, "lines_unaccounted": 0, "findings": K},
+   {"schema_version": 1, "root": "...",
+    "config": {"...": "...", "path_list_supplied": false, "scoped_paths": 0,
+               "listed_lines": 0},
+    "stats": {"files_scanned": N, "unread_too_large": 0, "unread_unreadable": 0,
+              "paths_outside_root": 0, "paths_in_skipped_dir": 0, "paths_not_found": 0,
+              "paths_unsupported": 0, "paths_unaccounted": 0, "lines_blank": 0,
+              "lines_comment": 0, "lines_duplicate": 0, "lines_malformed": 0,
+              "lines_unaccounted": 0, "findings": K},
     "findings": [{"rule_id": "...", "category": "...", "severity": "...",
                   "confidence": "exact", "file": "rel/path", "line": 12, "end_line": 12,
                   "message": "...", "snippet": "...", "fixable": "manual"}]}
    ```
    The drop buckets and their two `*_unaccounted` subtractions are part of the shape, not optional
-   trim. **Inputs are lost in two separate places and each one needs its own accounting.** At the
-   scan stage, every path has to leave the iterator through exactly one counter, so
-   `files_scanned + files_skipped +` the four `paths_*` buckets must equal `config.scoped_paths`,
-   and `paths_unaccounted` publishes that subtraction. At the parse stage, before any of that runs,
-   the path LIST loses blank lines, comment lines and duplicates, so
-   `config.scoped_paths +` the three `lines_*` buckets must equal `config.listed_lines`, and
-   `lines_unaccounted` publishes that one. A generated scanner that omits either family can
-   under-cover a scan and still report clean. On a whole-tree run there is no path list, so every
-   bucket reads 0.
+   trim. **Inputs are lost in two separate places, and a third family says what was located and
+   never read.** At the scan stage, every path has to leave the iterator through exactly one
+   counter, so `files_scanned +` the `unread_*` buckets `+` the four `paths_*` buckets must equal
+   `config.scoped_paths`, and `paths_unaccounted` publishes that subtraction. At the parse stage,
+   before any of that runs, the path LIST loses blank lines, comment lines, duplicates and
+   malformed lines (a bare `.` or `./` carries no path), so `config.scoped_paths +` the four
+   `lines_*` buckets must equal `config.listed_lines`, and `lines_unaccounted` publishes that one.
+   A generated scanner that omits either family can under-cover a scan and still report clean.
 
-   **And a subtraction is not enough on its own.** `lines_unaccounted` reads 0 for a list carrying a
-   blank, a duplicate and a comment, because those drops are bucketed and the arithmetic balances
-   perfectly while three of four inputs vanish. A reconcile that subtracts known buckets proves
-   nothing about whether those buckets should have been hit at all. A caller that needs its exact
-   list scanned must compare `config.listed_lines` against `config.scoped_paths` directly, which is
-   what check `[80b]` in the hackify repo does.
+   **Three families, and they must not share a name prefix**, because consumers sum drop buckets by
+   prefix. `unread_*` is separate for that exact reason: it counts files that were located, were in
+   scope, and had no rule run against them (past the size ceiling, or undecodable), and folding
+   them under `paths_*` puts them straight into every caller's "covered" total. That is not a
+   hypothetical, it is how a readable 2.3MB file 400x over the line cap once reported as a clean,
+   perfectly balanced scan. A `paths_*` drop can be normal (the diff deleted the file, the
+   extension is unsupported); a non-zero `unread_*` never is.
+
+   **And a subtraction is not enough on its own.** This is the PARSE stage's problem specifically.
+   `lines_unaccounted` reads 0 for a list carrying a blank, a duplicate and a comment, because
+   those drops are bucketed and the arithmetic balances perfectly while three of four inputs
+   vanish. A reconcile that subtracts known buckets proves nothing about whether those buckets
+   should have been hit at all, and in a `--name-only` dump none of them should. A caller that
+   needs its exact list scanned must compare `config.listed_lines` against `config.scoped_paths`
+   directly, which is what check `[80b]` in the hackify repo does. The SCAN stage is the other way
+   round: `paths_not_found` and `paths_unsupported` are expected on a real diff, so there the
+   subtraction, plus a non-zero `unread_*`, is what you read.
+
+   **Scoping is the flag, not the list length.** `path_list_supplied` records whether the paths
+   flag was passed at all. A whole-tree run has no path list, so every `paths_*` and `lines_*`
+   bucket reads 0 and `scoped_paths` reads 0; a scoped run handed an EMPTY list also reads 0 and
+   must scan nothing. Branch on the flag, never on the emptiness of the list, or a zero-path scope
+   silently becomes a whole-tree walk. `unread_*` still counts in both modes.
 3. **False-positive discipline.** Mask comments and string literals before matching code-construct
    bans, exactly as `lexer.py` does, a ban hiding in a string or comment must NOT match. Only
    emit `confidence: exact` for checks that are truly exact; mark anything heuristic as such.

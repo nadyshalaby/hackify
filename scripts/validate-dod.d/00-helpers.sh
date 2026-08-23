@@ -16,11 +16,19 @@ yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
 # lines carrying the "  ok   " verdict prefix count: "ALL CHECKS PASSED" is a
 # summary, not a check, and must not pad the number that polices the summary.
 #
-# IT IS THE SHELL-SIDE TOTAL, AND THAT IS THREE BELOW THE TRANSCRIPT. [57] and
-# [85] delegate to scripts/check_doc_links.py and scripts/check_design_specs.py,
-# which print their own ok lines in validator format without passing through
-# here, so a `grep -c` over the output reads three higher than this counter.
-# Measured, not assumed: 1401 ok lines in the transcript against 1398 here. The
+# IT IS THE SHELL-SIDE TOTAL, AND THAT SITS BELOW THE TRANSCRIPT BY THE NUMBER OF
+# DELEGATED INVOCATIONS, WHICH IS NOT THE NUMBER OF CHECKERS. [57] and [85]
+# delegate to scripts/check_doc_links.py and scripts/check_design_specs.py, which
+# print their own ok lines in validator format without passing through here. Two
+# checkers, but THREE ok lines on a built tree, because [57] runs the doc-link
+# checker twice, once over the source tree and once over dist/claude-code. Where
+# dist/ has never been synced that second run prints `skip` and the gap is 2, so
+# the gap is a property of the tree, not a constant.
+# Measured, not assumed: 1400 ok lines in the transcript against 1397 here, from
+# one run on a built tree. TAKE BOTH HALVES FROM ONE RUN OF YOUR OWN and never
+# adjust one against a number quoted from somewhere else. Four separate parties
+# reported this pair during one review round (1396, 1395, 1393, 1397), each
+# measuring a different tree state and each quoting the last. The
 # gap is safe to leave because both fragments test the checker's EXIT STATUS and
 # raise FAILED themselves, so a delegated check that stops running fails loudly
 # rather than quietly shrinking the run. Counting their stdout instead would mean
@@ -73,26 +81,51 @@ check_jq() {
 #
 # The rationale sits above the function rather than inside it, matching
 # check_list_size, ban_tokens_ok and check_no_tokens_in below, and keeping the
-# body inside the 40-line cap it would otherwise breach by one.
+# body inside the 40-line cap it would otherwise breach by one. The three blocks
+# that follow used to sit inside it and moved out here for the same reason.
+#
+# -I SKIPS BINARY FILES: Python bytecode (__pycache__/*.pyc) embeds absolute
+# source paths that would otherwise be counted as personal-handle or leaked-path
+# hits.
+#
+# /usr/bin/grep BY ABSOLUTE PATH, matching check_no_tokens_in below: this function
+# IS that function's fallback, so the two must be one binary and not two
+# resolutions. See the comment above check_no_tokens_in for which shell resolves
+# bare grep to what. THE ABSOLUTE PATH IS SCOPED TO THIS PAIR, and the rest of
+# this file uses bare `grep` on purpose. The claim used to read as if it covered
+# the whole file, which it never did (check_token_present and check_role below are
+# both bare). The line is WHICH WAY A WRAPPER FAILS YOU. Here a grep that honours
+# ignore files skips a file and the ban prints GREEN over content it never read,
+# so the matcher has to be pinned. In a presence check a skipped file makes a
+# token that IS there look missing, which is a RED, loud and immediately
+# investigated. Pin the matcher where a wrapper buys a false pass, not where it
+# buys a false alarm.
+#
+# TWO WAYS TO READ THE COUNT, AND THE CHEAP ONE IS NOT SAFE EVERYWHERE. On a
+# single FILE grep emits exactly one count line, so the shell reads it with one
+# parameter expansion and no fork at all. On a DIRECTORY `grep -rc` emits one
+# `file:count` line per file and those counts have to be SUMMED, which is the only
+# thing awk is still here for: the same expansion applied to a directory returns
+# one file's count and drops the rest, so spending the saving everywhere would
+# manufacture a false green while fixing a performance problem. THE FAST BRANCH
+# IS THE HOT ONE, counted rather than assumed: this function is the per-token
+# fallback under check_no_tokens_in and runs 4,229 times in
+# scripts/test_ban_tokens.sh, ALL of them over a single file, so dropping the fork
+# there took that suite from 15.7s to 8.2s on one machine. The validator itself
+# makes 24 of these calls, 12 per branch, which is why leaving awk on the
+# directory side costs nothing worth measuring.
+#
+# BOTH FORMS STRIP TO THE LAST COLON, because a filename may contain one.
+# `${out##*:}` is greedy, and `$NF` is the last field, so `weird:name.md:3` reads
+# as 3 in either branch. awk used to sum `$2`, which on that filename is `name.md`
+# coercing to 0, a false green nothing had caught because the scanned trees hold
+# no such filename today. The expansion carries a second job: BSD grep prefixes
+# `path:` even for a single named file while GNU grep does not, so it is a no-op
+# on one platform and the fix on the other, and neither has to be detected.
 check_no_token() {
   local token="$1"
   local path="$2"
   local count out rc
-  # -I skips binary files: Python bytecode (__pycache__/*.pyc) embeds absolute
-  # source paths that would otherwise be counted as personal-handle/leaked-path hits.
-  # /usr/bin/grep by absolute path, matching check_no_tokens_in below: this
-  # function IS that function's fallback, so the two must be one binary and not
-  # two resolutions. See the comment above check_no_tokens_in for which shell
-  # resolves bare grep to what.
-  #
-  # THE ABSOLUTE PATH IS SCOPED TO THIS PAIR, and the rest of this file uses bare
-  # `grep` on purpose. The claim used to read as if it covered the whole file,
-  # which it never did (check_token_present and check_role below are both bare).
-  # The line is WHICH WAY A WRAPPER FAILS YOU. Here a grep that honours ignore
-  # files skips a file and the ban prints GREEN over content it never read, so the
-  # matcher has to be pinned. In a presence check a skipped file makes a token that
-  # IS there look missing, which is a RED, loud and immediately investigated. Pin
-  # the matcher where a wrapper buys a false pass, not where it buys a false alarm.
   out=$(/usr/bin/grep -rcFiI -- "$token" "$path" 2>/dev/null)
   rc=$?
   if [ "$rc" -gt 1 ]; then
@@ -100,7 +133,11 @@ check_no_token() {
     FAILED=$((FAILED + 1))
     return
   fi
-  count=$(printf '%s\n' "$out" | awk -F: '{s+=$2} END {print s+0}')
+  if [ -f "$path" ]; then
+    count=${out##*:}
+  else
+    count=$(printf '%s\n' "$out" | awk -F: '{s+=$NF} END {print s+0}')
+  fi
   if [ "$count" -eq 0 ]; then
     green "  ok   '$token' has 0 occurrences in $path"
   else
