@@ -393,6 +393,26 @@ README landed at **exactly 450**, paid for by merging the two remaining 0.13.0 b
 
 `orchestration.md` turned out to be worse than either agent that flagged it reported: it states the Phase 2.5 reviewer count FOUR times and gives THREE different numbers. `:19` "single spec reviewer" (correct), `:23` "2 spec reviewers", `:31` "(2 spec reviewers, a 2-task wave)", `:121` "Three spec reviewers are a flat parallel batch and always were". Two of those use the count as the worked EXAMPLE of when a flat parallel batch is the right shape, so the fix is not a number swap: one reviewer is not a batch, and the example stops making its point. Also `phase-5-escalation.md:3` "the four baseline Phase 5 reviewers", where T16 was explicitly told that leaving it with a written reason is an acceptable outcome, since as a roster statement it may still be accurate.
 
+### 2026-08-23, T16 landed, and found a FOURTH silent-measurement trap
+
+Five edits to `orchestration.md`, one to `phase-5-escalation.md`. `:19` was not on my list and carried the same "four-to-five reviewers" falsehood as `:25`, so T16 fixed it rather than leave the file contradicting itself on the fact it was sent to settle.
+
+**The judgment I most wanted and got:** `:31` and `:121` used the spec-reviewer count as the worked EXAMPLE of when a flat parallel batch is the right shape. Swapping the number would have killed both paragraphs, since one reviewer is not a batch of anything. T16 moved both to Phase 1 research agents ("one agent per question", per `template-contract.md:11`), which is genuinely independent and same-shaped. It then deliberately did NOT use an implementation wave at `:121`, because `:32` nine lines above `:31` already names a wave as the canonical PIPELINED example; `:31` survives with "a 2-task wave" only because `:32`'s qualifier sits next to it, and `:121` has no such neighbour. That is reading the argument, not the sentence.
+
+**On `:25` it removed the count entirely** rather than widening it to "1-5": the row sizes a fan-out for the orchestration tier, and the tier answer is identical at 1 reviewer and at 5, so the number buys nothing and can only go stale. This closes the loop T7 opened when it dropped that pin rather than cement a number it believed wrong.
+
+**On the escalation line it changed its mind with evidence and deleted ONE word.** I told it that leaving the line with a written reason was acceptable. It judged the sentence instead of pattern-matching it, found that "escalates beyond the four" carries the count reading rather than the roster reading, and corroborated against the authority the file points back to: `phase-5-review.md:84` words escalation as "Beyond the gate table", with no count. Deleting "four" was the smallest correct fix. It explicitly considered adding cap-of-5 prose and rejected it as manufacturing a change.
+
+### FOURTH VERIFICATION GOTCHA: a pipe swallows the exit code
+
+T16's first unit-suite capture ran `cmd | tail -3; echo $?`, which reports **`tail`'s** exit status, not the command's. A failing suite would have printed 0. It re-captured without the pipe.
+
+It also **ran a positive control on its own ban scan**, on the grounds that an all-zero result is indistinguishable from a scan that measured nothing. That is now the standing lesson of this sprint: **four separate times, a check has silently measured nothing and looked clean.** Recursive grep skipping `dist/`, a check phrase matching correct text as a prefix, zsh not word-splitting a file list, and a pipe swallowing an exit code. Every one was caught by an agent verifying its own verification rather than trusting a pass.
+
+**Follow-up it raised, dispatched as T17:** `skills/quick/SKILL.md` carries the identical "four-to-five" falsehood in TWO places, and the trap is that `:3` is the frontmatter `description`, which sits OUTSIDE the fenced block and which `[75h]` structurally cannot see. That is exactly the blind spot T7's tamper proof was built to expose, and it is the line an orchestrator reads when deciding what quick mode costs.
+
+**One considered non-change T16 recorded so the next sweep does not reopen it:** `:23`'s column header reads "What fans out" over a cell now saying "1 spec reviewer", a fan-out of one. Pre-existing framing, shared by `:19`, which my brief had blessed as correct.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
