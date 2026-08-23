@@ -2917,6 +2917,169 @@ between shell-side and transcript is actually **2**, because each Python checker
 line. Three reviewers and I all touched this number and the recorded value was wrong until the
 refuter counted it.
 
+## 7x. Fix wave group 2, and a brief of mine that was wrong on BSD
+
+**G2-T1, the privacy scan. Fixed, with RED and GREEN both measured.**
+
+```
+RED  : planted /Users/corecave/Code/hackify in .claude-plugin/leak.md, chmod 000
+       -> ok 0 absolute /Users/corecave/ paths in shipped content
+       -> ALL CHECKS PASSED, exit 0, zero red lines in the entire run
+GREEN: same tamper
+       -> FAIL '/Users/corecave/' was never screened in .claude-plugin/, grep exited 2
+       -> exit 1
+       readable control -> FAIL '/Users/corecave/' has 1 occurrences
+```
+
+Now a loop calling `check_no_token` **singular**, one path per call, so
+`30-inventory-pins.sh:25`'s inventory of the batched form still counts 3 shipped batched call sites.
+
+**G2-T2, the untested fail-closed branches. Now tested, and the RED was established by reverting the
+real fix rather than by a synthetic stand-in.** Three independent drills, each of which previously
+left the suite at `112 passed, 0 failed`:
+
+```
+revert 00-helpers.sh:98  alone -> 115 passed,  6 failed
+revert 00-helpers.sh:261 alone -> 120 passed,  1 failed
+revert both                    -> 113 passed,  8 failed
+final state                    -> 124 passed,  0 failed, twice in a row
+```
+
+`tb_make_unreadable` proves the mode actually took rather than assuming it, which is the same
+discipline as the `tampered=YES/NO` guard that has stopped eleven false conclusions this sprint. And
+`TB_FAILCLOSED` plus `tb_check_failclosed_total` pin that the cases ran at all: deleting the call
+drops the suite to exactly 112 and reddens. **A test that can be silently skipped is the same defect
+as a check that measures nothing**, and this wave closed that door in the same motion.
+
+**G2-T3, the awk-per-token fix. My brief was wrong and the agent corrected it.**
+
+I passed on D's constraint as "the shell trim is correct only on the single-file path". That premise
+does not hold: **BSD `grep -rc` prefixes `path:` even for a single named file**, so a bare-count trim
+would have read the whole line. The correct fix is `count=${out##*:}`, which is a no-op on GNU's bare
+count and the actual repair on BSD's prefixed one, with no platform detection anywhere.
+
+```
+suite         15.747s -> 8.154s / 8.250s      clean worktree 15.838s/16.124s -> 8.307s
+awk spawns    4,229 measured, all 4,229 on the single-file branch
+validator      24 calls, 12 per branch, which is why keeping awk for directories costs nothing
+revert drill  forcing every call back through awk -> 124 passed, 0 failed, identical verdicts
+```
+
+That last line is the right proof for a performance change: the two branches agree on all 124
+assertions, so the speedup bought nothing in correctness.
+
+**G2-T4, the colon-filename miscount. Fixed with `awk -F: '{s+=$NF}'`, and the test is sharper than
+the finding.** `tb_case_colon_filename` plants a real hit in `weird:name.md` and passes **the
+directory**, not the file, because the file would take the `${out##*:}` branch and pass even with the
+bug restored, making the case a tautology. Only a directory reaches awk.
+
+```
+RED  : restore s+=$2 -> 122 passed, 2 failed
+       "a hit inside a colon-carrying filename reddens instead of summing to 0:
+        printed its verdict but FAILED did not move (5 -> 5)"
+GREEN: 124 passed, 0 failed
+```
+
+The agent also kept `TB_MISCOUNT` counted separately from `TB_FAILCLOSED` rather than folding them,
+on the grounds that a count never taken and a count read wrong are different defects and a merged pin
+would go green with either case missing. That is the correct instinct and it is this sprint's rule
+applied to its own test harness.
+
+**A non-finding it refused to raise, correctly.** shellcheck reports SC2034 on the new cross-fragment
+counters. Eleven existing variables trip the same rule, shellcheck gates nothing here, and a
+`disable` directive would be a banned lint suppression. Recording it so nobody re-raises it.
+
+**Carried follow-up.** The new cases hang off `tb_case_green_path` because the run order and
+`TB_WIRING` live in `scripts/test_ban_tokens.sh`, outside this group's allowlist. A later wave owning
+the driver should move them into the run order and add their names to `TB_WIRING`. Defensible on
+merit in the meantime, since an unreadable path genuinely is a green-by-measuring-nothing case.
+
+**Cross-group signal to act on.** Running the full tree with the other agents' in-flight work,
+group 2 measured `139 passed, 0 failed` but hit one validator failure that is not its own:
+**`test_audit.py is 637 LOC`, over the 500-line hard cap.** That is group 1's file. It must be split
+before this wave can be green.
+
+## 7y. Fix wave group 1, the fifteenth instance closed, and two declared allowlist breaches
+
+**The single clearest piece of evidence in the sprint**, the same 2.4MB file 400x over the cap, old
+doc and old scanner against new:
+
+```
+OLD: 1/1 paths accounted, 0 unaccounted        <- a file nothing ever opened, called covered
+NEW: scan:  0/1 paths READ, 0 dropped, 0 unaccounted
+     unread: 1 file(s) located but never opened. Never covered, in any mode.
+```
+
+**G1-T1.** New counter family `unread_too_large` / `unread_unreadable`, deliberately not named
+`paths_*` so the prefix-sum idiom cannot fold it back into "covered", with the reason written beside
+`UNREAD_REASONS` in the code rather than only here. **`files_skipped` is gone entirely**, which is
+the right call: a bucket whose only consumers folded it into coverage was the defect, not a victim of
+it. `read_text` and `scan_file` now return `(value, reason)`.
+
+**G1-T2.** `PathListing.supplied` records the flag as `path is not None`, **never truthiness**, so
+`--paths-from ''` still counts as supplied. `main` now exits 2 on a supplied-but-missing list file
+rather than scanning nothing and reporting clean. Before: `scoped_paths 0, files_scanned 4,
+findings 4`. After: `files_scanned 0, findings 0`.
+
+**G1-T3.** `_escapes_root` became `_contained_path`, resolving once and handing the resolved path to
+both `isfile` and `open`. The "containment must stay ahead of isfile" rule is now structural instead
+of a comment that a later edit could quietly violate.
+
+**G1-T4.** Fourth parse bucket `lines_malformed`, catching `./` and a bare `.`. The bare `.` matters
+more than the reported case: `find .`, the format the parser's own docstring names, emits it as its
+first line.
+
+**G1-T5.** Both reconcile docs now carry the same three statements split by stage, and the law-scout
+snippet no longer computes `covered` at all. The agent extracted the snippet verbatim from the doc
+and ran it against four real reports (huge, empty, mixed, whole-tree). Running the documentation
+rather than trusting it is the right standard for a doc that exists to be copied.
+
+**G1-T6 and G1-T7 are HALF-LANDED, and the agent said so rather than claiming them.** The carve-out
+rows are written and labeled "Agreed, and NOT yet wired into `exemptions.py`", because that file sat
+outside every allowlist this wave. **The eight false positives still stand.** The agent deliberately
+kept the rows out of the "enforced by the scanner" table on the grounds that a doc claiming
+enforcement it does not have is the same defect G1-T5 just fixed. That is exactly right, and it
+leaves me a gap to close.
+
+The append-only waiver is written mechanically (exact basenames, waived from `cap.file-lines` only,
+exempt from the cap but never from the scan, list carries its own length so stale entries surface)
+and matches the `CAP_APPEND_ONLY` / `CAP_APPEND_ONLY_EXPECTED=1` group 3 landed independently.
+
+### Two declared allowlist breaches, both justified, one worth watching
+
+1. **New file `test_scoping.py`.** `test_audit.py` was at 493 of a 500-line cap before the wave, and
+   the six required tests measured ~91 lines, so tests-required and cap-required could not both hold
+   in one file. Split at the existing seam; `python3 skills/lawkeeper/scripts/test_audit.py`, the
+   command CI and the docs name, is unchanged and reports 50/50. **This also resolves the
+   `test_audit.py is 637 LOC` failure group 2 hit in the shared tree**, which was this split
+   mid-flight.
+2. **`scripts/sync-runtimes.d/00-helpers.sh`, one line added to `MIRROR_SOURCES`.** Forced by the
+   first: check `[55]` fails on any unmanifested `skills/` file, and the agent has the red output. It
+   flagged this as the one line I should eyeball, since it is a genuine collision surface. It was not
+   in any other group's allowlist, so no collision occurred.
+
+A brand-new path cannot collide with a concurrent agent, which is precisely the risk an allowlist
+exists to manage, so breach 1 is sound on the allowlist's own logic rather than in spite of it.
+
+### Verification reported
+
+```
+python3 skills/lawkeeper/scripts/test_audit.py       -> 50/50 passed (44 before, 6 new)
+python3 skills/lawkeeper/evals/corpus/run_corpus.py  -> PASS, 10/10 markers, 0 false positives
+bash scripts/validate-dod.sh                         -> ALL CHECKS PASSED
+[80b] replayed by hand                               -> "1 1 1 0 271" and "1 1 1 0 0", unchanged
+```
+
+### Follow-ups this wave created
+
+- **`exemptions.py` still lacks `clean.removed-comment` and `clean.debt-marker` in `_TEST_WAIVED`
+  and knows nothing about the append-only waiver.** Decisions #27-A and #28-A are half-delivered
+  until that lands.
+- `80-file-size-caps.sh:98-100` and `:178-180` now carry **stale prose** saying an empty or unwritten
+  path list makes the scanner walk the whole tree. G1-T2 killed that behaviour. Comment rot only, the
+  check still passes, but it is exactly the class of stale claim this sprint keeps finding.
+- `bash scripts/sync-runtimes.sh` still owed, so `test_scoping.py` reaches `dist/`.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
