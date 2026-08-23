@@ -431,7 +431,24 @@ This is the sprint's own theme one level up, and it is why the wave-end sync gua
 
 ### Evidence Ledger (Phase 4)
 
-_(filled during Phase 4)_
+Every row run fresh on the settled tree at commit `54b56de`. No row is a memory or a summary.
+
+| AC | Evidence | Verdict |
+|---|---|---|
+| 1. Degrade inside the Claude Code cell | Extracted the `\| todo tracker \|` row: cell reads `` `TodoWrite` when the session exposes it; it is gated and frequently absent, so fall back to printing the ledger in chat at every phase boundary, plus the work-doc's `## 0. Phase ledger` block `` | PASS |
+| 2. `always-on injection` row + counts | Row count 1. `:5` "12 abstract primitives", `:7` "## The 12 primitives". `:53` "first 8 primitives" and `:93` "eight load-bearing" BOTH still true (verified `todo tracker` is 8th of 12, new row appended last). `README.md:297` reads 12. | PASS |
+| 3. Substrate section + corrected assumptions | `phase-ledger.md:20` `## Substrate (where the ledger actually lives)`. Resume reads the ledger back in both `phase-ledger.md` and `SKILL.md`. | PASS |
+| 4. `## 0. Phase ledger` in template | `work-doc-template.md:27`, anchored heading. | PASS |
+| 5. Rules file, 4th hook entry, three laws | `hooks.json` parses, **4** UserPromptSubmit entries, `phase-discipline` registered. All three laws present in bold-bullet form. | PASS |
+| 6. Wizard bullet PROVABLY survives turn 2 | **Live two-turn injector run on a fresh session id.** Turn 2 returns the pointer; wizard token present; carve-out present; refuse-to-advance present. Not a static grep. | PASS |
+| 7. Six phase files, ledger at open AND exit | All six return open=1 exit=1. `phase-2.5-spec-review.md` and `phase-3-implement.md` went from zero mentions at every prior commit. | PASS |
+| 8. Canonical sentence verbatim in both files | Present once in each. **md5 of the extracted line is identical in both: `28ea25df872c7172a0b31ceee482f062`.** The two contradicting `SKILL.md` lines return 0. | PASS |
+| 9. Validator fails if the contract is removed | **Live tamper on the real tree: reverted the Claude Code cell to a bare `` `TodoWrite` ``, the ORIGINAL bug.** Validator exit 1 with `FAIL the '\| todo tracker \|' row names a tool with no degrade; the ledger vanishes and nothing in the table tells the model to fall back`. Restored from git, exit 0, zero FAIL. **The guard catches the exact defect the user reported.** | PASS |
+| 10. 7 runtimes, release recorded | All 7 `dist/` trees present. Source and BUILT manifests both `0.14.0`. README badge `0.14.0`, README at exactly 450 of its 450 cap. CHANGELOG top entry `## [0.14.0] - 2026-08-23`. `phase-discipline.md` in all 6 mirroring runtimes (copilot-cli is MANIFEST-only by design). All 9 agent mirrors byte-identical. | PASS |
+
+**Triad, run last on the settled tree:** `validate-dod.sh` exit 0 / zero FAIL. `test_inject_context.sh` 29/29. `test_block_banned_tokens.sh` 41/41. `test_audit.py` 28/28.
+
+**Ship gate.** This plugin has no build, no server and no runnable app: it is markdown, shell validators and Python helpers, installed by copying a tree. `ship.build` is satisfied by `sync-runtimes.sh` producing all 7 runtime trees (786 files, exit 0). `ship.boot` has no target, and is recorded as **skipped with reason** rather than silently absent: there is no process to start. `ship.smoke` is the live two-turn injector run in AC6 plus the AC9 tamper, which together exercise the actual runtime path a user hits (hook fires, digest is built, guard catches a regression).
 
 ### Scope ledger (Phase 5)
 
