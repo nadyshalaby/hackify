@@ -3376,6 +3376,48 @@ the agent's own changes constant, because the sibling was still landing the four
 worth recording that a wave running two agents over one repo can produce a red that belongs to neither
 agent's diff.
 
+## 7ae. Fix group A: the rule was at six sites, and my count of four was an artifact of how I looked
+
+**The number in the brief was wrong and the agent found the missing two.** F cited three stale sites
+plus the amended one. The real figure is six. The two extras state the same universal in different
+words, so neither `grep "prefixed"` nor `grep "FULL round"` reaches them:
+
+- `review-scope.md:48`, "Every reviewer echoes the value it received", in the very file that carries
+  the amendment, about seventy lines above the gate it contradicts
+- `phase-5-review.md:35`, "Every reviewer echoes the scope it received as its report's first line"
+
+I had been warned to check whether F's list was a sample, and I checked with a `grep` on the literal,
+which is the one method that cannot see a paraphrase. My four was not a count of the sites; it was a
+count of what my search could see. That is the same error as the coverage script in 7aa, three hours
+apart: **an instrument that silently drops what it cannot parse reports the same clean number as one
+that read everything.** The sprint's rule keeps arriving in the tooling rather than the artifact.
+
+All six now carry the scoped wording, and the gate reads B's `Round: settle` marker instead of reading
+B's silence as coverage.
+
+**`[76h]` is the un-recurrence mechanism**, built on `[76g]`'s own `pls_x_assert` rather than beside
+it: discovered file set, `grep -oF` and never `-c`, never `-E`, absolute `/usr/bin/grep`, and the grep
+status checked so an unreadable root reddens instead of counting zero. Four tampers, all
+`diff`-confirmed to have actually landed. Tamper B is the one that matters: it ADDS a fifth file
+carrying the wording and the check reddens, because a pin that only catches deletion is half a pin and
+this rule's failure mode is a new site appearing, not an old one vanishing.
+
+**The marker is deliberately not a `{{...}}` input, and the reason is the task's own lesson.** B's
+eleven inputs are enumerated in `parallel-agents/README.md`, outside the allowlist, so adding a
+`{{round}}` placeholder would have manufactured exactly the two-site inconsistency this task exists to
+kill. The dispatcher names the round in the dispatch message and B echoes it, failing closed: no round
+named yields `Round: unnamed`, which the gate cannot accept.
+
+**The honest limitation, in the agent's own words:** "These are prose variants, so `[76h]`'s byte-exact
+pin cannot catch them; only the gate sentence itself is pinned." So `[76h]` guarantees the four literal
+sites stay in agreement and cannot see a seventh site written in new words, which is the failure that
+produced this task. Sent back for a recommendation on whether that gap is worth closing and how, with
+implementation deliberately withheld until the tradeoff is on the table.
+
+**One line it could not reach.** `scripts/validate-dod.sh:28` reads `checks [76]-[76g]` and is short by
+one; `:31` stops at `([76g])`. Nothing reddens, because `[76f]` checks fragment filenames and not check
+IDs, so the manifest simply under-describes its own fragment. Authorized as a one-file extension.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
