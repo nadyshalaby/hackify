@@ -2851,6 +2851,72 @@ copies were all fixed this sprint is how it survives to the next one.
 the batched multi-path form, because `test_ban_tokens.d/30-inventory-pins.sh:25` inventories the
 batched form and would break.
 
+## 7w. The batch refuter: twelve upheld, one escalated, and the fifteenth instance needs no chmod
+
+**All twelve upheld. None refuted.** One escalated to Critical on reachability the original reviewer
+never measured, and one of my own recorded numbers corrected for the third time.
+
+### Finding 1, ESCALATED to Critical, and reproduced here independently
+
+A filed this as an Important needing a mode-000 file. The refuter found the real trigger: **a plain,
+readable file over 2MB hits the same `read_text` return-`None` at `audit_scan.py:249`.** No `chmod`,
+no permissions games, nothing exotic. I reproduced it from scratch:
+
+```
+a readable 2.3MB .ts file, 200,000 lines, cap 500
+
+scoped_paths     : 1
+files_scanned    : 0
+files_skipped    : 1
+paths_unaccounted: 0
+findings         : 0      <-- a 400x cap violation, reported as nothing
+```
+
+The reconcile balances perfectly. `paths_unaccounted` reads 0. The documented formula folds
+`files_skipped` into `covered`, and `files_skipped` appears nowhere outside those two formulas
+(`law-scout.md:52`), so the caller is never told a file vanished.
+
+This is the **fifteenth instance**, and it is the one that most directly indicts my own work this
+round. In 7o I wrote that `files_scanned=69` is "the load-bearing number" and that a balanced
+reconcile over an empty scan would be worthless. That was right as far as it went, and still not
+enough: `files_scanned` counts what was read, not what should have been. My settle-round scan
+happened to be clean because `files_skipped` was 0, which I noted but did not treat as the assertion
+it needed to be. **The correct assertion is `files_skipped == 0`, not just `files_scanned > 0`.**
+
+### Finding 2, UPHELD at Critical: the sprint's headline fix is untestable-by-omission
+
+The refuter reverted `00-helpers.sh:98` alone, `:261` alone, and both together. **All three left
+`112 passed, 0 failed` and `44/44 passed`, identical to baseline.** Zero occurrences of `chmod` or
+`000` in either suite. The fix that this entire sprint is named after can be silently reverted and
+every test stays green.
+
+### The rest
+
+| # | Verdict | The part that matters |
+|---|---|---|
+| 3 | UPHELD (Important) | Tamper printed `ok every channel version equals plugin.json (0.14.2)` while (a) and (b) reddened, `FAILED=2` |
+| 4 | UPHELD (Important) | Zero test references to `DOD_OK_COUNT`, `DOD_WIRING_BAD`, `[0b]` |
+| 5 | UPHELD (Important) | **Corrects me again**: transcript is **1395**, not 1396. See below. |
+| 6 | UPHELD (Important) | 0 changelog hits for `[0]`, `[0b]`, `71-*`, `79-*`, while the same entry documents `[76g]`/`[80b]` at paragraph length |
+| 7 | UPHELD (Important) | Real contradiction: `law-scout.md:64`'s "normal and expected" covers only the scan-stage buckets; `porting-scanner.md:40-45` concerns the parse stage, where a blank or duplicate line in a `--name-only` list is **not** normal |
+| 8 | UPHELD (Important) | 4,229 awk spawns **exact**; 15.70s to 8.10s. Constraint confirmed below. |
+| 9 | UPHELD (Minor, latent) | Coercion real (0 counted over 2 hits), but zero colon filenames repo-wide, so not currently triggerable |
+| 10 | UPHELD (Minor) | `:204` realpath against `:220` isfile and `:251` open, all on the unresolved path |
+| 11 | UPHELD (Minor) | `./` admitted, lands in `paths_not_found: 1`, all `lines_*` zero |
+| 12 | UPHELD (Minor) | `section_body()`, one definition, zero callers including `dist/`, byte-identical at `dabc333:73` |
+
+**Finding 8's constraint is now proven, not assumed.** D said the shell trim must not be applied to
+the directory call sites. The refuter measured it: for `"You are"` under `skills/`, awk yields 35 and
+the shell trim yields **0**. Applying the "obvious" optimization everywhere would have manufactured a
+false green while fixing a performance problem. That is the sprint's own defect class waiting inside
+its own fix, and it was one measurement away from landing.
+
+**Finding 5, my number was wrong for the third time.** B said 1396, F corroborated the shape, I
+recorded 1396 in this doc and told the user 1396. The transcript is **1395**. The claimed gap of 3
+between shell-side and transcript is actually **2**, because each Python checker prints exactly one
+line. Three reviewers and I all touched this number and the recorded value was wrong until the
+refuter counted it.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
