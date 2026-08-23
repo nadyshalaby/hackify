@@ -3202,9 +3202,42 @@ on a question nobody asked.
 
 ### Outstanding
 
-- No `CHANGELOG.md` bullets for groups 1 and 2 or for the carve-outs, because that file sat in one
-  allowlist alone all wave. Reviewer B's plan lens checks exactly this.
-- The work-doc's own coverage table, still the last upheld Critical.
+Both items that stood here are now closed, in `80a2004` and `73c7bff`. Kept as a record of what was
+open rather than deleted, because the fix is only interesting next to the gap it filled.
+
+- ~~No `CHANGELOG.md` bullets for groups 1 and 2 or for the carve-outs, because that file sat in one
+  allowlist alone all wave. Reviewer B's plan lens checks exactly this.~~ Four bullets added in
+  `73c7bff`, into the existing `[0.14.2]` entry with no version bump, since the release is deferred.
+  The append-only carve-out turned out to be documented already, inside the repo-root cap bullet, so
+  only three of the four were genuinely missing.
+- ~~The work-doc's own coverage table, still the last upheld Critical.~~ Closed in `80a2004`.
+
+## 7aa. The confirmation round, and a measuring script of mine that dropped 27 paths
+
+The fix wave moved 17 of the 69 ledger paths, so under the carry-over law their verdicts died and the
+settle round could no longer be called FULL on its own terms. B and F were dispatched again, both in
+one message. Not the whole panel: A and D hold live verdicts on every path they covered, and E has no
+UI-bearing diff to read in a repo that ships no UI. Their residual checklists went to B, which is what
+the folded-lens rule is for.
+
+F was dispatched for a reason stronger than the ledger. The fix wave changed producers and consumers
+**in separate agents, three times**: the scanner's stat keys against the docs that carry its
+reconciliation snippet, the append-only set against the shell check that now imports it, and the
+scope-echo rule against every reviewer prompt that consumes it. That is the blind-parallel condition F
+exists to catch, and it is the second round in a row where it was present. F also got the
+`task_file_index` and `work_doc_path` it was under-briefed without last time, so its same-wave seam
+ordering can actually run; B got the `{{metrics_table}}` whose absence made it count every cap by hand.
+
+**The sixteenth instance, and this one was mine.** Re-measuring the coverage table with a script I
+wrote on the spot, I got 27 uncovered paths out of 73 and very nearly reported that the table had
+rotted again. It had not. My extraction paired backticks with `` `([^`]+)` ``, and on rows where the
+Files column holds several backtick-quoted paths in a row the pairing walks off by one and starts
+matching the **gaps between** paths instead of the paths. The tell was in the output I had already
+printed: the rejected-token list held fragments like `' | pre-declared | '`, which is table scaffolding,
+not a commit hash. A path-shaped regex gives 73 listed, 0 uncovered. The rule the sprint keeps
+relearning held again, and this time the silent filter was in the instrument rather than the artifact:
+a script that drops what it cannot parse reports the same clean number as one that parsed everything.
+The re-measure paragraph above already says to print the rejected tokens. It says so because of this.
 
 ## 8. Retrospective
 
