@@ -208,8 +208,14 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 
 ### Wave 20, wizard decision #18-A, the law scout's dotfile blind spot
 
-- [ ] **T56.** `load_paths_from` normalises with `lstrip('./')`, which strips a character set rather than a prefix, so every dot-directory path is mangled into one that does not exist and then dropped by a `continue` that moves no counter. Fix the normalisation and make the drop paths reconcile against `scoped_paths`, so the scanner can never again report a clean scan over files it did not open. Files: `skills/lawkeeper/scripts/audit_scan.py`.
-- [ ] **T57.** Test-first, including the reconciliation invariant that makes this class of bug impossible to reintroduce quietly. Files: `skills/lawkeeper/scripts/test_audit.py`.
+- [x] **T56.** `load_paths_from` normalises with `lstrip('./')`, which strips a character set rather than a prefix, so every dot-directory path is mangled into one that does not exist and then dropped by a `continue` that moves no counter. Fix the normalisation and make the drop paths reconcile against `scoped_paths`, so the scanner can never again report a clean scan over files it did not open. Files: `skills/lawkeeper/scripts/audit_scan.py`.
+- [x] **T57.** Test-first, including the reconciliation invariant that makes this class of bug impossible to reintroduce quietly. Files: `skills/lawkeeper/scripts/test_audit.py`.
+
+### Wave 21, wizard decisions #19-B and #20-A, found by the fix in Wave 20
+
+- [ ] **T58.** `checks.py:81` splits on newlines, so a well-formed file ending in a newline gains a phantom line. A 500-line file reports 501 and is flagged while the same content missing its trailing newline passes, which is backwards. Files: `skills/lawkeeper/scripts/checks.py`, `skills/lawkeeper/scripts/test_audit.py`.
+- [ ] **T59.** Two things in this repo enforce a 500-line cap and they disagree by one. Pin them against each other so the agreement is checkable rather than incidental. Placement handed to the implementer, because the two obvious homes own different concerns and the two closest fragments are both at their line cap. Files: one of `scripts/validate-dod.d/80-file-size-caps.sh`, `scripts/validate-dod.d/76-phase-ledger-substrate.sh`, plus `scripts/validate-dod.sh` only if a new fragment needs registering.
+- [ ] **T60.** The scanner's report grew from three stats keys to eight, so the template telling authors to copy that shape is now incomplete, and nothing tells whoever runs the law scout to read the new reconciliation numbers. That second gap is how the Wave 20 bug survived a whole sprint: the report said clean and no step asked whether the scan covered what it was handed. Files: `skills/lawkeeper/references/porting-scanner.md`, `skills/hackify/references/law-scout.md`.
 
 **One wave carries no task IDs at all, and that is recorded rather than papered over.** The fix wave that landed as `fac7478` addressed the round-one decision-table findings, and it was dispatched off finding IDs, never off task numbers. No T number was ever assigned to any of it. Those thirteen paths appear in the index below keyed on their finding ID instead, marked `no task ID`, and the count of paths whose ONLY authorization is such a row is given with the index so the weakness is countable rather than described.
 
@@ -271,19 +277,33 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | `W19/T53` | `e27e2fc` | pre-declared | `skills/hackify/references/review-scope.md` `skills/hackify/references/phases/phase-5-review.md` |
 | `W19/T54` | `e27e2fc` | pre-declared | `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` `agents/code-reviewer-quality-plan.md` |
 | `W19/T55` | `e27e2fc` | pre-declared | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` |
-| `W20/T56` | (in flight) | pre-declared | `skills/lawkeeper/scripts/audit_scan.py` |
-| `W20/T57` | (in flight) | pre-declared | `skills/lawkeeper/scripts/test_audit.py` |
+| `W20/T56` | `85c0a19` | pre-declared | `skills/lawkeeper/scripts/audit_scan.py` |
+| `W20/T57` | `85c0a19` | pre-declared | `skills/lawkeeper/scripts/test_audit.py` |
+| `W21/T58` | (in flight) | pre-declared | `skills/lawkeeper/scripts/checks.py` `skills/lawkeeper/scripts/test_audit.py` |
+| `W21/T59` | (in flight) | pre-declared, site deferred | `scripts/validate-dod.d/80-file-size-caps.sh` `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
+| `W21/T60` | (in flight) | pre-declared | `skills/lawkeeper/references/porting-scanner.md` `skills/hackify/references/law-scout.md` |
 
-**Coverage, measured both directions.** 52 rows over 55 listed paths, against 53 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not yet in the diff: 2, `skills/lawkeeper/scripts/audit_scan.py` and `skills/lawkeeper/scripts/test_audit.py`, because Wave 20's allowlist is written before its wave lands rather than after. That is the shape a pre-declared row is supposed to have, and it is the direction the earlier reconstructed rows could never point in. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
+**Coverage, measured both directions.** 55 rows over 59 listed paths, against 55 changed source paths in `dabc333..HEAD`. Uncovered paths: 0. Listed but not yet in the diff: 4, all belonging to Wave 21, which was still running when this count was taken. Its allowlists were written at dispatch rather than after, so the rows currently disagree with git in the only direction a real allowlist can: naming something that has not happened yet. A reconstructed row cannot reach that state, which is the whole point of the distinction. Work-doc edits are excluded because the work-doc is the authorizing artifact and cannot authorize itself, and `dist/` is excluded because `dist/.gitignore` ignores it, so no `dist/` path is in the diff at all.
 
 **Authorization strength, counted rather than asserted.** This is the number that matters, because a row's provenance is what decides whether it can ever fail:
 
 | Provenance | Rows | Distinct paths | What the row is worth |
 |---|---|---|---|
-| pre-declared | 16 | 33 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
+| pre-declared | 18 | 36 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
 | pre-declared, amended at Phase 5 | 2 | 11 | the allowlist was real and the task went outside it; the row carries the paths actually touched and says so |
 | reconstructed | 27 | 32 | written at Phase 5 from the Daily Updates entry plus `git show --stat`, so it records what happened and cannot retroactively have constrained it |
 | no task ID | 7 | 13 | keyed on the decision-table finding that authorized the fix, because no task number was ever assigned |
+| pre-declared, site deferred | 1 | 3 | the task's placement was a judgement call handed to the implementer, so the row names the candidate set it may choose from and is narrowed to the actual file when the wave lands |
+
+**Why `W21/T59` gets its own class instead of being called pre-declared.** That task pins two
+line-count enforcers against each other, and where the check belongs is a real design question: the
+two obvious homes own different concerns, and the two fragments that look closest are both at their
+line cap and cannot take a line. Handing that call to the implementer is right. Calling the result a
+pre-declared allowlist would not be, because a row listing three candidates cannot fail the way a row
+listing one can. The class is narrower than `reconstructed`, since the candidate set was fixed before
+the edit and a file outside those three is still detectable, and weaker than `pre-declared`, since it
+does not name one file. Recording it as either of the neighbouring classes would overstate or
+understate what it actually constrains.
 
 **The pre-declared class grew from 9 rows to 16 across Waves 18 to 20, and that is the number worth watching.** Reviewer B's Critical was that a census cannot fail. Every row added since carries an allowlist written at dispatch time, and Wave 20's two rows currently name files that do not yet appear in the diff, which is a state a reconstructed row cannot reach by construction.
 
@@ -295,7 +315,7 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 
 Both count columns are re-derived from the rows above, by grouping on the Provenance cell (bold is emphasis, so `**no task ID**` and `no task ID` are one label) and unioning the backticked paths in each group. They are not maintained by hand. A hand-kept total on a table that later work grows is the staleness this sprint already had to fix twice, once in the DoD count and once in the roster.
 
-**The distinct-path column does not partition the 52.** It sums to 89, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 55; do not sum the column and compare it.
+**The distinct-path column does not partition the 52.** It sums to 95, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 59; do not sum the column and compare it.
 
 **Three paths have no authorization other than a `no task ID` row:** `skills/hackify/references/parallel-agents/phase-5-aggregation.md`, `skills/hackify/references/parallel-agents/phase-5-refute.md` and `skills/hackify/references/review-scope.md`. Every other path in the 13 also appears under a numbered task somewhere else in the index. That count of three is the honest measure of how much of this sprint changed with nothing task-shaped standing behind it.
 
