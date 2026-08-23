@@ -2746,6 +2746,59 @@ right instinct and the same one this whole sprint has been about.
 with B's 1393/1396 and the comments' 1398/1401. D reported wall clock only and never counted ok
 lines, so there is nothing to reconcile. The stale-comment finding stands on B and F alone.
 
+## 7u. Refuter on the bookkeeping Criticals: both upheld, and the defence I would have used is dead
+
+**Both UPHELD.** The refuter recounted from the tree rather than trusting B or me, and it filtered on
+file extension while printing rejected tokens precisely because this doc records my own earlier
+`'/' in x` parser trap. Rejected tokens: none. That is what makes its 59 trustworthy.
+
+**The stamp defence fails, and it fails on a fact I had not checked.** I was ready to argue that the
+Coverage paragraph is scoped by its own "Recorded against `7ad1ea1`" stamp and is therefore accurate
+in context, making this a wording fix. It is not, because the table cites commits that **postdate its
+own stamp**:
+
+```
+git merge-base --is-ancestor b95a3a2 7ad1ea1   ->  false     (rows W21/T58-T60 cite b95a3a2)
+git merge-base --is-ancestor 85c0a19 7ad1ea1   ->  false     (row  W20/T56    cites 85c0a19)
+git diff --name-only dabc333..HEAD    | wc -l  ->  69
+git diff --name-only dabc333..7ad1ea1 | wc -l  ->  52        (not the 59 the paragraph claims)
+```
+
+A table cannot have been recorded against a commit that predates the commits its own rows name. So
+the stamp is not a narrower scope, it is simply wrong. And under the stamp reading the paragraph's
+other half breaks too: against `7ad1ea1` the range holds 52 paths, so "Listed but not in the diff:
+0" is false as well, with seven listed paths not yet landed. The refuter's summary is exact:
+**the paragraph's two halves are true at different commits and neither at the stamp.**
+
+**This is not documentation drift, it is a live trap for the next round.** Reviewer B's own prompt
+at `phase-5-multi-review-b-quality-plan.md:172-177`, quoted verbatim:
+
+> Do NOT read task description prose to make this mapping. Flag any file not present in any entry
+> of `{{task_file_index}}` as a Critical scope-creep finding.
+
+So the next B dispatch files **ten false Criticals by construction**, and the one thing that could
+rescue them, the section 7 narrative that does authorize all ten, is explicitly forbidden as a
+source. The finding is route-independent: whether the index is pasted from this table or re-derived
+per `phase-5-review.md:15` off a Backlog that stops at T60, the ten are absent either way.
+
+**Correction to B on Finding 2.** B called the missing Sprint Backlog entries the root cause and
+implied the remedy is Backlog entries. The refuter checked and the Backlog is **not** required to be
+exhaustive: this doc already uses a `no task ID` provenance class for wave work without task numbers
+(rows `W12/F-crit` through `W12/[77]`). So the defect is precisely "waves 22-24 produce no index
+rows", and either a Backlog entry **or** a `no task ID` row closes it. B's evidence was right and its
+remedy was narrower than reality.
+
+There is a second-order point in that: `phase-ledger.md:101` makes Phase 3 exit on every checkbox
+being ticked, and a Backlog that stops at T60 makes that trivially satisfiable while four waves of
+real work go unrecorded. The exit condition measured a list that had stopped growing.
+
+**Blast radius, asked and answered.** Nothing automated reads this index. Zero hits for
+`task_file_index` in `76-*.sh` and `77-*.sh`; the only repo-wide hit is
+`71-release-mechanism-pins.sh:246`, which asserts the placeholder token survives in two prompt files
+and never parses the work-doc. The sole consumer is a dispatched Reviewer B. The refuter was careful
+to say this bounds urgency and is **not** a soft refutation, which is the right distinction and one
+I should not blur when I come to fix it.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
