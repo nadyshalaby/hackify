@@ -46,8 +46,61 @@ SCOPED_TYPE_GLOBS = (
   '*.middleware.ts', '*.guard.ts',
 )
 
+# Prose files. Markdown reaches this scanner only when a caller passes `--text-only-ext .md`.
+PROSE_GLOBS = ('*.md', '*.mdx')
+
+# Append-only records, waived from `cap.file-lines` and from nothing else. A changelog
+# grows by one entry per release and shrinks for no reason at all, so "split by
+# responsibility", the remedy the cap exists to force, has nothing to act on: there is no
+# second responsibility in it, and it is read by jumping to a heading rather than end to
+# end.
+#
+# EXACT BASENAMES, NEVER A PATTERN. `*.md`, or "docs are exempt", would take README.md and
+# every reference file with it. A project extends this by naming its own release-history
+# file, extension included.
+#
+# MATCHED ON THE BASENAME, NOT THE REPO-RELATIVE PATH, which is a deliberate widening over
+# the hackify repo's shell half (`scripts/validate-dod.d/80-file-size-caps.sh`, which
+# compares whole paths and so waives the root changelog alone). The two coincide at a repo
+# root, and this scanner is pointed at arbitrary roots, so a monorepo's
+# `packages/*/CHANGELOG.md` is waived here and would not be there.
+APPEND_ONLY_BASENAMES = frozenset({'CHANGELOG.md'})
+
 # Rules waived inside test files.
-_TEST_WAIVED = frozenset({'ban.suppression', 'ban.non-null', 'ban.inline-type', 'ban.bare-error'})
+#
+# THE FIRST FOUR ARE DOCTRINE CARVE-OUTS: a test may legitimately do the banned thing, a
+# suppression over deliberately invalid input, a `!` on a fixture, an inline type, a bare
+# `Error`. THE TWO HYGIENE MARKERS ARE HERE FOR A SECOND REASON, which is that a fixture
+# asserting the scanner detects `// TODO` has to contain `// TODO`. They landed later than
+# the other four and nobody revisited this row, so the scanner flagged the exact strings
+# that prove it works. Residual, written down rather than smoothed over: a genuine
+# ownerless debt marker in an ordinary test file is no longer reported here and reaches
+# only the semantic pass. That is the price of a path-based rule, and it is the cheaper
+# half of the trade, because a false positive nobody can fix trains its reader to skim.
+_TEST_WAIVED = frozenset({
+  'ban.suppression', 'ban.non-null', 'ban.inline-type', 'ban.bare-error',
+  'clean.removed-comment', 'clean.debt-marker',
+})
+
+# Rules waived inside prose files.
+#
+# BOTH MARKERS REQUIRE A COMMENT OPENER, AND MARKDOWN HAS NONE OF THE FOUR. `#` opens a
+# HEADING there and a leading `*` opens a bullet, while `//` and `/*` reach a `.md` file
+# only inside a code span, where the pattern is being QUOTED in order to define it. So a
+# match in prose is a document describing the rule, never a comment left behind by a
+# deletion, which is the only thing these two rules mean.
+#
+# The residual, stated at the precision it can be defended at: a `# TODO` heading or a
+# `* TODO` bullet in a design doc IS arguably real debt, and this waiver drops it to the
+# semantic pass. Waiving it is still the better trade, because the alternative is standing
+# false positives on every rule doc, changelog entry and README line that names the pattern,
+# and none of those can be rewritten without deleting the sentence that does the work.
+#
+# `ban.suppression` IS DELIBERATELY ABSENT, though the carve-out catalog once listed it. A
+# `.md` file can only ever be scanned in TEXT mode (`scan_mode` returns 'full' for
+# SCAN_EXTS alone), and `check_suppression` runs only in `run_all`, so the rule cannot fire
+# on prose at all. A waiver for it would be a branch nothing can take.
+_PROSE_WAIVED = frozenset({'clean.removed-comment', 'clean.debt-marker'})
 
 
 def _matches_any(rel_path, globs):
@@ -97,10 +150,28 @@ def applies_inline_type(rel_path):
   return _matches_any(rel_path, SCOPED_TYPE_GLOBS)
 
 
+def is_prose(rel_path):
+  return _matches_any(rel_path, PROSE_GLOBS)
+
+
+def is_append_only(rel_path):
+  return rel_path.rsplit('/', 1)[-1] in APPEND_ONLY_BASENAMES
+
+
 def rule_exempt(rule_id, rel_path):
-  """True when `rule_id` does not apply to `rel_path` per the carve-out catalog."""
+  """True when `rule_id` does not apply to `rel_path` per the carve-out catalog.
+
+  EVERY WAIVER HERE IS FROM A RULE, NEVER FROM THE SCAN. The file is still walked to,
+  still opened, still counted in `files_scanned`, and every other rule still runs against
+  it; only the finding is dropped, by `_finalize` in audit_scan.py. A carve-out applied
+  earlier, by keeping a path out of the scanned set, would be indistinguishable from
+  coverage in the report, which is the failure this scanner's counter families exist to
+  refuse.
+  """
   if rule_id == 'ban.inline-type' and not applies_inline_type(rel_path):
+    return True
+  if rule_id == 'cap.file-lines' and is_append_only(rel_path):
     return True
   if is_test(rel_path) and rule_id in _TEST_WAIVED:
     return True
-  return False
+  return is_prose(rel_path) and rule_id in _PROSE_WAIVED

@@ -190,11 +190,17 @@ source "$DOD_MODULES_DIR/90-collisions.sh"
 # prints `skip` for the second invocation and the gap is 2.
 #
 # The floor is set against THIS counter, so compare like with like before moving
-# it. MEASURED, both halves of the same run: 1397 counted here against 1400 ok
-# lines in the transcript on a built tree, and 1397 against 1399 with dist/
-# absent. The absolute moves with every wave that adds a check, so read the two
-# halves and the gap between them as the point of this note, and when the number
-# needs updating take BOTH from one run of your own rather than adjusting one of
+# it. THE GAP, NOT THE TOTAL, IS THE DURABLE FACT: the transcript reads 3 higher
+# on a built tree and 2 with dist/ absent, because the gap counts delegated
+# INVOCATIONS rather than delegated checkers ([57] runs the doc-link checker
+# twice, once over the source tree and once over dist/claude-code).
+#
+# No absolute total is written here any more, and that is the fix rather than an
+# omission. This line has carried a wrong number in six different versions, every
+# one of them quoted from somewhere else instead of counted, and each correction
+# went stale on the next wave that added a check. The floor below is a floor so
+# that ordinary growth never needs an edit here. When you genuinely need the two
+# halves, take BOTH from one run of your own rather than adjusting one of
 # them against the other. Every wrong version of this line so far was quoted from
 # whoever wrote it last.
 DOD_OK_FLOOR=1350

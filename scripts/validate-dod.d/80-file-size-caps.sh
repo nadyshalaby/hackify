@@ -57,6 +57,20 @@ CAP_APPEND_ONLY="CHANGELOG.md"
 # without also editing this number, which is the line a reviewer actually reads.
 CAP_APPEND_ONLY_EXPECTED=1
 
+# THE SCANNER CARRIES THE SAME LIST, AND THE TWO ARE CHECKED RATHER THAN TRUSTED TO
+# MATCH. skills/lawkeeper/scripts/exemptions.py waives `cap.file-lines` on the same
+# basenames, so a `/lawkeeper` run stops reporting the one file this check stops failing
+# on. Two enforcers of one 500-line cap have already drifted apart by one in this repo,
+# which is the whole reason [80b] below exists; an exemption list is the same shape of
+# agreement and earns the same treatment, a check instead of prose. python3 is not a new
+# requirement here, [80b] already reddens without it.
+#
+# The two do NOT match on scope, and that is deliberate rather than drift: this list is
+# compared against a repo-relative path and so waives the ROOT changelog alone, while the
+# scanner compares basenames because it is pointed at arbitrary roots. They coincide at a
+# repo root, which is the only place this check runs. Only the CONTENTS are cross-checked.
+CAP_EXEMPTIONS="skills/lawkeeper/scripts/exemptions.py"
+
 # The one root file this check actually ENFORCES, named rather than counted. With
 # CHANGELOG.md exempt, a bare "the root scan found N files" floor is satisfied by
 # the exempt file alone, so the scan could reach the root, enforce nothing, and
@@ -103,6 +117,32 @@ done <<CAP_EXEMPT_EOF
 $CAP_APPEND_ONLY
 CAP_EXEMPT_EOF
 check_list_size "$cap_known_total" "$CAP_APPEND_ONLY_EXPECTED" "the [80] CAP_APPEND_ONLY exemption list"
+
+cap_scanner_exempt() {
+  python3 -c '
+import sys
+sys.path.insert(0, sys.argv[1])
+from exemptions import APPEND_ONLY_BASENAMES
+print("\n".join(sorted(APPEND_ONLY_BASENAMES)))
+' "${CAP_EXEMPTIONS%/*}" 2> /dev/null
+}
+
+cap_one_line() { echo "$1" | tr '\n' ' '; }
+
+cap_scanner_list=$(cap_scanner_exempt)
+cap_shell_list=$(printf '%s\n' "$CAP_APPEND_ONLY" | sort)
+if [ ! -f "$CAP_EXEMPTIONS" ]; then
+  red "  FAIL $CAP_EXEMPTIONS is missing, so nothing cross-checks this exemption list against the scanner's and the two can drift unobserved"
+  FAILED=$((FAILED + 1))
+elif [ -z "$cap_scanner_list" ]; then
+  red "  FAIL could not read APPEND_ONLY_BASENAMES out of $CAP_EXEMPTIONS; a list that cannot be read is not a list that agrees"
+  FAILED=$((FAILED + 1))
+elif [ "$cap_scanner_list" != "$cap_shell_list" ]; then
+  red "  FAIL this check waives [$(cap_one_line "$cap_shell_list")] from the ${CAP_MAX_LOC}-LOC cap and $CAP_EXEMPTIONS waives [$(cap_one_line "$cap_scanner_list")]; the two enforcers of one cap would exempt different files"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   CAP_APPEND_ONLY and $CAP_EXEMPTIONS waive the same ${CAP_APPEND_ONLY_EXPECTED} file(s) from the ${CAP_MAX_LOC}-LOC cap"
+fi
 
 if [ "$cap_total" -eq 0 ]; then
   red "  FAIL no files matched the cap search paths, refusing to declare green"
@@ -180,12 +220,15 @@ yellow "[80b] the two ${CAP_MAX_LOC}-LOC counters agree, wc -l and the lawkeeper
 #   scoped_paths      how many paths it got OUT of them
 #   files_scanned     how many files the scan actually opened
 #   lines_unaccounted lines that reached no counter at all, which must be 0
-# An empty or unwritten path list makes audit_scan.py fall back to WALKING THE
-# WHOLE TREE, which scans hundreds of unrelated .sh files and would hand a verdict
-# built on some other file's length back as if it were the probe's. scoped_paths
-# refuses that, files_scanned pins that the scan reached exactly one file, and the
-# finding is filtered to the probe's own path rather than max()'d across whatever
-# turned up. A scanner that errors prints nothing, which fails all five.
+# THE WHOLE-TREE FALLBACK THESE FOUR ONCE GUARDED AGAINST IS GONE, and this prose
+# outlived it by a wave. audit_scan.py now scopes on whether the FLAG was supplied,
+# so an empty list scans nothing rather than widening to the tree, and a
+# `--paths-from` naming a file that was never written exits 2. What the four still
+# refuse is everything that fix does not cover: a list the parse stage quietly ate a
+# line from, a probe that resolved to no file or to more than one, and a verdict read
+# off some other file's length. The finding is filtered to the probe's own path
+# rather than max()'d across whatever turned up. A scanner that errors prints
+# nothing, which fails all five.
 #
 # listed_lines IS THE ONE THAT CATCHES A LOSSY LIST, and lines_unaccounted is not
 # a substitute for it. audit_scan.py drops a blank, a `#` comment and a repeated
@@ -261,7 +304,7 @@ else
   trap 'rm -f "$CAP_PROBE_LIST"' EXIT
   printf '%s\n' "$CAP_PROBE" > "$CAP_PROBE_LIST"
   if [ ! -s "$CAP_PROBE_LIST" ]; then
-    red "  FAIL could not write the scoped path list, and an empty one silently widens the scan to the whole tree"
+    red "  FAIL could not write the scoped path list, and an empty one scopes the scan to zero files, so the verdict below would be about nothing at all"
     FAILED=$((FAILED + 1))
   else
     cap_agree_verdict "$(wc -l < "$CAP_PROBE" | tr -d ' ')"

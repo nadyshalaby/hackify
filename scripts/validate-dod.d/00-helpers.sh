@@ -24,11 +24,17 @@ yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
 # checker twice, once over the source tree and once over dist/claude-code. Where
 # dist/ has never been synced that second run prints `skip` and the gap is 2, so
 # the gap is a property of the tree, not a constant.
-# Measured, not assumed: 1400 ok lines in the transcript against 1397 here, from
-# one run on a built tree. TAKE BOTH HALVES FROM ONE RUN OF YOUR OWN and never
-# adjust one against a number quoted from somewhere else. Four separate parties
-# reported this pair during one review round (1396, 1395, 1393, 1397), each
-# measuring a different tree state and each quoting the last. The
+# NO ABSOLUTE TOTAL IS RECORDED HERE, DELIBERATELY. The gap is 3 on a built tree
+# and 2 without dist/, and that is structural: it is the count of delegated
+# INVOCATIONS, so it moves only when a fragment gains or loses a delegated call.
+# The totals move whenever anyone adds a check, which is most waves. Six separate
+# figures were reported for this one pair inside a single review round, each
+# measuring a different tree state and each quoting the last rather than counting.
+# Writing today's total here just schedules the seventh.
+#
+# TAKE BOTH HALVES FROM ONE RUN OF YOUR OWN if you need them, and never adjust one
+# against a number quoted from somewhere else. The floor in [0b] is what actually
+# guards the run; it is a floor precisely so it does not need editing per wave. The
 # gap is safe to leave because both fragments test the checker's EXIT STATUS and
 # raise FAILED themselves, so a delegated check that stops running fails loudly
 # rather than quietly shrinking the run. Counting their stdout instead would mean

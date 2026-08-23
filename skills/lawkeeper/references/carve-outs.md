@@ -13,62 +13,87 @@ them per project via `--extra-generated <glob>` when a project uses a different 
 
 | Exempt set | Rules waived | Detect by |
 |---|---|---|
-| Test files (`*.test.*`, `*.spec.*`, `**/tests/**`, `**/__tests__/**`) | suppression, non-null, inline-type, bare-error | path glob |
+| Test files (`*.test.*`, `*.spec.*`, `**/tests/**`, `**/__tests__/**`) | suppression, non-null, inline-type, bare-error, `clean.removed-comment`, `clean.debt-marker` | path glob (`TEST_GLOBS` / `_TEST_WAIVED`) |
+| Prose (`*.md`, `*.mdx`) | `clean.removed-comment`, `clean.debt-marker` | path glob (`PROSE_GLOBS` / `_PROSE_WAIVED`) |
+| Append-only records (`CHANGELOG.md`) | `cap.file-lines` ONLY | exact basename (`APPEND_ONLY_BASENAMES`) |
 | Generated (`*.gen.ts`, `*.d.ts`, `*.generated.*`, `routeTree.gen.ts`) | ALL | path glob + generated-header comment |
 | Migrations (`**/migrations/**`) | ALL (off-limits to refactor) | path glob |
 | `template-reference/` and other frozen demo dirs | ALL | dir name; confirm in `tsconfig`/lint ignore |
 | Dependencies / build output (`node_modules`, `dist`, `.next`, …) | ALL (not walked) | dir name |
 | Inline-type ban scope | applies ONLY to `*.service.ts`, `*.controller.ts`, `*.routes.ts(x)`, `*.middleware.ts`, `*.guard.ts` | basename glob |
 
-### Agreed, and NOT yet wired into `scripts/exemptions.py`
+**A waiver is from a RULE, never from the SCAN.** Every row above is applied by
+`rule_exempt` at the last step, after the file has been walked to, opened, read and checked.
+The file stays in `files_scanned` and every rule NOT named in its row still fires against it;
+only the matching finding is dropped. A carve-out applied earlier, by keeping a path out of
+the scanned set, reads as coverage in the report, and telling that apart from a real clean
+scan is exactly what the counter families in `audit_scan.py` exist to make possible.
 
-Two carve-outs with no code behind them yet. They sit below the table rather than inside it
-because that table's promise is "the scanner already applies these", and a rule doc that
-overstates its own enforcement is the same defect as an auditor that flags a documented
-exception. Whoever wires them edits `_TEST_WAIVED` / `rule_exempt` in `scripts/exemptions.py`;
-the `rule_id`s and globs below are the whole specification, no judgment needed.
+### Why test files waive six rules and not four
 
-| Exempt set | Rules waived | Detect by |
-|---|---|---|
-| Detection fixtures in test files | `clean.removed-comment`, `clean.debt-marker` | the existing `TEST_GLOBS`, add both IDs to `_TEST_WAIVED` |
-| Rule documentation, prose that quotes a pattern in order to define it | `clean.removed-comment`, `clean.debt-marker`, `ban.suppression` | `*.md` / `*.mdx`; markdown reaches the scanner only when a caller passes `--text-only-ext .md`, and in that mode only the file cap, project bans and these hygiene rules can fire |
+The first four are DOCTRINE carve-outs: a test may legitimately do the banned thing, a
+suppression over deliberately invalid input, a `!` on a fixture, an inline type, a bare
+`Error`. `clean.removed-comment` and `clean.debt-marker` are here for a second reason, which
+is that a fixture asserting the scanner detects `// TODO` has to contain `// TODO`. They
+landed later than the other four as hygiene rules and nobody revisited the test row, so the
+scanner flagged the exact strings that prove it works.
 
-**Why the asymmetry existed.** The four waivers in the test-file row above are DOCTRINE
-carve-outs: a test may legitimately do the banned thing, `@ts-expect-error` over deliberately
-invalid input, a `!` on a fixture, an inline type, a bare `Error`. `clean.removed-comment` and
-`clean.debt-marker` landed later as HYGIENE rules and nobody revisited the test row, so the
-scanner flags the exact strings that prove it works: `test_audit.py:148,149` are the two
-`// removed:` fixtures, `:153,154,173` the `TODO` / `FIXME` ones, and `law-scout.md:23` is the
-sentence that documents the `// removed:` rule to a human. Eight standing false positives, all
-of them the same shape as the floor already recorded below: a file whose job is to DEFINE or
-DETECT a pattern has to be allowed to contain it.
+**The residual, written down rather than smoothed over.** A genuine ownerless debt marker in
+an ordinary test file is no longer reported by the deterministic scan and reaches only the
+semantic pass. That is the price of a path-based rule, and it is the cheaper half of the
+trade: both rules are `low` severity `cleanup`, while a false positive nobody can rewrite
+away trains its reader to skim the whole report.
+
+### Why prose waives the two hygiene markers
+
+Both markers require a COMMENT OPENER, and markdown has none of the four. `#` opens a heading
+there and a leading `*` opens a bullet, while `//` and `/*` reach a `.md` file only inside a
+code span, where the pattern is being QUOTED in order to define it. Every match in this repo
+is that shape: a backticked `// removed:` in a rule doc, in a changelog entry describing the
+rule, and in a README feature list. A release note and a reference page are the same case, not
+two, and neither can be rewritten without deleting the sentence that does the work.
+
+**The residual.** A `# TODO` heading or a `* TODO` bullet in a design doc IS arguably real
+debt, and this waiver drops it to the semantic pass.
+
+**`ban.suppression` is deliberately NOT waived here**, though an earlier draft of this row
+listed it. A `.md` file can only ever be scanned in TEXT mode (`scan_mode` returns `full` for
+`SCAN_EXTS` alone), and `check_suppression` runs only in `run_all`, so the rule cannot fire on
+prose at all. A waiver for it would be a branch nothing can take. In text mode only the file
+cap, project bans and these two hygiene rules can fire.
 
 ### Append-only files (waived from `cap.file-lines`, nothing else)
 
 A changelog grows by one entry per release and shrinks for no reason at all. "Split by
 responsibility", the remedy the 500-line cap exists to force, has nothing to act on: there is
 no second responsibility in it, and it is read by jumping to a heading rather than end to end.
-So append-only records are waived from `cap.file-lines` and from that rule only.
+So append-only records are waived from `cap.file-lines` and from that rule only. A project
+extends the list by naming its own release-history file (a `CHANGELOG`, `HISTORY` or `NEWS`
+file, extension included), never by matching a pattern.
 
-| Exempt set | Rules waived | Detect by |
-|---|---|---|
-| Append-only records | `cap.file-lines` | exact basename. This repo waives `CHANGELOG.md` and nothing else. A project extends the list by naming its own release-history file (a `CHANGELOG`, `HISTORY` or `NEWS` file, extension included), never by matching a pattern |
+Three constraints on it, mechanical enough to check, and where each is enforced:
 
-Three constraints on any implementation of it, mechanical enough to check:
-
-- **Named, never pattern-matched.** The waiver list is exact basenames a reviewer can read in
-  one line. `*.md` or "docs are exempt" would take README.md and every reference with it.
-- **Waived from the CAP, never from the SCAN.** An exempt file is still opened, still counted,
-  and still reported as exempt. A `find`-level exclusion lets it leave the scanned set in
-  silence, which is indistinguishable from coverage.
-- **The list carries its own length, and stale entries surface.** An entry whose file has been
-  split, renamed or deleted has to be noticed rather than outliving its reason quietly.
+- **Named, never pattern-matched.** `APPEND_ONLY_BASENAMES` is exact basenames a reviewer can
+  read in one line. `*.md`, or "docs are exempt", would take README.md and every reference
+  with it. `*.mdx` and `CHANGELOG.mdx` are outside it for the same reason.
+- **Waived from the CAP, never from the SCAN.** Covered by the rule above this section: the
+  file is still opened, still counted, still checked by every other rule. The shell half also
+  prints it through `cap_exempt`; the scanner half keeps it in `files_scanned` and drops the
+  finding alone.
+- **The list carries its own length, and stale entries surface.** That half is the shell's,
+  because it needs the filesystem: `CAP_APPEND_ONLY_EXPECTED` pins the count, and the stale
+  sweep reports an entry whose file has been split, renamed or deleted.
 
 `scripts/validate-dod.d/80-file-size-caps.sh` is the mechanical half of this in the hackify
-repo (`CAP_APPEND_ONLY`, pinned at one entry, `CHANGELOG.md` at 944 lines). The scanner does
-not implement it: `cap.file-lines` fires on any `.md` a caller feeds it through
-`--text-only-ext .md`, so a `/lawkeeper` run using that flag still needs this row honored by
-hand until `exemptions.py` learns it.
+repo (`CAP_APPEND_ONLY`, pinned at one entry). The two lists are cross-checked against each
+other by that fragment rather than trusted to match, so adding a file to one and not the other
+reddens the validator.
+
+**The two agree on contents and differ on scope, deliberately.** The shell list is compared
+against a repo-relative path, so it waives the ROOT `CHANGELOG.md` alone. The scanner compares
+BASENAMES, because it is pointed at arbitrary roots, so a monorepo's `packages/*/CHANGELOG.md`
+is waived there and would not be here. They coincide at a repo root, which is the only place
+the shell check runs.
 
 Runtime-detect project specifics before scanning:
 - **Generated files**, grep the first lines of candidates for `@generated`, `eslint-disable`,

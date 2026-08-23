@@ -3080,6 +3080,98 @@ bash scripts/validate-dod.sh                         -> ALL CHECKS PASSED
   check still passes, but it is exactly the class of stale claim this sprint keeps finding.
 - `bash scripts/sync-runtimes.sh` still owed, so `test_scoping.py` reaches `dist/`.
 
+## 7z. The carve-outs enforced, and a number finally fixed by deleting it
+
+Decisions #27-A and #28-A are now real code rather than a written intention. The scan over the
+sprint scope comes back with **nothing**:
+
+```
+config.scoped_paths        72          stats.files_scanned        72
+stats.unread_too_large      0          stats.unread_unreadable     0
+stats.paths_unaccounted     0          stats.lines_unaccounted     0
+stats.findings              0
+
+RECONCILE scan : scoped_paths 72 == files_scanned + unread_* + paths_* = 72
+RECONCILE parse: listed_lines 72 == scoped_paths + lines_*             = 72
+```
+
+Both `unread_*` counters reading 0 is the part that matters, and it only means something because
+those counters exist now: every one of the 72 files was opened and read, `CHANGELOG.md` included.
+Under the scanner as it stood this morning that same line would have been printable while a file
+sat unopened.
+
+**Three corrections the agent made to my brief, all of them right.**
+
+1. **The scope is 72 paths, not the 69 I gave it**, and the baseline carried **11 findings, not 8**.
+   The fix wave added files, and two of the new false positives were introduced by the previous
+   wave's own carve-out prose. `CHANGELOG.md:506` is `:515` now. I handed it stale numbers from four
+   hours earlier, which is the same habit this section keeps recording.
+2. **The "prose is a third case" hypothesis in my brief was wrong.** All five markdown hits quote a
+   backticked `` `// removed:` `` inside a sentence describing the rule, so they are the same
+   quote-the-pattern case as rule documentation. The structural reason is better than the
+   observation: in markdown `#` opens a heading and a leading `*` opens a bullet, while `//` and
+   `/*` only ever reach a `.md` file inside a code span, so the rule's comment-opener precondition
+   never holds there.
+3. **It dropped `ban.suppression` from the prose waiver that `carve-outs.md` specified**, because a
+   `.md` file is only ever scanned in text mode and `check_suppression` runs only in `run_all`, so
+   the branch is unreachable. Then it wrote `test_suppression_ban_cannot_reach_a_prose_file` to
+   **prove the unreachability rather than pin the exemption**. That is the correct move: an
+   exemption for something that cannot happen is a claim nobody ever checks.
+
+**Kept in sync by construction, not by discipline.** `[80]` now reads `APPEND_ONLY_BASENAMES` out of
+`exemptions.py` and reddens if it disagrees with `CAP_APPEND_ONLY`. All three failure arms were
+measured, including the drift case
+(`shell=[CHANGELOG.md] scanner=[CHANGELOG.md HISTORY.md]`). The two halves scope differently on
+purpose, repo-relative on the shell side and basename on the scanner side, and only their contents
+are cross-checked.
+
+Live proof of "exempt from the cap, never from the scan", run at `--max-file-lines 100`:
+
+```
+files_scanned 72, cap.file-lines findings 54
+CHANGELOG.md capped?  False   (948 lines, waived)
+README.md    capped?  True    (enforced for real)
+```
+
+### The ok-line count, fixed the sixth time by removing it
+
+The agent's run read 1398/1401 against the 1397/1400 I had written an hour earlier, because its own
+new `[80]` line landed in between. **Six different values for one pair inside a single review
+round.** Every correction was accurate when made and stale by the next wave.
+
+So the fix is not a seventh number. Both comments now record **the gap and not the total**: 3 on a
+built tree, 2 without `dist/`, and the gap is structural because it counts delegated *invocations*
+rather than checkers. The totals move whenever anyone adds a check, which is most waves; the gap
+moves only when a fragment gains or loses a delegated call. `[0b]`'s floor is what actually guards
+the run, and it is a floor precisely so ordinary growth never needs an edit.
+
+`validate-dod.sh:89` keeps its 1400, and that is deliberate: it is a past-tense record of what one
+tamper probe measured (1400 ok lines down to 851 at exit 0), not a claim about the current run.
+History does not go stale; live claims do. Confusing the two is what produced the other five.
+
+### Verification, whole tree, after sync
+
+```
+bash scripts/validate-dod.sh                        -> ALL CHECKS PASSED, exit 0, 0 FAIL
+python3 skills/lawkeeper/scripts/test_audit.py      -> 56/56   (44 at sprint start)
+bash scripts/test_ban_tokens.sh                     -> 139 passed, 0 failed   (112 before)
+bash hooks/test_inject_context.sh                   -> 29 passed, 0 failed
+bash hooks/test_block_banned_tokens.sh              -> 41/41 passed
+python3 scripts/sync_agent_mirrors.py --check       -> ok
+```
+
+The agent also ran the write-hook suite and the eval corpus unprompted, on the reasoning that
+`scan_edit.py` loads modules from the directory it edited and the corpus is the regression class
+this change could break. It then checked and reported that `scan_edit.py` imports `lexer` and
+`checks` only, never `exemptions`, so the carve-outs cannot reach it. Measured rather than assumed,
+on a question nobody asked.
+
+### Outstanding
+
+- No `CHANGELOG.md` bullets for groups 1 and 2 or for the carve-outs, because that file sat in one
+  allowlist alone all wave. Reviewer B's plan lens checks exactly this.
+- The work-doc's own coverage table, still the last upheld Critical.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_

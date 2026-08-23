@@ -19,7 +19,8 @@ import re
 
 import test_scoping
 from checks import FileContext
-from exemptions import is_generated, is_scannable, is_test, rule_exempt, scan_mode
+from exemptions import (APPEND_ONLY_BASENAMES, is_append_only, is_generated, is_prose,
+                        is_scannable, is_test, rule_exempt, scan_mode)
 
 
 def _rules(src):
@@ -203,6 +204,79 @@ def test_text_only_honors_project_ban():
   bans = [(re.compile(r'#\s*type:\s*ignore'), 'type: ignore in production')]
   hits = ctx.run_text_only(500, bans)
   assert len(hits) == 1 and hits[0]['rule_id'] == 'ban.custom'
+
+
+def test_detection_fixtures_in_tests_are_waived():
+  """A fixture proving the scanner detects a marker has to CONTAIN that marker.
+
+  The two hygiene rules landed after the four doctrine bans and nobody revisited the
+  test row, so the scanner flagged the exact strings above that prove it works.
+  """
+  for rule_id in ('clean.removed-comment', 'clean.debt-marker'):
+    assert rule_exempt(rule_id, 'skills/lawkeeper/scripts/test_audit.py'), rule_id
+    assert rule_exempt(rule_id, 'src/users/users.test.ts'), rule_id
+    # and ordinary source keeps both rules, the waiver is the test glob, not the rule.
+    assert not rule_exempt(rule_id, 'src/users/users.service.ts'), rule_id
+
+
+def test_prose_waives_the_hygiene_markers_only():
+  """Markdown has no comment openers: `#` is a heading, a leading `*` is a bullet."""
+  for rule_id in ('clean.removed-comment', 'clean.debt-marker'):
+    assert rule_exempt(rule_id, 'README.md'), rule_id
+    assert rule_exempt(rule_id, 'skills/hackify/references/law-scout.md'), rule_id
+    assert rule_exempt(rule_id, 'docs/guide.mdx'), rule_id
+  assert is_prose('CHANGELOG.md') and not is_prose('scripts/build.sh')
+  # The cap is NOT waived by prose; only the append-only list does that.
+  assert not rule_exempt('cap.file-lines', 'README.md')
+
+
+def test_hygiene_markers_still_fire_in_non_prose_text_files():
+  """`# TODO` in a real script IS debt. The waiver is markdown, never text-only mode."""
+  for path in ('scripts/deploy.sh', 'src/app.py', 'config.yml'):
+    assert not rule_exempt('clean.debt-marker', path), path
+    assert not rule_exempt('clean.removed-comment', path), path
+  ctx = FileContext('scripts/deploy.sh', '# TODO wire the rollback\n')
+  assert [f['rule_id'] for f in ctx.run_text_only(500, [])] == ['clean.debt-marker']
+
+
+def test_suppression_ban_cannot_reach_a_prose_file():
+  """Why `ban.suppression` is absent from the prose waiver: nothing could take that branch.
+
+  `.md` is never in SCAN_EXTS, so scan_mode can only ever call it 'text', and
+  check_suppression runs only in `run_all`. Waiving it would be a dead branch.
+  """
+  assert scan_mode('README.md', text_exts=('.md',)) == 'text'
+  ctx = FileContext('README.md', 'the hook blocks `@' + 'ts-ignore` on sight\n')
+  assert 'ban.suppression' not in [f['rule_id'] for f in ctx.run_text_only(500, [])]
+  assert not rule_exempt('ban.suppression', 'README.md')
+
+
+def test_append_only_is_waived_from_the_cap_and_nothing_else():
+  """Exact basenames, never a pattern, and only `cap.file-lines`."""
+  assert is_append_only('CHANGELOG.md')
+  assert is_append_only('packages/api/CHANGELOG.md')
+  assert rule_exempt('cap.file-lines', 'CHANGELOG.md')
+  assert not rule_exempt('cap.file-lines', 'README.md')
+  # `*.md` would have taken every doc with it; the list is basenames, so `.mdx` is out.
+  assert not rule_exempt('cap.file-lines', 'docs/CHANGELOG.mdx')
+  # Waived from the CAP and from that rule alone: a project ban still binds the changelog.
+  assert not rule_exempt('ban.custom', 'CHANGELOG.md')
+  assert APPEND_ONLY_BASENAMES == frozenset({'CHANGELOG.md'})
+
+
+def test_append_only_file_is_exempt_from_the_cap_never_from_the_scan():
+  """The check still RUNS and the file is still read; only the finding is dropped.
+
+  A `find`-level exclusion would let the file leave the scanned set in silence, which
+  is indistinguishable from coverage. This asserts both halves in one place.
+  """
+  from audit_scan import _finalize
+  raw = FileContext('CHANGELOG.md', 'x\n' * 501).run_text_only(500, [])
+  assert [f['rule_id'] for f in raw] == ['cap.file-lines'], 'the cap check must still run'
+  assert raw[0]['end_line'] == 501, 'and still count the real lines'
+  assert _finalize(raw, 'CHANGELOG.md') == [], 'the finding is dropped at the last step'
+  kept = FileContext('README.md', 'x\n' * 501).run_text_only(500, [])
+  assert _finalize(kept, 'README.md') == kept, 'and no other file loses its cap finding'
 
 
 def _all_tests():
