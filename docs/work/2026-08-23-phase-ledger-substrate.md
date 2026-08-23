@@ -5,7 +5,7 @@ status: in-progress
 type: fix
 created: 2026-08-23
 project: hackify
-current_task: T1
+current_task: T16 (Phase 3 closing; T1-T15 done)
 worktree: none
 branch: main
 sprint_goal: The phase ledger never silently vanishes again, on any runtime, in any mode.
@@ -160,7 +160,7 @@ The **discipline defect** is why phases got neglected: nothing that fires on eve
 
 **Wave 5 (mirrors, must be last so dist reflects every source edit)**
 
-- [ ] **T8b.** Run `bash scripts/sync-runtimes.sh`, then verify all seven runtimes are mirror-complete and the new rules file reached the six bundle runtimes. Files: `dist/**`.
+- [x] **T8b.** Run `bash scripts/sync-runtimes.sh`, then verify all seven runtimes are mirror-complete and the new rules file reached the six bundle runtimes. Files: `dist/**`.
 
 ## 6. Daily Updates
 
@@ -372,6 +372,26 @@ New fragment `scripts/validate-dod.d/76-phase-ledger-substrate.sh` (135 lines) p
 **Scope honesty worth noting:** T14 pointed out that `git diff --name-only HEAD` is not proof of its own scope, because 24 files were already modified when it started, and used mtimes to demonstrate which lines were T7's rather than its own.
 
 **A bias it documented rather than hiding:** the floor-of-6 count guard in `[76b]` means a seventh phase file is covered automatically, but a legitimately RETIRED phase file reddens the guard and needs a one-character edit. Deliberate for this sprint, flagged so it is not mistaken for a stale constant later.
+
+### 2026-08-23, T8b landed 0.14.0, and corrected the record on my own commit message
+
+**Version was in FOUR spots, not the three I listed.** `marketplace.json` carries it in the stable channel's git `ref` (with a `v` prefix) plus a `version` field on each of two channels. The edge channel's `ref` stays `main`.
+
+**T8b refused to write a number it could not derive, and it was right.** My commit message for `8fa8d58` says the new fragment has **17 pins**. T8b could not reproduce 17 from the file or from a run, so it wrote "six blocks" instead and flagged the discrepancy. Measured on the settled tree: the fragment has **14 assertion sites** and emits **23 green assertions across 6 blocks** (`[76]` 3, `[76b]` 13, `[76c]` 1, `[76d]` 2, `[76e]` 3, `[76f]` 1). The runtime count is not even stable, because `[76b]` loops over a directory and grows the day a seventh phase file lands. **"17 pins" in that commit message is wrong; the durable statement is "six blocks".** Recorded here rather than rewritten, since the commit is already in history.
+
+**It reported the dash check honestly rather than rounding it to zero.** `CHANGELOG.md` returns 3 em dashes, all pre-existing v0.6.x entries quoting historical file headings verbatim. It proved it added none (`git diff -U0 | grep '^+' | grep -c` returns 0) and correctly refused to rewrite a quoted historical heading, which would falsify the record.
+
+**It tightened its own README bullet after drafting it**, because the first version claimed picking the first finish option could commit when you meant a pull request. Option 1 is local under both numberings, and yolo's option 1 is a documented redefinition rather than a bug. Shipped wording says only what is true.
+
+README landed at **exactly 450**, paid for by merging the two remaining 0.13.0 bullets into one, with all fourteen facts still on the page.
+
+**Follow-up it raised that is a fair hit on me:** the work-doc's own frontmatter said `current_task: T1` while section 0 had Phase 3 in progress and wave 4 was finishing, and no backlog line matched the release-notes work it was actually dispatched to do. That is this sprint's own doc-truth failure class sitting inside this sprint's own artifact. Frontmatter corrected in this commit.
+
+**It verified rather than assumed on the dist manifests:** `dist/claude-code/.claude-plugin/*.json` still said 0.13.1, and instead of guessing it read `sync-runtimes.d/00-helpers.sh:174-175`, confirmed both manifests are in `CLAUDE_CODE_EXTRA`, and concluded the coordinator's sync closes it. Confirmed after the sync: all three version fields in the built manifests now read 0.14.0. Worth knowing that `[16]` and `[16b]` only read the SOURCE tree, so a skipped sync would leave a dist tree advertising the wrong version with nothing in the triad catching it.
+
+### T16 dispatched, the last two known stale files
+
+`orchestration.md` turned out to be worse than either agent that flagged it reported: it states the Phase 2.5 reviewer count FOUR times and gives THREE different numbers. `:19` "single spec reviewer" (correct), `:23` "2 spec reviewers", `:31` "(2 spec reviewers, a 2-task wave)", `:121` "Three spec reviewers are a flat parallel batch and always were". Two of those use the count as the worked EXAMPLE of when a flat parallel batch is the right shape, so the fix is not a number swap: one reviewer is not a batch, and the example stops making its point. Also `phase-5-escalation.md:3` "the four baseline Phase 5 reviewers", where T16 was explicitly told that leaving it with a written reason is an acceptable outcome, since as a roster statement it may still be accurate.
 
 ## 7. Sprint Review (Phase 4 / 5)
 
