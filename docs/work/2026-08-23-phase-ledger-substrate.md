@@ -238,6 +238,26 @@ This was chosen over rewording the canonical sentence, because that sentence is 
 
 Commit `ccde50d` used `git add -A` while two agents were still writing, and it swept up T10's `work-doc-template.md` edits into a commit whose message says it only records sweep findings. Nothing was lost and the content was re-verified against HEAD, but the commit message now under-describes its own diff. **Use explicit paths when committing during a live wave.** A wave-end commit is safe because the wave is settled by definition; a mid-wave commit is not.
 
+### 2026-08-23, consistency scout report (29 files read, 6 confirmed findings)
+
+The investigator read 29 files end to end plus mechanical greps over all 115 source `.md` files. It verified `sync_agent_mirrors.py --check` (all 9 mirrors in sync) and `check_doc_links.py` (all paths resolve), so there are no dead-pointer or mirror-drift findings. It re-verified every citation against disk in a final pass because three files were under live edit, and it correctly EXCLUDED two candidates that were fixed underneath it mid-run.
+
+**F1, belongs to the MAIN GOAL, not the sweep. `SKILL.md:366` still lists 11 runtime primitives** and omits `always-on injection`, the twelfth this sprint added in Wave 1. T1's allowlist was `runtime-adapters.md` only and no task owned this line, so it is a genuine gap in my plan, not pre-existing drift. Must be fixed before release.
+
+**F2, action-changing. The Phase 6 four-options menu is numbered differently in two places.** `SKILL.md:199` says "1 commit locally, 2 commit + push, 3 open a PR, 4 hold". The owners, `phases/phase-6-finish.md:24-27` and `references/finish.md:24-43`, both say "1 Merge to base branch locally, 2 Push and create a PR, 3 Keep the branch as-is, 4 Discard". **All four numbers name a different git operation.** This is not cosmetic: `skills/yolo/SKILL.md:29` auto-picks "Option 1", and `yolo:55` independently corroborates the owners' numbering. Following `SKILL.md` would auto-pick a different operation than the one yolo documents.
+
+**F3, action-changing. `SKILL.md:134` and `:248` say "one agent per task"; `phases/phase-3-implement.md:22` says "ONE subagent per task BATCH" with `:70` "Cap a batch at 3 tasks."** Corroborated by `parallel-agents/README.md:20` (INPUTS `task_ids` and `task_descriptions`, both plural) and `yolo/SKILL.md:65`. Following SKILL.md fans out N agents where the protocol wants ceil(N/3).
+
+**F4, retired Reviewer C still named as a live dispatch in six places.** Worst is `references/review-and-verify.md:139`, "Phase 5 dispatches FOUR foreground reviewers in parallel", which dispatches A/D/F unconditionally and ignores the evidence gate entirely. Also `parallel-agents/phase-5-multi-review-e-design.md:3` (and therefore its byte-identical mirror `agents/design-conformance-reviewer.md`), `skills/review-triage/SKILL.md:16` (names retired C, omits E and F), `parallel-agents/template-contract.md:15`, `parallel-agents/README.md:33` (eight lines above the line that retires C), and `phases/phase-5-review.md:27` ("Six reviewers") against `:84` "Cap at 5" in the same file.
+
+**F5, `parallel-agents/README.md:10` puts OpenCode on the paste-the-template path**, calling it one of "the six best-effort targets". `runtime-adapters.md:47` calls OpenCode native on every axis, and `SKILL.md:238` agrees ("native tier (Claude Code, OpenCode)"). There are 4 best-effort runtimes, not six. Costs an OpenCode run the whole registry path.
+
+**F6, WCAG version drift.** `template-contract.md:128` allowlists "WCAG 2.2 AA" and `:141` makes the allowlist binding. Reviewer E (`phase-5-multi-review-e-design.md:21`, its mirror `agents/design-conformance-reviewer.md:14`) and `commands/designify.md:9,37` say 2.1.
+
+**Three NOT SURE items, deliberately not acted on:** whether `/codewalk` should be namespaced (the skill itself asserts the bare form and no validator pins it); whether "four-to-five reviewers" in `orchestration.md` and `quick/SKILL.md` is a cost estimate or a dispatch contract (true floor is 1 with B alone standing); and `SKILL.md:18` "a coherence reviewer in every review wave" against `:183` and commit `17c4a24`, which may already be handled by the in-flight T9 pass.
+
+**Mirror hazard for whoever fixes F4 and F6:** `parallel-agents/phase-5-multi-review-e-design.md` is byte-mirrored into `agents/design-conformance-reviewer.md` and check `[75h]` diffs them. Editing one without re-running `scripts/sync_agent_mirrors.py` turns the triad red.
+
 ## 7. Sprint Review (Phase 4 / 5)
 
 ### Evidence Ledger (Phase 4)
