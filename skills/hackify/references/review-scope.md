@@ -120,4 +120,17 @@ The old definition was "the panel re-read every byte". The new one is:
 
 A verdict is live when the blob hash it was recorded against still matches the file on disk. This is a different guarantee from the old one, not a weaker one, but it is only as good as the ledger, so the ledger is mandatory whenever carry-over is used.
 
-The parent may only declare a round FULL when every dispatched lens echoed a scope beginning with `settle `, and F's echo was `settle all`. A lens that echoed a bare pathspec list was running a middle round, and **a middle round can never close the loop** no matter how clean it came back.
+The parent may only declare a round FULL when every dispatched lens **that takes a scope** echoed one beginning with `settle `, and F's echo was `settle all`. A lens that echoed a bare pathspec list was running a middle round, and **a middle round can never close the loop** no matter how clean it came back.
+
+**Reviewer B is the one exemption, and it is structural rather than a courtesy.** B takes no
+`{{review_scope}}` at all: B is never sliced, so there is no scope for it to echo. Requiring an echo
+from B made this gate unsatisfiable, because `71-release-mechanism-pins.sh` fails the build the
+moment B's prompt gains a `{{review_scope}}` placeholder. One rule required exactly what another
+forbade, and a settle round genuinely could not be declared FULL by any dispatch.
+
+The exemption is safe because the echo was only ever evidence for the real condition above, that
+every byte of the reviewed diff is covered by a live verdict. For every sliced lens the echo is the
+only proof it did not quietly read a subset. For B that proof comes from the validator instead, and
+it is stronger: a sliced B cannot be dispatched, because it cannot exist. **Read B's silence as full
+coverage only while that check is green.** If B ever gains a scope placeholder, this exemption is
+void and the gate must be reconsidered, not patched again.
