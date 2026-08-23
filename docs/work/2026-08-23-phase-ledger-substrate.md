@@ -211,12 +211,12 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 | `W2/T4` | `ee5cc64` | pre-declared | `hooks/hooks.json` `hooks/inject-context.sh` `hooks/test_inject_context.sh` |
 | `W2/T5` | `ee5cc64` | pre-declared | `skills/hackify/references/phases/phase-1-clarify.md` `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/hackify/references/phases/phase-3-implement.md` `skills/hackify/references/phases/phase-4-verify.md` `skills/hackify/references/phases/phase-5-review.md` `skills/hackify/references/phases/phase-6-finish.md` |
 | `W2/T6` | `ee5cc64` | pre-declared | `skills/hackify/SKILL.md` `skills/quick/SKILL.md` `skills/yolo/SKILL.md` |
-| `W2b/T9` | `8fa8d58` | pre-declared | `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/yolo/evals/evals.json` |
+| `W2b/T9` | `8fa8d58` | pre-declared, amended at Phase 5 | `skills/hackify/references/phases/phase-2.5-spec-review.md` `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/yolo/evals/evals.json` `README.md` |
 | `W2b/T10` | `8fa8d58` | pre-declared | `skills/groom/SKILL.md` `skills/hackify/references/work-doc-template.md` `skills/hackify/references/phase-ledger.md` |
 | `W3/T7` | `8fa8d58` | pre-declared, amended at Phase 5 | `scripts/validate-dod.d/70-invariants-and-new.sh` `agents/code-reviewer-coherence.md` `agents/code-reviewer-performance.md` `agents/code-reviewer-quality-plan.md` `agents/code-reviewer-security.md` `agents/design-conformance-reviewer.md` |
 | `W4/T8a` | `8fa8d58`, `5a84a7a` | pre-declared | `.claude-plugin/plugin.json` `.claude-plugin/marketplace.json` `CHANGELOG.md` `README.md` |
 | `W5/T8b` | (no tracked path) | pre-declared | (none tracked: the seven runtime trees under dist are git-ignored, so the mirror resync changed no tracked file) |
-| `W6/T11` | `8fa8d58` | reconstructed | `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `agents/code-reviewer-security.md` |
+| `W6/T11` | `8fa8d58` | reconstructed | `skills/hackify/SKILL.md` `skills/yolo/SKILL.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` `agents/code-reviewer-security.md` `README.md` |
 | `W7/T12` | `8fa8d58` | reconstructed | `skills/hackify/references/review-and-verify.md` `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md` `skills/hackify/references/parallel-agents/template-contract.md` `skills/hackify/references/parallel-agents/README.md` `skills/hackify/references/phases/phase-5-review.md` `skills/review-triage/SKILL.md` `commands/designify.md` `agents/design-conformance-reviewer.md` `agents/spec-reviewer.md` |
 | `W8/T14` | `8fa8d58` | reconstructed | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
 | `W9/T15` | `8fa8d58` | reconstructed | `scripts/validate-dod.d/76-phase-ledger-substrate.sh` `scripts/validate-dod.sh` |
@@ -257,20 +257,26 @@ The key is `W<n>/T<m>`, the shape `phase-5-review.md:15` requires for `{{task_fi
 
 | Provenance | Rows | Distinct paths | What the row is worth |
 |---|---|---|---|
-| pre-declared | 10 | 23 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
-| pre-declared, amended at Phase 5 | 1 | 6 | the allowlist was real and the task went outside it; the row carries the six paths actually touched and says so |
+| pre-declared | 9 | 22 | a real allowlist, written before the edit, so a file outside it was detectable at the time |
+| pre-declared, amended at Phase 5 | 2 | 11 | the allowlist was real and the task went outside it; the row carries the paths actually touched and says so |
 | reconstructed | 27 | 32 | written at Phase 5 from the Daily Updates entry plus `git show --stat`, so it records what happened and cannot retroactively have constrained it |
 | no task ID | 7 | 13 | keyed on the decision-table finding that authorized the fix, because no task number was ever assigned |
 
-**The amended row is `W3/T7`, and it is the one row here that proves the index can fail.** T7's allowlist was `scripts/validate-dod.d/70-invariants-and-new.sh` alone; it also wrote five agent files. The breach is recorded in this sprint's own Sprint Backlog and it stays legible in the index, as its own provenance class rather than folded into `pre-declared`, because a table where the recorded breach is indistinguishable from a clean row is the table Reviewer B refuted.
+**Two rows are amended, and they are what prove the index can fail.** `W3/T7`'s allowlist was `scripts/validate-dod.d/70-invariants-and-new.sh` alone; it also wrote five agent files. `W2b/T9`'s allowlist named four paths and did not name `README.md`; it edited README anyway. Both breaches are recorded in this sprint's own Sprint Backlog and both stay legible in the index, in their own provenance class rather than folded into `pre-declared`, because a table where the recorded breach is indistinguishable from a clean row is the table Reviewer B refuted.
+
+**`W6/T11` also touched `README.md`, and that is a different thing, deliberately classed differently.** Its row is `reconstructed`, which by the definition two paragraphs above never constrained anything and therefore cannot be breached. Adding README to it corrects an incomplete record; adding README to T9 records a violated allowlist. Collapsing the two into one label would make the honest count of breaches read as three when it is two, and this table exists to be countable. Wizard decision **#17-A** asked for both to be recorded as breaches. Only T9 is one, and it is recorded as one; T11 is recorded as what the evidence actually supports.
+
+**Neither README attribution is provable from git.** `W3/T7` and `W2b/T9` through `W6/T11` all landed inside the single commit `8fa8d58`, so `git show --stat` cannot split them and the attribution rests on the Daily Updates entries. That is a weaker source than a commit boundary and is stated here rather than implied.
 
 Both count columns are re-derived from the rows above, by grouping on the Provenance cell (bold is emphasis, so `**no task ID**` and `no task ID` are one label) and unioning the backticked paths in each group. They are not maintained by hand. A hand-kept total on a table that later work grows is the staleness this sprint already had to fix twice, once in the DoD count and once in the roster.
 
-**The distinct-path column does not partition the 52.** It sums to 74, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 52; do not sum the column and compare it.
+**The distinct-path column does not partition the 52.** It sums to 78, because a path touched once under a pre-declared allowlist and again under a reconstructed row is counted in both classes. Read each row against 52; do not sum the column and compare it.
 
 **Three paths have no authorization other than a `no task ID` row:** `skills/hackify/references/parallel-agents/phase-5-aggregation.md`, `skills/hackify/references/parallel-agents/phase-5-refute.md` and `skills/hackify/references/review-scope.md`. Every other path in the 13 also appears under a numbered task somewhere else in the index. That count of three is the honest measure of how much of this sprint changed with nothing task-shaped standing behind it.
 
-**Two known imprecisions, left visible rather than tidied.** `README.md` was edited by T9 and T11 as well as T8a, and only T8a's row lists it, so those two tasks worked outside their stated allowlists exactly as T7 did; that is recorded here rather than fixed by quietly widening two settled rows, and it is a follow-up. And several files sit in more than one row, `77-reviewer-roster.sh` in seven of them, which is a true fact about how this sprint ran and is not deduplicated.
+**One known imprecision, left visible rather than tidied.** Several files sit in more than one row, `77-reviewer-roster.sh` in seven of them, which is a true fact about how this sprint ran and is not deduplicated.
+
+**Every figure in the two tables above is recomputed from the rows, never edited by hand.** The recount that produced the current numbers also caught a parser of mine that was silently dropping a row: `` `W12/[77]` `` is written with double backticks and a `startswith('| `W')` test skips it, which is why the script reported 44 rows against the 45 the document claimed. The disagreement is the only reason the bug surfaced. A derived count that nothing disagrees with is the same vacuous check this sprint has now catalogued nine times.
 
 
 ## 6. Daily Updates
@@ -1295,6 +1301,72 @@ Not a verification gotcha this time. The tool was fine; the artifact was mine. R
 **And the third, Reviewer F's.** The Phase 5 scope ledger had three columns and listed only the 6 dead paths, against the five-column, one-row-per-path shape `review-scope.md:68-71` specifies. With A and D sliced, "no verdict" and "live verdict" were indistinguishable in it, so "46 of 52" was an assertion. Rebuilt to the spec: 52 rows, blob hashes at head, a lens column, and an explicit cell where a path holds no round-one verdict.
 
 **Why this belongs on the list.** Same shape as the other seven, a marker that reads as coverage while measuring nothing. The difference is that those seven were tools I caught measuring nothing, and this one is an artifact I authored to close a finding. It reported full coverage on all 52 paths while being structurally incapable of reporting anything else.
+## 7d. The fix wave, two more vacuous checks that were mine, and why the loop could never close
+
+Three agents landed as `28857ac`. CI now carries `fetch-depth: 0` **and** `fetch-tags: true`, because
+the agent tested all four combinations and found depth 0 with tags off still lands zero tags on a
+non-shallow clone, which under the new fail-closed check would have reddened every run. I had passed
+on Reviewer A's recommendation of `fetch-depth: 0` alone. That was wrong and an agent caught it.
+`[27d]` now pins its two never-cut versions with an expected count placed outside the verifiable
+block. The plant suite counts the batched ban calls that actually ship and pins the CHANGELOG's
+"three" three separate ways. `[70]`'s two lists gained size guards. `check_no_tokens_in` stopped
+writing a temp file per call.
+
+I tampered four of the new pins myself rather than trusting the agents' self-reports. All four redden
+in both directions and each reddens only itself.
+
+### NINTH VERIFICATION GOTCHA: my tamper probe edited nothing and I read that as a vacuous pin
+
+The `[70]` file-set probe inserted after a line matching `^P5_FILES=(`. `P5_FILES` is a
+space-separated string, not an array, so the pattern matched zero lines, `sed` changed nothing, the
+validator passed, and I recorded the pin as vacuous. The pin was fine. The probe was the vacuous
+thing. The fix that caught it is one line: compare the file against its backup and print whether the
+tamper actually landed, so a no-op probe can never be read as a passing check. Every probe in this
+document from here on reports `tampered=YES` or `tampered=NO` beside its exit code.
+
+### EIGHTH VERIFICATION GOTCHA: the em-dash check I ran all session never fired
+
+A `grep -c` whose pattern is a `$'...'` quoted string holding the em dash and the en dash joined by
+`\|` returns `0` against a file that provably contains both characters, because the
+BSD grep here treats `\|` as a literal in a basic regular expression rather than as alternation.
+Every "zero em dashes" line I reported this sprint was measuring nothing. Re-scanned with a Python
+byte count: 6 em dashes exist, all in `CHANGELOG.md` at lines 736, 770 and 794, all present before
+this sprint began, none introduced by it. So the reported conclusion happened to be true and the
+method that produced it was worthless, which is the worse of the two failure modes because nothing
+about the output looked wrong. An implementation agent hit the identical trap independently and
+reported it in the same words, which is the only reason I am confident the diagnosis is the grep and
+not the file.
+
+That makes nine instances of one shape in a single sprint: a check that passes while measuring
+nothing. The rule they all point at, stated once: **any code path that filters, matches or skips a
+caller-supplied input must account for what it removed, because silence reads as coverage.**
+
+### Wizard decision #16-A: the work-doc is the ruler, not the measured
+
+Phase 5 may only exit on a round that leaves every byte of `git diff <base>..HEAD` covered by a live
+verdict (`phase-5-review.md:110`), and a verdict is live only while the path's recorded blob hash
+matches disk (`review-scope.md:85`). The work-doc is a changed path in that diff. It is also the
+authority Reviewer B measures the diff against, supplied as `{{work_doc_path}}` and
+`{{task_file_index}}`, with any file lacking an authorizing task entry raised as a Critical
+(`phase-5-multi-review-b-quality-plan.md:168-172`).
+
+So writing a round's result into the work-doc changes the work-doc, which kills the work-doc's own
+verdict, which mandates another round, whose result must again be written into the work-doc. This
+document has been rewritten 25 times inside this sprint. The loop was not slow to converge. It could
+not converge, and no amount of care by any reviewer would have changed that.
+
+The reasoning was already sitting in this file before either the panel or I named it. The task-file
+index excludes work-doc edits "because the work-doc is the authorizing artifact and cannot authorize
+itself". The same sentence is true of the reviewed diff. The repo carries a second precedent:
+`scripts/validate-dod.d/80-file-size-caps.sh:13` scopes the cap sweep to
+`skills agents rules scripts hooks commands`, deliberately leaving `docs/` out, because a work log is
+not a primitive the caps govern.
+
+Wave 8 (T53 to T55) applies it: exclude `docs/work/` where the review scope is built, carry the same
+exclusion into Reviewer B's own diff commands since B is never sliced and receives `settle all`, and
+pin all of it in `76-phase-ledger-substrate.sh` with every pin proven by tamper. B keeps reading the
+work-doc in full as its authority. It simply stops grading it.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
