@@ -45,6 +45,13 @@ jobs:
       - name: Context-injector hook tests
         run: bash hooks/test_inject_context.sh
 
+      # Deliberately NOT wired into validate-dod.sh: it costs ~9s, twice the
+      # whole validator, and CI is where that time is free. It covers the
+      # validator's own ban-token matching engine, so it runs just before the
+      # validator that depends on it.
+      - name: Ban-token tamper tests (validator matching engine)
+        run: bash scripts/test_ban_tokens.sh
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 

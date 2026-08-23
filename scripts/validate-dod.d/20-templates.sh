@@ -114,7 +114,7 @@ done
 for f in "${PA_BUILD_FILES[@]}"; do
   check_severity_presence "$(cat "$f")" "$(basename "$f")" "build"
 done
-# Also the escalation reviewer in review-and-verify.md
+# Also the adjudication reviewer in review-and-verify.md
 for req in "**ROLE**" "**INPUTS**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**SEVERITY**" "**OUTPUT**"; do
   if grep -qF "$req" "$RAV_FILE"; then
     green "  ok   review-and-verify.md has $req"
@@ -197,12 +197,12 @@ for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
     FAILED=$((FAILED + 1))
   fi
 done
-# review-and-verify.md escalation reviewer too
+# review-and-verify.md adjudication reviewer too
 out=$(awk '/\*\*OUTPUT\*\*/{flag=1; next} flag && /^\*\*/ {flag=0} flag' "$RAV_FILE")
 if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
-  green "  ok   review-and-verify.md escalation OUTPUT has word cap"
+  green "  ok   review-and-verify.md adjudication reviewer OUTPUT has word cap"
 else
-  red "  FAIL review-and-verify.md escalation OUTPUT missing word cap"
+  red "  FAIL review-and-verify.md adjudication reviewer OUTPUT missing word cap"
   FAILED=$((FAILED + 1))
 fi
 

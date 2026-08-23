@@ -307,9 +307,8 @@ for f in $PANEL_AGENTS; do check_token_present 'B is the standing member, A, D a
 # thing that goes stale, and correct text cannot contain any of them. '3 reviewers' /
 # '2 reviewers' was a separate 4-file loop, folded in so work-doc-template.md is covered.
 for f in "$P5_PHASE_G" "$RAV_G" "$ORCH_G" "$ESC_G" "$QUICK_G" $PANEL_AGENTS "skills/hackify/SKILL.md" "skills/yolo/SKILL.md" "$LEDGER" "$CONTRACT" "$P25_PHASE" "$WORK_DOC_TPL"; do
-  for t in 'A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers'; do
-    check_no_token "$t" "$f"
-  done
+  # One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
+  check_no_tokens_in "$f" 'A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers'
 done
 
 # No retired agent type may be named in a live instruction, in ANY mode. A dead

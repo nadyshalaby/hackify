@@ -20,8 +20,9 @@
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
 #   76-phase-ledger-substrate.sh, check [76], where the phase ledger lives, the
 #                   per-phase tick lines, and the always-on phase laws
-#   77-reviewer-roster.sh, check [77], reviewer-roster and panel-count drift
-#                   in the files the [70] ban loop does not cover
+#   77-reviewer-roster.sh, check [77], reviewer-roster drift, count bans over six
+#                   files (two no other check reaches, a wider token set on the
+#                   four shared with [70]) plus the standing-member-is-B invariant
 #   78-dispatch-mandate.sh, check [78], no parent-authored diffs + orchestration
 #                   that is a tool call rather than a description
 #   80-file-size-caps.sh, check [80], file-size ≤ 500 LOC across primitives
