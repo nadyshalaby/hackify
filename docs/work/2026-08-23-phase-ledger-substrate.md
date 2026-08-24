@@ -3490,6 +3490,56 @@ earlier in this same sprint. My leaning, passed as a leaning: fail hard on the f
 occurrence drift. The limitation goes in the check's own comment, not only in a report, because a check
 whose comment overstates its reach is the defect class this sprint exists to close.
 
+## 7ag. B files against its own remedy, and proves it with the report doing the filing
+
+The settle round came back with no Criticals and two Importants. The first is the sharpest finding of
+the sprint, and B is the author of the thing it is filing against.
+
+**The round marker attests that a label was received, not that anything was read.** B proposed the
+marker last round precisely because the validator pin could not prove a given run read the whole diff.
+The marker cannot prove it either. Its content is the round label the dispatch supplied, copied back.
+
+**The demonstration is the report itself.** I handed B 12 of 73 paths, told it not to re-read the other
+61, named the round `settle`, and it wrote `Round: settle`. That partial read is CORRECT under
+carry-over, which is exactly what makes it damning: a B that read all 73 and a B that read 12 emit the
+identical string. Structurally, a sliced lens echoes `settle src/auth/`, and every bit of coverage
+information lives in the pathspec, none of it in the prefix. B now echoes the prefix alone, which is
+the half of the sliced echo that carries nothing.
+
+**It is the same category error one level down, and I shipped it three times.** Last round: a universal
+over templates read as an existential over runs. This round: a label echoed back read as an attestation
+of coverage. Verified at all three sites: `agents/code-reviewer-quality-plan.md:298` and its mirror both
+say the marker "is the parent's per-run evidence that THIS instance of you read the whole reviewed
+diff", and `review-scope.md:140` says "B closes that gap with a round marker instead of a scope". The
+gap named one paragraph earlier is "B's silence was never coverage". A label is not coverage either.
+
+Not Critical, and B was careful about why: the gate is satisfiable now, which it genuinely was not, and
+a marker beats silence because `Round: unnamed` catches a dispatch that named no round. What is wrong
+is the claimed proof strength, at three sites plus a CHANGELOG bullet.
+
+**The remedy is cheap and it is B's own:** make the marker carry what it claims.
+`Round: settle (12 re-read at HEAD, 61 carried)`. No pathspec, so the pin stays green and `[38h]` does
+not move, and the parent reconciles those numbers against its own ledger.
+
+**The eighteenth instance, in a check built this round to refuse silent skips.** `[76i]`'s parser does
+`if not declared: continue` at `76-phase-ledger-substrate.sh:461`. A fragment whose `yellow "[..]"`
+declarations stop matching, through a reworded quote or a leading space, drops out with no count, no
+note and no red. `PLS_RANGE_FLOOR=12` bounds a mass collapse; one or two silent drops sail under it.
+`00-helpers.sh` legitimately declares nothing, so a skip is needed, but it is blanket where it should
+be named.
+
+**B also withdrew its own "one rule" framing** rather than defending it, having reasoned from
+`check_suppression` living only in `run_all` and over-generalized. And it recorded a miss of its own
+from last round unprompted: it read both `review-scope.md` and `80-file-size-caps.sh` and failed to
+connect the precedent paragraph to the root scan that had just landed in the same diff. Filed as a miss
+instead of left to pass as coverage.
+
+**Its Minors, both verified:** an unquoted `printf '        %s\n' $files` word-splits at
+`71-release-mechanism-pins.sh:466` and again at `76-phase-ledger-substrate.sh:304`, diagnostic paths
+only. And `76-phase-ledger-substrate.sh` is at **499 of 500 LOC**, so both Importants want edits in a
+file with one line of runway. The split that `[80b]`'s comment queued is now forced rather than
+optional.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
