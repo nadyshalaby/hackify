@@ -414,6 +414,29 @@ wi_absent_all() {
 WI_DEAD_WORDS=('Cap a batch at 3 tasks' 'per task BATCH' 'Group by module, never by count')
 check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary list"
 
+# THE RETIRED DISPATCH INPUT NAMES. A separate list from the batching phrases
+# above, because each hand-written size bound should police a list whose meaning
+# does not shift under it. Both are class C5, retired vocabulary surviving in a
+# live file; that list polices a replaced fan-out, this one polices INPUT names
+# a dispatcher builds a call out of. CHANGELOG.md:19 retires `{{assigned_lens}}`
+# as an input and records the refuter row naming `finding_verbatim` where the
+# template's real name is `findings_batch`. A stale INPUT name is the sharpest
+# shape here: an agent asked to fill a placeholder nothing declares receives
+# literal text, the dispatch bug [93] resolves from the other end.
+#
+# WHY THIS CLASS NEEDS NO ALLOWLIST, which is the line dividing it from the
+# section-name class. Everything here must be absent from every live file with
+# no exception, so it rides the existing absent scan unchanged. Vocabulary some
+# file keeps DELIBERATELY, the way six back-compat sites keep the retired
+# work-doc section labels, cannot be banned outright and belongs to a different
+# instrument; putting it here would red on text that is correct on purpose.
+#
+# Measured before feeding, under the pathspec the scan uses: both return git
+# grep rc 1 with empty stdout AND empty stderr, the clean tree's face rather
+# than a scan that could not run. rc alone would not have settled it.
+WI_DEAD_INPUTS=('assigned_lens' 'finding_verbatim')
+check_list_size "${#WI_DEAD_INPUTS[@]}" 2 "the [40] retired dispatch INPUT name list"
+
 # THE DEAD TYPE IS BANNED, not merely left unpinned. A presence pin alone cannot
 # see a stale dispatch site sitting beside a corrected one, and one corrected
 # site beside one stale site is exactly the shape a half-applied rename leaves.
@@ -422,9 +445,36 @@ check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary li
 #
 # The size is hand-written beside the list, for the reason WI_TYPE_SITES gives
 # above: drop a literal and the element count drops with it, so the literal
-# leaves the run and the run stays green one check shorter. It is written as 4
-# rather than as an expression over WI_DEAD_WORDS, because a bound derived from
-# the list it polices cannot police that list.
-WI_BANNED=('hackify:wave-task-implementer' "${WI_DEAD_WORDS[@]}")
-check_list_size "${#WI_BANNED[@]}" 4 "the [40] banned-wording set"
-wi_absent_all "${WI_BANNED[@]}"
+# leaves the run and the run stays green one check shorter. It is written as 6
+# rather than as an expression over WI_DEAD_WORDS and WI_DEAD_INPUTS, because a
+# bound derived from the lists it polices cannot police those lists. It moves
+# when a list gains or loses an entry, and moving it is the deliberate act that
+# records the change.
+WI_BANNED=('hackify:wave-task-implementer' "${WI_DEAD_WORDS[@]}" "${WI_DEAD_INPUTS[@]}")
+check_list_size "${#WI_BANNED[@]}" 6 "the [40] banned-wording set"
+
+# THE SCOPE ITSELF IS FLOORED, which the WI_LIVE_PATHS comment above argues for and
+# nothing until now measured. Measured, not feared: `git grep -qF -e hackify --
+# ':(top)' ':(top,exclude)*'` returns rc 1 with empty stderr, this block's clean-tree
+# face exactly, so a scope resolving to no file clears every literal green having read
+# nothing. Status is git ls-files' alone, no pipe inside the substitution for pipefail
+# to launder and rc read next, the contract wi_absent states above; no stderr capture,
+# because git ls-files has no ambiguous rc 1 to break a tie on and its own message is
+# left to print rather than swallowed. A floor and not an exact count, at roughly half
+# of what the tree measured when it was written, since live files come and go.
+WI_SCOPE_FLOOR=120
+wi_scope_out=$(git ls-files -- "${WI_LIVE_PATHS[@]}")
+wi_scope_rc=$?
+wi_scope_n=0
+while IFS= read -r wi_scope_f; do
+  [ -n "$wi_scope_f" ] || continue
+  wi_scope_n=$((wi_scope_n + 1))
+done <<WI_SCOPE_EOF
+$wi_scope_out
+WI_SCOPE_EOF
+if [ "$wi_scope_rc" -ne 0 ] || [ "$wi_scope_n" -lt "$WI_SCOPE_FLOOR" ]; then
+  red "  FAIL [40] WI_LIVE_PATHS resolved to $wi_scope_n live file(s) at rc $wi_scope_rc, against a floor of $WI_SCOPE_FLOOR; the scope collapsed rather than the tree shrinking, so the ban scan below would have cleared all ${#WI_BANNED[@]} literals against no file at all"
+  FAILED=$((FAILED + 1))
+else
+  wi_absent_all "${WI_BANNED[@]}"
+fi

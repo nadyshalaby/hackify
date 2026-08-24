@@ -57,6 +57,12 @@
 #   93-token-declarations.sh, check [93], every {{token}} used in a sub-agent
 #                   prompt is declared by that prompt's own INPUTS list, so a
 #                   dispatch cannot be asked to fill a placeholder nothing names
+#   94-section-exists.sh, check [94], every instruction naming a work-doc
+#                   section names one the template's headings actually declare,
+#                   so a doc cannot send a writer to a section that was retired
+#   95-literal-absent-claims.sh, check [95], every claim that a quoted phrase is
+#                   not pinned is checked by looking the phrase up, so a comment
+#                   cannot call a literal unpinned while another fragment bans it
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -171,6 +177,8 @@ source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
 source "$DOD_MODULES_DIR/93-token-declarations.sh"
+source "$DOD_MODULES_DIR/94-section-exists.sh"
+source "$DOD_MODULES_DIR/95-literal-absent-claims.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being
