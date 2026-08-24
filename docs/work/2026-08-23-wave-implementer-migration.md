@@ -2324,3 +2324,42 @@ Reviewer D in round 5 rather than judged here.
 **Green at `2c78de0`:** validator 0 FAIL, tamper suite **153** passed 0 failed, mirrors 9 of 9,
 `wi_absent` 38 of 40 lines with its text-extraction contract intact, all files clear of the 500 cap,
 `CHANGELOG.md` still 976 lines so `71:287`'s pointer at `:18` holds.
+
+### Phase 5 round 5, Reviewer D: one Important, and it corrects the measurement two dismissals rested on
+
+**D returned empty in rounds 3 and 4. It did not this time, and it was right not to.**
+
+The Critical fix doubled `git grep` invocations on the pre-commit path, 4 to 8, and D reclassified
+the whole thing. **Verified independently by the parent, 20 iterations each, 248 tracked files:**
+
+| shape | invocations | measured |
+|---|---|---|
+| pre-fix single scan | 4 | **53.1 ms** |
+| head's union | 8 | **122.4 ms** |
+| **batched, one scan per mode** | **2** | **31.0 ms** |
+
+**The batched union is FASTER than the single scan the sprint started with**, 31.0 against 53.1, so
+the check ends up both safer and cheaper than before any of this began. Dropping `--cached` to save
+time is strictly worse than batching.
+
+**D corrected the catalog line, and that is the substance of the finding.** Round 4 dismissed this
+under `perf-scout.md:104`, "bounded constant lists are fine". That guard exempts per-item **fork**
+overhead, and fork overhead is not the cost here. Measured: one pattern 15.0ms, four patterns in the
+same invocation 14.8ms, **identical**. The cost is the per-invocation tree walk, which is
+`perf-scout.md:105`, a grep per token over the same held text, and that line carries no bounded
+exemption.
+
+**And round 3's "batching saves 14.6ms" was several times too low.** Both earlier dismissals rested
+on that figure. Re-measured, batching the single-scan shape goes 53.1 to about 15, so roughly 38ms,
+not 14.6. A wrong number, quoted twice, closed a real finding twice.
+
+**The remedy is already the house pattern.** One batched `git grep` per mode acting as a screen that
+decides only clean-or-not, falling through to today's unchanged per-literal loop when it is not
+clean. `check_no_tokens_in` at `00-helpers.sh:270-311` does exactly this. Greens, per-mode reds and
+the `rc > 1` / stderr tie-breaker all keep coming from the untouched fallback, so every wording
+assertion in `15-wi-absent-cases.sh` still holds. The dirty path pays screen plus fallback on a run
+that is about to red and abort the commit anyway, so its latency is not a currency.
+
+**D also re-confirmed the GIF dismissal** rather than re-opening it: closed on measurements in round
+4, no new evidence, and the file changed this round only by moving a comment block, with the GIF
+byte-identical.
