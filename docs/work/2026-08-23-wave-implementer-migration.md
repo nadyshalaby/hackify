@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W5c:T11
+current_task: W6:T12+T13+T11b
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -232,7 +232,7 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 5, guard the new vocabulary
 
-- [ ] **T11** Pin the new agent path, the AGENT-TYPE STRING (Group B, pinned by nothing today),
+- [x] **T11** Pin the new agent path, the AGENT-TYPE STRING (Group B, pinned by nothing today),
   the retired word, and the #11-A reporting sentence. Every pin proven to bite by tamper, per the
   protocol in AC7 below.
   `Files:` `scripts/validate-dod.d/70-invariants-and-new.sh`, `scripts/validate-dod.d/60-primitives.sh`, `scripts/validate-dod.d/71-release-mechanism-pins.sh`
@@ -272,6 +272,14 @@ census cannot fail. This backlog is the corrected shape.
   `Files:` `skills/hackify/references/phases/phase-2.5-spec-review.md`
 
 ### Wave 6, docs and release
+
+- [ ] **T11b** The orchestrator's hand-maintained fragment map at `scripts/validate-dod.sh:18-22`
+  names which check ids fragment 70 owns and does not list `[40]`. Found by the T11 implementer,
+  which correctly refused to edit a file outside its allowlist. **Nothing reds on the omission:**
+  `[76i]` only checks a row's range endpoints, and this row's last item (`[39]`) is not a range, so
+  its upper end is skipped by construction. A hand-kept record that has quietly gone stale, which is
+  this repo's most-repeated defect, appearing again inside the sprint that keeps finding it.
+  `Files:` `scripts/validate-dod.sh`
 
 - [ ] **T12** README release blurb. The parallel-agents README table is T3's file, not this one;
   the signed-off description claimed both and the allowlist carried one.
@@ -528,6 +536,53 @@ imply otherwise.
 findings, 0 unaccounted. No em or en dashes. Every pinned literal across the touched files verified
 present. `git grep` for the three retired claims returns only `README.md:101`, which is T12's file
 in Wave 6, and `CHANGELOG.md`, which is release history and correctly keeps them.
+
+### 2026-08-24, Wave 5c, the pins and their proof (T11)
+
+Check `[40]` lands in `70-invariants-and-new.sh` at 245 of 500, carrying four pins. `71` was not
+touched: it sits at 483 of 500 and could not take a block this size.
+
+- **The live agent type** `hackify:wave-implementer` must be present at all four dispatch sites.
+  This closes Group B, the gap that let the rename ship green while every dispatch site named a
+  type that no longer resolved. The site list carries its own length hand-written beside it, so
+  dropping a site cannot quietly take that site's check away with it.
+- **The retired type must be absent** from every live file, by `git grep` over the tracked tree
+  minus `dist/`, `docs/work/`, `CHANGELOG.md` and the fragment itself.
+- **The #11-A reporting half** on both mirror sides. `71` already pinned the stopping half
+  (`STOP there`); the reporting half was unpinned, and it is the mitigation that bought one agent
+  per wave its wider blast radius. This sprint spent that mitigation twice in one afternoon.
+- **The three retired batching phrases** are banned by the same scan. The bare word `batch` is
+  untouched, because the wizard and flat-subagent senses are still correct.
+
+**AC7 is met, and I checked it rather than accepting it.** The implementer's harness runs twelve
+tamper steps, restores by copying a backup back rather than `git checkout`, and asserts three things
+per step: the tamper diff is non-empty, every FAIL in the run is its own and the count matches
+exactly, and the tree returns to one modified file. HEAD was identical before and after all twelve.
+It added two controls the brief did not ask for: planting the banned strings in an EXCLUDED path and
+proving the run stays green, which is what rules out a malformed pathspec that silently scans
+nothing.
+
+**My own independent tamper found a defect in MY method, not in the pin.** I broke the type string
+in `skills/quick/SKILL.md` and read zero FAILs, which looked like a pin that does not bite. The pin
+bites; my count did not. The validator's FAIL lines are ANSI-coloured, so a `^  FAIL` anchor never
+matches, because the line begins with an escape sequence rather than two spaces. That pattern
+reports zero on a red tree. Stripping the colour first shows
+`FAIL 'hackify:wave-implementer' missing from skills/quick/SKILL.md`, exactly as claimed. **The
+implementer's harness had already handled this**, with a `strip()` applied before every count, which
+is why its numbers were sound and my spot-check was not. Recording it because a measurement that
+always reads zero is precisely the class of defect §5b exists to catch, and this time it was the
+parent producing it.
+
+**Two facts in my dispatch brief were wrong, and the implementer went with disk over the brief.**
+I said `CHANGELOG.md:778` carries `hackify:wave-task-implementer`; it carries the name without the
+`hackify:` prefix, so the CHANGELOG exclusion waives nothing today and is future-proofing for a
+release note not yet written. It said so in the comment rather than letting a later reader take the
+row as load-bearing. It also found two retired phrases surviving in `docs/work/done/`, already
+covered by the recursive exclusion.
+
+**Wave-end evidence.** Validator exits 0 with 0 FAIL (1437 ok lines, up from 1422). Mirrors 9 of 9.
+`70` at 245 of 500, `60` and `71` untouched. The implementer also ran the five CI gates that
+`validate-dod.sh` does not cover, all green, plus `bash -n` and `shellcheck -x`.
 
 ## 7. Sprint Review
 

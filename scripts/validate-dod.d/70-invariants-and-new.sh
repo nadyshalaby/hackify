@@ -143,3 +143,103 @@ check_file "hooks/test_inject_context.sh"
 yellow "[39] performance review surfaces registered (Reviewer D agent + perf-scout wiring)"
 check_file "agents/code-reviewer-performance.md"
 check_token_present "perf-scout.md" "skills/hackify/SKILL.md"
+
+yellow "[40] the Phase 3 implementer rename, live name present and dead name absent"
+# NOTHING IN THIS REPO USED TO GREP AN AGENT-TYPE STRING. Commit dabc333
+# renamed the implementer agent and left every dispatch site naming a type that
+# no longer existed. The tree stayed fully green and the release was tagged,
+# because a type is resolved by the harness at DISPATCH time, long after the
+# validator has had its say. So the rename is pinned from both ends: the live
+# name must be present at every site that dispatches it, and the dead name must
+# be absent from every file a reader could still follow.
+#
+# WIDER ROOTS THAN [38g]'s RETIRED_TYPES SCAN, DELIBERATELY. That block reads
+# skills/, commands/ and agents/, which is where a reviewer type gets named. An
+# implementer type is also named in prose that teaches the dispatch, so this one
+# reads the whole tracked tree minus the paths allowed to carry the old words.
+# Its roots are a strict superset, which is why the retired implementer type is
+# banned here instead of being added to that regex.
+
+WI_TYPE_SITES="skills/hackify/SKILL.md skills/quick/SKILL.md skills/yolo/SKILL.md"
+WI_TYPE_SITES="$WI_TYPE_SITES skills/hackify/references/parallel-agents/README.md"
+# The size is hand-written beside the list, the shape [77] and [80] both use: a
+# bound read back out of a list cannot police that list. Drop a site from the
+# string and its own check leaves with it, and the run stays green one check
+# shorter, which is the failure this whole block exists to stop.
+check_list_size "$(printf '%s' "$WI_TYPE_SITES" | wc -w | tr -d ' ')" 4 "the [40] dispatch-site file set"
+for f in $WI_TYPE_SITES; do check_token_present 'hackify:wave-implementer' "$f"; done
+
+# THE #11-A REPORTING HALF, ON BOTH MIRROR SIDES. [38f](2) already pins the
+# STOPPING half, 'STOP there'. The half that says what to REPORT after the stop
+# was unpinned, and it is the mitigation that bought one-agent-per-wave its
+# wider blast radius. This sprint spent it: two implementers died mid-wave, and
+# a report naming which task IDs were already on disk is what made the
+# re-dispatch a handful of tasks instead of the whole wave over again.
+WI_MIRRORS="agents/wave-implementer.md"
+WI_MIRRORS="$WI_MIRRORS skills/hackify/references/parallel-agents/phase-3-implementation.md"
+check_list_size "$(printf '%s' "$WI_MIRRORS" | wc -w | tr -d ' ')" 2 "the [40] implementer mirror pair"
+for f in $WI_MIRRORS; do
+  check_token_present 'KEEP everything that already landed on disk' "$f"
+  check_token_present 'which task IDs landed, which task IDs did not' "$f"
+done
+
+# THE EXCLUDED PATHS ARE THE ONES ALLOWED TO SAY THE OLD WORDS. dist/ is
+# generated, docs/work/ is the sprint record that quotes the rename it carried
+# out, CHANGELOG.md is release history that has to name what was renamed, and
+# this fragment holds the very literals it bans. THE CHANGELOG ROW WAIVES
+# NOTHING TODAY, deliberately: that file carries the retired name without its
+# `hackify:` prefix, so the row is future-proofing for the release note this
+# rename has yet to be written into, not the record of a real hit being let
+# through. THE SELF-EXCLUSION TRAVELS WITH THIS BLOCK, and whoever splits this
+# fragment next has to carry it: 70 was split once already at the 500-LOC cap,
+# and a [40] that moves house while that path stays behind would red on its own
+# literals in the middle of the move. git grep reads TRACKED files,
+# which keeps an unsynced dist/ working tree out of the scan for free; [55]
+# already reds on an uncommitted file under skills/, agents/ and hooks/, so
+# scanning untracked paths here would buy no coverage and add false alarms.
+#
+# ':(top)' IS THE POSITIVE HALF AND IT IS NOT DECORATION. A pathspec list made
+# of nothing but exclusions is one reading away from resolving to no files at
+# all, and a scan over no files prints green forever. 'top' also anchors every
+# entry to the repo root rather than to the caller's working directory.
+WI_LIVE_PATHS=(':(top)' ':(top,exclude)dist/*' ':(top,exclude)docs/work/*')
+WI_LIVE_PATHS+=(':(top,exclude)CHANGELOG.md')
+WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
+
+# STATUS IS GIT GREP'S ALONE: a plain command substitution with no pipe inside
+# it, so `pipefail` has nothing to launder. rc 1 is the honest clean tree, rc 0
+# is a hit, anything higher is a scan that never ran and must never be the
+# reason a dead phrase prints green. The failure prints file and line, because
+# the actionable half of an absence check is WHERE the ghost survived.
+wi_absent() {
+  local lit="$1" hits rc
+  hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>/dev/null)
+  rc=$?
+  if [ "$rc" -gt 1 ]; then
+    red "  FAIL [40] git grep exited $rc scanning for '$lit', so finding nothing here would be finding nothing at all"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  if [ -z "$hits" ]; then
+    green "  ok   '$lit' survives in no live file"
+    return
+  fi
+  red "  FAIL [40] retired Phase 3 wording '$lit' survives in a live file:"
+  printf '%s\n' "$hits" | sed 's/^/         - /'
+  FAILED=$((FAILED + 1))
+}
+
+# The dead type is BANNED, not merely left unpinned. A presence pin alone cannot
+# see a stale dispatch site sitting beside a corrected one, and one corrected
+# site beside one stale site is exactly the shape a half-applied rename leaves.
+wi_absent 'hackify:wave-task-implementer'
+
+# The retired batching vocabulary. One implementer now takes a whole wave, so a
+# file still telling the orchestrator to cap or group batches sends it back to
+# the per-task fan-out the wave plan replaced. THE BARE WORD 'batch' IS NOT
+# BANNED, on purpose: a batched wizard questionnaire and a flat batch of
+# parallel subagents are a different sense of the word and both still ship.
+# These three phrases only ever carried the retired one.
+WI_DEAD_WORDS=('Cap a batch at 3 tasks' 'per task BATCH' 'Group by module, never by count')
+check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary list"
+for dead in "${WI_DEAD_WORDS[@]}"; do wi_absent "$dead"; done
