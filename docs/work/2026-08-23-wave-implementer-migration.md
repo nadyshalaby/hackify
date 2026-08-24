@@ -1334,6 +1334,28 @@ design against: **put the whole equivalence class in one allowlist**, both halve
 every sibling of a reworded phrase, both mirror sides, and any comment citing a number the edit
 changes.
 
+### Phase 5 round 3, the gate line
+
+**Range `03e7a12..a0ae8ff`, the whole sprint on the settled diff**, not the settle round's
+`03e7a12..657935b`. Fix waves C through G all landed after that head, and the rule is that a clean
+round has to have scanned what is actually on disk.
+
+**Diff shape:** 45 paths, 30 `.md`, 10 `.sh`, 2 `.py`, 2 `.json`, 1 `.gif`. `docs/work/` and `dist/`
+excluded, the second because nothing under it is tracked.
+
+| Lens | Runs? | Evidence for the call |
+|---|---|---|
+| **A** security & correctness | **runs** | The diff adds shell that spawns `git grep`, creates temp files, shims `PATH` inside a test, and saves-and-restores an EXIT trap with `eval`. A1 last round was a fail-open in exactly this surface. |
+| **B** quality, layering, law + plan consistency | **runs** | Standing member of every wave, never sliced. |
+| **D** performance | **runs** | The perf-scout staged one candidate with a measurement (53 ms, 1.1% of a 4.7s validator). A staged row means D has something to judge. |
+| **E** design conformance | **folds** | Zero UI-bearing files: `git diff --name-only ... \| grep -E '\.(tsx\|jsx\|ts\|js\|css\|scss\|vue\|svelte\|html)$'` returns nothing, and there is no `docs/design/DESIGN.md`. Its residual checklist goes to B as `folded_lenses`. |
+| **F** cross-module coherence | **runs** | The diff crosses boundaries in three directions: `agents/*.md` against their mirrored templates, `skills/**` prose against the `scripts/validate-dod.d/*.sh` pins that police it, and `SKILL.md` against `references/**`. F is the only lens that reads producer against consumer. |
+
+**Inputs built fresh for this round, not reused.** A wave-prefixed `W<n>/T<m>` task-file index (F
+asked for that shape last round and I handed it a commit-grouped one instead); a law-scout run
+widened past markdown to `.sh` and `.py`, **0 findings, 42 of 45 paths scanned, `paths_unaccounted`
+0, `unread_*` 0**; a measured perf-scout; and a metrics table counted at HEAD rather than quoted.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
