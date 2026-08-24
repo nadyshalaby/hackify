@@ -309,6 +309,47 @@ absent". The wrong base was nearly handed to W1b as a verified fact. Fixture pin
 SHAs, which are content hashes and cannot drift, and W1b is required to fail loudly on a path that
 does not exist at its commit rather than return empty.
 
+### 2026-08-24, Wave 1b, and two more parent errors the agent caught
+
+The fixtures agent was asked to report anything contradicting the facts it was handed. It returned
+two, both correct, and verifying them cost less than a fix would have.
+
+**Parent error 5, a line number that was an artifact of the parent's own command.** The brief said
+I2's literal was live at lines 5, 34, 57 and 223 of its blob. It is live at 3 sites, not 4. The
+phantom came from running `git show ... | sed -n '30,38p' | grep -n`, where `grep -n` numbers
+relative to the nine-line slice it was handed, not relative to the file. Offset 5 inside the slice
+IS file line 34, which is why the two entries showed identical text and it went unnoticed. A
+renumbered offset was read as a file line and handed on as verified. **This is #4-B, reusing a
+number without re-deriving it, committed by the agent writing the rule that bans it.**
+
+**Parent error 6, a second fabricated check, and the more serious of the two.** Three dispatch
+briefs told agents that `hooks/test_block_banned_tokens.sh` enforces the em dash ban and would fail
+them. **It does not, and nothing else does either.** That suite covers lint suppressions, three
+semantic bans (`ban.empty-catch`, `ban.bare-error`, `ban.non-null`), hardcoded secrets, scope and
+allowlist, net-new grandfathering, and bash heredoc pairing. `hooks/scan_edit.py` carries no dash
+rule. Verified by searching every tracked file for a dash rule and finding none.
+
+That is **twice in one sprint** the parent has named a check that does not exist: first
+`71-release-mechanism-pins.sh:287` enforcing a `CHANGELOG.md:18` pointer, which is a comment block,
+now this. Two independent instances of one failure mode is the strongest evidence this sprint has
+produced for C4, the class T3 is building right now, and it is worth more than the corpus score.
+
+**A finding that cuts the other way, recorded because it is inconvenient.** The tracked tree contains
+**zero** em or en dashes across every file. The dash rule sits at full compliance with no enforcement
+at all. That is a real counter-example to this sprint's premise that prose alone does not hold, and
+it should not be buried. The honest reading is narrower than it first looks: the dash rule is
+mechanical, a single character with no judgement in it, while the claims this sprint targets need
+someone to decide what counts as evidence. Prose holds fine for the first kind. The sixteen
+recurrences that opened this sprint were all the second kind. **Worth revisiting at the retrospective
+rather than settling here.**
+
+**Not this sprint.** Adding a dash checker is a new rule with a new scanner, not a claim check, and
+it is outside the Original Ask. Logged here so it is findable, not built.
+
+**One measurement caveat the agent raised and was right about.** Its five-suite green was taken with
+two sibling agents' in-flight work already in the worktree, so it is a real result for its own three
+files but not a clean measurement of its diff alone. Re-measure once all three waves are in.
+
 ## 7. Sprint Review
 
 ## 8. Retrospective
