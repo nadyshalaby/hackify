@@ -3540,6 +3540,73 @@ only. And `76-phase-ledger-substrate.sh` is at **499 of 500 LOC**, so both Impor
 file with one line of runway. The split that `[80b]`'s comment queued is now forced rather than
 optional.
 
+### 7ah. Reviewer F, final settle round: coherence can close, two Importants first
+
+F echoed `Scope: settle all` and returned **no Criticals**. Its seam list confirmed the
+things this round moved: the gate literal is byte-identical across exactly the four files
+`PLS_GATE_*_EXPECTED` counts, the two prose variants at `review-scope.md:48,54` and
+`phase-5-review.md:37` now carry "that takes a scope" and contradict nothing, the B mirror
+is byte-clean at 9/9, and `[38h]` measured live at 12 files and 25 occurrences.
+
+F also cleared the ordering worry on `[38h]` by itself: it calls `check_list_size` from
+`00-helpers.sh`, which is sourced first, and never `pls_x_assert` from 76, which is sourced
+later. No cross-fragment ordering bug.
+
+**F-Important 1, `[38h]` overstates what it can catch.** The echo skeleton line in the four
+sliced prompts is pinned by nothing. Delete
+`Scope: <the {{review_scope}} value you received, verbatim>` from
+`phase-5-multi-review-f-coherence.md:195` and **no counter moves at all**: the file keeps its
+two backticked `settle ` marks at `:65` and `:76`, so the file count stays 12 and the
+advisory occurrence total stays 25. The instruction vanishes green. The comment at
+`71:432-436` calls that line "the live instance, pinned nowhere else" *inside the
+occurrence-drift argument*, which implies the advisory note would fire. It would not.
+
+Verified against disk before recording. This is the nineteenth instance of the sprint's
+recurring shape, and the first one where the false claim is not in a check but in a check's
+own written account of its known hole. The remedy taken is the comment, not a new pin.
+F's own judgement argued the same way: "pinning four copies institutionalizes four copies.
+One statement plus three links cannot go stale in new words."
+
+**F-Important 2, B's marker value set disagrees with itself.** Both B copies instruct
+"write `Round: unnamed`" at `:300` while the exact report skeleton at `:311` enumerates
+three values, `Round: <first | middle | settle>`. A B that follows the skeleton literally
+cannot produce the value the instruction demands. Every other `<a | b | c>` in these prompts
+is a closed set, and `76:361` now pins the three-value line byte-exact, so the disagreement
+is pinned in place. Remedy: widen the skeleton to include `unnamed` and move `PLS_BSKEL`
+with it. The fail-closed direction holds either way, the gate refuses `Round: unnamed`.
+
+**F's Minors, both declined with reasons.** `parallel-agents/README.md:22` lists B's eleven
+inputs and not the round: F itself marked this deliberate and fail-closed. `80:161` sorts
+under the ambient locale while `:152` sorts by Python codepoint, and F noted agreement is
+guaranteed at exactly one entry, which is the shape `:68-76` already fixed this round.
+`LC_ALL=C` would close it. Logged as a carried follow-up rather than fixed, because 80 is
+not otherwise in this round's diff and opening it buys a re-review of a file that is done.
+
+**Verdict.** F stated coherence **can close** once the two Importants are addressed, and
+that nothing else in the moved bytes blocks it.
+
+### 7ai. What the panel actually converged on, and where the loop stops
+
+Both open lenses now agree on the same two-item list, and the two lists overlap in one file.
+B's two Importants (the marker overclaim, `[76i]`'s silent skip) and F's two (the `[38h]`
+residual comment, B's self-disagreeing value set) touch five files between them, and four of
+those five are files this round already moved.
+
+**B's own remedy was refused, on evidence.** B asked for the marker to carry counts,
+`Round: settle (12 re-read at HEAD, 61 carried)`. The validator pins B's prompt to the
+literal "`Round: ` followed by the round the dispatch named, **and nothing else**"
+(`PLS_BMARK`, `76:360`). B's remedy contradicts a pin B's own round installed. The smaller
+fix was taken instead: delete the false clause, keep the marker shape, and say plainly that
+the marker names the round while coverage rests on the parent's ledger.
+
+**Both Minors fixed rather than deferred, and the naive fix would have been a regression.**
+`printf '        %s\n' $files` at `76:304` and `$rse_files` at `71:466` are unquoted **on
+purpose**: the word-splitting is what prints one path per line. Adding quotes collapses the
+list onto a single line. The correct one-line fix already exists two lines above the first
+site at `76:298`, `printf '%s\n' "$files" | ...`, so the repair matches the surrounding
+idiom rather than inventing one. Both files were already in this round's diff for the
+Importants, so the fix costs no extra review surface. Decision #23-C applies cleanly.
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
