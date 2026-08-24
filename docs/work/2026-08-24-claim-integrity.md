@@ -533,6 +533,33 @@ sprint: `ci.yml`'s `fetch-depth: 0` was documented as needed for the release-tag
 also needed by the fixture suite, which resolves blobs 20 commits back. A reader trusting the comment
 could trim the checkout and break a suite for a reason the comment gave them no way to see.
 
+**New, from T4b. A pre-derived fact has a shelf life, and it is shorter than a session.** The
+brief for T4b said the validator sets `set -uo pipefail` at `scripts/validate-dod.sh:65`. The agent
+came back with `:77` and was right. Checked against history: it was 65 at the sprint base `2ccb728`,
+68 five commits later, 77 now, all inside one session, because concurrent waves kept growing the
+file above it. **The fact was true when derived and decayed while it sat in the brief.** That is a
+different failure from getting it wrong, and it needs a different answer: the count claims this
+sprint bans are stale-by-neglect, while this one went stale under active concurrent editing in
+hours. It is the argument for citing a fact by something stable, an anchor or a symbol, rather than
+by a line number, wherever the citation has to survive longer than one wave.
+
+**New, from T4b. A search whose method cannot see the defect class returns a clean result that means
+nothing.** The candidate list handed to T4b was built by finding validator checks that print a green
+interpolating a counted variable. `55-mirror-completeness.sh` was not on it. Its pass line carries no
+number at all, which is precisely why the sweep could not see it, and it turned out to hold the worse
+fail-open of the two the agent fixed. **The detector was blind to exactly the shape it was hunting:
+a check that greens over a set it never read.** The parent repeated the same error minutes later
+while verifying the agent's `[40]` claim, reaching for a collapse that dropped the `:(top)` anchor.
+That widens the scope from 233 files to 235 rather than emptying it, so the first reproduction came
+back not-reproduced from a test of the wrong hypothesis. The real collapse, an exclude-everything
+pathspec, gives `rc 1`, empty stdout and empty stderr, which is the exact triple the scan reads as a
+clean tree, confirmed against a literal that genuinely exists in the repo.
+
+The one sentence for the rule: **a clean result is only as good as the method's ability to have
+returned a dirty one.** Before trusting a zero, show the search finding a planted instance of what it
+claims is absent. Both halves of this sprint's tooling already do it, and both times it was added
+after a zero had already fooled someone.
+
 **What the rule must NOT claim.** The corpus is the evidence for this. Of thirteen real findings,
 nine are reachable by no check at all: a timing property, two policy sentences disagreeing, a
 completeness gap in a release note, a scanner's own line-based blind spot. **A rule that implies the
