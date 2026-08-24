@@ -2258,3 +2258,69 @@ against round 3's 15, and 3 Critical-plus-Important against round 3's 8.**
 **One logistics ruling worth keeping:** `dist/` mirrors `agents`, `commands`, `hooks`, `rules` and
 `skills`, **not `scripts`**. So of this round's fixes only **F4** touches a mirrored tree and owes a
 `sync-runtimes.sh` regeneration. That was verified rather than assumed.
+
+### Round 4 fix waves, all landed
+
+| Wave | Finding | Commit | What |
+|---|---|---|---|
+| F4 | Important | `10c8c09` | the last dead file-sharing reason, plus a dist regeneration |
+| F2 | Important | `6a05a5a` | the encoder table hoisted out of `main()` |
+| F1 + F3 + F6 + F7 | **Critical** | `2c78de0` | the union scan, five test cases, and everything that moved with it |
+
+**The F2 wave is a small lesson in reading a cap correctly.** `main()` was 46 lines against a
+40-line limit, but only 15 of those lines did anything. The rest was a table of measured encoder
+settings wedged into the function body. Deleting it to fit would have destroyed real information to
+satisfy a line count. Moving it beside the constants it documents fixes the violation and puts the
+explanation somewhere more useful. The agent proved the table survived **by checksum rather than by
+retyping it**, and proved the generated GIF is byte-identical, same sha256 before and after, with
+`docs/assets/hackify-demo.gif` never written during the check.
+
+**The F4 wave applied a lesson written into this doc an hour earlier, unprompted.** It re-ran its own
+census on word STEMS rather than literal phrases, found the `file-collision edge` names, and
+correctly judged them non-defects: the planner still builds that edge, and
+`71-release-mechanism-pins.sh:300` pins one of those strings verbatim, so "fixing" it would have
+reddened the validator.
+
+#### The Critical wave found a contradiction in my own brief
+
+I asked for one new test case AND for a proof that deleting either half of the union fails something.
+**Both cannot be true.** Worktree-first plus early-break means only one half of the union ever
+reports, so no single fixture can pin both. Cases (a) through (c) and the unmerged case all break on
+the worktree half, so with only the case I specified, deleting the cached scan would have failed
+**nothing**. That is exactly the "passes with a branch removed" shape the brief closes on, and it
+would have shipped in the same commit that added the branch.
+
+So there are five cases: **(d) deleted-unstaged pins the cached half, (e) unmerged-index pins the
+worktree half.** Ninth correction of mine an agent has caught this sprint.
+
+**The branch-deletion proof, all four runs:**
+
+| what was removed | result |
+|---|---|
+| the cached scan | 2 failed, `wi_absent (deleted, not staged)` |
+| the worktree scan | 3 failed, `wi_absent (unmerged index)` **plus** the `chmod 000` wording assertion |
+| the stderr tie-breaker | 1 failed, `chmod 000` reddened for the wrong reason |
+| nothing | 153 passed, 0 failed, file byte-identical to the pre-tamper copy |
+
+The second row is the interesting one: removing the worktree scan breaks a case it does not own,
+which is the independent proof that **worktree-first is load-bearing rather than stylistic**.
+
+**One counter decision worth keeping.** `TB_EXPECT_WI_FAILCLOSED` went 3 to 5, counting both new
+cases, and the agent rewrote the reason at the function level rather than the branch level: every
+case proves `wi_absent` refuses to green in a state where one half of the union could not see a
+literal that is really there. (a) to (c) reach that through an error branch, (d) and (e) through the
+other half's ordinary hit. **Writing the narrower "one per fail-closed branch" reason would have gone
+false the moment (d) landed while the number still added up**, which is the exact stale-rationale
+defect the paragraph above it names.
+
+It also re-derived the driver's own `149 / 139` coverage measurement by actually dropping the
+fragment and running it, rather than adjusting the numbers, and found **three** wiring rows had to
+come out, not two.
+
+**Cost of the union**, measured: validator 4.84 to 5.14s against 4.76 to 4.80s before, so roughly 60
+to 80ms for doubling four scans to eight, on the path that runs before every commit. Handed to
+Reviewer D in round 5 rather than judged here.
+
+**Green at `2c78de0`:** validator 0 FAIL, tamper suite **153** passed 0 failed, mirrors 9 of 9,
+`wi_absent` 38 of 40 lines with its text-extraction contract intact, all files clear of the 500 cap,
+`CHANGELOG.md` still 976 lines so `71:287`'s pointer at `:18` holds.
