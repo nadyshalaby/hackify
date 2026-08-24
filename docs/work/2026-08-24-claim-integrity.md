@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: planning
+status: spec-review
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 2, awaiting sign-off
+current_task: Phase 2.5, spec reviewer dispatched
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -14,9 +14,9 @@ related: 2026-08-23-wave-implementer-migration.md
 
 ## 0. Phase ledger
 
-- [ ] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
-- [ ] Phase 2. Plan + GATE
-- [ ] Phase 2.5. Spec review
+- [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
+- [x] Phase 2. Plan + GATE (signed off 2026-08-24)
+- [ ] Phase 2.5. Spec review  <- in progress
 - [ ] Phase 3. Implement
 - [ ] Phase 4. Verify (Evidence Ledger + triad + ship gate)
 - [ ] Phase 5. Review (parallel panel + refuter)
