@@ -58,12 +58,14 @@ jobs:
           # and a red when it is not, so at depth 1 a broken tag read was
           # indistinguishable from a skip and passed. At depth 0 it reddens.
           #
-          # Depth is no longer the tag read's alone. The claim-fixture suite
-          # below, scripts/test_claim_fixtures.py, resolves git blobs pinned at
-          # commits behind HEAD, so on a shallow clone it reds on missing
-          # objects rather than on the defect it exists to catch. Trimming back
-          # to depth 1 disables [27d] AND breaks that suite, and neither failure
-          # names this key or says why it was set.
+          # Depth is no longer the tag read's alone. Any suite that replays a
+          # blob pinned in scripts/claim_fixtures.json needs the commit that pin
+          # sits on, and those sit behind HEAD, so on a shallow clone it reds on
+          # a missing object rather than on the defect it exists to catch. Named
+          # as the manifest, not as a list of suites: the suites are a list that
+          # grows, and every one of them goes through that file. Trimming back to
+          # depth 1 disables [27d] AND breaks all of them, and no failure names
+          # this key or says why it was set.
           fetch-depth: 0
           fetch-tags: true
           # Keeps GITHUB_TOKEN out of .git/config, where the default leaves it
@@ -107,6 +109,9 @@ jobs:
 
       - name: Claim-fixture replay tests (pins, manifest, replay scope)
         run: python3 scripts/test_claim_fixtures.py
+
+      - name: Token-declaration tests (check [93] declared-vs-used)
+        run: python3 scripts/test_token_declarations.py
 
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
