@@ -674,7 +674,86 @@ Retrospective instead.
 
 ## 7. Sprint Review
 
-(Opened at Phase 4.)
+Phase 4. Every row below carries fresh output from this phase, not a figure quoted from a wave-end.
+
+### Evidence Ledger
+
+| AC | Claim | Evidence | Verdict |
+|---|---|---|---|
+| 1 | A wave of N tasks dispatches exactly one agent, full + yolo | `exactly ONE subagent for the whole wave` in `hackify/SKILL.md`; `ONE agent for the whole wave however wide it is` in `yolo/SKILL.md`; `One planned wave dispatches exactly one agent` in `phase-3-implement.md`. Each present once | PASS |
+| 2 | Quick dispatches one implementer for the whole change | `hand ALL of them to exactly ONE implementer` in `quick/SKILL.md` | PASS |
+| 3 | `agents/wave-implementer.md` exists, registered, mirrors; old path gone | File present; `agents/wave-task-implementer.md` absent (`No such file`); listed in `60-primitives.sh` `AGENTS_EXPECTED`; mirror row `ok agents/wave-implementer.md matches phase-3-implementation.md` | PASS structurally. **Behavioural half NOT proven**, see below |
+| 4 | The contract states #11-A explicitly | Both mirror sides carry `STOP there`, `KEEP everything that already landed on disk`, `which task IDs landed, which task IDs did not`, one occurrence each | PASS |
+| 5 | No Phase 3 doc calls `batch` a unit of dispatch | All five retired phrases return zero live files. Six surviving `batch` uses inspected one by one: five are the wizard/tool-batch sense, six are orchestration's flat-parallel-fan-out sense. **One borderline line referred to Phase 5**, see below | PASS with one open question |
+| 6 | Exactly one refuter per round, judging every finding | Seven files carry the one-refuter rule; `both lenses` appears in five; **zero occurrences** of `two refuters` / `two per Critical` / `second refuter` / `batched refuter` anywhere live | PASS |
+| 7 | Every pin updated, each proven to bite by tamper | Implementer harness: 12 tamper steps, ANSI stripped before counting, asserting non-empty diff + every FAIL is its own with matching count + tree restored, HEAD identical throughout, plus 2 excluded-path controls proving the scan is not vacuous. **Plus one independent tamper by the parent**, which reproduced `FAIL 'hackify:wave-implementer' missing from skills/quick/SKILL.md` | PASS |
+| 8 | Mirrors 9 of 9; validator 0 FAIL; `dist/` across 7 runtimes | `validate-dod.sh` exit 0, 0 FAIL lines, 1440 ok lines, `ALL CHECKS PASSED`; mirrors 9; `sync-runtimes.sh` prints `OK, synced 792 files across 7 runtimes`, and 792 files across 7 dirs counted independently on disk | PASS |
+| 9 | Version bumped, CHANGELOG written, README within cap | `plugin.json` 0.15.0; marketplace 0.15.0 with stable ref `v0.15.0` and edge ref `main`; README badge `0.15.0`; `## [0.15.0]` heading present; README 449 lines against a 450 cap | PASS |
+
+**Beyond the acceptance criteria**, the five CI gates `validate-dod.sh` does not cover all exit 0:
+`test_audit.py`, `test_inject_context.sh`, `test_block_banned_tokens.sh`, `test_ban_tokens.sh`,
+`check_question_clarity.py`.
+
+### Ship gate
+
+| Leg | Status | Evidence |
+|---|---|---|
+| `ship.build` | ✅ **PASS**, blocking | The diff touched `skills/` and `agents/`, which `sync-runtimes.sh` compiles. Ran it fresh: `OK, synced 792 files across 7 runtimes`, and 792 files across 7 runtime dirs counted independently rather than read off the message |
+| `ship.boot` | ✅ **PASS**, blocking | The diff touched `plugin.json` and `marketplace.json`, both read at plugin load, and `skills/`. Both manifests parse under `jq`. The `UserPromptSubmit` hook was executed the way `hooks.json` invokes it, once per rules file: all four exit 0 and return a valid `hookSpecificOutput` envelope carrying real content (`hard-caps` 3653 chars, `expert-mindset` 2119, `perf-guardrails` 2727, `phase-discipline` 2779) |
+| `ship.smoke` | ⚠️ **PARTIAL**, and this is the honest word for it | **Proven:** a fresh install carries the right artifact. `dist/claude-code/agents/wave-implementer.md` exists with frontmatter `name: wave-implementer`, the old file is absent, all three shipped mode skills name the live type once and the dead type zero times, and the shipped contract carries the #11-A clause. **Not proven:** that a dispatch of `hackify:wave-implementer` RESOLVES |
+
+**A false start worth recording.** My first `ship.boot` attempt called the hook with no argument and read
+zero bytes out of it, which looks exactly like a hook that injects nothing. It was my invocation that
+was wrong: the hook takes the rules file as `$1` and exits 0 silently when it is missing, which is its
+documented failure contract. Recorded because "the always-on rules emit nothing" is precisely the
+shape of finding that should never be reported from a single unexamined command.
+
+### The gap in AC3 and ship.smoke, stated rather than implied
+
+§5c predicted this and Phase 4 measured it. The running harness resolves agent types from the
+INSTALLED plugin at `~/.claude/plugins/cache/hackify-marketplace/hackify/0.13.1/agents/`, which holds
+`wave-task-implementer.md`. This repo is the source, now at 0.15.0, and holds `wave-implementer.md`.
+Confirmed on disk in Phase 4, not assumed.
+
+Two consequences: **every wave this sprint dispatched used `hackify:wave-task-implementer`**, the old
+type, because that is what resolves here; and the claim "a dispatch of the new type resolves" cannot
+be proven in this repo by any check. The first real dispatch after a reinstall is the only thing that
+closes it. **No green line in this sprint should be read as covering it.**
+
+What the sprint DOES have as behavioural evidence is the protocol rather than the type string: seven
+waves were dispatched one-agent-per-wave under the new rules, including two mid-wave agent deaths
+where #11-A's keep-what-landed clause was exercised for real and nothing had to be redone.
+
+### Three-layer re-verify
+
+**Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
+lines with ANSI stripped, 1440 ok lines, `ALL CHECKS PASSED`. Mirrors 9. All five extra CI gates exit 0.
+
+**Layer 2, goal-drift re-check against the anchor.** North-Star met: one agent per wave in all three
+modes, vocabulary retired. Every In-Scope bullet has covering work. Every Out-of-Scope line held:
+**the reviewer panel kept its lens count** (F was corrected, never dropped, and #2-A preserved the
+Critical bar by requiring both lenses instead of two agents); **wave PLANNING is unchanged** (waves are
+still capped by `{{wave_size_target}}` and still file-disjoint, only within-wave batching went); **the
+file-allowlist mechanism is untouched** (each task keeps its own allowlist, the wave is bounded by
+their union). Guardrails: mirrors 9 of 9 at every wave end; no em or en dashes; no lint suppressions;
+no file over 500 lines; `dist/` regenerated by its script and never hand-edited.
+
+**Six tasks were added after sign-off** (T3b, T5b, T5c, T6b, T11b, T14). Five are vocabulary or pin
+sites the plan's own survey missed, squarely inside the In-Scope bullets. **T14, the hero GIF, is the
+one judgment call:** In-Scope names "README and CHANGELOG" and the GIF is a generated asset the README
+embeds at the top of the page, so it was treated as in scope. Flagging it as a call rather than a
+certainty.
+
+**Layer 3, independent re-prove.** Three claims were re-proven by the parent rather than accepted:
+the Wave 5c pin was tampered independently and bit as reported; all 21 pinned literals across Wave 3's
+five files were re-grepped rather than read off the agent's table; and the Wave 6 implementer diffed
+the full ok-line list against a clean worktree to show **zero removed ok lines**, which is the loss a
+total cannot see, a check that stops firing while the run still prints ALL CHECKS PASSED.
+
+**One open question handed to Phase 5 rather than settled here.** `orchestration.md:123` reads "The
+user said light mode, but this wave really needs the fan-out". Under the new rules a Phase 3 wave has
+no fan-out to want. A Wave 3 agent flagged it and left it as tier-level prose; I read it as a residual.
+It is a judgment call about which sense of "wave" the sentence uses, so the review panel decides.
 
 ## 8. Retrospective
 
