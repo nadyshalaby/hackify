@@ -933,10 +933,10 @@ covers raster media**, so the family named at dispatch had no valid ID. It used
 
 **D's headline number was re-measured by the parent rather than taken on report,** because it is the
 one finding that could change what ships. Re-rendering all seven frames from
-`scripts/gen-demo-gif.py` and saving twice, once each way: `optimize=False` gives 227,491 bytes,
-byte-for-byte the size of the shipped asset, and `optimize=True` gives 135,296. Pillow's own
-`ImageChops.difference().getbbox()` returns `None` for all seven frames at 1200x675, so the two
-files are pixel-identical. D's 40.5% is exact.
+`scripts/gen-demo-gif.py` and saving twice, once each way: `optimize=False` gives 227,491 bytes and
+`optimize=True` gives 135,296, pixel-identical across all seven frames at 1200x675 by Pillow's own
+`ImageChops.difference().getbbox()`, so D's 40.5% is exact on identical content. But 227,491 is
+NOT the base blob at `03e7a12`, which is 226,856; the 635-byte gap is the caption delta :925 names.
 
 **Reviewer A, security and correctness. One Critical, and it is in code this sprint shipped an hour
 before the review.**
@@ -1294,6 +1294,11 @@ half of it: the gate asks `declare -F`, so it sees a function that stopped EXIST
 left defined and no longer called. That second shape is still the counter's job, which is why the
 total keeps earning its place. A comment that explains why a pin fires where it fires is worth
 keeping; only the specific claims had died.
+
+**C3, wave F's third file.** `75-ship-bar.sh:102` read "a refuter panel" in a contrasting
+hypothetical; one word deleted, and `refuter` now matches `[75g]`'s own heading noun. It was
+declared in the commit body and nowhere else until round 5 filed it. `git show --stat 75bb97f`
+lists all three files of the wave.
 
 **Wave F left a matched pair alone on purpose, and was right to.** `phase-ledger.md:135` and
 `SKILL.md:75` carry the same stale claim in two spellings, and only one was inside its allowlist. It
@@ -2552,6 +2557,10 @@ That is the same ID Reviewer D cited this round, so the two findings corroborate
 `parallel-agents/README.md:12` says "the two rows in the second table" and the table has **three**
 (`:32-34`), confirmed by reading it. And work-doc:936 calls 227,491 bytes "byte-for-byte the size of
 the shipped asset" when the base blob is 226,856, off by 635; the 40.5% headline still holds.
+**Corrected at :936 in this commit**, so the quoted claim above is what round 5 found and not
+what the line reads now. Both numbers stand once each is tied to what it measures: the flag is
+worth 40.5% on identical content, and the asset a reader downloads went 226,856 to 135,296
+across `base..head`, 40.4%.
 
 #### E stayed folded, and B corrected its own evidence line
 
@@ -2615,11 +2624,13 @@ consumers still say task batches, UPHELD, **4 files not 2**", and work-doc:806 r
 landing "the two Phase 5 reviewer templates **+ mirrors**". Those four files are exactly
 `phase-5-multi-review-{b,d}-*.md` and `agents/code-reviewer-{quality-plan,performance}.md`, matching
 `99526d4`'s stat line for line. **A filename grep cannot match a description-based record.** This
-tree has now recorded that same shape at :806-809, :1119, :1703 and here.
+tree has now recorded that same shape at :806-809, :1119, :1708 and here.
 
 Only `scripts/validate-dod.d/75-ship-bar.sh` is genuinely unrecorded, and it came from a **Phase 5 fix
 wave** rather than a Sprint Backlog Task, so round 3's B3 is not its precedent and
 `review-and-verify.md:421` is permissive ("**may** extend the Sprint Backlog"). Minor.
+**Recorded at :1298 in this commit**, in wave F's own block beside C1 and C2, so "genuinely
+unrecorded" describes the state round 5 found rather than the state on disk.
 
 **My no-scope-creep citation was off by two lines, carried three times.** The rule is
 `phase-3-implement.md:99`, not `:97`; `:97` is the "If stuck" line. It originated at work-doc:1192
@@ -2663,3 +2674,51 @@ Round 4 closed at 3. **4 is not strictly lower than 3, so breaker 1 fires and th
 That is the rule working rather than failing, and two of the four survivors (I1 and I3) are defects
 this loop manufactured in its own earlier rounds, which is the specific thing the breaker exists to
 catch.
+
+---
+
+### A correction to my own green-state record, caught by fix wave K
+
+**I reported a check that does not exist, repeatedly, and it went into this document as evidence.**
+
+Work-doc:2331 records, as part of a green state: "`CHANGELOG.md` still 976 lines so `71:287`'s
+pointer at `:18` holds." I briefed fix wave K on the same claim in stronger terms, telling it that
+`71-release-mechanism-pins.sh:287` makes the validator FAIL if `CHANGELOG.md:18` stops resolving, and
+that inserting a line above `:18` would break check `[71]`.
+
+**None of that is true.** Wave K read the code instead of the claim. Verified by the parent
+afterwards:
+
+- `71-release-mechanism-pins.sh:283-293` is an unbroken run of comment lines. The first executable
+  statement in that block is the `for f in ...` loop at `:294`. `:287` is prose inside a comment,
+  citing `CHANGELOG.md:18` for a human reader.
+- **No fragment under `scripts/validate-dod.d/` reads `CHANGELOG.md` by line number at all.**
+  `10-required-files.sh` checks it exists. `27-marketplace-ref-pin.sh` parses `## [x.y.z]` headings.
+  `80-file-size-caps.sh:52` names it in `CAP_APPEND_ONLY`, which exempts it from the 500-line cap and
+  does **not** enforce append-only editing. `70-invariants-and-new.sh:217` excludes it from the scan.
+
+So `CHANGELOG.md:18` is an unenforced cross-reference. It is worth keeping stable for a reader, and
+wave K did keep it byte-stable with zero insertions, but its stability was never a validated
+invariant and I recorded it as one.
+
+**Why this is the important entry in this document.** Every finding in round 5 was a doc asserting
+something about code that no longer held. This is the same defect, committed by me, inside the
+artifact built to track it, and then propagated into a subagent brief as a hard constraint. Nothing
+caught it for five rounds. Wave K caught it in one, by opening the file.
+
+It also names a defect class none of my proposed checks would catch: **a claim that a check exists.**
+"Pinned by `[NN]`", "the validator fails if", "enforced at `file:line`". Those are checkable, because
+a script can ask whether the cited line is executable code or a comment, and whether the named check
+actually reads what the sentence says it reads. That class goes into the golden-rule design.
+
+**Two live falsehoods this surfaced, both still open:**
+
+1. `scripts/gen-demo-gif.py:31` reads `optimize=False 227,491 identical (the baseline, was shipped)`.
+   227,491 was never shipped. The base blob at `03e7a12` is **226,856**; the 635-byte gap is the
+   caption growth this doc already names at :925. Outside wave K's allowlist, not yet fixed.
+2. The rest of that encoder table (`60,087` shared-palette and the remaining rows) is recorded, not
+   re-derived. Wave K measured only the rows it needed. Anyone quoting the others owes a re-measure.
+
+**Wave K also disclosed that its green run was not isolated**: seven sibling files were dirty in the
+worktree from concurrent waves. Green was green, but it was not a clean-room result, and saying so
+unprompted is the behaviour this sprint has been trying to buy.
