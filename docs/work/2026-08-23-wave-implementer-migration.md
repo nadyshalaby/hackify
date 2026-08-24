@@ -1167,6 +1167,24 @@ collision safety. Same stale-rationale class as B4 and F5. **The parent is filin
 a refuter declining to file is not the same as a defect not existing, and this is the fifth instance
 of the sprint's signature defect.
 
+### Two decisions taken at the settle round, via the wizard
+
+**#4-C, keep looping until a round is genuinely clean.** Offered against a bounded alternative
+(fix everything, one more round, land unless a new Critical appears) and a narrower one (Criticals
+and Importants only). The bounded option was the recommendation and it was declined. The cost was
+stated plainly at the time and is restated here: rounds 1 and 2 both found more than the round
+before them, 6 then 26, so there is no evidence yet that this terminates, and #4-C accepts however
+many rounds it takes. The protocol's own exit rule is the strict reading and this is it.
+
+**#5-C, take the GIF fix AND audit the rest of the encoder settings.** Offered against taking just
+the one flag, and against deferring it. The refuter had REFUTED it as a Phase 5 finding and
+re-routed it to a Phase 6 offer, correctly: `gen-demo-gif.py:142` is byte-identical at `03e7a12` and
+`phase-3-implement.md:97` forbids adjacent cleanup. #5-C overrides that routing deliberately, which
+is the user's call to make and is recorded as such rather than as a finding that survived. Two of
+the four levers were already measured by Reviewer D (7 frames is minimal, and reducing the palette
+makes the file LARGER, 139,778 against 135,296), so what #5-C actually buys is the written record
+that the remaining ones were checked rather than assumed.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
