@@ -1688,3 +1688,73 @@ deaths intact. The second agent's only completed act, the mirror resync, also su
 keep-what-landed clause earns its place. The cost was real too: the first death left the tree RED
 between waves, because one mirror side was edited and the other was not. A per-task dispatch would
 not have done that. Both halves of the tradeoff showed up within an hour of shipping it.
+
+---
+
+### Round 3 fix waves, the plan after the pre-dispatch census
+
+Round 2's wave G manufactured its own follow-up work, and the diagnosis was never "too many
+rounds". Waves E and F each took a PARTIAL file set, so a phrase moved on one side of a pair and
+stood still on the other. The fix is allowlist completeness, not fewer rounds. So before a single
+fix wave was dispatched, every phrase family these waves retire was censused against the live tree.
+
+The census paid for itself three times over:
+
+**It found sites no reviewer filed.** B2 was filed with three stale-reason sites. The census showed
+the phrase `share a file` reaching seven more places, six of them in the spec-reviewer mirror pair.
+
+**It stopped a fix that would have been wrong.** The obvious reading of B2 is that one implementer
+per wave makes file-disjointness pointless, so the rule should go. It should not.
+`71-release-mechanism-pins.sh:300` pins the literal `no two tasks share a file`, and the comment
+above it at `:284` already says why: **disjointness buys ATTRIBUTION now, not collision safety.**
+Every touched file maps to exactly one task, which is how the parent reads a PARTIAL diff back as a
+set of task IDs when a wave stops early. That is #11-A's mechanism. The rule is load-bearing and
+stays; only the three sites still quoting the dead reason move. Four of the seven census hits state
+the rule without giving any reason and are correct as they stand.
+
+**It dissolved a finding.** F8 named three sites. `phase-3-implement.md:37` does not say what F8
+quotes, it already says `Tick ONLY the task IDs`, and `:101` agrees with it, so that half is dead.
+`SKILL.md:257` corrects itself in its own next clause. What survives is `SKILL.md:134`, and that
+turns out to be F5's twin, the same dead argument about N implementers rediscovering the repo
+simultaneously. It goes into wave D beside F5 rather than into the backlog, which is a better answer
+than the refuter's "give it its own task": the equivalence class IS the task.
+
+**It added a counter nobody filed.** `CHANGELOG.md:14` says the absence scan "reads `git grep`'s
+exit status rather than only its output, because a scan that never ran and a clean tree both print
+nothing". A1 is the proof that this sentence is not enough: `git grep` returns 1 for BOTH cases, so
+reading the status alone cannot separate them. The fix falsifies the release note that describes it.
+`CHANGELOG.md` is excluded from check `[40]`'s own scan, so nothing would ever have caught it.
+
+**And it cleared two files.** `README.md:242` and `:410` state the disjointness rule with no reason
+attached, so they need no edit, which is what keeps README at 449 of its 450 cap.
+
+#### The four waves, split by file set
+
+Every wave takes its whole equivalence class in one allowlist and one commit. Boundaries are forced
+by shared files, not by topic.
+
+| Wave | Findings | Files | Runs |
+|---|---|---|---|
+| B | F1 | `implement-and-test.md`, `work-doc-template.md`, `hackify/SKILL.md` | with C |
+| C | B1/F2, F3, F4, F7 | F+B reviewer templates and both agent mirrors | with B |
+| D | B2, F5, F6, F8 | `template-contract.md`, `phase-5-aggregation.md`, spec-reviewer pair, `repo-brief.md`, `hackify/SKILL.md`, `71-release-mechanism-pins.sh` | after B |
+| A | A1, A2, A3, A4 | `70-invariants-and-new.sh`, `10-ban-list-cases.sh`, `test_ban_tokens.sh`, `30-inventory-pins.sh`, `CHANGELOG.md` | last, alone |
+
+B and C are markdown-only and file-disjoint, so they go out together. D waits on B because both
+edit `hackify/SKILL.md`. A goes last and alone: the validator sources every fragment, so a
+half-written script fragment reds the run for an agent that never touched it.
+
+Three traps carried verbatim into the briefs:
+
+**The fence boundary in wave C.** `sync_agent_mirrors.py` mirrors only the fenced block. B1/F2 and
+F3 sit inside it and need both sides moved. F7 sits under `## Dispatch notes`, after the fence
+closes, so it is template-only and has no mirror side. Treating all four uniformly either breaks
+9 of 9 or edits a mirror tail that should not exist.
+
+**The three that must not move.** `30-inventory-pins.sh` says "eleven" and "these three". Only the
+eleven becomes twelve. The three is `TB_EXPECT_FAILCLOSED=3`, the batched-ban cases, a different
+quantity scoped apart at `10-ban-list-cases.sh:264-270`.
+
+**The chmod hazard in wave A.** A1's new case needs `git grep` to genuinely fail to stat a tracked
+file, which means sealing a real file with `chmod 000`. Without a trap, an interrupt leaves the
+user's repo holding an unreadable file, and A3 already flags an untrapped window next door.
