@@ -174,9 +174,20 @@ block is the sprint's own first demonstration of AC6.**
 - **Line-number citations: 30 live**, 5 in markdown and 25 in scripts. Measured, and it corrected my
   assumption: markdown here cites files by NAME, the line numbers live in script comments.
   `git ls-files '*.md' '*.sh' '*.py' | grep -v '^docs/work/' | xargs grep -ohE '[A-Za-z0-9_./-]+\.(md|sh|py|json):[0-9]+' | wc -l`
-- **Count-claim candidates: ~530.** `grep -ohE '\b(one|two|...|[0-9]{1,4})\s+(files?|lines?|rows?|checks?|...)\b'`
-  This is why C1 is diff-scoped, not retrofitted.
-- **Check ids in use: 23** (`[27]` through `[90]`).
+- **Count-claim candidates: several hundred, magnitude only.** Two independent measurements with
+  different patterns give **571** and **774** over live md, sh and py with `docs/work/` excluded.
+  Neither reproduces the "~530" that stood here, and **the command recorded alongside that figure did
+  not measure what its sentence claimed**: it contained `...` inside a `grep -E` alternation, which
+  matches any three characters rather than marking an elision, so it counted more than "one, two, a
+  number". Corrected rather than deleted, because it is this sprint's third instance of a fact whose
+  attached command was the wrong part. **The magnitude is what the plan rested on and the magnitude
+  holds**, which is why C1 was never retrofittable. The class itself is now declined under #14-A.
+- **Check ids: 82 declared, 88 `[NN]` tokens.** Two different things, and I gave both as "the
+  universe" at different times. Declared means a `yellow "[NN]"` header:
+  `git ls-files 'scripts/validate-dod.d/*.sh' | xargs /usr/bin/grep -hE '^yellow "\[' | /usr/bin/grep -oE '\[[0-9]+[a-z]?\]' | sort -u | wc -l`
+  The 8 extra tokens are `[70]`, a check family, and `[78a]` to `[78f]`, comment-block labels. **The
+  earlier "23" came from a `^`-anchored command and was wrong too.** Check `[91]` resolves against the
+  declared set, and a resolver built from the token set would let a fabricated `check [78c]` pass.
   `grep -ohE '^\s*#*\s*\[[0-9]+[a-z]?\]' scripts/validate-dod.d/*.sh | sort -u`
 - **Landmines.** (a) Agent mirrors copy ONLY the first three-backtick block; frontmatter and
   post-fence text are invisible to `--check`, which has caused four defects. (b)
