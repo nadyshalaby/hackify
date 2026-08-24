@@ -54,6 +54,9 @@
 #   91-claim-resolvers.sh, check [91], every 'check [NN]' claim in a live file
 #                   resolves to a check id the validator actually declares, so a
 #                   doc cannot cite a check that was never written
+#   93-token-declarations.sh, check [93], every {{token}} used in a sub-agent
+#                   prompt is declared by that prompt's own INPUTS list, so a
+#                   dispatch cannot be asked to fill a placeholder nothing names
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -167,6 +170,7 @@ source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
+source "$DOD_MODULES_DIR/93-token-declarations.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being
