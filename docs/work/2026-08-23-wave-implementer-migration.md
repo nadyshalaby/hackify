@@ -2175,3 +2175,86 @@ none stale. That is the half `--check` cannot see. All five retired phrases are 
 The test-fragment split agrees on every seam: the source line, both wiring field-0 values, the
 cross-file counts (9 functions in `10-`, 8 in `15-`, 4 names, 3 fail-closed), and the pin citation
 naming the right fragment. No unwired symbols: all 8 new functions have live callers.
+
+### Phase 5 round 4, refutation and decision table
+
+**Seven findings, seven UPHELD, nothing killed. Two sub-claims refuted, one severity overruled, and
+three attributions corrected.** The refuter also stopped me shipping a second fail-open.
+
+| # | Filed | Verdict | Decision |
+|---|---|---|---|
+| F1 wi_absent still fail-open | Critical | **UPHELD**, and **the remedy I was about to use is wrong** | fix, union scan |
+| F2 `main()` over the 40-line cap | Critical (B) | **UPHELD, overruled to Important**, and recounted: **46** lines, base **15** | fix, hoist the table |
+| F3 "two cases" prose | Critical (B) vs Minor (F) | **F is right, MINOR**, and two sub-claims refuted | fold into F1's wave |
+| F4 last dead file-sharing reason | Important | **UPHELD**, citation `:289` not `:286`, and **pre-existing**, not created this round | fix |
+| F5 root cannot pass | Minor | **UPHELD, remedy REJECTED as scoped** | backlog, do not fix |
+| F6 one-statement trap window | Minor | UPHELD verbatim | fix |
+| F7 "forty top-level checks" | Minor | UPHELD, wrong under every counting method | fix, drop the number |
+
+#### The ruling that mattered: `--cached` alone would have been a NEW fail-open
+
+I had read A's remedy and was ready to switch the scan to the index. The refuter measured it and
+rejected it, and **the parent reproduced both counter-cases before accepting the ruling**:
+
+**Unmerged index.** Over a conflicted path whose stage-3 blob holds the retired literal,
+`git grep --cached` returns **rc 1, empty stdout, empty stderr**, the identical fail-open shape, in
+the exact state a rename sprint lives in. Verified: stage-3 really holds it, and the worktree scan
+catches it at rc 0 because the conflict markers put both sides in the file.
+
+**Unstaged addition.** `--cached` misses a literal typed into the worktree but never staged. That is
+the everyday state, because hackify's own Phase 4 runs the validator **before** committing. So
+`--cached` alone would go green over a retired phrase an agent had just written.
+
+**The remedy is the UNION**: run both scans, each fail-closed, and red if either returns hits or
+either fails. Strictly stronger than either half, and CI-neutral because in CI the index, worktree
+and HEAD are identical.
+
+**And the stderr branch is not dead.** Measured: with a missing loose object, `git grep --cached`
+returns rc 1 with `unable to read <sha>` on stderr. The cached half needs its own tie-breaker too.
+
+**One trap to carry into the fix.** `wi_absent` early-returns from every red branch, so under a union
+exactly one red prints and **which one depends on scan order**. On the `chmod 000` fixture the
+worktree half gives rc 1 plus stderr while the cached half gives **rc 0, a real hit**. If the cached
+scan runs first, the existing assertion at `15-wi-absent-cases.sh:288` fails and the fix lands red.
+
+**The `git ls-files` alternative was rejected with a measurement**: synthesizing a scanned-file count
+needs `git grep -l -e ''`, which **false-positives on tracked empty files** (`ls-files` 4 vs
+`grep -l ''` 3, because an empty file has no line to match), so `[40]` would red forever.
+
+#### The two sub-claims the refuter killed, both mine to have gotten wrong
+
+**`15-wi-absent-cases.sh:161` "both cases below" is CORRECT and must not move.**
+`tb_wi_fixture_ready` gates exactly two cases, because the third is deliberately called **above** it
+at `:127-129` so a vanished fixture cannot take the Critical regression pin out of the run. Genuinely
+stale: `:82`, `:110`, `:118`. Three, not four.
+
+**My "prose stale about its own staleness" line was wrong.** I called `:86-91` a neat miniature of
+the sprint. It says its claims "were falsified by fixes in files this fragment does not own", and the
+refuter checked: both falsifying fixes landed in `30-inventory-pins.sh` and `test_ban_tokens.sh`,
+neither owned by this fragment. **The sentence is true as written.** Eighth correction of mine this
+sprint.
+
+#### Attributions corrected, which matters for the exit rule
+
+**F4 is pre-existing.** `03e7a12` already carried "(parallel conflict)" verbatim; the sentence's
+first half was rewritten in Phase 3 by `5e47f94`, not by a round-3 fix wave. So a round-3 wave failed
+to remove it rather than creating it.
+
+**F5 is pre-existing and suite-wide.** Root cannot pass any of the three sealed-file cases, because
+`tb_make_unreadable` proves its own seal and returns false, and both older callers `tb_bad` on it.
+The new case matches that established pattern exactly. **A counted skip must not be applied to one
+case of three**, and there is no skip primitive in the harness. Backlog, not a fix.
+
+#### Breaker 2 does not fire, ruled by the refuter rather than by me
+
+The condition is that **every** Critical and Important was manufactured inside the loop. F1 is
+pre-existing (`wi_absent` shipped with worktree semantics; the round-3 fix closed one sub-case
+without creating the other three, verified against the pre-fix code). F4 is pre-existing. Only F2 is
+cleanly loop-manufactured. One of three is not every. Breaker 1 does not fire either: **7 findings
+against round 3's 15, and 3 Critical-plus-Important against round 3's 8.**
+
+**The loop does not exit. Fix F1, F2, F4, F6, F7 and F3's three stale strings, then round 5.**
+
+**One logistics ruling worth keeping:** `dist/` mirrors `agents`, `commands`, `hooks`, `rules` and
+`skills`, **not `scripts`**. So of this round's fixes only **F4** touches a mirrored tree and owes a
+`sync-runtimes.sh` regeneration. That was verified rather than assumed.
