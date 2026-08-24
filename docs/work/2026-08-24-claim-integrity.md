@@ -263,6 +263,52 @@ on prevention grounds under #12-B. The first movement in leg (a) comes from W4.
 
 ## 6. Daily Updates
 
+### 2026-08-24, Wave 1, the answer key and the runner (T1a, T1b runner half)
+
+`T1a` landed alone as `803ef51`, before any check existed, which is what AC1b asks for. Thirteen
+findings, each labelled with the class that reaches it and the bucket it scores in.
+
+**The derived number is 3, not the 5-6 the plan assumed, and the gap was the parent's error.** The
+plan's estimate came from asking whether some script could in principle reach each finding. The
+labeller asked whether the classes this sprint is actually building reach it. Those are different
+questions and the loose answer had been reported as the tight one.
+
+Verified the labeller rather than taking it on trust, since a corpus that grades everything
+downstream is worth one round of checking. All three held. Two of the three are no longer live: I2's
+filed site and M3's token were both fixed by the previous sprint itself, at `ab5cb74`. Only I4
+survives at HEAD, carried out of the last sprint unfixed by a deliberate re-route to Phase 6.
+
+Read each file at the sprint base `03e7a12` and confirmed all three were live there, so the finding
+set is gradeable, just not against today's tree. That is what drove decision #11-A.
+
+**What the corpus is actually worth, stated plainly so nobody re-litigates it at T6.** The
+must-catch leg is small. The other leg is not: nine findings are things no check may ever flag, and
+they include a timing property, two policy sentences disagreeing with each other, and the parent's
+own false-clean grep. A check that claims any of those is fabricating, which is the exact behaviour
+this sprint exists to stop, and that leg cannot be gamed because nothing rewards the check for
+firing. Baseline before any check is wired: 0 of 4 caught, 0 of 9 wrongly claimed.
+
+`T1b`'s runner landed as `47e3a01`. It reads the key and never writes it, cross-checks the counts
+block against the per-finding data, and exits 2 when the two disagree. Proven by tampering: editing
+`counts.must_catch` to 9 produces `counts.must_catch says 9 but the findings measure 4; the answer
+key has drifted from its own totals`, and restoring it returns 0.
+
+**`T1b`'s fixtures half was not built, because the parent's dispatch brief left it out.** Recorded
+here rather than folded quietly into a later task. It is dispatched as W1b.
+
+### 2026-08-24, decisions taken on W1's evidence
+
+`744da57` widened C7 to both polarities per #13-A and moved M4 to follow, the sprint's first and so
+far only bucket change. The direction is what AC1b is for: the check widened first, by an explicit
+decision, and the label followed. Reachable goes 3 to 4.
+
+While pinning M4's replay base, hit the defect class this sprint is about. `agents/wave-implementer.md`
+was renamed from `agents/wave-task-implementer.md` at `58c1118`, so asking git for the old path at a
+later commit returns an empty blob and a **false zero**, which reads exactly like "the defect is
+absent". The wrong base was nearly handed to W1b as a verified fact. Fixture pins are now git blob
+SHAs, which are content hashes and cannot drift, and W1b is required to fail loudly on a path that
+does not exist at its commit rather than return empty.
+
 ## 7. Sprint Review
 
 ## 8. Retrospective
