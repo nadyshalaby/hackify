@@ -93,7 +93,7 @@ plan steers them at a known anti-pattern.
 Three deliverables from one read of `{{work_doc_path}}`:
 (a) a proposed execution-wave plan, one dispatched implementer per wave;
 (b) a severity-tagged list of internal-consistency defects AND dependency,
-ordering and parallelism risks found in that same work-doc; and
+ordering and wave-partitioning risks found in that same work-doc; and
 (c) a severity-tagged list of architectural and cross-cutting risks that
 the plan would force, anchored to the rule files at
 `{{project_root}}/CLAUDE.md` and `{{user_global_rules_path}}`.
