@@ -101,7 +101,7 @@ Built at the end of Phase 2, before the gate. ≤200 words. Passed verbatim as `
 
 ## 5. Sprint Backlog
 
-Flat checklist. One commit per task. Each task is 5-30 minutes of focused work.
+Flat checklist. One commit closes the whole wave, never one per task, so a task is one clean step inside that commit. Each task is 5-30 minutes of focused work.
 
 Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed. The verify line is the per-task analogue of the top-level Acceptance Criteria checklist; it lets the implementer agent ship and self-confirm without waiting on the parent for cross-task confirmation.
 
