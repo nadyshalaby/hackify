@@ -1392,6 +1392,17 @@ one commit ago**, which is precisely the trap this sprint keeps walking into: a 
 count and then a later fix that changes the quantity without moving the corrected number. All four
 go in one commit or the loop feeds itself again.
 
+**The parent swept for the same blindness everywhere else, and the equivalence class is size one.**
+Every other status comparison in the repo wraps `/usr/bin/grep`, where the three-status contract
+really does hold: `00-helpers.sh:137` and `:304`, `20-templates.sh:184` and `:218`. The only other
+`git grep` call site, `10-ban-list-cases.sh:345`, is an `if` whose else-branch calls `tb_bad`, so a
+`rc=1` from an unreadable file reports a bad fixture rather than passing. **Fail-closed, correctly.**
+So `70-invariants-and-new.sh:266` is the single site, and the fix does not fan out past it.
+
+**There is already a probe for exactly this shape**, and the new tamper case should reuse it rather
+than grow a second one: `00-harness.sh:45-52` writes a file, `chmod 000`s it, and asserts
+`/usr/bin/grep` exits above 1. Same fixture, different tool.
+
 **What A checked and cleared, stated rather than implied.** The trap capture and `eval "$prev"`
 restore work on bash 3.2.57 and the caller's EXIT trap survives. Regenerating the GIF from the
 committed script reproduces `docs/assets/hackify-demo.gif` **byte for byte** at 135,296 bytes. The
