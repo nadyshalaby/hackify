@@ -886,6 +886,48 @@ the right questions, and each was given the sprint context at dispatch. For AC3 
 gap is already recorded in its own section above. Recording it here too so the settle round's
 evidence is not read as stronger than it is.
 
+### Phase 5 settle round, findings
+
+**Reviewer D, performance. Nothing this diff introduced.** No Critical, no Important, one Minor that
+D itself attributes to code the diff never touched.
+
+D re-judged the parent's perf-scout candidate and reached the same verdict on its own numbers, which
+is the point of making it re-judge rather than inherit. It also corrected which half of the cost the
+parent had named: on a 4.77 second green run over 247 tracked files, the `mktemp`/`cat`/`rm` cycle
+the scout flagged costs 18ms across all four calls, while the four whole-tree `git grep` scans cost
+50ms. The parent flagged the smaller half. Total is about 1.4% of the run, the loop is pinned to
+three literals by `check_list_size` so it cannot grow with data, and there is no request path here,
+so DISMISSED under the catalog's "When NOT to optimize" guard.
+
+D also answered the hoisting question properly instead of waving it off: the catalog's own fix
+direction for that ID (batch the screen, keep the per-item loop as the failure-path fallback) would
+apply cleanly and would keep per-literal attribution. It is still below the threshold for action,
+and filing it would be the speculative micro-optimization the catalog bans.
+
+**The one finding, and why it is not this sprint's.** `scripts/gen-demo-gif.py:142` passes
+`optimize=False`. Regenerating with `optimize=True` gives 135,296 bytes against the shipped 227,491,
+a 40.5% cut, verified pixel-identical across all seven frames with duration, loop and dimensions
+unchanged. D checked the two levers named at dispatch and reported both as already correct: seven
+frames is minimal for the content, and a reduced palette makes it WORSE, `quantize(colors=32)` plus
+optimize lands at 139,778, larger than optimize alone.
+
+D was careful about attribution and said so unprompted: line 142 is byte-identical at `03e7a12`, the
+only hunk in that file is line 28's caption string, and the +635 byte delta this sprint added is
+just the longer caption. So this is a pre-existing defect surfaced by a question I asked, not a
+regression this diff caused.
+
+D also flagged its own catalog ID as an imperfect fit rather than forcing one, which is the right
+behaviour: all seven `perf.bundle.*` IDs cover JS, font and dependency bloat and **none of them
+covers raster media**, so the family named at dispatch had no valid ID. It used
+`perf.frontend.unsized-images` and said which half of that ID applies.
+
+**D's headline number was re-measured by the parent rather than taken on report,** because it is the
+one finding that could change what ships. Re-rendering all seven frames from
+`scripts/gen-demo-gif.py` and saving twice, once each way: `optimize=False` gives 227,491 bytes,
+byte-for-byte the size of the shipped asset, and `optimize=True` gives 135,296. Pillow's own
+`ImageChops.difference().getbbox()` returns `None` for all seven frames at 1200x675, so the two
+files are pixel-identical. D's 40.5% is exact.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
