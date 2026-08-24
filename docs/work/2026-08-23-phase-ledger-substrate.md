@@ -3701,6 +3701,54 @@ Re-run with the flag repeated: `files_scanned: 6`, `paths_unsupported: 0`, `find
 repo, so that zero is honest too.
 
 
+### 7am. Reviewer B, bounded settle round: one Critical, one Important, both verified
+
+B echoed `Round: settle`, took the scope ledger without complaint (6 moved, 67 carried, which
+is the parent-side answer to the finding it filed last round), and honoured the output bound.
+Its `Deferred, not a defect` section holds exactly one line, the 500/500 runway, filed there
+rather than as a finding. The bound worked.
+
+**Critical, the overclaim survives at a SIXTH site, in new words.**
+`skills/hackify/references/phases/phase-5-review.md:37`: "Every reviewer that takes a scope
+echoes it as its report's first line, and B, which takes none, opens with its round marker
+instead. **Those first lines are what let you prove the wave covered the diff instead of
+asserting it.**" The antecedent of "those first lines" includes B's marker, so this site still
+says the marker proves coverage, which the other five sites now deny at HEAD. Verified on
+disk before recording.
+
+This is the third time this sprint that a fix by literal grep missed a prose variant, and my
+`per-run evidence` sweep is why: it returns zero hits precisely because this site says it in
+different words. `[38h]`'s own comment predicted this class, "a fifth file stating the same
+rule in NEW WORDS", and nothing mechanical catches it. B also checked `review-scope.md:54`
+and cleared it: that one attributes the proof to the ECHO, not the marker, so it is correct.
+
+The correct mechanism already sits four lines above the false sentence, at
+`phase-5-review.md:33`, "one row per path". The fix points at that instead of at the marker.
+
+**Important, `76:356` states something false while fixing false statements.** The replacement
+comment says the pinned literals are "mostly backticks, `|`, `<` and `>`, and every one of
+those is a metacharacter". Three of the four are not. Verified twice, because my first test
+was broken:
+
+- My first attempt tested `printf 'x|y' | grep -qE 'x|y'` and reported all four characters
+  literal, including `|`. It matched for the WRONG REASON: the alternation splits the pattern
+  and the string contains `x`, so the match says nothing about literalness. An identical
+  answer for all four inputs is what broken measurement looks like, and it produced the wrong
+  verdict on the one character that matters. Twenty-first instance.
+- The correct test asks whether the pattern matches a string that does NOT contain the
+  literal. Result: `|` is SPECIAL (`a|b` matches bare `a`), while backtick, `<` and `>` are
+  all literal under `-E`. B's own reproduction reconfirms it, `-cE` returns 1 and `-cF`
+  returns 0 on ` middle `.
+
+B drew the distinction the parent needed: the DELETED six-line comment carried the same error,
+so this is a shortened false claim rather than a newly invented one, and `-F` remains the
+right call, justified here for a wrong reason. `[76g]:224-227` states its own `-E` reason
+correctly, which is why the reclaim was still a net gain in accuracy.
+
+B verified `[38h]`'s numbers independently by deleting all eight `Scope:` lines in a clone and
+watching the run stay green, which is F's hole reproduced from the other side.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
