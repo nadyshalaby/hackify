@@ -2363,3 +2363,43 @@ that is about to red and abort the commit anyway, so its latency is not a curren
 **D also re-confirmed the GIF dismissal** rather than re-opening it: closed on measurements in round
 4, no new evidence, and the file changed this round only by moving a comment block, with the GIF
 byte-identical.
+
+### Phase 5 round 5, Reviewer A: zero Critical, zero Important, two Minor
+
+**A filed round 4's Critical. This round it attacked the union across eight measured states and could
+not break it**, which is the strongest evidence the fix is right:
+
+Caught by one half or the other: `git add -N`, a clean-filter-stripped blob, a tracked file replaced
+by a symlink, `.gitattributes binary`, NUL in content, deleted-unstaged, unmerged index, sealed file.
+Blind in both but unreachable here: a symlink blob holding a target path (nobody writes a sentence as
+a symlink target), and this repo has no gitlinks. It also confirmed nothing reads `rc`, `errtxt` or
+`hits` stale across the loop, the green tail is unreachable once a mode reports, `trap -p EXIT`
+captures the parent trap on bash 3.2, and the `sed` lift still takes exactly the whole function.
+
+#### Minor 1, the fixtures inherit the maintainer's git config
+
+The throwaway repos set `user.email` and `user.name` repo-locally but inherit global and system
+config. **Measured by A, not feared:** with `core.hooksPath` set globally, the fixture's `git commit`
+runs a hook living **outside `$TB_TMP`**, so the claim at `:280-286` that the fixture's reach is
+bounded by the temp dir is not true. `merge.ff=only` makes case (e)'s `git merge` refuse, leaving
+`ls-files -u` empty and turning the case into a spurious failure. `commit.gpgsign` with a
+passphrase-protected key blocks on pinentry rather than reddening.
+
+**Checked on this machine: none of the three is set** (`core.hooksPath` unset, `merge.ff` unset,
+`commit.gpgsign` false), so it is latent here rather than live. CI runs as `runner` with no global
+config. It would bite another maintainer, and `merge.ff=only` is a common setting. Fix is two env
+vars, `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null`.
+
+#### Minor 2, a hard-wrapped literal is invisible to both halves
+
+`git grep -F` is line-based. **Reproduced by the parent:** the same phrase inline is found by both
+halves; split across a line break it returns rc 1, empty stdout and empty stderr from **both**.
+
+A's framing is what makes this interesting: it calls this a **polarity flip**. As a presence pin, a
+hard-wrapped occurrence fails LOUD, because the pin cannot find what it is looking for. As an absence
+pin, wrapping fails SILENT. Three of the four banned literals contain spaces, and this tree
+hard-wraps markdown at about 80 columns, so a retired phrase reintroduced in flowing prose could
+slip through.
+
+A rated it Minor. Sent to the refuter to rule, including whether the polarity really flipped this
+sprint or was always an absence pin.
