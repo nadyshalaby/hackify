@@ -15,7 +15,7 @@
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
 #   57-doc-links.sh, check [57], every cited .md link and prose path resolves to a real file
 #   60-primitives.sh, checks [29]-[32]
-#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the
+#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], [40], the
 #                   structural invariants (excised files stay excised, skill
 #                   frontmatter, hook command targets, always-on injection,
 #                   perf surfaces)

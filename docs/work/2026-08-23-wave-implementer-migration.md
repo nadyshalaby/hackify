@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W6:T12+T13+T11b
+current_task: W7:T14+T15
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -273,7 +273,7 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 6, docs and release
 
-- [ ] **T11b** The orchestrator's hand-maintained fragment map at `scripts/validate-dod.sh:18-22`
+- [x] **T11b** The orchestrator's hand-maintained fragment map at `scripts/validate-dod.sh:18-22`
   names which check ids fragment 70 owns and does not list `[40]`. Found by the T11 implementer,
   which correctly refused to edit a file outside its allowlist. **Nothing reds on the omission:**
   `[76i]` only checks a row's range endpoints, and this row's last item (`[39]`) is not a range, so
@@ -281,15 +281,23 @@ census cannot fail. This backlog is the corrected shape.
   this repo's most-repeated defect, appearing again inside the sprint that keeps finding it.
   `Files:` `scripts/validate-dod.sh`
 
-- [ ] **T12** README release blurb. The parallel-agents README table is T3's file, not this one;
+- [x] **T12** README release blurb. The parallel-agents README table is T3's file, not this one;
   the signed-off description claimed both and the allowlist carried one.
   **`README.md` is at 448 against a 450 cap** (`20-templates.sh:4`), so the new blurb has two
   lines. Pay for it by compressing an older one, never by raising the bound.
   `Files:` `README.md`
-- [ ] **T13** CHANGELOG entry and version bump.
+- [x] **T13** CHANGELOG entry and version bump.
   `Files:` `CHANGELOG.md`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`
 
 ### Wave 7, regenerate the shipped copies
+
+- [ ] **T14** The README hero animation still labels Phase 3 "parallel waves". Found by the parent
+  while Wave 6 was in flight. `scripts/gen-demo-gif.py:28` holds `(3, "Implement", "parallel waves")`
+  in its `PHASES` table, and that string is rendered into `docs/assets/hackify-demo.gif`, which the
+  README embeds. Nothing checks it, so it would have shipped stale. The standing project rule is to
+  refresh the GIF whenever the phases change, and a phase's description changing is that. Pillow
+  12.1.1 is present, so the regeneration runs here.
+  `Files:` `scripts/gen-demo-gif.py`, `docs/assets/hackify-demo.gif`
 
 - [ ] **T15** Run `scripts/sync-runtimes.sh` and re-run `sync_agent_mirrors.py --check`.
   Added by Phase 2.5: **AC8 demanded `dist/` regenerated across all 7 runtimes and no task ran
@@ -583,6 +591,49 @@ covered by the recursive exclusion.
 **Wave-end evidence.** Validator exits 0 with 0 FAIL (1437 ok lines, up from 1422). Mirrors 9 of 9.
 `70` at 245 of 500, `60` and `71` untouched. The implementer also ran the five CI gates that
 `validate-dod.sh` does not cover, all green, plus `bash -n` and `shellcheck -x`.
+
+### 2026-08-24, Wave 6, the release artifacts (T11b, T6b, T12, T13)
+
+Version 0.15.0. A minor bump rather than a patch, because the dispatch behaviour changed and an
+agent type was renamed, which breaks anyone naming it.
+
+- **T11b**, `[40]` added to the fragment map in `scripts/validate-dod.sh`.
+- **T6b**, the last "batched refuter" wording in quick mode. The brief named lines 10 and 20; the
+  implementer found a third at line 43 and fixed it, since leaving it would have left the file
+  contradicting line 53. It checked `[38g]`'s bans and `[77]`'s token set first to confirm no pin
+  covered the phrase.
+- **T12**, README at 449 of 450. The new blurb was paid for by demoting 0.14.1 to a one-line bullet,
+  never by raising the bound.
+- **T13**, CHANGELOG entry plus the version in four checked places, `hackify-edge` left at `main`.
+
+**The implementer found two Phase 3 sites my brief missed**, both in README: line 71's "Phase 3
+wave-task implementers", and line 98 describing the wave as dispatching "as one parallel batch of
+foreground subagents", which is a Phase 3 document calling `batch` a unit of dispatch and is exactly
+what AC5 forbids. My brief had reasoned about which `batch` senses to keep and named two of them,
+and missed a third that was neither.
+
+**It also caught a stale check in my own brief.** I told it to verify the ASCII box row with
+`awk 'NR==80'`. Inserting the 0.15.0 section shifted the file by one, so the Phase 3 row is line 81,
+and line 80 is now the Phase 2.5 row, which happens to be the same width. That command would have
+reported a pass while measuring the wrong line. It said so rather than quoting the green.
+
+**Its strongest piece of evidence was one nobody asked for.** Instead of comparing validator totals,
+it diffed the full ok-line list against a clean worktree and showed **zero removed ok lines**, which
+is the loss a total cannot see: a check that stops firing while the run still says ALL CHECKS PASSED.
+`[0b]` is a floor and cannot catch that either. Every other difference was a value change on a line
+that already existed.
+
+**On the tag.** `v0.14.2` had never been cut. Nothing surfaced that until the version bump was
+planned, because the check that enforces it exempts the in-flight version by design, so an untagged
+release is invisible until the NEXT bump. The user chose #3-A and the tag was backfilled locally at
+`78b30b0`, verified against `plugin.json` at that commit rather than the commit subject, matching how
+`v0.14.0` and `v0.14.1` were backfilled. Nothing was pushed.
+
+**Wave-end evidence.** Validator 0 FAIL, `ALL CHECKS PASSED`. README 449 of 450. Version `0.15.0` in
+`plugin.json`, both marketplace channels, the stable ref and the README badge. Box row still 76
+characters. Mirrors 9 of 9. Law-scout: 6 files, 0 findings, 0 unaccounted, 0 unsupported. The three
+surviving `parallel batch` hits are the pin's own literal in `[40]` and two orchestration lines using
+the flat-fan-out sense, which AC5 allows and which read unambiguously in place.
 
 ## 7. Sprint Review
 
