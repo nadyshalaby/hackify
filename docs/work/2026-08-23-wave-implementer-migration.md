@@ -1411,6 +1411,41 @@ bare-name half of the rename is covered by `60-primitives.sh:27-41`. The other `
 file merely deleted from the working tree gives `rc=1` with empty stderr, which is an honest clean
 tree and correctly not filed.
 
+**Reviewer D, zero findings at every severity, and it corrected three citations in my scout report.**
+It dismissed all three staged rows on its own measurements rather than mine, took its own
+denominators (validator 5.03s three times running, tamper suite 8.75s and 9.39s), and priced a
+middle option I never offered: hoisting one `mktemp` above the four `wi_absent` calls keeps both the
+per-literal attribution and the `d2cd6df` fail-closed guard and buys **13.1 ms**, while replacing the
+`cat` at `:262` with `$(<"$err")` buys **5.3 ms**. Both under 0.3% of a run. It also measured the
+batched-grep option I called unbuyable at **14.6 ms**, not the ~40 ms I estimated, and agreed it is
+still not worth the attribution loss.
+
+**The three errors were mine, and they are the third, fourth and fifth an agent has caught in my
+briefs this sprint.**
+
+1. I wrote that the sprint changed **4 lines** in `20-templates.sh`. It changed **2**, one `-` and
+   one `+`, a single rewritten comment. I counted the diff's own `+++`/`---` headers.
+2. I cited the GIF row as `perf.image.unoptimized-encode`. **There is no `perf.image` domain in
+   `rules/performance.md` at all.** The eleven that exist are algorithmic, async, bundle, caching,
+   data, frontend, io, memory, network, obs, process. The perf-scout contract says in as many words
+   that a pattern with no catalog ID is invalid and the catalog gets extended first, so I broke the
+   rule the scout exists to enforce. D's replacement, `perf.network.oversized-payload`, is real and
+   sits at `rules/performance.md:96`.
+3. I cited `optimize=True` at `gen-demo-gif.py:142`. The flag is at **`:173`**; `:142` is the
+   comment row recording its measurement. Same class as the two citation errors wave E caught.
+
+Counted independently after D's correction: `20-templates.sh` still holds **7** `$(cat ` sites
+(`:107`, `:112`, `:115`, `:145`, `:147`, `:228`, `:268`), not the 6 D reported. Neither number
+changes the verdict, since not one of them is in the diff.
+
+**On the sprint's own direction, D declined to force a finding and said why.** There is no catalog ID
+for an orchestration trade, so filing one would be the manufactured finding the brief warned
+against. Its read, as prose: the context saving scales with the number of tasks, while wall-clock
+inside a wave moves from the longest task to the sum of them, so per-wave dispatch wins where
+context loading dominated and inverts where tasks are long and genuinely independent. What the
+change actually bought down is failure blast radius, through #11-A partial reporting, and the
+work-doc's two mid-wave agent deaths are the evidence.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
