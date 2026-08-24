@@ -281,6 +281,16 @@ census cannot fail. This backlog is the corrected shape.
   this repo's most-repeated defect, appearing again inside the sprint that keeps finding it.
   `Files:` `scripts/validate-dod.sh`
 
+- [x] **T6b** The last "batched refuter" wording in quick mode, which T6 did not cover because T6
+  was scoped to Phase 3 dispatch and this is Phase 5 vocabulary. Added by Wave 6, and **declared
+  here after the fact rather than before it**, which is the defect Reviewer B filed as B3 in the
+  settle round: it shipped in `2766b49` and was counted in the sprint review while this list never
+  named it, so its allowlist existed only in the dispatch brief. Nothing was touched without
+  authorization, `skills/quick/SKILL.md` already sat inside T6's and T5c's allowlists, and the
+  bookkeeping is the whole of the defect. Every other late task in this sprint carries an
+  "Added by" note; this one did not, and now does.
+  `Files:` `skills/quick/SKILL.md`
+
 - [x] **T12** README release blurb. The parallel-agents README table is T3's file, not this one;
   the signed-off description claimed both and the allowlist carried one.
   **`README.md` is at 448 against a 450 cap** (`20-templates.sh:4`), so the new blurb has two
@@ -1184,6 +1194,72 @@ is the user's call to make and is recorded as such rather than as a finding that
 the four levers were already measured by Reviewer D (7 frames is minimal, and reducing the palette
 makes the file LARGER, 139,778 against 135,296), so what #5-C actually buys is the written record
 that the remaining ones were checked rather than assumed.
+
+### Phase 5 address-all, round 2 fix waves
+
+Three waves, sequential, split by file set. Wave C took the executable code, wave D the Phase 3
+protocol and the mode skills, wave E the refuter contract and the singular-refuter vocabulary.
+**B3 was closed by the parent**, not dispatched: it is a missing Sprint Backlog entry in this file,
+and `docs/work/` sits outside every implementer allowlist by construction.
+
+**Wave C, and the two times it refused the brief.** Both refusals were right and both are worth
+keeping, because in each case following my instruction would have shipped a defect.
+
+I told it to copy the arm-and-clear trap shape from `80-file-size-caps.sh:326-340`. It read that
+block's own comment, which says the shape is safe there only because nothing else in the validator
+traps EXIT, then noticed that the test suite it was about to write **does** arm `trap tb_finish
+EXIT` for its own verdict. A bare `trap - EXIT` inside `wi_absent` would have deleted that, and the
+suite would have reached `exit 0` printing no verdict at all. So the clear is a save-and-restore,
+which in the validator degrades to exactly the mandated shape because `prev` comes back empty.
+
+And its first cut of the new test **passed against broken code**. The fixture guard proves the
+banned literal really occurs in a live file before asserting the check catches it, and it scanned
+`:(top)`, so the `TB_WI_LIT=` assignment line was itself a tracked occurrence and the test found
+itself. It caught that by pointing the guard at a string that exists nowhere and watching it pass
+anyway. Self-excluding the fragment, the same move `WI_LIVE_PATHS` makes, made it bite.
+
+**The A1 fix was re-proved by the parent, not accepted on report.** Plant
+`hackify:wave-task-implementer` in a live file, shim `mktemp` to exit 1, run the validator: zero
+lines reading `survives in no live file`, and four FAILs naming the capture file that could not be
+created. Before the fix, that same tree printed a green absence verdict.
+
+**Wave C's cost, stated.** `71-release-mechanism-pins.sh` went 483 to 496 of 500, spending 13 of its
+17 remaining lines. The agent flagged this itself rather than letting the next editor discover four
+lines of headroom in a file this repo has already split once at the cap. Both rewrites needed to
+carry a REASON across, not just swap vocabulary, which is what cost the lines.
+
+**FIX G, decision #5-C.** 227,491 to 135,296 bytes, 40.5%, pixel-identical across all seven frames,
+verified by the agent and independently by the parent with `ImageChops.difference().getbbox()`
+returning `None` for every frame. Eight further encoder settings were measured and their numbers
+recorded in the file. Two would have looked like wins and are not: a shared global palette reaches
+60,087 bytes but changes all seven frames, because they carry 894 to 1166 distinct colours each and
+one 256-entry table cannot hold that; and `disposal=2` is larger than no optimization at all.
+`interlace` turned out to be inert, because Pillow reads it only on the single-frame save path and
+`_write_multiple_frames` never consults it. `dither` is not a GIF save option at all.
+
+**Wave D, and the census it ran after its own fixes.** All six landed. Reading F3's block in one
+pass turned up two more ambiguous steps in the same block, both fixed unprompted, which is the
+behaviour that F4 exists to punish the absence of: F4 came back precisely because an earlier fix
+stopped at the filed line numbers.
+
+Its census then found five sites no reviewer had named. The sharpest is
+`runtime-adapters.md:17`, `(Phase 2.5 reviewers, Phase 3 waves, Phase 5 reviewers + refuters)`,
+which carries TWO defects in one parenthetical: the refuter plural, and `Phase 2.5 reviewers` where
+exactly one spec reviewer has run since v0.13.0. It also noticed that
+`phase-5-aggregation.md:5` sits inside `[77]`'s file set while `[77]` bans reviewer counts and not
+refuter counts, so the file is covered and the claim is not. That is `[77]`'s own header lesson,
+"covering a file is not covering a claim", reproducing itself one grammar over.
+
+Wave D declined two edits with reasons I accept. It did not add "Phase 3 waves" to `SKILL.md`'s
+do-not-use-parallel-agents list, because that row sits twelve lines under a row saying Phase 3
+dispatch is MANDATORY and would read as "no agents in Phase 3", inverting the no-parent-authored-diff
+law. And it dropped a draft phrase that time-stamped the change ("now that a Phase 3 wave goes to
+one agent"), on the grounds that a sprint about deleting time-stamped prose should not add more.
+
+**One thing wave D checked that is not a repo defect.** This session's agent-type registry is a
+stale snapshot: it still advertises `hackify:wave-task-implementer` and a refuter description
+carrying the retired two-dispatch rule. Both files on disk are correct. Registry lag, not drift, and
+the same 0.13.1-installed-plugin gap already recorded against AC3 and the settle round.
 
 ### Three-layer re-verify
 
