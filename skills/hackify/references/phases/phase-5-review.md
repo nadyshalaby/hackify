@@ -34,7 +34,7 @@ The panel reading the same whole diff in full, once per lens in its own context,
 4. Write the scope ledger into the work-doc Sprint Review, one row per path: the path, its blob hash (`git rev-parse HEAD:<path>`), the lenses assigned to it, and each round's verdict. The hash is what makes a carried-over verdict checkable; a path-keyed ledger would carry a verdict across a file that changed twice.
 5. Pass each sliced reviewer its own pathspec list. **A lens whose list comes out empty has nothing to review**, so do not dispatch it, and record why on the gate line exactly as you would for a folded lens.
 
-Every reviewer that takes a scope echoes it as its report's first line, and B, which takes none, opens with its round marker instead. Those first lines are what let you prove the wave covered the diff instead of asserting it. Classification table, value grammar and the carry-over rules: [references/review-scope.md](../review-scope.md).
+Every reviewer that takes a scope echoes it as its report's first line, and B, which takes none, opens with its round marker instead. The echo proves a sliced lens got the scope it names, B's marker names the round its dispatch named and nothing more, and neither is coverage evidence on its own. The scope ledger above, one row per path, is what makes coverage checkable instead of asserted. Classification table, value grammar and the carry-over rules: [references/review-scope.md](../review-scope.md).
 
 ### Build `{{metrics_table}}` before you dispatch B
 

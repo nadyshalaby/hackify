@@ -347,13 +347,13 @@ yellow "[76h] the FULL-round gate is worded identically at every site that state
 # either alone leaves the other deletable while this stays green. The instruction with
 # no skeleton slot is a rule with nowhere to write the answer; the skeleton slot with
 # no instruction is a blank B fills in however it likes. The marker carries the ROUND the
-# dispatch named and nothing else, never coverage, and it is all the gate has to read on
-# a settle round, so losing half of it silently leaves the gate reading nothing.
+# dispatch named and nothing else, never coverage, and it is all the gate has to read
+# from B on a settle round, so losing half of it silently leaves the gate reading nothing.
 #
 # grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: pls_x_assert is
 # the same function and all three reasons are spelled out above [76g], unchanged here.
-# The -E half bites hardest on these particular literals, which are mostly backticks,
-# `|`, `<` and `>`, and every one of those is a metacharacter.
+# The -E half is not academic here: PLS_BSKEL carries three `|` characters that -E reads
+# as alternation, so an -E scan would match one branch of the literal, not the literal.
 PLS_GATE='every dispatched lens that takes a scope echoed a `settle `-prefixed scope, F echoed `settle all`, and B echoed `Round: settle`'
 PLS_BMARK='`Round: ` followed by the round the dispatch named, and nothing else'
 PLS_BSKEL='Round: <first | middle | settle | unnamed>'
