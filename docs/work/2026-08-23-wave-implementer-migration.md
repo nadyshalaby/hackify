@@ -1,11 +1,11 @@
 ---
 slug: wave-implementer-migration
 title: One implementer per wave, and the vocabulary that follows it
-status: in-progress
+status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: T1
+current_task: W3:T5+T6+T7+T4b
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -172,7 +172,7 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 1, the rename (atomic, leaves the tree green)
 
-- [ ] **T1** Rename the agent, every reference to its path (Group A), and every agent-type
+- [x] **T1** Rename the agent, every reference to its path (Group A), and every agent-type
   string (Group B). One agent, 12 files, above the usual 30-minute band; atomicity forbids
   splitting it across waves, so budget for it instead.
   `Files:` `agents/wave-task-implementer.md` (git mv to `agents/wave-implementer.md`), `skills/hackify/references/parallel-agents/phase-3-implementation.md`, `scripts/sync_agent_mirrors.py`, `scripts/sync-runtimes.d/00-helpers.sh`, `scripts/validate-dod.d/60-primitives.sh`, `scripts/validate-dod.d/71-release-mechanism-pins.sh`, `scripts/validate-dod.d/20-templates.sh`, `README.md`, `skills/hackify/SKILL.md`, `skills/quick/SKILL.md`, `skills/yolo/SKILL.md`, `skills/hackify/references/parallel-agents/README.md`
@@ -186,14 +186,14 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 2, the contract
 
-- [ ] **T2** Rewrite the implementer contract: one wave per agent, no cap, #11-A failure semantics.
+- [x] **T2** Rewrite the implementer contract: one wave per agent, no cap, #11-A failure semantics.
   `Files:` `skills/hackify/references/parallel-agents/phase-3-implementation.md`, `agents/wave-implementer.md`
-- [ ] **T3** Update the type-to-INPUTS table for the renamed agent and its new inputs.
+- [x] **T3** Update the type-to-INPUTS table for the renamed agent and its new inputs.
   `Files:` `skills/hackify/references/parallel-agents/README.md`
 
 ### Wave 3, Phase 3 vocabulary and the modes
 
-- [ ] **T4** Retire `batch` as a Phase 3 unit; wave becomes the unit of dispatch.
+- [x] **T4** Retire `batch` as a Phase 3 unit; wave becomes the unit of dispatch.
   `Files:` `skills/hackify/references/phases/phase-3-implement.md`
 - [ ] **T4b** Phase 3 unit in the reference docs. Added by Phase 2.5: AC5 had uncovered sites.
   Note `orchestration.md:24` ("one implementer per task") and `template-contract.md:13` ("one
@@ -329,7 +329,48 @@ Two consequences, both operational:
 
 ## 6. Daily Updates
 
-(Opened at Phase 3.)
+### 2026-08-23, Wave 1, the rename (T1)
+
+Landed as commit `58c1118`. `agents/wave-task-implementer.md` moved to
+`agents/wave-implementer.md`, and every reference to the old path (Group A) plus every
+`hackify:wave-task-implementer` agent-type string (Group B) was rewritten in the same wave, so
+the tree never sat green-but-broken. The only surviving occurrence of the old string anywhere
+outside `dist/` and this doc is `CHANGELOG.md:778`, which is a historical release note describing
+what shipped at the time and is correct to leave alone.
+
+Follow-up commit `fb4f3c5` recorded §5c: the running harness resolves agent types from the
+INSTALLED plugin at 0.13.1, which still carries the old file, so the remaining waves dispatch
+`hackify:wave-task-implementer` and AC3's "is registered" is proven structurally, not behaviourally.
+
+### 2026-08-24, Wave 2, the contract (T2, T3, T4)
+
+Written by the wave implementer in the previous session, left uncommitted and unrecorded; this
+session verified it, ticked it and committed it. Nothing was rewritten on resume.
+
+- **T2**, the implementer contract now takes a whole wave. `{{task_ids}}` is every task in the
+  execution wave rather than a same-module subset, steps 2-7 (the rule quoting) are stated as a
+  once-per-wave fixed cost, and #11-A ships as its own paragraph: stop at the first task you
+  cannot finish, keep everything already on disk, name which IDs landed and which did not. The
+  OUTPUT skeleton gained a `## Wave status` header so the parent reads the landed/not-landed
+  split instead of counting headings. The VERIFICATION clause was inverted to match: a failure
+  the agent cannot fix inside its allowlist now MUST still produce OUTPUT, where before it
+  suppressed the report entirely, which would have hidden which of N tasks were on disk.
+  Both mirror sides edited together, `sync_agent_mirrors.py --check` stays 9 of 9.
+- **T3**, the type-to-INPUTS table now describes one implementer per wave and lists the full
+  input set the contract actually reads, which had drifted to a six-item subset.
+- **T4**, the Phase 3 protocol drops batching. The "Batch the wave before you dispatch" section
+  became "The wave is the unit of dispatch", the 3-task cap and the group-by-module rule are gone,
+  and the wall-clock trade is stated plainly rather than sold as a speed win.
+- **The pins that track T4's prose** moved in the same wave, as §5a requires. `[38f]` no longer
+  reads `Cap a batch at 3 tasks` or `Group by module, never by count` out of the Phase 3 phase
+  doc, and its comment now explains that the spec reviewer keeps its own cap pin until T10
+  retires it.
+
+**Wave-end evidence.** `bash scripts/validate-dod.sh` exits 0 with 0 FAIL (1419 ok lines).
+`python3 scripts/sync_agent_mirrors.py --check` reports 9 of 9. Law-scout over the five touched
+files: 0 findings, and honestly a thin scan, all five are `.md`/`.sh` so only the file-line cap
+and the project ban list applied. Perf-scout: no candidates, four prose docs and a validator
+fragment whose diff removes two checks and rewrites a comment.
 
 ## 7. Sprint Review
 

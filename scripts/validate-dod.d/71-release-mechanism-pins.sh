@@ -272,20 +272,18 @@ yellow "[38f] the v0.12.0 fan-out changes keep their mechanism"
 # each becomes a LOSS of rigor the moment its guard rail drifts out while the prose
 # promising the saving stays. Pin the guard rail, not the saving.
 
-P3_PHASE="skills/hackify/references/phases/phase-3-implement.md"
 P5_PHASE="skills/hackify/references/phases/phase-5-review.md"
 REFUTE_TPL="skills/hackify/references/parallel-agents/phase-5-refute.md"
 DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 
-# (1) Implementers batch by MODULE and are capped at 3. An uncapped batch is one
-# agent holding more context than it can apply carefully, and a batch grouped by
-# count rather than module pays the focus cost while saving no reads at all.
+# (1) The implementer takes a WHOLE WAVE, so both mirror sides must keep taking a
+# task LIST rather than a single task. Lose that and per-wave dispatch regresses to
+# one agent per task, handing back every token it saved. The spec reviewer below is
+# still the one emitting batches, and keeps its own cap pin until it stops.
 for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
 done
-check_token_present 'Cap a batch at 3 tasks' "$P3_PHASE"
-check_token_present 'Group by module, never by count' "$P3_PHASE"
 for f in "agents/spec-reviewer.md" "$DEPS_TPL"; do
   check_token_present 'Cap a batch at 3 tasks' "$f"
 done

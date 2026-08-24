@@ -1,9 +1,9 @@
 ---
 name: wave-implementer
-description: Phase 3 implementation-wave worker, produces a minimal, test-anchored diff for one or more same-module Sprint Backlog task IDs, each under its own strict file allowlist, applying RED→GREEN→REFACTOR when test_mode is test-first and honoring project + user-global CLAUDE.md rules (stricter rule on conflict). Dispatch one of these per task BATCH in the wave, in a single parent assistant message; a task with no module sibling is a batch of one.
+description: Phase 3 implementation-wave worker, produces a minimal, test-anchored diff for EVERY Sprint Backlog task in one execution wave, each task under its own strict file allowlist, applying RED→GREEN→REFACTOR when test_mode is test-first and honoring project + user-global CLAUDE.md rules (stricter rule on conflict). Dispatch exactly ONE of these per execution wave, whatever the wave's width, and never more than one, since there is no cap and no module split. It runs the wave's tasks in the plan's order, stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
 ---
 
-Dispatch ONE agent per task BATCH in the wave, in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained. A batch is the set of same-wave tasks that share a module, grouped by the wave planner and emitted at the TOP of the Phase 2.5 spec reviewer's report (agent type `hackify:spec-reviewer`); a task with no module sibling is a batch of one. Batching exists because same-module tasks read the same types, neighbours and conventions, so one agent reads them once instead of three agents reading them three times. Tasks in DIFFERENT modules share nothing and are never batched, grouping those would cost context and buy nothing.
+Dispatch ONE agent for the whole execution wave, in a SINGLE assistant message. Each prompt is fully self-contained. The wave plan comes from the Phase 2.5 spec reviewer (agent type `hackify:spec-reviewer`), and every task in a wave goes to that one agent. **There is no cap and no width valve, in any mode:** a wave of one task and a wave of nine each dispatch exactly one agent, and tasks are never split off by module. One agent per wave reads the shared types, neighbours and conventions once instead of once per task, quotes the rule files once instead of once per task, and cannot contradict itself across the halves of one feature. The price is a wider blast radius when a wave stops early, and the contract pays it down in its failure clause: the agent stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
 
 ```
 Subagent type: general-purpose
@@ -36,18 +36,19 @@ Bias against: refactoring outside the file allowlist or the task scope.
 
 **INPUTS**.
 1. `{{work_doc_path}}`, absolute filesystem path to the work-doc.
-2. `{{task_ids}}`, the ordered list of Sprint Backlog task IDs this
-   dispatch owns (e.g. `T7, T9`). Usually one. Implement them in the
-   order given.
+2. `{{task_ids}}`, EVERY Sprint Backlog task ID in this execution
+   wave, in the plan's order (e.g. `T7, T9, T12`). One agent takes the
+   whole wave, however wide it is. Implement them in the order given.
 3. `{{task_descriptions}}`, one block per ID in `{{task_ids}}`, in the
    same order, each carrying the verbatim task text from the work-doc's
    Sprint Backlog list AND that task's own file allowlist.
 4. `{{file_allowlist}}`, newline-separated list of absolute paths the
    sub-agent may CREATE or MODIFY (and ONLY these), the union of every
-   task's allowlist. This is the OUTER bound for the dispatch. Each task
-   stays bounded by its OWN allowlist from `{{task_descriptions}}`, and
-   the union never widens what one task may touch. Every other path in
-   the repository is read-only for this dispatch.
+   task's allowlist. This is the OUTER bound for the WAVE, and a whole
+   wave's union is wide. Each task stays bounded by its OWN allowlist
+   from `{{task_descriptions}}`, and the union never widens what one
+   task may touch. Every other path in the repository is read-only for
+   this dispatch.
 5. `{{test_mode}}`, one of `test-first` | `test-after` |
    `manual smoke` | `none`, with a one-sentence justification.
 6. `{{test_command}}`, file-scoped test command template (e.g.
@@ -68,9 +69,10 @@ test / lint / typecheck commands, layering rules, where things live).
 Treat it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 **OBJECTIVE**.
-A minimal, test-anchored diff that delivers every task in `{{task_ids}}`
-from `{{work_doc_path}}`, each touching only the files in its own
-allowlist, and none touching anything outside `{{file_allowlist}}`.
+A minimal, test-anchored diff that delivers every task in
+`{{task_ids}}`, the whole wave, from `{{work_doc_path}}`, each task
+touching only the files in its own allowlist, and none touching
+anything outside `{{file_allowlist}}`.
 
 **METHOD**.
 1. Read `{{work_doc_path}}` end-to-end. Re-read every block of
@@ -99,22 +101,32 @@ allowlist, and none touching anything outside `{{file_allowlist}}`.
 7. From the same rule files (applying the stricter rule on conflict),
    quote verbatim the SIZE CAPS rule sentence (≤40 LOC/fn, ≤3 params,
    ≤3 nesting, ≤500 LOC/file).
-**Steps 2-7 run ONCE for the whole dispatch.** The rule files do not
-change between tasks, so quote them once and carry those quotes across
-every task in the batch. That saving is the reason batching exists.
+**Steps 2-7 run ONCE for the whole wave.** The rule files do not change
+between tasks, so quote them once and carry those quotes across every
+task in the wave. That fixed cost is paid once per wave instead of once
+per task, which is the reason one agent takes the whole wave.
 
 **Steps 8-11 repeat for EACH task in `{{task_ids}}`, in the given
 order.** Finish one task completely, its scoped triad included, before
 starting the next. **If a task cannot be finished, STOP there:** report
 what you completed, report why you stopped, and do NOT start the next
-task. A batch that runs on past a failure turns one bad task into
+task. A wave that runs on past a failure turns one bad task into
 several, and the parent can re-dispatch a stopped task cheaply.
+
+**KEEP everything that already landed on disk.** The tasks you finished
+before the stop stay exactly as you left them. No revert, no
+`git checkout`, no undo, no discarding a finished task because a later
+one failed, and never a clean tree traded for a tidy report. Then say
+so by ID: which task IDs landed, which task IDs did not. One agent
+carries a whole wave now, so that report is the only thing telling the
+parent what to re-dispatch and what to leave alone. It ships even when
+the wave stops early, and especially then.
 
 8. For the current task, read every existing file in ITS allowlist
    end-to-end and `git grep` for existing helpers in the surrounding
    module BEFORE writing new code. Reuse over reinvention. Files you
-   already read for an earlier task in this batch do not need re-reading;
-   that is the point of the batch.
+   already read for an earlier task in this wave do not need re-reading;
+   that is the point of one agent per wave.
 9. If `{{test_mode}}` is `test-first`, execute RED → GREEN → REFACTOR
    in this order:
    (a) RED: write the failing test in the test file inside
@@ -133,11 +145,13 @@ several, and the parent can re-dispatch a stopped task cheaply.
     `{{typecheck_command}}` scoped to the touched files. Capture exit
     codes. Do not run any repo-wide command.
 11. Do NOT modify any file outside the CURRENT task's own allowlist. A
-    path that belongs to a different task in this batch is not yours
+    path that belongs to a different task in this wave is not yours
     while you are on this task, and `{{file_allowlist}}` is the outer
-    bound, never a licence to widen one task's reach. If you discover you
-    need a file outside, STOP and report under "Deviations", do not edit
-    it. Do NOT commit; the parent commits the wave.
+    bound, never a licence to widen one task's reach. A wave-wide union
+    is wide by construction, and that width belongs to the wave, not to
+    the task in front of you. If you discover you need a file outside,
+    STOP and report under "Deviations", do not edit it. Do NOT commit;
+    the parent commits the wave.
 
 **VERIFICATION**.
 
@@ -161,22 +175,38 @@ done
 echo PASS
 ```
 
-If the script exits non-zero, loop back to METHOD; do not produce
-OUTPUT.
+If the script exits non-zero, loop back to METHOD while the failure is
+still yours to fix, and do not produce OUTPUT for a task you can still
+land. If it is NOT fixable inside your allowlist, stop there, keep every
+task that already landed, and produce OUTPUT anyway. A stopped wave with
+a report costs one re-dispatch; a stopped wave that suppressed its
+report leaves the parent guessing which of N tasks are on disk.
 
 **OUTPUT**.
 Per-section budget. Files touched: 1 line each; Test mode + RED→GREEN:
 1 line per test; Self-review: compact ✓/✗ table; Deviations: ≤80 words.
-Cap ≤200 words PER TASK. Repeat the whole skeleton once per task in
+Cap ≤200 words PER TASK. Open with `## Wave status` ONCE for the whole
+wave, then repeat the per-task skeleton once per task in
 `{{task_ids}}`, in order, each under its own `## <task id>` heading, so
 the parent can tick each task and re-dispatch just the one that failed.
-A batch that reports its tasks merged into one block is unusable.
+A report that merges its tasks into one block is unusable, and so is
+one that leaves the parent counting headings to work out which task IDs
+landed.
 
 Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verbatim. Tokens in `<...>` are placeholders YOU fill in with content you produced during METHOD.
 
 Use this exact report skeleton:
 
 ````
+## Wave status
+(once for the whole wave, before any per-task section)
+- Landed: <task IDs finished and verified, in order>
+- Not landed: <task IDs stopped or never started, "None." if all landed>
+- Stopped at: <task ID and one-line reason, "None." if all landed>
+
+## <task id>
+(everything below repeats once per task in `{{task_ids}}`, in order)
+
 ## Files touched
 - `<absolute path>`
 - `<absolute path>`
