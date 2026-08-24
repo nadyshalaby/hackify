@@ -2493,3 +2493,19 @@ moves"), so the refuter runs before the breaker is applied.
 **Breaker 2 does not fire.** It needs EVERY Critical and Important in the round to be
 loop-manufactured. D's Important is (a regression the round-4 union fix introduced), but both of F's
 trace to before the loop, and Important 2 predates the sprint entirely.
+
+#### Two rulings recorded BEFORE the round-5 count lands, so the bar cannot move to fit the result
+
+**Round 4's post-refuter count is 3, verified rather than remembered.** The round-4 refuter killed
+nothing but moved two severities: F2 Critical → Important, F3 Critical → Minor. Survivors at
+Critical-or-Important are F1 (Critical), F2 and F4 (Important). The round-4 record states it
+outright: "3 Critical-plus-Important against round 3's 8". **So round 5 must come in at 2 or fewer,
+post-refuter, or breaker 1 fires.**
+
+**Parent-run sweeps do not move the breaker-1 arithmetic.** The stale-counts-and-citations sweep is a
+parent check, not a dispatched reviewer. Every worked example the exit rule uses counts reviewer
+findings only (round 3's 8 is named as "Criticals A1 and F1, Importants B1, B2, F2, F4, F5, F7"). If
+parent-launched scans counted, I could move the round's number by choosing what to launch, which
+makes the breaker unfalsifiable. So its output feeds the decision table and the fix list exactly like
+a scout row, and it does **not** count toward breaker 1. Written down now, before its result is
+known.
