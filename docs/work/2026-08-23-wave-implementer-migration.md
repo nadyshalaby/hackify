@@ -1,11 +1,11 @@
 ---
 slug: wave-implementer-migration
 title: One implementer per wave, and the vocabulary that follows it
-status: implementing
+status: reviewing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: Phase 4, Verify
+current_task: Phase 5, settle round dispatched (A, B, D, F over 03e7a12..657935b)
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -862,6 +862,29 @@ forces it. The orchestrator does: `scripts/validate-dod.sh` sources every fragme
 half-way through an edit to `70-invariants-and-new.sh` breaks the run for a wave A that never
 touched it. A false red on a file an agent does not own is unfixable from inside its allowlist,
 which is the shape that costs a whole round.
+
+### Phase 5 settle round, the gate line
+
+Base `03e7a12`, head `657935b`, `docs/work/*` excluded by construction. This is the round that has
+to be clean on the diff actually on disk, so it covers the WHOLE sprint range and not just the fix
+commit. Middle rounds scoped to a fix diff can never close the loop, which is the trap 0.14.2 was
+written to get out of.
+
+| Lens | Gate | Evidence |
+|---|---|---|
+| A, security and correctness | RUNS | The diff changes executable code: `wi_absent` in `70-invariants-and-new.sh` gained a `mktemp`, a `cat` and an `rm -f` per call, plus `sync_agent_mirrors.py`, `sync-runtimes.d/00-helpers.sh` and two JSON manifests. A validator that reports green while measuring nothing is a correctness defect, and this repo has shipped that three times. |
+| B, quality and plan | STANDS | Standing member, never sliced, never gated. |
+| D, performance | RUNS | Ambiguous rather than obviously applicable, so it runs, per the "when the evidence is ambiguous the reviewer runs" rule. It has exactly two things to look at: the per-literal subprocess work `wi_absent` now does four times a run, and a 227KB hero GIF embedded in the README. Both were named at dispatch so D does not have to invent work. |
+| E, design conformance | FOLDS | No UI surface anywhere in the diff. The only non-text artifact is a regenerated terminal animation with no design spec, no tokens and no rendered screen to compare, and this repo has no `docs/design/DESIGN.md`. E's residual checklist was handed to B rather than dropped. |
+| F, cross-module coherence | RUNS | The sprint's central risk and the one lens with a real target here. Its producers and consumers are documents, and the failure they keep producing is a rationale falsified by a rule change elsewhere. Four instances so far, none visible to any check. |
+
+**The known limitation, stated rather than implied.** The harness resolves agent types from the
+INSTALLED plugin at 0.13.1, while this repo is the source tree at 0.15.0. So every reviewer in this
+round is running the 0.13.1 text of its own prompt, not the text sitting in the diff it is reviewing.
+For a review that is acceptable, the reviewers are general enough that the older prompt still asks
+the right questions, and each was given the sprint context at dispatch. For AC3 it is not, and that
+gap is already recorded in its own section above. Recording it here too so the settle round's
+evidence is not read as stronger than it is.
 
 ### Three-layer re-verify
 
