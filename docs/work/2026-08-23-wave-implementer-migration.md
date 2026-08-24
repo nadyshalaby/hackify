@@ -926,6 +926,12 @@ only hunk in that file is line 28's caption string, and the +635 byte delta this
 just the longer caption. So this is a pre-existing defect surfaced by a question I asked, not a
 regression this diff caused.
 
+> **Correction, added after fix wave P re-derived it.** "Caption" is the wrong word here and it
+> propagated from this line into my own follow-up list. The +635 bytes are the **phase-3 tile tag**,
+> not a caption: `caption` is a separate local at `gen-demo-gif.py:148`. D's conclusion stands, the
+> defect is pre-existing and the delta is this sprint's text change. Only the noun was wrong. Left in
+> place rather than rewritten, because later entries quote it.
+
 D also flagged its own catalog ID as an imperfect fit rather than forcing one, which is the right
 behaviour: all seven `perf.bundle.*` IDs cover JS, font and dependency bloat and **none of them
 covers raster media**, so the family named at dispatch had no valid ID. It used
@@ -2714,8 +2720,16 @@ actually reads what the sentence says it reads. That class goes into the golden-
 **Two live falsehoods this surfaced, both still open:**
 
 1. `scripts/gen-demo-gif.py:31` reads `optimize=False 227,491 identical (the baseline, was shipped)`.
-   227,491 was never shipped. The base blob at `03e7a12` is **226,856**; the 635-byte gap is the
-   caption growth this doc already names at :925. Outside wave K's allowlist, not yet fixed.
+   **Both halves of my description of this were wrong, and fix wave P proved it rather than
+   accepting my brief.** I wrote "227,491 was never shipped": it WAS committed to main at `69030e8`,
+   and `git tag --contains` settles the rest, `f1a2057` (226,856) is in **37** tags while `69030e8`
+   (227,491) and `d2cd6df` (135,296) are in **zero**. So it reached main but no tagged release, and a
+   bare "never shipped" would have been false in the other direction. I also called the 635-byte gap
+   "caption growth", inheriting that word from :925: it is the **phase-3 tile tag**
+   (`"parallel waves"` to `"one agent per wave"`), and `caption` names a different variable entirely
+   at `gen-demo-gif.py:148`. Wave P proved the cause by reverting only that tag on a scratch copy and
+   re-rendering to a byte-identical blob. **Fixed by wave P**, with both baselines now carrying their
+   commit.
 2. The rest of that encoder table (`60,087` shared-palette and the remaining rows) is recorded, not
    re-derived. Wave K measured only the rows it needed. Anyone quoting the others owes a re-measure.
 
