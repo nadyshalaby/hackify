@@ -2736,3 +2736,81 @@ actually reads what the sentence says it reads. That class goes into the golden-
 **Wave K also disclosed that its green run was not isolated**: seven sibling files were dirty in the
 worktree from concurrent waves. Green was green, but it was not a clean-room result, and saying so
 unprompted is the behaviour this sprint has been trying to buy.
+
+---
+
+## Round 5 fix waves, all landed, and the loop is closed
+
+| Wave | Findings | Commit | What |
+|---|---|---|---|
+| H | I1 + M1, M2 declined | `6495b2b` | batched screen, hermetic fixtures, 157 tests |
+| I | I2 + M3 | `ab5cb74` | Daily Updates, and the undeclared token |
+| J, M, N, P1, Q, R | I3 | `1249914` | a refuted Critical needs the user, and yolo says so |
+| K (K1, K2) | I5 + M4 | `7b641e0` | the release note's missing 40% |
+| K (K3, K4) | M7 + I6 residue | **`513a572`, see below** | the byte count and the undeclared file |
+| P2 | K's follow-up | `63d4a63` | which baseline, and "shipped" is wrong twice |
+
+### An attribution error of mine, recorded rather than rewritten
+
+**`513a572` carries wave K's FIX-K3 and FIX-K4 as well as my own correction, and its message says
+only mine.** I staged the work-doc by path while K's edits to the same file were still unstaged, so
+they went in with mine. Verified after the fact: that commit's diff contains four lines belonging to
+K's two fixes.
+
+Earlier this sprint I rewrote history for the same shape (`6b07b41` split into `3de880d` and
+`2d806c9`). **I am not doing that here, and the difference is the point.** That one swept a Critical
+*script* fix into a *docs* commit, so anyone reading `git log` for the fix would not have found it.
+This one put work-doc prose into a work-doc commit, where a reader looking for K's fixes finds them.
+The record is imprecise, not misleading. Rewriting two commits at close-out risks more than it buys,
+and the true attribution is now written above, which is what a reader actually needs.
+
+### The final green, measured at this head with a clean tree
+
+| Check | Result |
+|---|---|
+| `bash scripts/validate-dod.sh` | ALL CHECKS PASSED, 0 FAIL |
+| `bash scripts/test_ban_tokens.sh` | **157** passed, 0 failed (was 153) |
+| `python3 scripts/sync_agent_mirrors.py --check` | 9 of 9 |
+| `python3 skills/lawkeeper/scripts/test_audit.py` | 56 of 56 |
+| `bash hooks/test_inject_context.sh` | 29 passed, 0 failed |
+| `bash hooks/test_block_banned_tokens.sh` | 41 of 41 |
+| `dist/` | 792 files, 7 runtimes, byte-identical across two full syncs |
+| working tree | clean |
+
+`dist/` currency was proven by checksum identity across two consecutive full syncs, not by
+`--dry-run`, which lists every file unconditionally and cannot answer the question.
+
+### Backlog, carried out of this sprint deliberately
+
+**Re-routed to Phase 6 by the round-5 refuter**, text and rationale both untouched by this diff:
+I4 (`71:180`, the `4-5 reviewers` comment, false in both directions and in a file the diff never
+opens), M5 (`README.md:254`, 95 IDs and 10 domains, measured 96 and 11), M6
+(`parallel-agents/README.md:12`, "the two rows" against a three-row table).
+
+**Out-of-file siblings of I2**, named and left: `debug-when-stuck.md:19`, `:190`, `README.md:416`.
+
+**Found by the fix waves themselves, none fixed:**
+- `phases/phase-5-review.md:99`, a **second** yolo stranding on the page wave R just fixed. The Minor
+  row says defer needs "explicit user sign-off" and points at a Retrospective; yolo auto-fixes Minors
+  and has no Retrospective. Same shape, different instance. **Found after I had said wave R was the
+  last, and honouring that is why it is here rather than fixed.**
+- `test_ban_tokens.d/15-wi-absent-cases.sh` at **497/500**, three lines of headroom. It needs the
+  split `10-ban-list-cases.sh` took at the cap. Wave H trimmed its own prose twice to avoid taking on
+  an unasked file split.
+- `71-release-mechanism-pins.sh` also at **497/500**.
+- The screen's hand-off probe would be better as a `tb_case_wi_screen_hit`, which needs a `TB_WIRING`
+  row in `test_ban_tokens.sh` plus its "ALL TEN are named" comment updated.
+- FIX-H3 option C: convert the two flipped literals back to `check_token_present` presence pins,
+  which fail loud when hard-wrapped. Wave H measured that nothing is currently hidden, and rejected
+  the whitespace-normalised screen because it would have introduced a fail-open (`pipefail` returns
+  the rightmost non-zero, so grep's no-match 1 masks an awk failure) inside a fail-closed check.
+- `CHANGELOG.md:21` says "the Phase 3 caption"; the generator's `caption` is a different variable.
+  Numbers all correct, vocabulary diverges.
+- The encoder table's remaining rows (`60,087`, `136,064`, `243,269`, `139,778`) are recorded, not
+  re-derived. Anyone quoting them owes a re-measure.
+- Two pre-existing `SC2015` shellcheck infos in `15-wi-absent-cases.sh`.
+
+**Standing from earlier rounds:** F5 root-cannot-pass (suite-wide, no skip primitive);
+`sync_agent_mirrors.py` treating any unknown flag as WRITE mode; the mirror check's blindness to
+frontmatter and to anything outside the first fenced block; nothing checks the hero GIF against its
+phase table; `.claude-plugin/marketplace.json:15` pins `ref: v0.15.0` with no such tag yet.
