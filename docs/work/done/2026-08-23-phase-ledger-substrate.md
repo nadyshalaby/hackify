@@ -1,11 +1,11 @@
 ---
 slug: phase-ledger-substrate
 title: Give the phase ledger a substrate that survives, and make phase discipline always-on
-status: in-progress
+status: done
 type: fix
 created: 2026-08-23
 project: hackify
-current_task: Phase 5 Review (T1-T17 done; Phase 3 and Phase 4 closed)
+current_task: null
 worktree: none
 branch: main
 sprint_goal: The phase ledger never silently vanishes again, on any runtime, in any mode.
