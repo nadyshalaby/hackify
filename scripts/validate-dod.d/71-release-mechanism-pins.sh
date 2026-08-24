@@ -280,8 +280,17 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 # task LIST rather than a single task. Lose that and per-wave dispatch regresses to
 # one agent per task, handing back every token it saved. The spec reviewer has now
 # stopped emitting batches for it to dispatch off, so what it owes Phase 3 is a wave
-# plan whose waves are file-disjoint and capped. Those two properties are the entire
-# reason one agent can safely take a whole wave, and they replace the old batch cap.
+# plan whose waves are file-disjoint and capped, and those two replace the batch cap.
+#
+# DISJOINTNESS BUYS ATTRIBUTION NOW, not collision safety, and the pin staying put
+# through the change is what makes the two easy to confuse. Collision safety was the
+# original reason and CHANGELOG.md:22 records it dissolving on contact: one writer
+# per wave leaves no second writer to collide with. What survives is that every
+# touched file maps to exactly one task, which is how the parent reads a PARTIAL
+# diff back as a set of task IDs. phase-3-implementation.md:238 leans on that
+# directly, since a wave that stopped early writes a strict subset of the union on
+# purpose, and ticking a task the agent never finished is the one thing a work-doc
+# must never do.
 for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
@@ -291,9 +300,13 @@ for f in "agents/spec-reviewer.md" "$DEPS_TPL"; do
   check_token_present 'no two tasks share a file' "$f"
 done
 
-# (2) A batch STOPS at the first task it cannot finish. Without this a batched
-# failure cascades: one bad task takes the rest of the batch down with it, which is
-# the whole reason one-agent-per-task felt safe.
+# (2) A WAVE STOPS at the first task its single agent cannot finish, and decision
+# #11-A is all three halves of that rather than the stop alone: everything already
+# on disk stays, and the report names which task IDs landed and which did not. Lose
+# the stop and one bad task drags the rest of the wave down behind it. Lose the
+# other two and the parent cannot tell what survived, so it re-dispatches the whole
+# wave instead of the handful actually missing. The reporting half is pinned over
+# both mirror sides by [40] in 70-invariants-and-new.sh.
 for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present 'STOP there' "$f"
 done

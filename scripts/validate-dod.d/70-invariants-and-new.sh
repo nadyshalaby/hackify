@@ -224,13 +224,45 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 # matched line, turning a clean tree into a phantom hit. `rc=$?` stays the very
 # next statement after the substitution, so nothing in between can overwrite the
 # status this whole check rests on.
+#
+# THE mktemp IS CHECKED, and it is checked because the unchecked version routed
+# every call in this block into the green branch. A failed mktemp leaves `err`
+# empty, `2>"$err"` then dies in the shell BEFORE git runs, and bash hands back
+# 1, which is git grep's honest no-match. All four calls failed open together and
+# [40] could not fail at all. The contract this now matches is the one
+# 00-helpers.sh:302-307 already states for the batched screen, a scan that never
+# ran must never be the reason a token prints green, and the comment above has
+# said the same thing about this block since the day it was written. The red
+# names the capture file rather than the exit status, so it stays tellable apart
+# from the rc > 1 red underneath it. Pinned by
+# scripts/test_ban_tokens.d/10-ban-list-cases.sh section 3.
+#
+# THE TEMP FILE IS TRAPPED AROUND ITS OWN WINDOW, not for the life of the
+# fragment. `rm -f` sits on the happy path, so a Ctrl-C between the mktemp and it
+# strands the file. 80-file-size-caps.sh:326-340 solves this the same way and
+# explains why a STANDING trap would be worse than none: a sourced fragment
+# shares one trap table with the whole run, so an EXIT trap left armed here would
+# silently replace whatever the next fragment installs. The clear is a RESTORE
+# rather than a bare `trap - EXIT`, which is where this diverges from that block:
+# nothing in the validator traps EXIT, but the tamper suite that now calls this
+# function does, and a bare clear would delete the verdict trap that suite exits
+# through.
 wi_absent() {
-  local lit="$1" hits rc err errtxt
-  err=$(mktemp)
+  local lit="$1" hits rc err errtxt prev
+  err=$(mktemp 2>/dev/null) || err=''
+  if [ -z "$err" ]; then
+    red "  FAIL [40] could not create the stderr capture file, so the scan for '$lit' never ran"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  prev=$(trap -p EXIT)
+  trap 'rm -f "$err"' EXIT
   hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
   rc=$?
   errtxt=$(cat "$err")
   rm -f "$err"
+  trap - EXIT
+  [ -n "$prev" ] && eval "$prev"
   if [ "$rc" -gt 1 ]; then
     red "  FAIL [40] git grep exited $rc scanning for '$lit', so finding nothing here would be finding nothing at all"
     if [ -n "$errtxt" ]; then
