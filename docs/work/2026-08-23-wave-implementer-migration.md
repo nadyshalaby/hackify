@@ -773,6 +773,96 @@ and did so because I read it, not because any instruction said to.**
 bound as deliberate ("Everything else is skipped BY CONSTRUCTION, not by exception list"). Changing it is a
 design decision about the parser, not a defect fix, and it sits outside a sprint about dispatch vocabulary.
 
+### Phase 5 address-all, the fix waves
+
+The accepted findings were re-planned into two waves rather than one, on the lesson Wave 5 taught:
+a long chain inside one agent is where this sprint's two agent deaths happened. The split is by
+FILE SET, not by severity, so the two waves are disjoint and neither can red the other's tree.
+
+**Fix wave A, the vocabulary sweep.** `implement-and-test.md`, `skills/hackify/SKILL.md`,
+`README.md`, `skills/yolo/SKILL.md`. Findings #1, #2a, #2c, #2d, #2e, #2f, #2g. `README.md` is at
+449 against a 450 cap, so every edit there had to be length-neutral.
+
+**Fix wave A amendment, sent mid-run.** `SKILL.md`'s anti-rationalization row (`Wave agents build
+blind to each other`) was originally excluded from the brief because a refuter REFUTED the finding
+filed against it. That exclusion was withdrawn. The refuted claim and the defect are not the same
+claim: with one agent per wave there is no "each other" INSIDE a wave for the noun to refer to, and
+this release's own CHANGELOG already ships the corrected rationale one file over. Shipping a
+release note that states the fix beside a skill file that still carries the falsified claim is the
+exact defect class this release keeps finding. The row now reads what the CHANGELOG reads.
+
+**Fix wave B, the protocol and validator sites.** Thirteen files, all small edits.
+`70-invariants-and-new.sh` (#4, #11), `phase-3-implementation.md` and `phase-3-implement.md` (#14),
+`phase-2.5-spec-reviewer.md` + mirror (#3b), the two Phase 5 reviewer templates + mirrors (#5),
+`parallel-agents/README.md` (#6), `implement-and-test.md` (#15), `README.md` (#16), `CHANGELOG.md`
+(#8). Dispatched in fix-ID order rather than file order, hardest first, so that a stop under #11-A
+banks the two Criticals rather than the six one-phrase edits.
+
+**Fix wave A landed clean, verified by the parent rather than taken on report.** `wc -l README.md`
+reads 449 both before and after, `bash scripts/validate-dod.sh` prints `ALL CHECKS PASSED` with zero
+FAIL lines once the colour is stripped, the mirror check reports 9 ok, and the amended
+anti-rationalization row is on disk at `SKILL.md:356` carrying the CHANGELOG's own sentence. The
+diff stayed inside its four files.
+
+The agent also read past its brief and returned four things it deliberately did NOT touch, which is
+the behaviour the contract asks for and the reason the list below exists at all:
+
+- `implement-and-test.md`'s `## Commits (one per task)` heading contradicts the same file's wave-loop
+  step and `phase-3-implement.md:38` (`Commit ONCE for the wave`). Promoted to **#15** and given to
+  fix wave B. The agent called it out of scope on the grounds that commit granularity is not
+  dispatch, which is a fair reading of ITS brief; it is still a live contradiction between two
+  protocol files and one of the two sides is this sprint's own rule.
+- `README.md:409`'s FAQ heading `How are the parallel subagents safe?` now heads an answer that is
+  entirely wave dispatch. Promoted to **#16**. The agent left it under the do-not-over-correct
+  constraint, correctly: research, review and refuter agents really are still parallel, so the
+  question was whether the heading describes its own answer, not whether parallelism is real.
+- `implement-and-test.md` and `README.md:416` say `Implementation Log entry` where the phase protocol
+  says `Daily Updates entry`. Pre-existing naming divergence, not migration drift. NOT fixed here.
+- `README.md:183` `waves of foreground agents` reads as still true (many waves, one agent each) and
+  was named so nobody re-raises it. Agreed, no change.
+
+One correction to the brief the agent caught: the required verification grep is case-sensitive, so
+the `parallel Implement` in yolo's frontmatter would never have matched `parallel impl`. It
+confirmed that site by direct inspection instead of trusting an empty grep, and said so. An empty
+grep that was never capable of matching is the same failure this sprint has now recorded three
+times, and this is the first time an agent caught it in a brief I wrote.
+
+**Fix wave B landed all nine, verified by the parent.** Zero FAIL lines after colour stripping,
+`ALL CHECKS PASSED`, mirrors 9, README still 449, `70-invariants-and-new.sh` grew 245 to 266 against
+its 500 cap. The `task batches` and `Tick all wave checkboxes` greps both come back empty. Sixteen
+files changed, all inside the allowlist, committed as `99526d4`.
+
+**FIX 11 was proven with a control, which is the part that makes it evidence.** The tamper alone
+would only show that a broken pathspec produces a message; it cannot show the message came from the
+fix. So the agent ran a second pass that kept the same tamper and reverted only the redirection back
+to `2>/dev/null`, and that pass printed `git: exited 128 without writing anything to stderr` where
+the fixed version printed git's actual `fatal: Invalid pathspec magic 'bogusmagic'`. Same tamper,
+different redirection, different output: the redirection is the cause. Restored by file with `cmp`
+proving byte identity, never `git checkout`, and `git rev-parse HEAD` identical either side.
+
+**Two scope calls the agent flagged rather than took silently, both accepted.** It tightened the
+wave-commit step from `body lists task IDs` to `body lists the task IDs that landed`, on the ground
+that a partial wave's commit body would otherwise name IDs that are not in the commit. That is the
+same falsified class as the finding it was fixing. And it read "leave the conventional-commit format
+block alone" as covering the first fenced template only, treating a second fence further down as in
+scope because that one was an example that assumed one commit per task. Both readings are right, and
+flagging them beat guessing.
+
+**Scout dispositions, wave-end.** Law-scout over all 16 touched paths: 16 classified `unsupported`
+(markdown and shell are outside the scanner's language set), 0 findings, and critically
+`paths_unaccounted: 0`, so nothing was dropped without a row. That accounting field is the one 0.14.2
+added after the scanner was caught discarding dotfiles as neither scanned nor skipped, and it is
+doing its job here. Perf-scout: one candidate, `wi_absent` now spends a `mktemp` plus a `cat` plus an
+`rm` per literal, four literals per validator run, so twelve extra process spawns. Dispositioned
+`false-positive` under the catalog's "When NOT to optimize" guard: not a request path, not
+data-sized, and the alternative (`2>&1`) is the bug the fix exists to avoid.
+
+**The two waves run in sequence, not together.** Their file sets are disjoint, so nothing on disk
+forces it. The orchestrator does: `scripts/validate-dod.sh` sources every fragment, so wave B
+half-way through an edit to `70-invariants-and-new.sh` breaks the run for a wave A that never
+touched it. A false red on a file an agent does not own is unfixable from inside its allowlist,
+which is the shape that costs a whole round.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
