@@ -1,7 +1,7 @@
 ---
 slug: wave-implementer-migration
 title: One implementer per wave, and the vocabulary that follows it
-status: signed-off, queued behind the ledger sprint
+status: in-progress
 type: refactor
 created: 2026-08-23
 project: hackify
