@@ -1051,6 +1051,72 @@ no `W<n>/` prefixes, so it treated each commit group as a wave proxy and said so
 the map it was promised. That is a defect in MY dispatch, not in F's audit: the F template asks for a
 `W<n>/T<m>` map and I supplied a commit-to-file map instead.
 
+**Reviewer B, quality and plan. Two Criticals, and both are acceptance criteria this sprint recorded
+as PASSED.** Both were re-verified by the parent before acceptance.
+
+**B1, Critical. AC8 was delivered and then invalidated four commits later, inside the same sprint.**
+T15 (`69030e8`) regenerated `dist/`, 792 files across 7 runtimes, and the Evidence Ledger passes AC8
+on that run. Then `99526d4` rewrote 15 source files and nothing re-ran `sync-runtimes.sh`. **57
+shipped files are stale.** Parent's own count, by byte comparison of every `dist/` copy against its
+source: 57, exactly B's number. The clearest single case is
+`dist/claude-code/skills/hackify/SKILL.md:356`, which still reads `Wave agents build blind to each
+other` while the source file it mirrors no longer contains that string anywhere. **The shipped
+plugin still carries the exact rationales the fix commit exists to delete.** `dist/` is gitignored,
+so no check in the repo can see it, and the Evidence Ledger row is measuring a state that stopped
+being true four commits ago.
+
+**B2, Critical. AC6's PASS is an artifact of the search string, not a property of the tree.** The
+ledger passes AC6 on zero hits for `two refuters`, `two per Critical`, `second refuter` and
+`batched refuter`. **The bare plural was never searched.** It survives at
+`skills/hackify/references/orchestration.md:19` and at `:25`, in the row
+`| Phase 5 | the evidence-gated reviewer panel, then the refuters |`, which sits ONE ROW BELOW the
+Phase 3 row this same sprint corrected. Verified on disk by the parent. This is the fourth time this
+sprint that a check looked precise and measured nothing, and the second time the cause was my own
+choice of search string.
+
+**B3, Important. T6b was delivered and counted but never declared.** It ships in `2766b49` and is
+counted in the sprint review, and `## 5. Sprint Backlog` has no entry for it, so its file allowlist
+exists only after the fact. B notes the backlog preamble records this exact defect drawing a
+Reviewer B Critical last sprint. The content is fine: `skills/quick/SKILL.md` already sits inside
+T6's and T5c's allowlists, so nothing was touched without authorization. The bookkeeping is the
+defect.
+
+**B4, Important. `71-release-mechanism-pins.sh:294`, the same stale rationale F filed as F5.** Merged,
+one finding, two independent reporters.
+
+**B5, Important. `phase-5-refute.md:194` and mirror `agents/finding-refuter.md:142` kept a 350-word
+cap that was never re-reasoned** when #14-A collapsed N per-Critical dispatches into one whole-round
+agent that now covers every severity and owes two lens lines per Critical. B points out Reviewer B's
+own 650-word cap WAS re-reasoned for exactly this reason, so the precedent exists and was not
+followed.
+
+**B6, Important. `wi_absent`'s `rc>1` fail-closed branch has no test**, and
+`scripts/test_ban_tokens.d/10-ban-list-cases.sh` already carries that exact case for the batched
+screen. The pattern exists in this repo and was not followed. This lands on the same lines as A1.
+
+**B7, Important. Five more documents still describing dead dispatch shapes**, beyond everything found
+so far: `phase-5-aggregation.md:5` (merges with F6), `:24`, `:25`, `runtime-adapters.md:17`, and
+`skills/review-triage/SKILL.md:3` frontmatter, which is harness routing text.
+
+**B8, Important. The CHANGELOG has no bullet for the new parent-side protocol**, the union-is-a-
+superset rule and the tick-only-what-landed rule at `phase-3-implementation.md:238,242` and
+`phase-3-implement.md:99`.
+
+**Minors.** `README.md:298` keeps `adversarial refuters` plural, five siblings fixed and this one
+missed, and the file is at 449/450 so the fix must be length-neutral. `orchestration.md:122` is B's
+ruling on the open question this sprint handed forward: the instruction is still right and only the
+words `this wave` mislead, so reword to `this fan-out`. The CHANGELOG says `roughly fifteen more
+sites` where B counts 16 to 18 and `99526d4`'s own subject says sixteen. The refuter template's first
+OUTPUT bullet form is unlabelled while the second is not. And `wi_absent` sits in the fragment
+closing over `WI_LIVE_PATHS` rather than in `00-helpers.sh`, which B correctly files as Minor only,
+citing the extract-on-second-use rule against a single use.
+
+**What B verified rather than assumed.** `PHASE5-FIXES` IS properly authorized: the work-doc's
+address-all record names both waves, their exact file sets and the finding ID each edit closes, and
+all 15 files appear there. Mirrors 9 of 9. All size caps met. No lint suppressions, no non-null
+assertions, no empty catches, no bare `Error` throws anywhere in the diff. E's folded checklist was
+run and returned nothing, which is the outcome the fold predicted.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
