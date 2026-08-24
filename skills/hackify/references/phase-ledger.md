@@ -87,7 +87,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 - **One item `in_progress` at a time.** Never two.
 - **No jumping ahead.** You may not set a later item to `in_progress` until the current item is `completed`.
 - **No silent skip.** A carve-out (a one-line typo that skips multi-reviewer; no entry-point so codewalk is skipped) is marked `completed` with a one-line reason appended, e.g. `Phase 5, skipped: one-line comment fix, no diff to review`. Never delete an item to make progress look done.
-- **Parallelism lives INSIDE a phase, not across phases.** Waves, spec reviewers, and code reviewers fan out *within* their phase. The phases themselves stay sequential.
+- **Parallelism lives INSIDE a phase, not across phases.** The Phase 5 reviewer panel and Phase 1's research agents fan out *within* their phase. Phase 3 is the one place that gives it up on purpose: a wave's tasks are file-disjoint but they read the same code, so ONE agent takes the whole wave. The phases themselves stay sequential.
 
 ## Exit artifact per phase (the anti-skip lever)
 

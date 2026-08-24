@@ -269,14 +269,28 @@ tb_case_colon_filename() {
 # constant's stated reason false while the number still added up, which is the
 # stale-rationale defect this repo keeps finding and no check can see.
 #
-# THE PIN FIRES FROM tb_case_green_path rather than from the EXIT trap, because
-# the trap-side totals live in a fragment this change does not own. So it catches
-# a case that stopped being called and a case that is called twice, and it does
-# not catch an exit taken above it. That is the smaller guarantee and it is worth
-# naming: tb_case_green_path is itself a line in the driver's run order, so its
-# absence is visible where these two cases' absence is not. The wiring gate
-# cannot see them either, for the reason 30-inventory-pins.sh already gives about
-# its four-name row for this fragment.
+# THE PIN FIRES TWICE NOW, in-line from tb_case_green_path and again from the
+# EXIT trap, where tb_check_plant_total in 30-inventory-pins.sh calls it beside
+# the other two totals. The in-line call was left standing rather than moved, so
+# a clean run prints this verdict twice, which costs nothing: the check reads a
+# counter and asserts, so a second call cannot change what the first decided.
+# What the trap side buys is the shape the in-line call alone could not catch:
+# an exit taken above that line WOULD have dropped the only call out of the run,
+# and nothing would have reddened. A case that stopped being called, a case
+# called twice, and a run that died half way down are covered between them.
+#
+# The count still earns its place beside the wiring gate. tb_case_green_path is
+# itself a line in the driver's run order, so its absence is visible where these
+# two cases' absence is not, and the gate now names tb_case_wi_scan_failed,
+# tb_case_wi_mktemp_failed and this function on a row of their own, so deleting
+# one makes the suite refuse to run truncated. But the gate asks declare -F. It
+# sees a function that stopped EXISTING, never one left defined and no longer
+# called, and that second shape is the whole reason to count.
+#
+# Both claims this paragraph used to make were true when written and were
+# falsified by fixes in files this fragment does not own. Stale rationale of
+# exactly the kind the paragraph above names, found by a sweep and not by any
+# check.
 TB_WI_FAILCLOSED=0
 TB_EXPECT_WI_FAILCLOSED=2
 

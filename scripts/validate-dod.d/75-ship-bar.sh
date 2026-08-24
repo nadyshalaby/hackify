@@ -99,7 +99,7 @@ else
 fi
 
 yellow "[75g] refuter defaults to keeping the finding (the shipping-code asymmetry)"
-# A refuter panel tuned to 'default refuted' is right for generated content
+# A refuter tuned to 'default refuted' is right for generated content
 # and wrong for shipping code: dropping a real defect costs more than fixing
 # a phantom. If this bias inverts, the refuter becomes a finding shredder.
 if grep -qiF 'default to keeping the finding' "$REFUTE_TPL"; then
