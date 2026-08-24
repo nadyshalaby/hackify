@@ -337,10 +337,73 @@ wi_absent() {
   printf '%s\n' "${errtxt:-exited $rc without writing anything to stderr}" | sed 's/^/         git: /'
 }
 
-# The dead type is BANNED, not merely left unpinned. A presence pin alone cannot
-# see a stale dispatch site sitting beside a corrected one, and one corrected
-# site beside one stale site is exactly the shape a half-applied rename leaves.
-wi_absent 'hackify:wave-task-implementer'
+# ONE SCAN PER MODE FOR THE WHOLE WORDING SET, with the per-literal loop above
+# kept as the fallback. This is the shape check_no_tokens_in already uses in
+# 00-helpers.sh:270-311 and the reasoning carries over unchanged: the batched
+# grep answers ONLY the yes/no question "does anything in this list survive in
+# this scope", and the moment the answer is anything other than a clean no, the
+# original per-literal loop re-runs and words the verdict exactly as before. No
+# diagnostic detail is traded for the speed. Every red this block can print is
+# still printed by wi_absent, still names WHICH literal survived, in WHICH file,
+# and found by WHICH half of the union.
+#
+# WHAT IT COSTS AND WHAT IT SAVES, measured rather than asserted. Four literals
+# times two modes was eight full walks of the 248 tracked files. Mean over 20
+# iterations on this tree: 113.7ms for the eight walks, 29.6ms for the two. The
+# saving is the walks, not the forks: at one pattern against four patterns a
+# single walk measures flat, so batching the PATTERNS into one walk is the whole
+# of it. That is why rules/performance.md's spawn-per-item row applies here and
+# why the fork-price exemption in perf-scout.md does not.
+#
+# THE SCREEN IS FAIL-CLOSED TOWARD THE SLOW PATH, never toward a green. Only rc
+# 1 with empty stderr, from BOTH modes, is read as clean. A hit, a scan that
+# exited above 1, a scan that wrote to stderr, and an mktemp that could not
+# produce a capture file all fall through to the loop, which then reaches its own
+# verdict with its own capture file. So the screen can cost a repeat of the scan
+# but it cannot be the reason a dead phrase prints green, which is the contract
+# the whole of [40] rests on.
+#
+# -q RATHER THAN -n, and it is checked rather than assumed: measured on git
+# 2.50.1, a sealed tracked file returns rc 1 with the stat error on stderr under
+# -qF exactly as it does under -nF, 106 bytes either way. So the stderr
+# tie-breaker the union depends on survives the quiet flag, and the screen never
+# has to materialise output it would only discard.
+#
+# The trap is saved and restored around its own window for the reason wi_absent
+# states above, and the restore happens BEFORE the fallback loop so wi_absent's
+# own save-and-restore nests inside a table this function has already put back.
+wi_absent_all() {
+  local mode rc err errtxt prev lit
+  local -a pats=()
+  if [ "$#" -eq 0 ]; then
+    red "  FAIL [40] the batched screen was handed an empty wording list, so it would ban nothing while printing nothing"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  for lit in "$@"; do pats+=(-e "$lit"); done
+  err=$(mktemp 2>/dev/null) || err=''
+  if [ -n "$err" ]; then
+    prev=$(trap -p EXIT)
+    trap 'rm -f "$err"' EXIT
+    for mode in worktree cached; do
+      if [ "$mode" = cached ]; then
+        git grep --cached -qF "${pats[@]}" -- "${WI_LIVE_PATHS[@]}" 2>"$err"
+      else
+        git grep -qF "${pats[@]}" -- "${WI_LIVE_PATHS[@]}" 2>"$err"
+      fi
+      rc=$?
+      errtxt=$(cat "$err")
+      { [ "$rc" -ne 1 ] || [ -n "$errtxt" ]; } && break
+    done
+    rm -f "$err"
+    if [ -n "$prev" ]; then eval "$prev"; else trap - EXIT; fi
+    if [ "$rc" -eq 1 ] && [ -z "$errtxt" ]; then
+      for lit in "$@"; do green "  ok   '$lit' survives in no live file"; done
+      return
+    fi
+  fi
+  for lit in "$@"; do wi_absent "$lit"; done
+}
 
 # The retired batching vocabulary. One implementer now takes a whole wave, so a
 # file still telling the orchestrator to cap or group batches sends it back to
@@ -350,4 +413,18 @@ wi_absent 'hackify:wave-task-implementer'
 # These three phrases only ever carried the retired one.
 WI_DEAD_WORDS=('Cap a batch at 3 tasks' 'per task BATCH' 'Group by module, never by count')
 check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary list"
-for dead in "${WI_DEAD_WORDS[@]}"; do wi_absent "$dead"; done
+
+# THE DEAD TYPE IS BANNED, not merely left unpinned. A presence pin alone cannot
+# see a stale dispatch site sitting beside a corrected one, and one corrected
+# site beside one stale site is exactly the shape a half-applied rename leaves.
+# It rides in the same screen as the wording list rather than in a call of its
+# own, because a screen over one literal is just the scan it was meant to save.
+#
+# The size is hand-written beside the list, for the reason WI_TYPE_SITES gives
+# above: drop a literal and the element count drops with it, so the literal
+# leaves the run and the run stays green one check shorter. It is written as 4
+# rather than as an expression over WI_DEAD_WORDS, because a bound derived from
+# the list it polices cannot police that list.
+WI_BANNED=('hackify:wave-task-implementer' "${WI_DEAD_WORDS[@]}")
+check_list_size "${#WI_BANNED[@]}" 4 "the [40] banned-wording set"
+wi_absent_all "${WI_BANNED[@]}"

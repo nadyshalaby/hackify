@@ -33,9 +33,10 @@
 # harness in the repo for a validator internal, so the cases go here rather
 # than growing a second one.
 #
-# THE FUNCTION IS PARSED OUT OF THE SHIPPED FRAGMENT, never copied, the same
+# THE FUNCTIONS ARE PARSED OUT OF THE SHIPPED FRAGMENT, never copied, the same
 # bargain tb_extract_lists makes with the ban lists: a copy kept here would go
-# on passing long after the real one regressed. Sourcing the whole fragment is
+# on passing long after the real one regressed. Two of them since the batched
+# screen landed, wi_absent and the wi_absent_all that hands off to it. Sourcing the whole fragment is
 # not an option, it runs its top-level checks and moves FAILED on its own,
 # which is the counter every assertion in this suite reads.
 #
@@ -132,20 +133,66 @@ TB_WI_SRC="scripts/validate-dod.d/70-invariants-and-new.sh"
 # that carries its token instead of an empty one.
 TB_WI_LIT='hackify:wave-implementer'
 
+# The decoy the loader's probe carries beside TB_WI_LIT, and it has to be absent
+# from the fixture: what the probe reads back is that ONE of the two literals was
+# named and the other cleared, which a screen that had swallowed the per-literal
+# verdict on the way to its speed could not produce.
+TB_WI_DECOY='wi-decoy-literal-that-exists-nowhere'
+
+# THE LIFT CARRIES BOTH HALVES, and it has to. wi_absent_all in the shipped
+# fragment screens the whole banned-wording set in one scan per mode and hands
+# off to wi_absent the moment that screen is anything other than a clean no, so
+# the two are one mechanism written as two definitions. Lifting only the first
+# would leave every case below measuring a function the shipped code no longer
+# enters on its own; lifting only the second would eval a fallback whose target
+# is not there. Two sed ranges, one eval, both names asserted, and the ranges
+# cannot collide because '/^wi_absent() {$/' anchors the brace.
+#
+# THE HAND-OFF IS PROVED HERE RATHER THAN IN A CASE OF ITS OWN, because what it
+# asks is a LIFT question: two pieces came out by text and one references the
+# other, so the reference has to be shown to resolve. The shipped tree can never
+# show it, since all four literals really are absent there, so the live run only
+# ever walks the screen's clean path. It is deliberately NOT counted by
+# TB_WI_FAILCLOSED, whose stated scope is the union's fail-closed branches, and
+# folding a lift check in would leave that number adding up while the reason
+# printed beside it went false. It brings its own throwaway repository for the
+# reason (c) to (e) do, and one more: it runs before tb_wi_fixture_ready.
+#
+# TWO FIXTURES IN THE ONE REPOSITORY, because the SCREEN runs a union of its own
+# and each half needs a state only that half can see. gone.md is staged and then
+# deleted, so the worktree scan returns the clean-tree face of rc 1 with empty
+# stdout and stderr while the index still carries the literal, case (d)'s shape.
+# w.md is staged as a placeholder and then overwritten unstaged, so the cached
+# scan wears that same face while the worktree carries it. Drop either half and
+# the screen clears a set it should have handed on, so each run asserts on the
+# mode named in the red, exactly as (d) and (e) do.
 tb_load_wi_absent() {
-  local body
-  body=$(sed -n '/^wi_absent() {$/,/^}$/p' "$TB_WI_SRC")
-  if [ -z "$body" ]; then
-    tb_bad "wi_absent: nothing parsed out of $TB_WI_SRC, so every case below would have measured nothing"
-    return 1
-  fi
+  local body before probe repo="$TB_TMP/wi-screen"
+  local -a WI_LIVE_PATHS
+  local GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null; export GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
+  body=$(sed -n -e '/^wi_absent() {$/,/^}$/p' -e '/^wi_absent_all() {$/,/^}$/p' "$TB_WI_SRC")
+  [ -n "$body" ] || { tb_bad "wi_absent: nothing parsed out of $TB_WI_SRC, so every case below would have measured nothing"; return 1; }
   eval "$body"
-  if declare -F wi_absent > /dev/null 2>&1; then
-    tb_ok "wi_absent: the shipped definition parsed out of $TB_WI_SRC and is callable"
-    return 0
-  fi
-  tb_bad "wi_absent: the parsed text left no wi_absent defined, so every case below would have measured nothing"
-  return 1
+  { declare -F wi_absent && declare -F wi_absent_all; } > /dev/null 2>&1 || { tb_bad "wi_absent: the parsed text left wi_absent or wi_absent_all undefined, so every case below would have measured nothing"; return 1; }
+  tb_ok "wi_absent: both shipped definitions parsed out of $TB_WI_SRC and are callable"
+  rm -rf "$repo"
+  git init -q "$repo" > /dev/null 2>&1 || { tb_bad "wi_absent (batched screen): the throwaway repo could not be built, so the hand-off was never exercised"; return 0; }
+  printf '%s\n' "$TB_WI_LIT" > "$repo/gone.md"; git -C "$repo" add gone.md > /dev/null 2>&1; rm -f "$repo/gone.md"
+  printf 'placeholder\n' > "$repo/w.md"; git -C "$repo" add w.md > /dev/null 2>&1; printf '%s\n' "$TB_WI_LIT" > "$repo/w.md"
+  for probe in gone.md:cached w.md:worktree; do
+    before="$FAILED"
+    WI_LIVE_PATHS=(":(top)${probe%%:*}")
+    tb_wi_scope_ready "wi_absent (batched screen, ${probe##*:} half)" || break
+    GIT_DIR="$repo/.git" GIT_WORK_TREE="$repo" wi_absent_all "$TB_WI_DECOY" "$TB_WI_LIT" > "$TB_OUT" 2>&1
+    tb_expect_red "wi_absent (batched screen, ${probe##*:} half): a literal only that half can see reddens instead of being cleared with the set" "$before"
+    if /usr/bin/grep -qF "found by the ${probe##*:} scan" "$TB_OUT" && /usr/bin/grep -qF "'$TB_WI_DECOY' survives in no live file" "$TB_OUT"; then
+      tb_ok "wi_absent (batched screen, ${probe##*:} half): the screen handed on and the fallback named the surviving literal, clearing the other"
+    else
+      tb_bad "wi_absent (batched screen, ${probe##*:} half): the screen cleared the set or the fallback did not attribute the hit per literal"
+    fi
+  done
+  rm -rf "$repo"
+  return 0
 }
 
 tb_run_wi_absent_cases() {
@@ -295,11 +342,21 @@ tb_case_wi_mktemp_failed() {
 # git add's own status is not checked, and does not need to be. An untracked
 # fixture is scanned by nothing, so wi_absent returns its clean-tree green and
 # tb_expect_red reddens on the spot. The failure is loud either way.
+#
+# THE GLOBAL AND SYSTEM CONFIG ARE NEUTRALISED, covering all three fixture cases
+# and the loader's probe. init, add, commit and merge all read them, so
+# init.defaultBranch, core.hooksPath, templateDir, a global gitattributes or
+# excludesFile and any commit.gpgsign were reaching fixtures that only ever
+# pinned down user.email and user.name. `local` ALONE WOULD BE A SILENT NO-OP,
+# scoping without exporting while git is a child process, so each case exports
+# the pair and bash pops both on return. Cases (a) and (b) scan the LIVE tree and
+# are left alone: nulling safe.directory could make git refuse a repo it reads.
 tb_case_wi_unreadable_file() {
   local before="$FAILED"
   local repo="$TB_TMP/wi-sealed"
   local rc
   local -a WI_LIVE_PATHS
+  local GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null; export GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
   TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
   rm -rf "$repo"
   git init -q "$repo" > /dev/null 2>&1 && printf '%s\n' "$TB_WI_LIT" > "$repo/sealed.md" || { tb_bad "wi_absent (unreadable file): the throwaway repo could not be built, so this branch was never exercised"; return; }
@@ -345,6 +402,7 @@ tb_case_wi_deleted_unstaged() {
   local before="$FAILED"
   local repo="$TB_TMP/wi-deleted"
   local -a WI_LIVE_PATHS
+  local GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null; export GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
   TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
   rm -rf "$repo"
   git init -q "$repo" > /dev/null 2>&1 || { tb_bad "wi_absent (deleted, not staged): the throwaway repo could not be built, so this branch was never exercised"; return; }
@@ -378,15 +436,23 @@ tb_case_wi_deleted_unstaged() {
 #
 # THE IDENTITY IS SET ON THE THROWAWAY REPO, never globally and never in the
 # environment. `git commit` refuses without one, and a repo-local `git config`
-# dies with the fixture.
+# dies with the fixture. This is the ONLY one of the three fixture cases that
+# commits, so the only one needing an identity, and the neutralised global config
+# turned that from tidiness into a requirement: there is no maintainer identity
+# left behind it to fall back on.
 #
-# THE BRANCH NAME IS READ BACK, never assumed to be main or master: init.defaultBranch
-# is the user's setting and this suite runs on their machine.
+# THE BRANCH NAME IS READ BACK, never assumed to be main or master. The reason
+# used to be that init.defaultBranch is the user's setting and this suite runs on
+# their machine, and neutralising the global config made exactly that false. What
+# decides now is git's own compiled-in default, which is not the same across the
+# versions this suite runs on, so the read-back is now the ONLY thing standing
+# between this case and a wrong guess.
 tb_case_wi_unmerged_index() {
   local before="$FAILED"
   local repo="$TB_TMP/wi-unmerged"
   local base
   local -a WI_LIVE_PATHS
+  local GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null; export GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
   TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
   rm -rf "$repo"
   git init -q "$repo" > /dev/null 2>&1 || { tb_bad "wi_absent (unmerged index): the throwaway repo could not be built, so this branch was never exercised"; return; }
