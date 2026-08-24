@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: spec-review
+status: implementing
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 2.5, spec reviewer dispatched
+current_task: Phase 3 W1, plan revised after spec review
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -16,8 +16,8 @@ related: 2026-08-23-wave-implementer-migration.md
 
 - [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
-- [ ] Phase 2.5. Spec review  <- in progress
-- [ ] Phase 3. Implement
+- [x] Phase 2.5. Spec review (7 Criticals, plan revised)
+- [ ] Phase 3. Implement  <- in progress
 - [ ] Phase 4. Verify (Evidence Ledger + triad + ship gate)
 - [ ] Phase 5. Review (parallel panel + refuter)
 - [ ] Phase 6a. Re-verify + land
@@ -75,22 +75,43 @@ the one semantic-drift finding.
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC1** Scored against the thirteen verified round-5 findings, the check flags **8/8**
-      mechanically checkable ones, and **0** of the 4 code defects and the 1 semantic one. Evidence:
-      a scoring harness run, output pasted.
-- [ ] **AC2** The check resolves the 30 live line-number citations and the `check [NN]` references
-      against the 23 real check ids, and reds when any stops resolving.
-- [ ] **AC3** The check never runs a command sourced from a repo file. Evidence: the vocabulary is a
-      fixed enum, shown in code.
-- [ ] **AC4** The check is tamper-tested fail-closed: breaking each branch reds. Evidence: a
-      branch-deletion table, one row per branch.
-- [ ] **AC5** An always-on rule ships, wired into `hooks/hooks.json`, with every load-bearing law in a
-      bold lead (only leads survive the post-turn digest). Its four named failures are #4-A to #4-D.
-- [ ] **AC6** The Repo Brief template carries the command behind every fact it states.
-- [ ] **AC7** The previous sprint's fifteen backlog items are run through the check and each gets one
-      written disposition: caught, missed, or out of class.
-- [ ] **AC8** Full triad green, `dist/` current by checksum, all caps respected. Note `71-` and
-      `15-wi-absent-cases.sh` both sit at **497/500**, so nothing may grow them.
+**Revised after Phase 2.5. The original AC1 was unreachable and AC2, AC3, AC6 and AC7 were unsound.
+The superseded text is preserved in the spec-review section below rather than deleted.**
+
+- [ ] **AC1** T1a freezes a per-finding label table for the 13 round-5 findings BEFORE any check is
+      built: bucket, citation into the archived work-doc, the class that reaches it, and the scan
+      scope required. The check then hits **100% of the frozen reachable set** and claims **none** of
+      the out-of-class findings. **The number is derived in T1a, not asserted here**, because
+      asserting it now is how the last version of this AC went wrong.
+- [ ] **AC1b** The label table is committed alone, before W2 opens, and any later change to a bucket
+      needs a work-doc entry naming which finding moved and why. **No tuning the answer key to fit
+      the check.**
+- [ ] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
+      runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The
+      plan's original "23" was measured with a `^`-anchored command; the real universe is 88.)
+- [ ] **AC3** The check never executes anything sourced from a repo file, proven on **both** halves:
+      (a) the verb vocabulary is a fixed enum, shown in code; (b) every argument is constrained, a
+      path must resolve inside the repo and be git-tracked, a pattern is matched literally with `-F`
+      and never `-E`, and no argument ever becomes a shell word. T7 feeds hostile annotations
+      (traversal, glob, `$(...)`, backtick, a ReDoS pattern) and proves each is **rejected**, not run.
+- [ ] **AC4** Every check branch is tamper-tested fail-closed, and each row asserts the expected
+      **failure message**, not merely a non-zero exit, so a branch's own red cannot be confused with
+      a wiring red.
+- [ ] **AC5** An always-on rule ships, wired into `hooks/hooks.json`, with every load-bearing law in
+      a bold lead. It carries **#2-A (re-derive before you write)** as well as #4-A to #4-D, plus the
+      written procedure for the semantic class no check reaches.
+- [ ] **AC6** The Repo Brief template carries the command behind every fact, **as a convention that
+      aids a reader in re-deriving it. It is explicitly NOT a correctness guarantee**: this sprint's
+      own brief attached a command to the "23 check ids" fact and the command was the thing that was
+      wrong. The same edit amends `references/repo-brief.md:13`'s ~200-word cap, which this brief
+      already breaks at 342 words.
+- [ ] **AC7** **Every item** in the previous sprint's backlog section gets one written disposition:
+      caught, missed, or out of class. No count is asserted. Scope is stated: a one-shot scan with
+      the `docs/work/` exclusion lifted, results recorded, **never wired into the validator**, since
+      that tree holds 619 citations against 30 live ones and is a frozen record.
+- [ ] **AC8** Full triad green, `dist/` current by two-sync checksum, no file over 500 lines. Note
+      `71-release-mechanism-pins.sh` and `test_ban_tokens.d/15-wi-absent-cases.sh` are both at
+      **497/500**.
 
 ## 4. Approach
 
@@ -150,24 +171,58 @@ W6: T11, T12, T13         measured brief, backlog disposition, release
 
 ## 5. Sprint Backlog
 
-- [ ] **T1** Build the scoring corpus: the 13 round-5 findings as fixtures with expected verdicts
-      (8 must-catch, 5 must-not-claim), plus a runner that prints a score.
-- [ ] **T2** C2, the citation resolver: every `file.ext:N` in live `.md`/`.sh`/`.py` must resolve to
-      an existing file with at least N lines.
-- [ ] **T3** C4, the check-exists resolver: every `check [NN]` reference names a real check id, and a
-      claim that something is pinned or enforced points at executable code, not a comment.
-- [ ] **T4** C1, annotated counts: a fixed-vocabulary annotation (count-matching-lines, line-count,
-      file-size, literal-present, literal-absent) plus the checker. **Diff-scoped.** No shell.
-- [ ] **T5** C3, declared vs used: every `{{token}}` in an agent prompt appears in its INPUTS list.
-- [ ] **T6** Score against T1's corpus, tune until AC1 holds, record misses honestly.
-- [ ] **T7** Tamper tests: delete each branch, prove each reds. One table row per branch.
-- [ ] **T8** Wire the fragment into `scripts/validate-dod.sh`'s sourced list.
-- [ ] **T9** Write `rules/claim-integrity.md`: laws in bold leads, the four named failures #4-A to
-      #4-D, and the procedure for the semantic class no check reaches.
+**Revised after Phase 2.5.** T8 folded into whichever task creates a fragment (a fragment on disk
+that nothing sources is a `[0]` FAIL, so creating and wiring must land together). T1 split so the
+labeller cannot see the check design. T2 extends existing machinery instead of duplicating it. Four
+new tasks carry decision #9-B's widened classes.
+
+- [ ] **T1a** Freeze the label table: 13 findings, bucket, archived-doc citation, reaching class,
+      required scan scope. Note that four were REFUTED (I4, I6, M5, M6), three on scope and one on
+      fact, so "verified" is the wrong word for the corpus as a whole. Commit alone.
+- [ ] **T1b** Fixtures plus the scoring runner, built from T1a's frozen table.
+- [ ] **T2** C2 citations: **extend `scripts/check_doc_links.py` (198 lines) and check `[57]`**,
+      which already resolve cited paths and already handle fenced blocks, inline code and the
+      `docs/work/` exclusion. C2 adds only the `:N` line-count half. Handle the hard-wrapped-path
+      case (M2's shape) that a naive regex splits.
+- [ ] **T3** C4 check-exists, in new `scripts/validate-dod.d/91-claim-resolvers.sh`, **wired into the
+      sourced list in the same commit**. Name the reference grammar and its exclusions first: bare
+      `[NN]` yields 136 hits in live markdown and collides with markdown reference-link syntax.
+- [ ] **T4** C1 annotated counts, in new `scripts/validate-dod.d/92-claim-annotations.sh`, **wired in
+      the same commit**. **Binds the union of staged and on-disk**, with the rc/stderr tie-breaker
+      from `70-invariants-and-new.sh:290-311`: rc 1 with anything on stderr is a scan that never ran,
+      never a green. Fixed verb vocabulary, constrained arguments per AC3.
+- [ ] **T5** C3 declared vs used: every `{{token}}` in an agent prompt appears in its INPUTS list.
+- [ ] **T5b** **C5 retired vocabulary** (#9-B). Machinery already exists as `WI_DEAD_WORDS` in
+      `70-invariants-and-new.sh`; it is unfed for this class. Feed it, with an allowlist, because six
+      sites keep `Implementation Log` deliberately as back-compat.
+- [ ] **T5c** **C6 section-name exists** (#9-B): a doc instructing a writer to use a named work-doc
+      section must name one the template actually has.
+- [ ] **T5d** **C7 literal-absent claims** (#9-B): a sentence claiming a phrase is absent, unpinned
+      or not present must be false-able by looking. This is the class that reaches I4 and M4.
+- [ ] **T6** Score **once** against the frozen table. Record the score and every miss. **No tuning
+      until it passes**; a bucket may move only with a work-doc entry saying which and why.
+- [ ] **T7** Tamper: delete each branch, prove each reds **with its own expected message**. Plus the
+      hostile-argument battery from AC3.
+- [ ] **T9** Write `rules/claim-integrity.md`: laws in bold leads, **#2-A** plus #4-A to #4-D, and
+      the procedure for semantic rationale drift that no check reaches.
 - [ ] **T10** Wire it as the 5th `UserPromptSubmit` hook; extend `hooks/test_inject_context.sh`.
-- [ ] **T11** Repo Brief template carries a command per fact (`references/repo-brief.md`).
-- [ ] **T12** Run the check over the previous sprint's 15 backlog items; one disposition each.
+- [ ] **T11** `references/repo-brief.md`: a command per fact, and amend the ~200-word cap in the same
+      edit so the template stops contradicting itself.
+- [ ] **T12** Run the widened check over every item in the previous sprint's backlog section; one
+      disposition each.
 - [ ] **T13** CHANGELOG bullet, version bump, dist regeneration.
+
+### Execution waves (revised)
+
+```
+W1: T1a, T1b           freeze the answer key, then build the runner
+W2: T2, T3             citations (extend 57) + check-exists (91, wired on landing)
+W3: T4, T5             annotations + declared-vs-used (92, wired on landing)
+W4: T5b, T5c, T5d      the three widened classes from #9-B
+W5: T6, T7             score once, then tamper incl. hostile arguments
+W6: T9, T10            the rule, and its wiring
+W7: T11, T12, T13      brief, backlog disposition, release
+```
 
 ## 6. Daily Updates
 
