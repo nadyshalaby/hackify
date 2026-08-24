@@ -137,9 +137,13 @@ other. A dispatcher can narrow B in prose without touching the placeholder, and 
 17-path weighting that was compliant with the pin and a narrowing all the same. So B's silence was
 never coverage, and reading it as coverage was the defect.
 
-**B closes that gap with a round marker instead of a scope.** Its report's first line is `Round: `
-plus the round its dispatch named, `Round: settle` on a settle round, which carries no pathspec and
-so leaves the pin green. The gate above reads that marker: a settle round is FULL only when B's
-marker says `settle`, and a B that reports any other round, or `Round: unnamed` because its dispatch
-named none, leaves the round unclosable. If B ever gains a scope placeholder, the marker alone stops
-being enough and the gate must be reconsidered, not patched again.
+**B writes a round marker instead of a scope, and the marker names the round, nothing more.** Its
+report's first line is `Round: ` plus the round its dispatch named, `Round: settle` on a settle
+round, which carries no pathspec and so leaves the `{{review_scope}}` pin green. The gate above
+reads it: a settle round is FULL only when B's marker says `settle`, and a B that reports any other
+round, or `Round: unnamed` because its dispatch named none, leaves the round unclosable. The marker
+is not coverage evidence, though, and reading it as one repeats the defect above one level up: a B
+that read every path and a B narrowed in prose emit the identical string, because it records the
+round the dispatch NAMED and nothing about what B was handed. That gap closes on the ledger, one row
+per changed path, which is what makes coverage checkable instead of asserted. If B ever gains a
+scope placeholder, the gate must be reconsidered, not patched again.

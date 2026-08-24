@@ -430,10 +430,20 @@ yellow "[38h] the settle-echo contract's FILE SET, so a new site cannot join it 
 # once more, which is noise, and a check that cries wolf gets its expected number bumped
 # without thought. Two pins in this repo went vacuous exactly that way earlier in this
 # sprint. KNOWN HOLE, left open on purpose and written down: a site deleted INSIDE a file
-# that keeps its other mentions passes here. The echo instruction in the four sliced
-# prompts is the live instance, pinned nowhere else in this validator today; closing it
-# wants its own pin on that skeleton line, not a hard total here, and that decision has
-# not been taken.
+# that keeps its other mentions passes here, because the file total does not move and the
+# occurrence total only notes.
+#
+# A SECOND HOLE SITS BESIDE IT, and neither half of this check is a backstop for it. The
+# echo contract has two halves: the INSTRUCTION half, carrying both marks this check
+# counts, in the INPUTS block; and the SKELETON half, the `Scope: ` line in the OUTPUT
+# block the echo lands on, carrying NO mark, in all eight files that state it, the four
+# sliced prompts and their four agents/ mirrors. Deleting a skeleton line therefore moves
+# NEITHER number: the file keeps its two instruction marks so the file count stays 12 and
+# never reddens, and the deleted line held no mark so the occurrence total stays 25 and
+# does not even note. Nothing in this validator pins that line today, so it would vanish
+# green. Closing it wants its own pin on the skeleton line, the both-halves shape [76h]
+# already argues for and applies to B's round marker, not a hard total here, and that
+# decision has not been taken.
 #
 # grep -oF and -rlIF, never -c and never -E, and absolute /usr/bin/grep: the three reasons
 # argued above [76g] all bite here. -c counts LINES, and phase-5-review.md carries two
@@ -463,6 +473,6 @@ else
   fi
   if [ "$rse_nf" -ne "$RSE_FILES_EXPECTED" ]; then
     red "  ---- the $rse_nf discovered file(s) were:"
-    printf '        %s\n' $rse_files
+    printf '%s\n' "$rse_files" | sed 's/^/        /'
   fi
 fi

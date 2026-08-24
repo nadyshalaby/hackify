@@ -301,7 +301,7 @@ pls_x_assert() {
   check_list_size "$n_occs" "$want_o" "the occurrences of '$lit' under $PLS_XROOTS"
   [ "$n_files" -eq "$want_f" ] && return
   red "  ---- the $n_files discovered file(s) were:"
-  printf '        %s\n' $files
+  printf '%s\n' "$files" | sed 's/^/        /'
 }
 
 pls_x_assert "$PLS_XDIFF" "$PLS_XFILES_EXPECTED" "$PLS_XOCCUR_EXPECTED"
@@ -346,19 +346,17 @@ yellow "[76h] the FULL-round gate is worded identically at every site that state
 # B'S MARKER IS PINNED IN BOTH HALVES, the instruction and the skeleton line, because
 # either alone leaves the other deletable while this stays green. The instruction with
 # no skeleton slot is a rule with nowhere to write the answer; the skeleton slot with
-# no instruction is a blank B fills in however it likes. The marker is what replaced
-# B's silence as the gate's per-run evidence, so losing half of it silently is losing
-# the evidence.
+# no instruction is a blank B fills in however it likes. The marker carries the ROUND the
+# dispatch named and nothing else, never coverage, and it is all the gate has to read on
+# a settle round, so losing half of it silently leaves the gate reading nothing.
 #
-# grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: same three
-# reasons spelled out above [76g], and pls_x_assert is the same function. -c counts
-# LINES and the gate wording can share a line with other prose, -E would read the
-# backticks, `|`, `<` and `>` in these literals as metacharacters, and these scans
-# recurse a directory tree where a grep honouring ignore files would silently shrink
-# the discovered set. An unreadable root exits 2 and reddens rather than counting 0.
+# grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: pls_x_assert is
+# the same function and all three reasons are spelled out above [76g], unchanged here.
+# The -E half bites hardest on these particular literals, which are mostly backticks,
+# `|`, `<` and `>`, and every one of those is a metacharacter.
 PLS_GATE='every dispatched lens that takes a scope echoed a `settle `-prefixed scope, F echoed `settle all`, and B echoed `Round: settle`'
 PLS_BMARK='`Round: ` followed by the round the dispatch named, and nothing else'
-PLS_BSKEL='Round: <first | middle | settle>'
+PLS_BSKEL='Round: <first | middle | settle | unnamed>'
 # Hand-written beside the check and independent of the lists they police, per the
 # argument above check_list_size in 00-helpers.sh. Today: the gate wording sits at 4
 # occurrences over 4 files (SKILL.md, phases/phase-5-review.md, review-and-verify.md,
@@ -454,11 +452,13 @@ checked = 0
 for frag, text in rows:
     path = os.path.join(FRAGDIR, frag)
     if not os.path.isfile(path):
+        print("NOTE %s is named in the header manifest but is not a file under %s, no range compared" % (frag, FRAGDIR))
         continue
     body = io.open(path, encoding='utf-8').read()
     declared = re.findall(r'^yellow "\[(\d+[a-z]?)\]', body, re.M)
     items = parse_run(text)
     if not declared:
+        print('NOTE %s declares no `yellow "[..]"` check id at line start, no range compared' % frag)
         continue
     if not items:
         print("FAIL %s names no parseable check id in its header row" % frag)
@@ -485,6 +485,7 @@ PLS_RANGE_PY
     case "$pls_line" in
       'OK   '*) green "  ok   ${pls_line#OK   }" ;;
       'FAIL '*) red "  FAIL ${pls_line#FAIL }"; FAILED=$((FAILED + 1)) ;;
+      'NOTE '*) yellow "  note ${pls_line#NOTE }" ;;
       'COUNT '*) pls_range_n=${pls_line#COUNT } ;;
     esac
   done <<PLS_RANGE_EOF

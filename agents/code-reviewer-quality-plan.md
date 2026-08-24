@@ -294,8 +294,10 @@ Terse review beats long review.
 **Your report's FIRST line is a round marker**, not a heading. Write
 `Round: ` followed by the round the dispatch named, and nothing else:
 `Round: settle` on a settle round. It carries no pathspec, because you
-are never sliced and have no scope to echo back, and it is the parent's
-per-run evidence that THIS instance of you read the whole reviewed diff.
+are never sliced and have no scope to echo back. What it records is WHICH
+round the dispatch named, and nothing more: a B that re-read every path and
+a B that re-read a handful emit the same string, so the marker is not
+evidence of coverage, which rests on the parent's scope ledger instead.
 The settle-round gate reads that marker. If the dispatch named no round,
 write `Round: unnamed` and never guess: an unnamed round is one the
 parent cannot close, which is the safe direction.
@@ -305,7 +307,7 @@ Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verb
 Use this exact report skeleton:
 
 ````
-Round: <first | middle | settle>
+Round: <first | middle | settle | unnamed>
 
 ## Scout verdicts
 - `<file>:<line>`, <rule_id>. CONFIRMED (<severity>) | DISMISSED: <one-line reason>.
