@@ -116,8 +116,11 @@ The superseded text is preserved in the spec-review section below rather than de
       is the allowed direction.** The banned direction is moving a bucket so an unchanged check
       scores better, and this entry exists so the two can be told apart later.
 - [ ] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
-      runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The
-      plan's original "23" was measured with a `^`-anchored command; the real universe is 88.)
+      runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The plan's
+      original "23" was measured with a `^`-anchored command, and the "88" that replaced it counted
+      every `[NN]` token rather than the declared ones. The declared universe is 82, which check
+      `[91]` derives at runtime and this AC deliberately does not hardcode. Corrected here because
+      an AC asserting a wrong count in a sprint about wrong counts is the defect on display.)
 - [ ] **AC3** The check never executes anything sourced from a repo file, proven on **both** halves:
       (a) the verb vocabulary is a fixed enum, shown in code; (b) every argument is constrained, a
       path must resolve inside the repo and be git-tracked, a pattern is matched literally with `-F`
@@ -138,6 +141,15 @@ The superseded text is preserved in the spec-review section below rather than de
       caught, missed, or out of class. No count is asserted. Scope is stated: a one-shot scan with
       the `docs/work/` exclusion lifted, results recorded, **never wired into the validator**, since
       that tree holds 619 citations against 30 live ones and is a frozen record.
+- [ ] **AC9** The shipped rule answers the **speed half** of the ask (#3-A, #3-B, #3-C), not only the
+      claim-integrity half. It carries the paired mechanism this sprint demonstrated: the dispatch
+      brief hands every wave agent pre-derived file:line facts so none of them pays for orientation,
+      **and** carries standing permission, in words, to contradict any of those facts with the
+      command that disproves it. Both halves ship or neither does, on the evidence that three of
+      this sprint's wrong facts originated in the parent's own briefs. **No speed number is
+      asserted**: there is no counterfactual wave, so the rule claims a changed division of agent
+      effort, which the wave reports show, and not a measured time saving, which nothing here
+      measures.
 - [ ] **AC8** Full triad green, `dist/` current by two-sync checksum, no file over 500 lines. Note
       `71-release-mechanism-pins.sh` and `test_ban_tokens.d/15-wi-absent-cases.sh` are both at
       **497/500**.
@@ -527,6 +539,44 @@ completeness gap in a release note, a scanner's own line-based blind spot. **A r
 checks make claim drift impossible would itself be the defect it bans.** AC6 already demotes the
 command-per-fact convention from a guarantee to an aid, on the evidence that this sprint's own brief
 attached a command to a fact and the command was the thing that was wrong.
+
+### Evidence base for the speed half of the ask, which the ACs had dropped
+
+The original ask has four parts and the eight ACs covered three. "the skill should focus of the
+speed of the development of the waves" was answered in the wizard as #3-A, #3-B and #3-C, all three
+chosen, and then recorded nowhere but a one-line gloss. Caught before T9 was dispatched, which is
+the last point where it was still cheap: a rule written from the material above would have shipped
+half an answer.
+
+**The lever, #3-A, prebuilt verified facts in the dispatch brief.** Every agent this sprint was
+handed the file:line facts it would otherwise have gone looking for. What that bought is visible in
+what the agents spent their turns on. T5 reproduced the `{{test_file_path}}` case and redesigned the
+check around what it found, instead of re-deriving how the mirror script works. T3 went after the
+check-id universe and found the parent's 88 was a token count. The CI agent verified that `[93]` is
+declared at `93-token-declarations.sh:92` rather than taking the parent's word for it. None of them
+paid for orientation first.
+
+**The cost, and it is not small.** Three of this sprint's wrong facts were *in* those briefs. A
+pre-derived fact is a speed lever with a correctness liability attached: the same brief that saves
+five agents an hour of orientation is also the fastest way to make all five of them wrong at once.
+The worst instance is the Repo Brief's own count claim, where the recorded command contained `...`
+inside a `grep -E` alternation, so the command matched any three characters and counted something
+other than what the sentence said.
+
+**The mitigation that actually worked, and it is shippable.** The dispatch brief carried, verbatim:
+*"If one of my pre-derived facts is wrong, say so plainly and show the command that proves it."*
+Agents used it. W1b traced the phantom "line 5" back to the parent's own `sed | grep -n` pipe rather
+than reporting the number it was given. T5 refused the framing of its own task. T3 replaced the
+universe count. Every one of those corrections came back with a command attached, because the
+sentence asked for one. **The pairing is the mechanism: hand the agent facts so it can skip
+orientation, and hand it standing permission to contradict them so a wrong fact dies in one wave
+instead of propagating through five.** Neither half works alone. Facts without the invitation is
+just faster wrongness.
+
+**What is NOT measured, said plainly.** There is no before/after wave-time number here and no
+counterfactual wave that ran without a brief. The claim defended above is about what agents spent
+their turns on, which is observable in their reports. A speed *number* is not, and inventing one
+would break this sprint's own rule.
 
 ### 2026-08-24, Wave 3, the first catch and a declined task
 
