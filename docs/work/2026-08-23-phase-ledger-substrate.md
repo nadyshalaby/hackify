@@ -3833,6 +3833,50 @@ sprint's own rule pointed back at the dispatcher, a caller-supplied input droppe
 accounting for the omission.
 
 
+### 7aq. Round closed. Three prose-accuracy fixes, no new mechanism, no third dispatch
+
+Commit `3f60c64`. Validator ALL CHECKS PASSED, mirrors 9/9, `76` at exactly 500 of 500.
+
+**The round is declared closed here, and the reason is what it found rather than that it
+found nothing.** The bounded round produced three defects and every one was a false sentence:
+a claim about coverage, a claim about metacharacters, a claim about what the gate reads.
+Zero mechanism defects. Zero new pins proposed, because both reviewers were forbidden to
+propose any and both honoured it, filing their hardening ideas under `Deferred, not a defect`.
+
+That is a different generator from rounds one through four, each of which installed a check
+and handed the next round the check's own hole. Closing on prose corrections is the loop
+reaching its end, not the loop being cut short. The carry-over law's literal exit, a round
+that finds nothing AND changes nothing, is not met and is not claimed. What is recorded
+instead: the ledger showing 6 re-read and 67 carried, two independent lenses converging on
+one Critical, and a fix set that adds no checkable surface for a next round to bite on.
+
+**The fourth brief correction of the session, and the sharpest.** This dispatch told the
+implementer to write that "these literals contain `|`". Measured: `PLS_GATE` carries zero
+pipes, `PLS_BMARK` carries zero, `PLS_BSKEL` carries exactly three. The implementer named
+`PLS_BSKEL` specifically and said writing the brief's phrasing "would have been a second
+false claim in the same spot". Verified by the parent before commit.
+
+Four agents corrected four different briefs of mine this session, each in the sprint's own
+shape: four files that were eight, a ledger phrasing that overclaimed one level down, an
+unqualified "ledger" naming the wrong one of two, and now a claim about three literals that
+is true of one. The pattern has moved out of the checks and into the instructions written
+about the checks, which is worth carrying into the next sprint.
+
+**Two items deferred by the panel, neither a defect.** `76` has no runway, the next line added
+there must reclaim one or take the split. And `parallel-agents/README.md:22` lists B's inputs
+without the dispatch round, which F confirmed is deliberate and fail-closed.
+
+**One borderline phrasing left standing**, recorded in 7ao: `review-scope.md:54` places the
+marker "in the echo's place" one sentence after crediting the echo with proof. Cleared
+independently by both reviewers.
+
+**One fresh phrasing flagged by its own author.** `phase-5-review.md:37` now attaches "neither
+is coverage evidence on its own" to the echo as well as the marker, where every other site
+qualifies only the marker. Accurate, since the echo proves the scope a lens received rather
+than whole-diff coverage, but it is this dispatch's wording rather than a borrowed one, and
+the implementer said so rather than letting it pass as house style.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
