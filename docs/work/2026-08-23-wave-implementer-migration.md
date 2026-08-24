@@ -1356,6 +1356,50 @@ asked for that shape last round and I handed it a commit-grouped one instead); a
 widened past markdown to `.sh` and `.py`, **0 findings, 42 of 45 paths scanned, `paths_unaccounted`
 0, `unread_*` 0**; a measured perf-scout; and a metrics table counted at HEAD rather than quoted.
 
+### Phase 5 round 3, findings
+
+**Reviewer A, one Critical, and it is a real one.** `wi_absent` fails open a second time, in the
+same function, one branch over from the one `d2cd6df` closed. `git grep` returns **1** both for an
+honestly clean tree and for a tracked file it could not stat, so a banned literal sitting in a file
+git cannot read prints `ok '<lit>' survives in no live file` with `FAILED` untouched. The function
+already captures the proof and throws it away: `errtxt=$(cat "$err")` at `:262` is only ever read
+inside the `rc > 1` branch.
+
+**Reproduced by the parent, not accepted on report.** Scratch repo, one tracked file holding the
+literal:
+
+- readable: `rc=0`, hit reported, stderr empty.
+- `chmod 000` on that same file: `rc=1`, **zero hits**, stderr `error: failed to stat 'secret.md': Permission denied`.
+- `/usr/bin/grep -rnF` on the identical setup: **`rc=2`**.
+
+That last line is what makes A's second claim true as well. The rationale at `:233` says this
+function's status handling "matches the one `00-helpers.sh:302-307` already states". Read that file
+and the contract is spelled out at `:288-289` as **"grep's three distinct statuses (0 match, 1
+clean, 2 unreadable)"**, which is `/usr/bin/grep`'s contract and **does not transfer to `git grep`**.
+The comment cites a guarantee its own tool never made. Signature defect of this sprint, ninth
+occurrence, and this time it is load-bearing rather than cosmetic.
+
+**The discriminator is safe to add today.** All four live literals scan with **0 bytes of stderr**,
+so a `rc -eq 1 && -n "$errtxt"` red cannot fire on anything currently in the tree. Verified per
+literal.
+
+**A named three sibling counters the fix has to move together. There are four.** Adding one tamper
+case as a function in `10-ban-list-cases.sh` moves: `TB_EXPECT_WI_FAILCLOSED` 2 to 3 (`:295`);
+`TB_WIRING`'s name count for that fragment 11 to 12 (`test_ban_tokens.sh:115`), which is the
+`eleven` at `30-inventory-pins.sh:109-110`; **and the `sixteen functions` at
+`test_ban_tokens.sh:109`, which becomes seventeen.** That fourth one is the number **wave G fixed
+one commit ago**, which is precisely the trap this sprint keeps walking into: a fix that corrects a
+count and then a later fix that changes the quantity without moving the corrected number. All four
+go in one commit or the loop feeds itself again.
+
+**What A checked and cleared, stated rather than implied.** The trap capture and `eval "$prev"`
+restore work on bash 3.2.57 and the caller's EXIT trap survives. Regenerating the GIF from the
+committed script reproduces `docs/assets/hackify-demo.gif` **byte for byte** at 135,296 bytes. The
+bare-name half of the rename is covered by `60-primitives.sh:27-41`. The other `git grep` call site
+(`10-ban-list-cases.sh:345`) reads its status as a boolean and reds on anything non-zero. A tracked
+file merely deleted from the working tree gives `rc=1` with empty stderr, which is an honest clean
+tree and correctly not filed.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
