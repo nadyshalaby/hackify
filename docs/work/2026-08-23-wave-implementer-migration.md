@@ -928,6 +928,65 @@ byte-for-byte the size of the shipped asset, and `optimize=True` gives 135,296. 
 `ImageChops.difference().getbbox()` returns `None` for all seven frames at 1200x675, so the two
 files are pixel-identical. D's 40.5% is exact.
 
+**Reviewer A, security and correctness. One Critical, and it is in code this sprint shipped an hour
+before the review.**
+
+**A1, Critical. `70-invariants-and-new.sh:229`, `err=$(mktemp)` is never checked, and the machinery
+added to make `wi_absent` fail CLOSED is exactly what opens a fail-open.** When `mktemp` fails, `err`
+is the empty string, so `2>"$err"` fails in the shell BEFORE git ever runs. Bash returns 1. And 1 is
+git grep's honest "no match", so the failure routes straight into the green branch. All four
+`wi_absent` calls fail open together, which means check `[40]` cannot fail at all. `[0b]`'s ok-line
+floor does not catch it either, because a fail-open still PRINTS an ok line.
+
+**The parent had already considered this exact case and dismissed it, wrongly.** The reasoning was
+that a failing `mktemp` would produce a loud failure rather than a silent green. That is the part
+that was wrong: the failure is loud on stderr and returns 1, and 1 is the one code that means
+everything is fine. Being nearly right about the mechanism and wrong about the code is how a
+fail-open ships.
+
+**Reproduced by the parent end to end, not taken on report.** Plant `hackify:wave-task-implementer`
+in `skills/quick/SKILL.md`, then run the validator twice against that same tree:
+
+```
+run 1, mktemp working
+  FAIL [40] retired Phase 3 wording 'hackify:wave-task-implementer' survives in a live file:
+run 2, same tree, PATH shimmed so mktemp exits 1
+  ok   'hackify:wave-task-implementer' survives in no live file
+```
+
+Same tree, same literal planted, opposite verdicts. Restored by file, `git status` clean and HEAD
+`ebb92b8` unchanged either side. The isolated mechanism confirms it too: an empty redirect target
+returns rc 1 with empty output under bash, byte-identical in both respects to a clean scan.
+
+**This falsifies the fragment's own comment**, three lines above, which claims `STATUS IS GIT GREP'S
+ALONE`. That comment was true of the version it was written for and the FIX 11 rewrite made it
+false, in the same sprint, for the fourth time. The sprint's signature defect reproduced itself
+inside the fix for the sprint's signature defect.
+
+Both refuter lenses uphold without a dispatch. Reproduction is discharged by the parent's own
+demonstration above, and authority by the fragment's written invariant plus CWE-252 (unchecked
+return value) and CWE-703. Dispatching a refuter to argue against a result I produced with my own
+hands would be theatre, and #2-A's bar (a Critical dies only when BOTH lenses fail) is not close to
+being met.
+
+**A2, Important. This sprint deleted the pins on `phase-3-implement.md` and put the replacements
+somewhere else.** `71-release-mechanism-pins.sh:285-292` now pins the mirror pair and the spec
+reviewer. `76-phase-ledger-substrate.sh:71` still globs the file for tick lines, but nothing pins its
+Phase 3 DISPATCH wording any more, and `[40]`'s four-file presence set omits it, because that file
+names `hackify:spec-reviewer` and never names `hackify:wave-implementer`. Net effect: reverting
+`phase-3-implement.md` to per-task fan-out runs green. That is a coverage regression this sprint
+introduced while adding a check whose whole purpose is closing that class of hole.
+
+**A3, Minor.** No `trap` around the temp file, so SIGINT between the `mktemp` and the `rm -f` leaks
+it. **A4, Minor.** `for f in $WI_TYPE_SITES` at `:170` is unquoted word-splitting with no `set -f`,
+while `WI_DEAD_WORDS` two blocks down uses a real array for the same job.
+
+**A verified clean** and said so specifically rather than padding: the `sed` scripts are fixed
+single-quoted literals so repository content reaches them only as stdin data, `red` and `green` pass
+through `%s`, `rm -f ""` is inert, and the two JSON manifests are a clean 0.14.2 to 0.15.0 bump. It
+also correctly declined to file the missing `v0.15.0` tag, which `[27d]` carves out for the
+in-flight version by design.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
