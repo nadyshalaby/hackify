@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W7:T14+T15
+current_task: Phase 4, Verify
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -291,7 +291,7 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 7, regenerate the shipped copies
 
-- [ ] **T14** The README hero animation still labels Phase 3 "parallel waves". Found by the parent
+- [x] **T14** The README hero animation still labels Phase 3 "parallel waves". Found by the parent
   while Wave 6 was in flight. `scripts/gen-demo-gif.py:28` holds `(3, "Implement", "parallel waves")`
   in its `PHASES` table, and that string is rendered into `docs/assets/hackify-demo.gif`, which the
   README embeds. Nothing checks it, so it would have shipped stale. The standing project rule is to
@@ -299,7 +299,7 @@ census cannot fail. This backlog is the corrected shape.
   12.1.1 is present, so the regeneration runs here.
   `Files:` `scripts/gen-demo-gif.py`, `docs/assets/hackify-demo.gif`
 
-- [ ] **T15** Run `scripts/sync-runtimes.sh` and re-run `sync_agent_mirrors.py --check`.
+- [x] **T15** Run `scripts/sync-runtimes.sh` and re-run `sync_agent_mirrors.py --check`.
   Added by Phase 2.5: **AC8 demanded `dist/` regenerated across all 7 runtimes and no task ran
   the script.** A DoD bullet with zero covering hunks is the shape Reviewer B files Criticals on.
   Baseline at `03e7a12`: exits 0, syncs 792 files across 7 runtimes, dirties no tracked file.
@@ -635,6 +635,43 @@ characters. Mirrors 9 of 9. Law-scout: 6 files, 0 findings, 0 unaccounted, 0 uns
 surviving `parallel batch` hits are the pin's own literal in `[40]` and two orchestration lines using
 the flat-fan-out sense, which AC5 allows and which read unambiguously in place.
 
+### 2026-08-24, Wave 7, the hero image and the shipped copies (T14, T15)
+
+Last implementation wave. Every Sprint Backlog task is now ticked.
+
+- **T14**, the README hero animation. `gen-demo-gif.py` held `(3, "Implement", "parallel waves")` in
+  its `PHASES` table, rendered into a tracked binary the README embeds at the top of the page. It
+  now reads `one agent per wave`, measured at 126px against a 165px tile before the edit rather than
+  after.
+- **T15**, `dist/` regenerated. 792 files across 7 runtimes, exit 0, matching the recorded baseline
+  exactly. Mirrors 9 of 9. This closes AC8, which demanded the regeneration and which **no task in
+  the signed-off plan actually performed**; Phase 2.5 caught that and added T15.
+
+**The implementer refused to accept its own exit code, and was right to.** It compared rendered
+pixel ink between the committed GIF and the new one, and reported the Phase 3 tile moving from
+padding 37 / width 90 to padding 19 / width 126, which is arithmetically `(165-126)//2 = 19` and
+therefore the new string and not merely a rewritten file. It used Phase 4's tile as an unchanged
+control. Its reason for going that far is the best part: this repo **already recorded the same trap**
+at `docs/work/done/2026-05-16-v0-2-5-gif-and-validate-split.md:138`, where a regeneration was taken
+on faith. It also caught a naive crop diff reporting all six tags as changed, and identified it as
+palette re-encode noise (mean 0.0 to 0.01 per channel) against roughly 8 for the real change, rather
+than reporting six changes it could not explain.
+
+**It corrected a premise in my brief.** I said `dist/` is gitignored at the root. It is not: there is
+no `dist` line in `.gitignore`, and the mechanism is a nested `dist/.gitignore` containing `*` and
+`!.gitignore`, so the contents are ignored while that file stays tracked. My check held, for a
+different reason than I gave for it.
+
+**Wave-end evidence.** Validator 0 FAIL, `ALL CHECKS PASSED`. Mirrors 9 of 9. `dist/` at 792 files
+across 7 runtimes, per-runtime counts summing independently, `copilot-cli` at 1 file confirming
+MANIFEST-only by design rather than thin output. GIF verified as `GIF (1200, 675) 7`. Working tree
+carried only the two allowlisted files.
+
+**One gap left open, deliberately.** Nothing verifies the GIF matches the `PHASES` table. T14 existed
+precisely because that constant drifted with no check to catch it, and the gap is still there for the
+next description change. Adding a check would be scope creep in this sprint, so it is recorded in the
+Retrospective instead.
+
 ## 7. Sprint Review
 
 (Opened at Phase 4.)
@@ -654,6 +691,13 @@ of defect survives. It is out of THIS sprint's scope (wave dispatch vocabulary),
 rather than fixed, per the no-scope-creep rule. The fix is small: an explicit flag whitelist that
 exits non-zero on anything unrecognised, and a `--help` that prints the usage block already sitting
 in the module docstring at line 38.
+
+**Nothing checks that the hero GIF matches the phase table it is generated from.** T14 existed only
+because `gen-demo-gif.py`'s `PHASES` constant drifted from the workflow and no check could see it.
+That gap is unchanged: the next time a phase description moves, the image goes stale silently again.
+A cheap fix the T15 implementer proposed: assert every tag's rendered width is at or under the 165px
+tile, and assert the GIF's mtime is newer than the generator's. Not done here, because a new
+validator check is outside a sprint about dispatch vocabulary.
 
 ### Wave planning was changed mid-sprint, after two agent deaths
 

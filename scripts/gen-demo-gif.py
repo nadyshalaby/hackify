@@ -25,7 +25,7 @@ FRAME_DURATION_MS = 600
 PHASES = [
     (1, "Clarify", "batched wizard"),
     (2, "Plan", "hard gate"),
-    (3, "Implement", "parallel waves"),
+    (3, "Implement", "one agent per wave"),
     (4, "Verify", "fresh evidence"),
     (5, "Review", "multi-reviewer"),
     (6, "Finish", "summary table"),
