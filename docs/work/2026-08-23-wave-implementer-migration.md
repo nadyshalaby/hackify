@@ -1500,6 +1500,53 @@ implied: the 16-functions / 11-wiring-names pair is correct on both sides, indep
 `:221`, pinned from the EXIT trap; and `71:284`'s citation of `phase-3-implementation.md:238` points
 at a block header whose content sits at `:239`, which is a valid block reference.
 
+**Reviewer F, one Critical, four Importants, three Minors, and the Critical is the pair nobody had
+found.** This sprint rewrote `implement-and-test.md` so that **`:239` is headed "Commits (one per
+wave)"** and `:258` reads **"One commit closes the whole wave, never one per task."** The same diff
+edited two other files that still tell the reader the opposite: `work-doc-template.md:104` **"One
+commit per task."** and `SKILL.md:108` **"Default: one commit per task."** All three were touched by
+this sprint (47, 13 and 34 changed lines), and **nothing under `scripts/` pins the commit rule**, so
+no validator can ever see it. Verified by the parent: those two are the only live sites, so the fix
+is complete at three files. Per-task commits also void the commit body `:258` requires, which lists
+every task ID the wave landed.
+
+**F and B disagree on the severity of the `[same-wave: yes|no]` field, and the disagreement is
+substantive.** B filed it Critical. F filed it Important with a stated reason: **nothing downstream
+keys on the tag**, so a wrong label misdirects a reader without breaking a consumer. F also added
+the shape argument B did not make: METHOD now has **three** states (same wave, different waves,
+consumer off the map) and the field is a **boolean**, so the third state has nowhere to go. That is
+the refuter's to settle.
+
+**F found a fourth site for the retired-fan-out rationale that B missed.** `repo-brief.md:3` argues
+for the Repo Brief on the grounds that **"every other agent on the wave is deriving at the same
+moment ... fifteen rediscoveries"**. There is one agent on a wave now, so the saving is real but the
+argument for it is dead. Producers: `phase-3-implementation.md:5` and `SKILL.md:134`.
+
+**Two of F's Minors are citation errors in the repo, one of them mine to have caught earlier.**
+`71-release-mechanism-pins.sh:287` points at `CHANGELOG.md:22` for the "dissolving on contact"
+sentence, which is at **`:18`**. And F's own dispatch note tells quick mode to "pass a single-entry
+map", which under-counts what quick puts under one agent and leaves B unable to attribute a file.
+The third Minor, `{{work_doc_path}}` being required by a template that quick and yolo cannot satisfy,
+**F marked pre-existing at base and narrowed by this diff**, which is the honest framing.
+
+**What F cleared, stated rather than implied.** Twelve of twelve consumers of the `wave-implementer`
+INPUTS and `## Wave status` contract agree. `wi_absent`'s three consumers agree, including the
+`eval` site in the tamper suite. `TB_WIRING`'s 11-vs-16 pair is correct on both sides, independently
+confirmed for the third time this round. **All nine mirror pairs match on the fenced block AND F
+read all nine frontmatter `description:` lines, the half the mirror check cannot see, and found none
+stale.** No unwired symbols.
+
+**F also caught that its own dispatch prompt carried an older revision of its INPUTS** and applied
+the live rule from disk instead. That is the fourth time this sprint an agent has refused to act on
+a stale brief of mine.
+
+### Phase 5 round 3, the shape of it
+
+**15 findings against round 2's 26.** Three Criticals, five Importants, seven Minors. **All three
+Criticals are pre-existing rot that rounds 1 and 2 walked past**, not items manufactured by the fix
+waves, which is the opposite of what wave G's three items were. Reviewer D returned empty at every
+severity. The loop is not purely feeding itself, and round 3 earned its cost.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
