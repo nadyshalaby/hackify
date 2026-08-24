@@ -2509,3 +2509,75 @@ parent-launched scans counted, I could move the round's number by choosing what 
 makes the breaker unfalsifiable. So its output feeds the decision table and the fix list exactly like
 a scout row, and it does **not** count toward breaker 1. Written down now, before its result is
 known.
+
+---
+
+### Phase 5 round 5, Reviewer B: zero Critical, three Important, three Minor
+
+B re-judged all five targets it was handed and confirmed every one (the fragment counts, the
+function-level `TB_EXPECT_WI_FAILCLOSED` reason, the 153-pass reproduction, the encoder-table move
+breaking no citation, `CHANGELOG.md:14` matching the `[40]` block clause by clause). Its scout table
+was header-only, zero rows staged. **All three Importants verified by the parent on disk.**
+
+#### Important 1, a rationale that is false in both directions
+
+`71-release-mechanism-pins.sh:180-184` says orchestration.md's `4-5 reviewers` row is "deliberately
+NOT pinned". **Both halves are false, measured:** `grep -n '4-5' orchestration.md` returns rc 1, there
+is no such row; and the literal `'4-5 reviewers'` sits in `RR_BANS` at `77-reviewer-roster.sh:216`,
+so the phrase is actively **banned**, which is the opposite of unpinned.
+
+This is the sprint's signature defect for the sixteenth time, and it is in a file this diff edits.
+The line itself predates `03e7a12`.
+
+#### Important 2, the accepted round-2 fix landed half
+
+`CHANGELOG.md:21` credits the GIF regeneration entirely to the Phase 3 caption. **Measured:** the
+asset went **226,856 → 135,296 bytes** across `base..head`, and `:21` says nothing about `optimize`
+or size. That 40% cut has its own wizard decision (**#5-C**), its own fix wave (**FIX G**) and a
+measured work-doc entry. Round 2's B finding "no CHANGELOG bullet for the GIF" was UPHELD and
+accepted at work-doc:759, and only the caption half of the accepted fix reached the release notes.
+
+#### Important 3, three files delivered and counted but never declared
+
+`agents/code-reviewer-performance.md`, `phase-5-multi-review-d-performance.md` and
+`scripts/validate-dod.d/75-ship-bar.sh` are all in `03e7a12..HEAD`. **Verified:** none appears in the
+work-doc under any of five spellings (`code-reviewer-performance`, `multi-review-d`, `75-ship-bar`,
+`ship-bar`, `ship bar`), all zero. Same shape as round 3's B3 at work-doc:1087.
+
+#### B's Minors
+
+`README.md:254` says performance.md carries "95 stable IDs, 10 domains"; B measured **96 and 11**,
+because `perf.process.spawn-per-item` and its Process section landed after that line was written.
+That is the same ID Reviewer D cited this round, so the two findings corroborate each other.
+`parallel-agents/README.md:12` says "the two rows in the second table" and the table has **three**
+(`:32-34`), confirmed by reading it. And work-doc:936 calls 227,491 bytes "byte-for-byte the size of
+the shipped asset" when the base blob is 226,856, off by 635; the 40.5% headline still holds.
+
+#### E stayed folded, and B corrected its own evidence line
+
+Zero UI-bearing files, residual checklist re-derived independently. B corrected the fold's evidence:
+calling the GIF "unchanged and byte-identical" is true round over round but **false across
+`base..head`**, where it changed by 91,560 bytes.
+
+---
+
+## Round 5 is complete, and breaker 1 fires
+
+| Reviewer | Critical | Important | Minor |
+|---|---|---|---|
+| A security | 0 | 0 | 2 |
+| B quality + plan | 0 | 3 | 3 |
+| D performance | 0 | 1 | 0 |
+| F coherence | 0 | 2 | 2 |
+| **Round 5** | **0** | **6** | **7** |
+
+**Critical-plus-Important by round: 8, 3, 6.** Round 5 is DOUBLE round 4 and breaker 1 requires
+strictly lower. Total findings went 15, 7, 13. Both numbers moved the wrong way.
+
+Every one of the six was reproduced by the parent on disk before this table was written, so the
+count is not an artifact of reviewers being wrong. The rounds are not converging: round 4 was the
+outlier, not the trend, and its 3 bought a round 5 that found twice as much.
+
+The refuter still runs, because the rule reads the **post-refuter** count and because four of the six
+carry a genuine scope question. But for breaker 1 not to fire the refuter would have to kill four of
+six, and all six are verified true statements about the tree.
