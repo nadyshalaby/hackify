@@ -312,10 +312,11 @@ for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents
 done
 
 # (3) ONE refuter per round judges every finding now, so the both-lenses rule is the
-# only thing still holding a Critical up. The bar was never "two agents", it was two
-# independent lines of attack that must both fail; let that weaken to one lens killing
-# a Critical and the collapse stops being free and starts deleting real defects. The
-# both-lenses pin runs over BOTH mirror sides, because the agent copy is what runs.
+# first gate a Critical clears, not the last: an adjudication escalation and the user's
+# sign-off hold it up behind that. The bar was never "two agents", it was two independent
+# lines of attack that must both fail; let one lens kill a Critical and the collapse stops
+# being free and starts deleting real defects. The first two pins read the template alone;
+# 'BOTH lenses fail' runs over BOTH mirror sides, because the agent copy is what runs.
 check_token_present 'dies only when' "$REFUTE_TPL"
 check_token_present 'ONE refuter agent per review round' "$REFUTE_TPL"
 for f in "agents/finding-refuter.md" "$REFUTE_TPL"; do

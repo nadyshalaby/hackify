@@ -10,6 +10,7 @@ The refuter is the step that turns a claim into a verdict **before** the address
 
 - **ONE refuter agent per review round** judges every finding, at every severity, carrying both lenses itself.
 - A Critical finding dies only when **BOTH lenses fail** to sustain it, each with its own file:line counter-citation. If reproduction refutes but authority upholds, the Critical lives.
+- **A refuted Critical is still not a closed row.** Both lenses failing earns that finding an escalation, not a `push-back`, see "Feeding the decision table" below.
 - An Important or Minor finding dies on **one** refutation with a file:line counter-citation.
 - "I could not confirm it" is **not** a refutation. Uncertainty keeps the finding, at its original severity.
 - A refuter may also **escalate**: if the claim is real and worse than stated, say so. Refuting is the job, not the goal.
@@ -26,7 +27,7 @@ This is deliberately the opposite bias from an adversarial-verification prompt a
 | **Scout rows already CONFIRMED by Reviewer B or D** | none | The reviewer's re-judge step already did this pass; refuting again is theatre |
 | **Findings two reviewers independently raised** | none | Independent agreement is stronger evidence than a third opinion |
 
-Dispatch that one refuter after aggregation and before the first fix, handing it the whole round in a single message. There is no per-Critical dispatch, no conditional follow-up dispatch, and nothing to schedule in a second message. Quick mode and yolo run the same single refuter, and yolo prompts the user at no point.
+Dispatch that one refuter after aggregation and before the first fix, handing it the whole round in a single message. There is no per-Critical dispatch, no conditional follow-up dispatch, and nothing to schedule in a second message. Quick mode and yolo run the same single refuter, and the dispatch itself prompts the user at no point in any mode. What differs in yolo is not the refuter but what the parent does with a refuted Critical afterwards, see the yolo carve-out under "Feeding the decision table".
 
 **The two lenses, both carried by that one agent** (apply them in this order):
 
@@ -48,6 +49,13 @@ What the collapse changes is the agent count, not the bar. One agent reads the f
 the hunk and the cited rule once instead of two agents reading them twice, and the
 surviving set is decided by the same two verdicts either way. The cost of the old shape
 was never rigor, it was context.
+
+The agent count does matter in exactly one place, and the decision table is where it
+lands. `skills/review-triage/SKILL.md` refuses to close a Critical on `push-back` behind
+one agent's judgment, and after the collapse the refuter is one agent. So a both-lenses
+refutation on a Critical no longer settles the row by itself, it earns the escalation
+described under "Feeding the decision table". The lenses decide whether the finding is
+refutable; the escalation decides whether it is refuted.
 
 Reproduction runs first on the merits, not just for cost. A failure that genuinely
 reproduces is a real defect whether or not the finding cited the perfect rule, so
@@ -234,16 +242,21 @@ silent.
 
 ## Feeding the decision table
 
-The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phase 5 decision table in `review-and-verify.md`. There is no second table and no second loop:
+The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phase 5 decision table in `review-and-verify.md`, except on a Critical, where the verdict fills `Evidence` and earns an escalation rather than setting `Decision`. There is no second table and no second loop:
 
 | Verdict | Decision column | Evidence column |
 |---|---|---|
 | UPHELD | `accept` | the refuter's reachability or authority citation |
-| REFUTED (Critical: both lenses refute) | `push-back` | each lens's counter-citation, verbatim |
+| REFUTED (Important or Minor) | `push-back` | the refuting lens's counter-citation, verbatim |
+| REFUTED (Critical: both lenses refute) | `accept` while the adjudication escalation runs, `push-back` only once it closes | each lens's counter-citation, verbatim, then the adjudication verdict and the sign-off |
 | REFUTED (Critical: only one lens) | `accept` | both lens verdicts recorded; the split is the reason it stays |
 | ESCALATED | `accept` at the new severity | the refuter's escalation citation |
 
-A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted. **A Critical may never reach `push-back` on a single lens**, that is the same rule `review-and-verify.md` already states, and the refuter is how the parent satisfies it.
+**A Critical is never closed by the refuter.** Both lenses refuting earns that finding an escalation, not the flip: dispatch the adjudication reviewer (`review-and-verify.md`, section "Reviewer subagent prompt template") on it, hand it both lens counter-citations as its evidence, and put the conflict to the user. The row reads `push-back` only after that reviewer rules and the user signs off. Until then it reads `accept` AND is held out of the address-all loop's fix dispatch, because landing a fix while the escalation is open is the phantom fix the refuter exists to prevent. **A Critical may never reach `push-back` on a single lens**, and it never reaches `push-back` on the refuter's word alone either: one agent carrying two lenses is still one agent, and `skills/review-triage/SKILL.md` puts the cost of a missed Critical above one agent's judgment.
+
+**Yolo is the one mode where that row lands the other way.** The escalation above ends in a human sign-off, and yolo has nobody to sign a dismissal off, so in yolo a both-lenses-refuted Critical is fixed anyway, both counter-citations recorded beside the fix. No adjudication, no gate, and no verdict takes a Critical out of the address-all loop. `skills/yolo/SKILL.md:108` is the authority for that landing. Everything else on this page still binds in yolo: one refuter per round, both lenses, and a Critical refutable only when both of them fail.
+
+A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted.
 
 ## See also
 
