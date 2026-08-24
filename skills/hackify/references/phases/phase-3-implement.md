@@ -34,7 +34,9 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
    --paths-from). Trivial in-allowlist candidates are fixed in-wave; everything else
    is staged for Phase 5 in each scout's staging table, appended to the wave's Daily
    Updates entry. Every candidate carries exactly one disposition.
-7. Tick wave checkboxes; append one Daily Updates entry per task.
+7. Tick ONLY the task IDs the report's `## Wave status` lists as landed, never the
+   whole wave; append one Daily Updates entry per landed task. Full rule under
+   Wave-end persistence below.
 8. Commit ONCE for the wave (conventional subject; body lists task IDs).
 9. Advance to wave N+1.
 ```

@@ -254,7 +254,7 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 | 5 | Applying every surviving finding in the address-all loop | MANDATORY (it is a code change) |
 | 6 C.5 | Cleanup edits inside the touched files | MANDATORY (it is a code change) |
 
-**Do NOT use parallel agents for:** tasks sharing a file in the same wave (the wave planner splits them across waves); tightly-coupled investigations where each finding informs the next. Both are constraints on how work is split across agents, neither is licence to write the code yourself. Templates in `references/parallel-agents/README.md`.
+**Do NOT use parallel agents for:** tightly-coupled investigations where each finding informs the next. **Separately, and whatever the dispatch shape:** two tasks that share a file never sit in the same wave, the wave planner splits them across waves. That is a wave-planning invariant, not a reason to avoid parallelism. Neither constraint is licence to write the code yourself. Templates in `references/parallel-agents/README.md`.
 
 ---
 

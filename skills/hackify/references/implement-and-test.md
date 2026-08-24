@@ -15,14 +15,25 @@ The implement phase is **wave-based, one foreground subagent per whole wave.** T
 3.  Dispatch ONE Agent for the WHOLE WAVE, however wide it is. Its prompt is
     self-contained and carries the wave's task IDs in run order, per the
     template in references/parallel-agents/phase-3-implementation.md.
-4.  Wait for the agent. Read its report: it names which task IDs landed.
+4.  Wait for the agent. Read its report, starting with the `## Wave status`
+    section it opens with: that is where it names which task IDs landed and
+    which did not.
 5.  Verify the wave diff stayed inside the file allowlists:
-       git diff --name-only ⇒ should match the union of allowlists,
-       and each task's hunks stay inside that task's OWN allowlist.
+       git diff --name-only ⇒ every path in the diff must appear in the
+       union of allowlists. Do NOT assert the reverse: a wave that stopped
+       early writes a strict SUBSET of the union on purpose, so a union path
+       missing from the diff is the stop working as designed, and only a
+       diff path missing from the union is a violation.
+       Each task's hunks stay inside that task's OWN allowlist.
 6.  Run full project suite ONCE for the wave: test + lint + typecheck. All green.
 7.  Self-review against references/review-and-verify.md (parent does this).
-8.  Tick all wave Tasks checkboxes. Append one Implementation Log entry per task.
-9.  Single commit for the wave (subject covers the wave; body lists task IDs).
+8.  Tick ONLY the task IDs `## Wave status` lists as landed, never the whole
+    wave. Ticking a task the agent never finished records work that is not on
+    disk. Every not-landed ID stays unticked: re-dispatch it in the next wave
+    dispatch on an agent failure, drop to Phase 3b with it on a plan failure.
+    Append one Implementation Log entry per landed task.
+9.  Single commit for the wave (subject covers the wave; body lists the task
+    IDs that landed).
 10. Advance to wave N+1.
 ```
 
