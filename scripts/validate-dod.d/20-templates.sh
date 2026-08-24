@@ -317,7 +317,29 @@ for f in agents/*.md; do
     FAILED=$((FAILED + 1))
   fi
 done
-green "  ok   $TOOLS_DECLARED agent file(s) declare a tools: line"
+# THE FLOOR IS ON THE PARSE, NOT ON THE GLOB, and that is what keeps it from being a
+# second copy of [36]'s. [36] above already reds when agents/*.md matches no file, so
+# an empty directory is covered. What is not covered is the glob resolving to every
+# agent while `^tools:` stops yielding one, which a frontmatter key rename or a single
+# leading space does on its own: [36] stays green, every file takes the `continue`
+# above in silence, and this line prints "ok 0 agent file(s) declare a tools: line"
+# having measured no tool name against the allowlist at all.
+#
+# A ZERO-GUARD RATHER THAN A HALF-OF-LIVE FLOOR, and the choice was forced rather
+# than lazy. When this floor was written the set was small enough that half of it
+# rounded to nothing, so the only floor it can carry is the one that refuses a clean
+# verdict over an empty set, the shape [27c] and [79] already use rather than the one
+# [91] and [93] carry over sets big enough to shrink. The live total is PRINTED on
+# the pass line every run instead of written down here, for the reason
+# 93-token-declarations.sh:105-108 gives: a count in a comment goes stale on the next
+# wave, and this file has neighbours whose whole job is catching exactly that.
+TOOLS_DECLARED_FLOOR=1
+if [ "$TOOLS_DECLARED" -lt "$TOOLS_DECLARED_FLOOR" ]; then
+  red "  FAIL [36b] parsed a 'tools:' line out of only $TOOLS_DECLARED agent file(s), against a floor of $TOOLS_DECLARED_FLOOR; the frontmatter key stopped matching rather than the agents losing their tools, so every declared tool went unscreened against the allowlist and this check found nothing to object to because it read nothing"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   $TOOLS_DECLARED agent file(s) declare a tools: line"
+fi
 
 # The investigator exists to gather evidence, never to change it, in either of
 # its two modes. The tool list cannot enforce that on its own (Bash can write,

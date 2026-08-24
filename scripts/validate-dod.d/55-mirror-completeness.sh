@@ -46,13 +46,54 @@ TRACKED_SORTED=$( { git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/
   | sort -u)
 MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 
-UNMIRRORED=$(comm -23 <(printf '%s\n' "$TRACKED_SORTED") <(printf '%s\n' "$MANIFEST_SORTED"))
-if [ -z "$UNMIRRORED" ]; then
-  green "  ok   every skills/ commands/ rules/ agents/ hooks/ file (tracked + untracked, gitignore respected) is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA"
-else
-  red "  FAIL canonical files absent from the sync manifest (would ship missing from dist/):"
-  printf '%s\n' "$UNMIRRORED" | sed 's/^/         - /'
+# THE FLOOR IS WHAT STOPS A VACUOUS PASS, the same one 91-claim-resolvers.sh:84-88
+# carries and for its stated reason. The two sides of the comparison below are not
+# symmetric: an empty MANIFEST_SORTED leaves every canonical file unmirrored and
+# this block shouts, while an empty TRACKED_SORTED leaves `comm -23` nothing on its
+# left and prints "ok every ... file is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA" over a
+# set nothing was ever compared. Measured, not feared: with TRACKED_SORTED forced
+# empty, `comm -23` returns nothing and that green prints unchanged.
+#
+# AND THE DISCOVERY REALLY CAN GO QUIET. Both git ls-files calls above route stderr
+# to /dev/null and neither status is read, so a run outside a repository, a git that
+# is not on PATH, and a canonical root that has been renamed all arrive here as an
+# empty list wearing a clean tree's face. A floor rather than an exact count,
+# because the canonical set gains and loses files every wave; only a collapse means
+# the discovery broke. Set at roughly half of what the tree measured when this floor
+# was written, so a whole runtime's worth of files can retire without a red. The
+# live total is PRINTED on the pass line rather than restated here, for the reason
+# 93-token-declarations.sh:105-108 gives: a count written into a comment goes stale
+# on the next wave that adds a file.
+MC_TRACKED_FLOOR=70
+
+# Counted with a here-doc loop rather than `wc -l`, matching the stale-entry loop
+# below. `printf '%s\n' "$TRACKED_SORTED" | wc -l` reports 1 for an empty string,
+# which is the one value this floor must never read as a file.
+MC_TRACKED_N=0
+while IFS= read -r mc_f; do
+  [ -n "$mc_f" ] || continue
+  MC_TRACKED_N=$((MC_TRACKED_N + 1))
+done <<MC_TRACKED_EOF
+$TRACKED_SORTED
+MC_TRACKED_EOF
+
+# THE FLOOR IS JUDGED BEFORE THE COMPARISON RUNS, not after it, and the order is
+# load-bearing rather than tidy. `comm` over a collapsed left side has nothing to
+# say, so letting it speak first would print a verdict about the manifest when the
+# defect is in the discovery. Same tie-break 91-claim-resolvers.sh:98-104 makes: a
+# scan that cannot be trusted names itself and says nothing about what it read.
+if [ "$MC_TRACKED_N" -lt "$MC_TRACKED_FLOOR" ]; then
+  red "  FAIL [55] discovered only $MC_TRACKED_N canonical file(s) under skills/ commands/ rules/ agents/ hooks/ against a floor of $MC_TRACKED_FLOOR; the discovery collapsed rather than the manifest going right, so nothing below was ever compared against the sync manifest"
   FAILED=$((FAILED + 1))
+else
+  UNMIRRORED=$(comm -23 <(printf '%s\n' "$TRACKED_SORTED") <(printf '%s\n' "$MANIFEST_SORTED"))
+  if [ -z "$UNMIRRORED" ]; then
+    green "  ok   every skills/ commands/ rules/ agents/ hooks/ file (tracked + untracked, gitignore respected) is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA, $MC_TRACKED_N compared against the manifest"
+  else
+    red "  FAIL canonical files absent from the sync manifest (would ship missing from dist/):"
+    printf '%s\n' "$UNMIRRORED" | sed 's/^/         - /'
+    FAILED=$((FAILED + 1))
+  fi
 fi
 
 # Inverse direction: a manifest entry whose file no longer exists is a stale
