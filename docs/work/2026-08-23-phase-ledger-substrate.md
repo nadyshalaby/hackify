@@ -3787,6 +3787,52 @@ a clean tree, and the tamper tests are what prove the arm works. It is recorded 
 future reader does not mistake a silent arm for a dead one.
 
 
+### 7ao. The exhaustive sweep, done by reading rather than by pattern
+
+The `per-run evidence` grep is what let the sixth site survive, and reporting "the claim is
+gone repo-wide" on the strength of it was wrong. A phrase search cannot find a claim restated
+in new words, which is the entire failure mode. Two reviewers finding the SAME sixth site is
+also not evidence there is no seventh: both were pointed at the same six changed files.
+
+So the sweep was redone with the only instrument that cannot miss a rewording, a bounded
+exhaustive read. Every line containing the bare word `marker` across `skills/`, `agents/`,
+`rules/`, `scripts/`, `README.md` and `CHANGELOG.md`, 43 lines after dropping the unrelated
+families (lawkeeper's corpus markers, the design-spec catalogues, `00-helpers.sh`'s loop
+variable). Each one ruled in or out by hand.
+
+**Result: clean, apart from `phase-5-review.md:37`, which is in the fix wave.** The four that
+no reviewer had cleared were read in full:
+
+- `review-scope.md:80` and `phase-5-review.md:23` describe the mechanism only, that B takes no
+  `{{review_scope}}`, that the round is named in the dispatch message, and that the gate reads
+  the marker back. Neither claims coverage.
+- `validate-dod.sh:35` is a manifest description of what `[76h]` covers. No claim.
+- `review-scope.md:54` attributes the proof to the ECHO and says B "opens its report with a
+  round marker in the echo's place, which the gate at the bottom of this file reads instead".
+  Both B and F cleared this independently and my read agrees.
+
+**One borderline item, recorded rather than acted on.** `review-scope.md:54` places the marker
+"in the echo's place" one sentence after saying the echo is what proves the round was properly
+scoped. Read quickly, the marker can look like it inherits that role. The sentence does not
+say so, and two reviewers who were hunting this exact claim both cleared it, so it stands. It
+is written down here because if a seventh site ever appears, this phrasing is where it starts.
+
+### 7ap. A dispatch defect of mine, not a reviewer finding
+
+F reported two of its verification items as NO: it was never supplied a `task_file_index`,
+which its contract requires. B was given one and F was not. F handled it correctly, it
+reconstructed from the six changed paths and the commit log, said plainly that it had done so,
+and refused to discard a Critical it had verified independently rather than fail closed on a
+missing input.
+
+Not re-dispatching to fix it. F's Critical was independently confirmed by B and verified on
+disk by the parent, so the finding does not rest on the missing input. The defect is in my
+dispatch discipline, and it belongs in the wave-implementer sprint's retrospective: the panel
+has per-lens required inputs and the parent has no check that it supplied them. That is the
+sprint's own rule pointed back at the dispatcher, a caller-supplied input dropped with nothing
+accounting for the omission.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
