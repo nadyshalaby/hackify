@@ -724,6 +724,55 @@ What the sprint DOES have as behavioural evidence is the protocol rather than th
 waves were dispatched one-agent-per-wave under the new rules, including two mid-wave agent deaths
 where #11-A's keep-what-landed clause was exercised for real and nothing had to be redone.
 
+### Phase 5 decision table, round 1
+
+Panel: A (security), B (quality + plan, standing, unsliced), D (performance), F (coherence). **E folded**,
+recorded, with the evidence: no UI, no styling, no token, no `docs/design/DESIGN.md` in the repo, residual
+checklist nil. One refuter judged the whole round carrying both lenses, per #14-A and #2-A.
+
+| # | Src | Sev | Finding | Verdict | Decision |
+|---|---|---|---|---|---|
+| 1 | F | Critical | `implement-and-test.md` still orders per-task dispatch | UPHELD both lenses, **worse than filed** | accept |
+| 2a | B+F | Critical | `SKILL.md:18` "Parallel waves are what make hackify fast" | UPHELD both | accept |
+| 2b | B | Critical | `SKILL.md:356` "Wave agents build blind to each other" | **REFUTED both** | push-back |
+| 2c | B | Critical | `SKILL.md:3` frontmatter "parallel implementation" | UPHELD | accept |
+| 2d | B | Critical | `README.md:127` yolo "parallel implementation" | UPHELD | accept |
+| 2e | B | Critical | `README.md:379` "make parallel implementation safe" | UPHELD | accept |
+| 2f | B+F | Critical | `README.md:416` "waits for all dispatched agents" | UPHELD | accept |
+| 2g | refuter | Critical | **5 more sites the census missed** | found during refutation | accept |
+| 3a | F | Critical | wave cap contradiction | **REFUTED both** | push-back |
+| 3b | refuter | Important | `phase-2.5-spec-reviewer.md:79` "parallel tasks" | UPHELD (split out of 3a) | accept |
+| 4 | B | Important | `[40]`'s "WAIVES NOTHING TODAY" comment is false | UPHELD | accept |
+| 5 | F | Important | Execution-waves consumers still say "task batches" | UPHELD, **4 files not 2** | accept |
+| 6 | F | Important | Reviewer E's INPUTS row omits `{{reference_images}}` | UPHELD, pre-existing | accept |
+| 7 | F | Important | orchestration lost its Phase 3 dispatch example | **REFUTED** | push-back |
+| 8 | B | Important | no CHANGELOG bullet for the GIF | UPHELD | accept |
+| 9 | B | Important | `ref: v0.15.0` has no tag | UPHELD, narrowed to a Phase 6 obligation | accept at Phase 6 |
+| 10 | A | Minor | `check_list_size` uses `wc -w` | **REFUTED** | push-back |
+| 11 | A | Minor | `2>/dev/null` discards git's diagnostic | UPHELD | accept |
+| 12 | B | Minor | `orchestration.md:123` "this wave needs the fan-out" | **REFUTED**, refuter overturned B | push-back |
+| 13 | B | Minor | `[76i]`'s blind spot | UPHELD, but the skip is documented as deliberate | defer |
+| 14 | F | Minor | `## Wave status` unwired | **ESCALATED to Important** | accept |
+
+**The five refutations, each of which would have been a wrong edit.** 2b: "blind to each other" stays true
+ACROSS waves, which is the surviving justification; it wants a reword to directional phrasing, not a
+re-litigation. 3a: two senses of "cap", a planner-side one at plan time and no dispatch-side one, settled by
+the anchor's own Out-of-Scope line. 7: `orchestration.md:24` IS the row that says what to dispatch a wave
+with, and the finding cited the table containing it. 10: `:170` and `:181` word-split the same strings the
+`wc -w` counts, so the count IS the iteration count and a space-bearing path reddens rather than slips.
+12: bare "wave" for a review fan-out is this repo's established sense, cited at three live sites.
+
+**#14's escalation is the most valuable thing the round produced.** `phase-3-implementation.md:243` tells the
+parent to "Tick **all** wave checkboxes" while `phase-3-implement.md:101` says "tick the **completed**
+checkboxes". On a wave that stops at task 5 of 9 those disagree, the stopped wave still passes the scoped
+triad on its kept work, so the path is reachable rather than theoretical, and #11-A's whole reporting half
+has no named reader anywhere in the tree. **This sprint used that report twice to recover from dead agents,
+and did so because I read it, not because any instruction said to.**
+
+**#13 is deferred, with the reason.** `76-phase-ledger-substrate.sh:390-394` documents the skipped upper
+bound as deliberate ("Everything else is skipped BY CONSTRUCTION, not by exception list"). Changing it is a
+design decision about the parser, not a defect fix, and it sits outside a sprint about dispatch vocabulary.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
