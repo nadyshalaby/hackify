@@ -262,7 +262,7 @@ agents/                                formal sub-agent definitions (since v0.2.
   design-conformance-reviewer.md       Phase 5 Reviewer E, design conformance, UI-bearing diffs (since v0.8.0)
   code-reviewer-coherence.md           Phase 5 Reviewer F, cross-module coherence, seam-gated (since v0.9.0)
   finding-refuter.md                   Phase 5 adversarial refuter, judges findings before a fix (since v0.9.0)
-  wave-task-implementer.md             Phase 3 wave-task implementer
+  wave-implementer.md                  Phase 3 wave-task implementer
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
   inject-context.sh                    injects the 4 always-on rules files, full on the first prompt, pointer after (since v0.11.0)

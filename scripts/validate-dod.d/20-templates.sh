@@ -270,7 +270,7 @@ for f in agents/*.md; do
   check_template_anchors "$agent_body" "$agent_label"
   check_role "$agent_body" "$agent_label"
   # SEVERITY is required on reviewer-role agents only; spec-reviewer-* and
-  # wave-task-implementer are governed by their own template files' [10] modes.
+  # wave-implementer are governed by their own template files' [10] modes.
   case "$(basename "$f")" in
     code-reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
   esac

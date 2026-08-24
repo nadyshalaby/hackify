@@ -182,7 +182,7 @@ CLAUDE_CODE_EXTRA=(
   "agents/code-reviewer-coherence.md"
   "agents/design-conformance-reviewer.md"
   "agents/finding-refuter.md"
-  "agents/wave-task-implementer.md"
+  "agents/wave-implementer.md"
   "hooks/hooks.json"
   "hooks/inject-context.sh"
   "hooks/inject_context.py"

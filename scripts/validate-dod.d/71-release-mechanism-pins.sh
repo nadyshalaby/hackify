@@ -280,7 +280,7 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 # (1) Implementers batch by MODULE and are capped at 3. An uncapped batch is one
 # agent holding more context than it can apply carefully, and a batch grouped by
 # count rather than module pays the focus cost while saving no reads at all.
-for f in "agents/wave-task-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
 done
@@ -293,7 +293,7 @@ done
 # (2) A batch STOPS at the first task it cannot finish. Without this a batched
 # failure cascades: one bad task takes the rest of the batch down with it, which is
 # the whole reason one-agent-per-task felt safe.
-for f in "agents/wave-task-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present 'STOP there' "$f"
 done
 

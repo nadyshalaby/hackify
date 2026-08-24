@@ -50,7 +50,7 @@ PA = "skills/hackify/references/parallel-agents"
 MIRROR_PAIRS = (
     ("agents/codebase-investigator.md", f"{PA}/investigation.md"),
     ("agents/spec-reviewer.md", f"{PA}/phase-2.5-spec-reviewer.md"),
-    ("agents/wave-task-implementer.md", f"{PA}/phase-3-implementation.md"),
+    ("agents/wave-implementer.md", f"{PA}/phase-3-implementation.md"),
     ("agents/code-reviewer-security.md", f"{PA}/phase-5-multi-review-a-security.md"),
     ("agents/code-reviewer-quality-plan.md", f"{PA}/phase-5-multi-review-b-quality-plan.md"),
     ("agents/code-reviewer-performance.md", f"{PA}/phase-5-multi-review-d-performance.md"),

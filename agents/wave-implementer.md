@@ -1,5 +1,5 @@
 ---
-name: wave-task-implementer
+name: wave-implementer
 description: Phase 3 implementation-wave worker, produces a minimal, test-anchored diff for one or more same-module Sprint Backlog task IDs, each under its own strict file allowlist, applying RED→GREEN→REFACTOR when test_mode is test-first and honoring project + user-global CLAUDE.md rules (stricter rule on conflict). Dispatch one of these per task BATCH in the wave, in a single parent assistant message; a task with no module sibling is a batch of one.
 ---
 

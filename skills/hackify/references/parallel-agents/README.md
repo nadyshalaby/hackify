@@ -17,7 +17,7 @@ Open a template on Claude Code for exactly two reasons: you are **authoring or a
 |---|---|---|---|
 | `hackify:codebase-investigator` | 1 and 3b, one read-only agent per question (`mode: research`) or per hypothesis (`mode: debug`) | `mode`, `inquiry`, `symptom`, `search_scope`, `project_name`, `seed_files`, `ruled_out`, `run_mode`, `word_cap` | `investigation.md` |
 | `hackify:spec-reviewer` | 2.5, the only spec reviewer: internal consistency + goal drift, the wave plan + dispatch batches, **and** architectural / cross-cutting risk | `work_doc_path`, `slug`, `wave_size_target`, `project_root`, `user_global_rules_path` | `phase-2.5-spec-reviewer.md` |
-| `hackify:wave-task-implementer` | 3, one implementer per task BATCH | `task_ids`, `task_descriptions`, `file_allowlist` (union), `test_mode`, `project_root`, `repo_brief` | `phase-3-implementation.md` |
+| `hackify:wave-implementer` | 3, one implementer per task BATCH | `task_ids`, `task_descriptions`, `file_allowlist` (union), `test_mode`, `project_root`, `repo_brief` | `phase-3-implementation.md` |
 | `hackify:code-reviewer-security` | 5 A, security & correctness | `project_root`, `base_sha`, `head_sha`, `work_doc_path`, `repo_brief`, `review_scope` | `phase-5-multi-review-a-security.md` |
 | `hackify:code-reviewer-quality-plan` | 5 B, quality, layering, engineering law **and** plan consistency, scope & goal drift. Never sliced | `project_root`, `base_sha`, `head_sha`, `work_doc_path`, `repo_brief`, `project_rules_path`, `changelog_path`, `law_scout_report`, `task_file_index`, `folded_lenses`, `metrics_table` | `phase-5-multi-review-b-quality-plan.md` |
 | `hackify:code-reviewer-performance` | 5 D, performance | + `perf_scout_report`, `review_scope` | `phase-5-multi-review-d-performance.md` |
