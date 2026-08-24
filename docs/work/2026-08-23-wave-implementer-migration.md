@@ -1154,7 +1154,7 @@ not propose a goal`) as a genuine role-class collective that must NOT be changed
 | B11 CHANGELOG count | **REFUTED** | closed | `roughly fifteen` is hedged and 16 sits inside the hedge. It also falsified the finding's own citation: "sixteen sites" is in the commit BODY, not the subject. |
 | B13 `wi_absent` placement | **REFUTED** | closed | Moving it to `00-helpers.sh` would manufacture the hidden coupling global §2.8 bans, since it closes over fragment-local `WI_LIVE_PATHS`. Extract on the second use; there is one. |
 | F7 F-template direction | **REFUTED** | closed | And it ruled on the parent's pre-downgrade explicitly: correct, and conservative. `:106` carries the right direction into METHOD. Free polish, not a finding. |
-| D1 GIF `optimize=False` | **REFUTED as a Phase 5 finding**, re-routed | Phase 6 | Not disputing the measurement. `gen-demo-gif.py:142` is byte-identical at `03e7a12` and `phase-3-implement.md:97` forbids adjacent cleanup. Textbook Phase 6 offer-to-fix. |
+| D1 GIF `optimize=False` | **REFUTED as a Phase 5 finding**, re-routed | Phase 6 | Not disputing the measurement. `gen-demo-gif.py:142` is byte-identical at `03e7a12` and `phase-3-implement.md:99` forbids adjacent cleanup. Textbook Phase 6 offer-to-fix. |
 | A3 no trap | UPHELD | Minor severity, **stronger fix** | Named two in-repo precedents with written rationale: `80-file-size-caps.sh:328-339` arm-and-clear around the window, and `check-collisions.sh:30-31`. Copy 80's shape, not a standing trap. |
 | B3 T6b undeclared | UPHELD | Important | Every other late task (T4b, T5b, T5c, T3b, T10b, T11b, T14) carries an "Added by" note. T6b alone has none. |
 | B4 / F5 stale pin comment | UPHELD | Important | Both upheld, and the refuter flagged a protocol error in MY dispatch: `phase-5-refute.md:26` says two-reporter findings bypass refutation, so these should never have reached it. |
@@ -1189,7 +1189,7 @@ many rounds it takes. The protocol's own exit rule is the strict reading and thi
 **#5-C, take the GIF fix AND audit the rest of the encoder settings.** Offered against taking just
 the one flag, and against deferring it. The refuter had REFUTED it as a Phase 5 finding and
 re-routed it to a Phase 6 offer, correctly: `gen-demo-gif.py:142` is byte-identical at `03e7a12` and
-`phase-3-implement.md:97` forbids adjacent cleanup. #5-C overrides that routing deliberately, which
+`phase-3-implement.md:99` forbids adjacent cleanup. #5-C overrides that routing deliberately, which
 is the user's call to make and is recorded as such rather than as a finding that survived. Two of
 the four levers were already measured by Reviewer D (7 frames is minimal, and reducing the palette
 makes the file LARGER, 139,778 against 135,296), so what #5-C actually buys is the written record
@@ -2449,7 +2449,7 @@ task", and carried the wrong name through instead of fixing it. **Pre-existing s
 than the sprint.**
 
 Scope question for the refuter: only `implement-and-test.md:34` is in this diff. The other five are
-untouched files, and `phase-3-implement.md:97` forbids adjacent cleanup, which is how round 2's
+untouched files, and `phase-3-implement.md:99` forbids adjacent cleanup, which is how round 2's
 refuter re-routed the GIF finding to Phase 6. The class rule and the no-adjacent-cleanup rule point
 opposite ways here. `README.md` is also at 449/450, so its fix must be line-neutral.
 
@@ -2581,3 +2581,85 @@ outlier, not the trend, and its 3 bought a round 5 that found twice as much.
 The refuter still runs, because the rule reads the **post-refuter** count and because four of the six
 carry a genuine scope question. But for breaker 1 not to fire the refuter would have to kill four of
 six, and all six are verified true statements about the tree.
+
+---
+
+### Phase 5 round 5, refutation and decision table
+
+**Thirteen findings, four Importants survive, and breaker 1 fires.** The refuter refuted two
+Importants and two Minors, re-filed one at Minor, corrected three things I had wrong, and answered
+all four scope questions.
+
+| # | Filed | Verdict | Decision |
+|---|---|---|---|
+| I1 per-literal loop, 8 walks | Important | **UPHELD** | fix, batched screen |
+| I2 Implementation Log vs Daily Updates | Important | **UPHELD**, survives on sequencing | fix, in-file class only |
+| I3 push-back contradiction | Important | **UPHELD**, and **this sprint manufactured the live half** | fix |
+| I4 "4-5 reviewers NOT pinned" | Important | **REFUTED**, re-routed | Phase 6 |
+| I5 CHANGELOG missing the GIF size cut | Important | **UPHELD** | fix |
+| I6 three undeclared files | Important | **REFUTED as filed**, residue re-filed | one Minor |
+| M1 fixtures inherit git config | Minor | UPHELD, two corrections | fix |
+| M2 wrapped literal | Minor | UPHELD, **the polarity really did flip**, for two of four literals | fix or backlog |
+| M3 `{{test_file_path}}` | Minor | UPHELD, and Minor is right | fix |
+| M4 CHANGELOG counts a site it lacks | Minor | UPHELD | fix |
+| M5 "95 IDs, 10 domains" | Minor | **REFUTED**, re-routed | Phase 6 |
+| M6 "the two rows" vs three | Minor | **REFUTED**, re-routed | Phase 6 |
+| M7 227,491 vs 226,856 | Minor | UPHELD | fix, feeds I5 |
+
+#### Three corrections to my own work, one of them a repeat offence
+
+**I6 was my error, and it is the false-clean grep for the fourth time.** I searched five spellings of
+the three FILENAMES and got zero, and concluded the files were undeclared. The work-doc records two
+of them by DESCRIPTION, not by filename: work-doc:756 carries round 1's finding "Execution-waves
+consumers still say task batches, UPHELD, **4 files not 2**", and work-doc:806 records fix wave B
+landing "the two Phase 5 reviewer templates **+ mirrors**". Those four files are exactly
+`phase-5-multi-review-{b,d}-*.md` and `agents/code-reviewer-{quality-plan,performance}.md`, matching
+`99526d4`'s stat line for line. **A filename grep cannot match a description-based record.** This
+tree has now recorded that same shape at :806-809, :1119, :1703 and here.
+
+Only `scripts/validate-dod.d/75-ship-bar.sh` is genuinely unrecorded, and it came from a **Phase 5 fix
+wave** rather than a Sprint Backlog Task, so round 3's B3 is not its precedent and
+`review-and-verify.md:421` is permissive ("**may** extend the Sprint Backlog"). Minor.
+
+**My no-scope-creep citation was off by two lines, carried three times.** The rule is
+`phase-3-implement.md:99`, not `:97`; `:97` is the "If stuck" line. It originated at work-doc:1192
+and underpinned three of the four scope answers. **Corrected at all three sites in this commit.**
+
+**A sixth deliberate legacy mention exists**: `CHANGELOG.md:859`, the release note that records the
+rename itself. My census listed five. A class-wide `sed` would have broken it.
+
+#### Q1, the discriminator for byte-identical-at-base findings
+
+**A finding is against this diff when the diff changed something the claim depends on, either the
+text itself or the mechanism its rationale rests on.**
+
+That is what round 2's GIF precedent actually turned on, and work-doc:1191 gives both halves:
+`gen-demo-gif.py:142` byte-identical **and** nothing in the sprint touched why it was written.
+
+I3 fails that test in both directions, which is exactly what distinguishes it from the rest. The text
+changed (`both refuters agree` → `both lenses refute`) **and** the diff replaced two agents with one,
+which is the precise property `review-triage/SKILL.md:61` names in its own rationale, "too high to
+gate behind **a single agent's judgment**". So the sprint did not inherit that contradiction. It
+built the live half of it.
+
+I4, M5 and M6 pass the test cleanly and all three re-route: text byte-identical, rationale untouched,
+and in I4's case the falsifying commits predate `03e7a12` in `77-reviewer-roster.sh`, a file **this
+diff never opens**.
+
+#### Q3, and a distinction I could not build
+
+The refuter tried to separate "stale rationale in a file we touched" from "adjacent cleanup" and
+reported that **they are the same thing**, because what made I4's comment false happened before
+`03e7a12` in a file the diff never opens, and 71's own hunks start ninety lines below it. If
+proximity in a file were enough, every stale line in `70-`, `71-` and `README.md` becomes a round-5
+finding and the no-scope-creep rule stops meaning anything. The one distinction it would accept is
+**a diff hunk that MADE the comment false**, which is I3 and is why I3 stays.
+
+#### The count, and the breaker
+
+**Post-refuter Critical + Important: 4.** Zero Critical; I1, I2, I3, I5.
+
+Round 4 closed at 3. **4 is not strictly lower than 3, so breaker 1 fires and the review loop stops.**
+That is the rule working rather than failing, and two of the four survivors (I1 and I3) are defects
+this loop manufactured in its own earlier rounds, which is the specific thing the breaker exists to
+catch.
