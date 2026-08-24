@@ -139,12 +139,24 @@ changed only by an ESCALATED verdict.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤350 words, one block per finding, verdicts before reasoning. Use this
-exact report skeleton:
+≤120 words PER FINDING, one block per finding, verdicts before
+reasoning. The budget is per finding because the round is: one refuter
+judges every finding at every severity, so any fixed total shrinks as
+the round grows until it collides with the step 6 rule
+`Never leave a finding or a lens unjudged`. That rule wins every time,
+and a per-finding number is what stops the collision arising at all.
+120 is sized for the widest block the skeleton can produce, a Critical
+carrying a verdict line, two lens lines, `would change my mind` and
+`new severity`; a non-Critical block runs well under it. The
+`## Verification` section sits outside this budget. A later rule that
+adds a line to a block raises this number, it never licenses dropping a
+finding to fit it.
+
+Use this exact report skeleton:
 
 ````
 ## Verdicts
-- <finding ID>. UPHELD | REFUTED | ESCALATED (<confidence>)
+- <non-Critical finding ID>. UPHELD | REFUTED | ESCALATED (<confidence>)
   - evidence: `<file>:<line>`, <one-line technical reason>
   - would change my mind: <one line>   (REFUTED verdicts only)
   - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)

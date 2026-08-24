@@ -83,10 +83,19 @@ tb_check_list_size() {
 # screened rather than what the run order implies.
 tb_check_plant_total() {
   local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT))
-  # Both totals fire from this one EXIT-trap call, and the fail-closed one goes
-  # FIRST so a plant verdict returning early cannot take it out of the run.
+  # All three totals fire from this one EXIT-trap call, and they go FIRST so a
+  # plant verdict returning early cannot take any of them out of the run.
   tb_check_failclosed_total
   tb_check_miscount_total
+  # tb_check_wi_failclosed_total is ALSO called from tb_case_green_path in
+  # 10-ban-list-cases.sh, which is the call this one exists to back up: an exit
+  # taken anywhere above that line drops it out of the run and nothing reddens,
+  # exactly the hole tb_check_miscount_total does not have. The in-line call is
+  # left standing rather than moved, because it lives in a fragment this change
+  # does not own. The cost is one duplicated verdict line on a clean run, which
+  # is affordable: the check reads a counter and asserts, so a second call
+  # cannot change what the first one decided.
+  tb_check_wi_failclosed_total
   if [ "$TB_PLANTED" -eq "$want" ]; then
     tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all three lists"
     return
@@ -97,11 +106,12 @@ tb_check_plant_total() {
 # The fail-closed cases, counted the way the plants are, and for a sharper reason.
 # They hang off tb_case_green_path rather than off their own line in the run
 # order, so the run order cannot show they happened; the wiring gate cannot see
-# them either, because it lists four names for 10-ban-list-cases.sh and all four
-# survive deleting these. Delete the call and every remaining assertion still
-# passes over a suite that stopped testing the one branch it was written for. A
-# total read from the EXIT trap is what is left, and it fires whether the run
-# finished or died half way down.
+# them either, because not one of the eleven names it lists for
+# 10-ban-list-cases.sh is one of these three, and all eleven survive deleting
+# them. Delete the call and every remaining assertion still passes over a suite
+# that stopped testing the one branch it was written for. A total read from the
+# EXIT trap is what is left, and it fires whether the run finished or died half
+# way down.
 #
 # Written by hand rather than derived, the same trade TB_EXPECT_70 makes: three is
 # one case per fail-closed branch (check_no_token's and check_no_tokens_in's) plus
