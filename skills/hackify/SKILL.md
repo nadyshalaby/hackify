@@ -17,7 +17,7 @@ Every mode ends with work that is **proven to run**, not merely proven to compil
 - **The ship gate in Phase 4** (`references/ship-gate.md`). Build, boot, smoke the touched flow. A leg is blocking whenever the diff touched something that leg's target consumes, a written skip otherwise, never silently absent.
 - **The coherence lens is never silently absent** (Reviewer F). Parallel waves are what make hackify fast and also what let two halves of a feature disagree; F is the only lens that checks producer against consumer. It runs whenever the diff crosses a module boundary, which is most waves, and when it folds its residual checklist is handed to Reviewer B, so the check happens either way.
 - **Refute before you fix, and exit on a settled diff.** Findings are judged by adversarial refuters before a fix is spent on them, and the review loop may only exit when a clean round scanned the diff that is actually on disk.
-- **Maximum orchestration tier, a self-driving task loop, and an independent completion sentinel** ([references/orchestration.md](references/orchestration.md)). The first two are **tool calls you make**, not a posture you describe. A pipelined fan-out (a wave that feeds per-task verification, a reviewer panel that feeds per-finding refutation) is dispatched through the **Workflow tool**, whose opt-in these very instructions satisfy; a flat same-shaped batch stays a single parallel subagent message. And any turn that ends with a phase-ledger item still open **invokes the `loop` skill** self-paced on `continue work on <slug>`. A turn that leaves work open without that call has dropped the task. And every task hands the user a paste-ready `/goal <condition>` line so a **separate evaluator**, not you, rules on whether the task is finished; you can print that line but you can never set it yourself, and the driver's stop conditions outrank the evaluator. Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
+- **Maximum orchestration tier, a self-driving task loop, and an independent completion sentinel** ([references/orchestration.md](references/orchestration.md)). The first two are **tool calls you make**, not a posture you describe. A pipelined fan-out (a reviewer panel that feeds per-finding refutation) is dispatched through the **Workflow tool**, whose opt-in these very instructions satisfy; a flat same-shaped batch stays a single parallel subagent message. And any turn that ends with a phase-ledger item still open **invokes the `loop` skill** self-paced on `continue work on <slug>`. A turn that leaves work open without that call has dropped the task. And every task hands the user a paste-ready `/goal <condition>` line so a **separate evaluator**, not you, rules on whether the task is finished; you can print that line but you can never set it yourself, and the driver's stop conditions outrank the evaluator. Announce the tier once in the Phase 2 plan and honor `light mode` / `no ultracode` / `cheap mode` / `single agent` at any point.
 
 ## When to invoke
 
@@ -45,7 +45,7 @@ Four principles frame every phase. Read [rules/four-principles.md](../../rules/f
 | 1 Clarify | Wizard questions in one batch, get user answers |
 | 2 Plan | Draft work-doc, present, **HARD GATE: user signs off** |
 | 2.5 Spec review | 1 reviewer scrutinizes work-doc for conflicting / inconsistent logic, three lenses over one read |
-| 3 Implement | Order tasks by dependency, dispatch each wave to PARALLEL foreground agents |
+| 3 Implement | Order tasks by dependency, dispatch each wave to ONE foreground agent |
 | 3b Debug | Only if stuck after 2+ failed attempts |
 | 4 Verify | Evidence Ledger (real proof per item) + three-layer re-verify + ship gate (build/boot/smoke) |
 | 5 Review | PARALLEL multi-reviewer (security + quality + consistency + performance + coherence lenses, design on UI), always |
@@ -53,7 +53,7 @@ Four principles frame every phase. Read [rules/four-principles.md](../../rules/f
 
 The only mandatory user gate is between **Plan** and **Spec review**. After Phase 2.5, implementation begins automatically. Phases 3-6 run continuously with progress reports at each transition. The user can interrupt anytime, the work-doc holds state.
 
-**Parallelism is the default.** Whenever 2+ pieces of work are independent (clarify research, same-wave task batches, code review concerns, cross-package verification) dispatch foreground subagents in one message. Wave-based dependency ordering makes parallel implementation safe, same-file tasks split across waves. Spec review is dispatched to a subagent too, it is just a single reviewer rather than a fan-out.
+**Parallelism is the default.** Whenever 2+ pieces of work are independent (clarify research, code review concerns, cross-package verification) dispatch foreground subagents in one message. Phase 3 is the one place that gives it up on purpose: a wave's tasks are file-disjoint but they read the same code, so ONE agent takes the whole wave. Waves still run in dependency order and same-file tasks still split across waves. Spec review is dispatched to a subagent too, it is just a single reviewer rather than a fan-out.
 
 ## The work-doc (single source of truth)
 
@@ -119,9 +119,9 @@ Full protocol, task-type classification, questionnaire assembly, and the anchor 
 
 **First line of this turn, print the completion sentinel.** Sign-off just landed, so this is the first turn where a finish line can be stated and the first where the native tool is not blocked by plan mode. Emit one fenced `/goal <condition>` line (≤500 chars) naming the archived work-doc plus the green triad and the ship-gate rows, so an evaluator outside this conversation rules on "done" instead of you. The line is **paste-ready**: you print it, only the user can set it. Never claim a goal is active, never propose one **from a subagent**, never wait on the answer, and never soften the condition later to make it pass. Shape, per-mode wording, and who wins when the sentinel and the iteration driver disagree: [references/orchestration.md](references/orchestration.md).
 
-**Then dispatch the spec reviewer by agent type** (`hackify:spec-reviewer`), passing only its INPUTS. Do not open the template to paste it (`references/parallel-agents/README.md`). It carries three lenses over one read: internal consistency and goal drift; the dependency, ordering and wave plan that Phase 3 dispatches off; and architectural and cross-cutting risk against the project's rules. **Its report leads with the wave plan and the dispatch batches**, so read those out before Phase 3 rather than rebuilding them.
+**Then dispatch the spec reviewer by agent type** (`hackify:spec-reviewer`), passing only its INPUTS. Do not open the template to paste it (`references/parallel-agents/README.md`). It carries three lenses over one read: internal consistency and goal drift; the dependency, ordering and wave plan that Phase 3 dispatches off; and architectural and cross-cutting risk against the project's rules. **Its report leads with the wave plan**, so read that out before Phase 3 rather than rebuilding it.
 
-**Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap the report at ≤900 words, the sum of the three lenses it carries; its wave plan and dispatch batches are enumerations and sit outside that budget.
+**Hard rule:** Phase 2.5 is non-skippable, even for small docs, a "small" plan can hide a contradictory Q&A pair. Cap the report at ≤900 words, the sum of the three lenses it carries; its wave plan is an enumeration and sits outside that budget.
 
 Full protocol, the three lenses' scope, the drift-check wording, and the conflict-resolution pass: [references/phases/phase-2.5-spec-review.md](references/phases/phase-2.5-spec-review.md).
 
@@ -129,9 +129,9 @@ Full protocol, the three lenses' scope, the drift-check wording, and the conflic
 
 ## Phase 3, Implement (parallel waves, mandatory)
 
-**Goal.** Land the Sprint Backlog as a minimal, test-anchored diff, one dispatched implementer per task batch.
+**Goal.** Land the Sprint Backlog as a minimal, test-anchored diff, one dispatched implementer per execution wave.
 
-Order tasks by dependency into waves, same-file tasks split across waves. Dispatch each wave in ONE message by agent type (`hackify:wave-implementer`), one subagent per task batch (same-module tasks grouped, capped at 3, a task with no module sibling goes alone), each task under its own strict file allowlist and the batch bounded by their union. Read the batches out of the Phase 2.5 report rather than rebuilding them. **Pass every agent the `{{repo_brief}}` you built at the end of Phase 2** (the `### Repo Brief` block in the work-doc, [references/repo-brief.md](references/repo-brief.md)), so N implementers stop rediscovering the same stack, test command and layering rules N times over. If the block is empty, fill it now before dispatching, an agent that receives an unfilled placeholder refuses.
+Order tasks by dependency into waves, same-file tasks split across waves. Dispatch each wave by agent type (`hackify:wave-implementer`), exactly ONE subagent for the whole wave however wide it is: no cap, no module split, no grouping decision at dispatch time. Each task still sits under its own strict file allowlist and the wave is bounded by their union, which never widens what one task may touch. Read the wave plan out of the Phase 2.5 report rather than rebuilding it. **Pass every agent the `{{repo_brief}}` you built at the end of Phase 2** (the `### Repo Brief` block in the work-doc, [references/repo-brief.md](references/repo-brief.md)), so N implementers stop rediscovering the same stack, test command and layering rules N times over. If the block is empty, fill it now before dispatching, an agent that receives an unfilled placeholder refuses.
 
 **At every wave-end, before ticking any task,** run both deterministic scouts over the wave's touched files: the perf-scout (`references/perf-scout.md`) and the law-scout (`references/law-scout.md`, the bundled lawkeeper scanner scoped to those paths). Every candidate gets one written disposition, no silent drops.
 
@@ -233,7 +233,7 @@ Full protocol, the 4-options table, the cleanup classes, the codewalk detection 
 
 **The parent never authors a diff.** Every change to code, in every phase and every mode, is written by a dispatched implementer agent under a file allowlist. The parent plans, dispatches, aggregates, verifies and reviews; it does not type the change itself. This binds for a one-line typo exactly as it binds for a new module. It is not conditional on task size, wave width, diff size, or how obvious the fix looks, and it is never something to ask the user to turn on.
 
-Whenever 2+ pieces of work are independent, **dispatch foreground subagents in parallel in a single message**. Never sequential when independent. A wave that looks like one task gets split first; only a genuinely atomic change dispatches alone, and the wave log records why it could not be split.
+Whenever 2+ pieces of work are independent, **dispatch foreground subagents in parallel in a single message**. Never sequential when independent. Phase 3 is the exception: a planned wave goes to ONE agent whatever its width, and the wave log records which task IDs it carried.
 
 **Runtime caveat (honest about degradation).** Parallel dispatch needs a subagent primitive. On the **native tier** (Claude Code, OpenCode) these phases fan out concurrently. On the **best-effort tier** (Codex CLI/App, Gemini CLI, Cursor, no subagent primitive, see `references/runtime-adapters.md`) the *same mandatory phases still run*, but **inline and sequentially**, you keep the rigor, you lose the wall-clock win. The workflow degrades concurrency, never coverage; it does not silently skip a phase on a runtime that can't parallelize. **This is the only carve-out to the no-parent-authored-diff law, and it degrades the machinery, not the discipline:** with no subagent primitive the parent executes the implementer prompt itself, against the same file allowlist and the same Template Contract, and records `dispatch degraded, no subagent primitive` in the wave log. Never a free-hand edit. Runtimes with structured-output subagents may return reviewer/scout findings as machine-readable data instead of prose tables, see `references/runtime-adapters.md`.
 
@@ -245,7 +245,7 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 |---|---|---|
 | 1 | Research, different code areas, refs, questions | optional |
 | 2.5 | Spec self-review, 1 reviewer scrutinizes the work-doc (one dispatch, not a fan-out) | MANDATORY |
-| 3 | Implementation waves, one subagent per task batch, same-module tasks grouped, capped at 3 (parent runs both scouts at wave-end) | MANDATORY |
+| 3 | Implementation waves, one subagent per wave carrying every task in it (parent runs both scouts at wave-end) | MANDATORY |
 | 3b | Debug evidence gathering, different component boundaries | optional (read-only) |
 | 3b | The fix that closes the winning hypothesis | MANDATORY (it is a code change) |
 | 4 | Cross-module verification, tests in different packages | optional (read-only) |
@@ -254,7 +254,7 @@ Whenever 2+ pieces of work are independent, **dispatch foreground subagents in p
 | 5 | Applying every surviving finding in the address-all loop | MANDATORY (it is a code change) |
 | 6 C.5 | Cleanup edits inside the touched files | MANDATORY (it is a code change) |
 
-**Do NOT use parallel agents for:** tasks sharing a file in the same wave (the wave planner splits them across waves); tightly-coupled investigations where each finding informs the next. Both are constraints on how agents are batched, neither is licence to write the code yourself. Templates in `references/parallel-agents/README.md`.
+**Do NOT use parallel agents for:** tasks sharing a file in the same wave (the wave planner splits them across waves); tightly-coupled investigations where each finding informs the next. Both are constraints on how work is split across agents, neither is licence to write the code yourself. Templates in `references/parallel-agents/README.md`.
 
 ---
 
@@ -345,7 +345,7 @@ Load reference files **only when the phase needs them**, keeps context lean.
 | "One more fix attempt before debug mode" | The 2-attempt limit is the circuit breaker. Honor it. |
 | "I can self-review a 600-LOC diff" | No, you can't. Escalate. |
 | "It's a one-line fix, dispatching an agent is overkill" | The no-parent-authored-diff law has no size threshold. Dispatch it. |
-| "This wave only has one task, so there's nothing to parallelize" | Try to split it first. Only a genuinely atomic change dispatches alone, and the wave log says why. |
+| "This wave only has one task, so there's nothing to parallelize" | There never is: a wave is ONE agent whatever its width. A one-task wave is the same dispatch with one task in it, and it still goes to an agent. |
 | "I'll write this one myself and have an agent review it" | Backwards. The agent writes, you review. The parent never authors a diff. |
 | "The user said 'just do X', skip the questionnaire" | If X has any ambiguity, batched questionnaire still applies. Trim it, don't skip it. |
 | "Lint suppression is fine just this once" | Zero tolerance. Fix the root cause. |

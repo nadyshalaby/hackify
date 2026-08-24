@@ -110,16 +110,15 @@ Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate 
 - [ ] **T3**, ...
 
 After Phase 2.5 the Approach section carries an **Execution waves** block: one line
-per wave, each naming its dispatch batches. A batch is the set of same-module tasks
-one implementer takes together, capped at 3; a task with no module sibling is a batch
-of one. Phase 5 builds `{{task_file_index}}` from this block plus each task's Files
-list, so the block is what makes both the implementer dispatch and the reviewer
-scope checkable.
+per wave, naming that wave's task IDs in run order. ONE agent takes the whole wave,
+however wide it is, and runs those tasks in that order. Phase 5 builds
+`{{task_file_index}}` from this block plus each task's Files list, so the block is
+what makes both the implementer dispatch and the reviewer scope checkable.
 
 ```
 Execution waves
-W1: [T1, T3] auth module; [T2] solo
-W2: [T4, T5, T6] billing; [T7] solo
+W1: T1, T3, T2
+W2: T4, T5, T6, T7
 ```
 
 ## 6. Daily Updates

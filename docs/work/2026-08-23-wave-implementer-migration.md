@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W3:T5+T6+T7+T4b
+current_task: W4:T8+T10+T9+T9b+T5b
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -195,18 +195,18 @@ census cannot fail. This backlog is the corrected shape.
 
 - [x] **T4** Retire `batch` as a Phase 3 unit; wave becomes the unit of dispatch.
   `Files:` `skills/hackify/references/phases/phase-3-implement.md`
-- [ ] **T4b** Phase 3 unit in the reference docs. Added by Phase 2.5: AC5 had uncovered sites.
+- [x] **T4b** Phase 3 unit in the reference docs. Added by Phase 2.5: AC5 had uncovered sites.
   Note `orchestration.md:24` ("one implementer per task") and `template-contract.md:13` ("one
   agent each") are ALREADY stale against today's per-batch protocol, so this fixes pre-existing
   drift as well. `CHANGELOG.md:73` records that same defect being fixed in `SKILL.md` and never
   here.
   `Files:` `skills/hackify/references/work-doc-template.md`, `skills/hackify/references/orchestration.md`
 
-- [ ] **T5** Full hackify mode text.
+- [x] **T5** Full hackify mode text.
   `Files:` `skills/hackify/SKILL.md`
-- [ ] **T6** Quick mode: whole change is one unit, one implementer.
+- [x] **T6** Quick mode: whole change is one unit, one implementer.
   `Files:` `skills/quick/SKILL.md`
-- [ ] **T7** Yolo mode: wave structure kept, per-wave dispatch.
+- [x] **T7** Yolo mode: wave structure kept, per-wave dispatch.
   `Files:` `skills/yolo/SKILL.md`
 
 ### Wave 4, the dependent agents
@@ -217,6 +217,15 @@ census cannot fail. This backlog is the corrected shape.
   `Files:` `skills/hackify/references/phases/phase-5-review.md`
 - [ ] **T9b** Refuter fan-out prose. Added by Phase 2.5: AC6 had uncovered sites.
   `Files:` `skills/hackify/references/review-and-verify.md`, `skills/hackify/references/parallel-agents/template-contract.md`
+
+- [ ] **T5b** The three surviving "parallel waves" claims, found by the Wave 3 implementer and
+  confirmed on disk. Two are section headings (`SKILL.md:130`, `phase-3-implement.md:1`); the third
+  is Reviewer F's stated justification at `SKILL.md:183`, "Phase 3's parallel waves build each half
+  of a feature blind to the other", which THIS sprint falsifies for the within-a-wave case. F still
+  earns its place, one agent per wave is still blind to the waves before it and to pre-existing
+  code, so the sentence is rewritten, never deleted. `SKILL.md:183` carries the pinned string
+  `B is the standing member of every wave`, which must survive.
+  `Files:` `skills/hackify/SKILL.md`, `skills/hackify/references/phases/phase-3-implement.md`
 
 - [ ] **T10** Spec reviewer emits a wave plan, not dispatch batches.
   `Files:` `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md`, `agents/spec-reviewer.md`
@@ -371,6 +380,48 @@ session verified it, ticked it and committed it. Nothing was rewritten on resume
 files: 0 findings, and honestly a thin scan, all five are `.md`/`.sh` so only the file-line cap
 and the project ban list applied. Perf-scout: no candidates, four prose docs and a validator
 fragment whose diff removes two checks and rewrites a comment.
+
+### 2026-08-24, Wave 3, the modes and the reference docs (T5, T6, T7, T4b)
+
+Dispatched as ONE agent for the whole wave rather than the two batches §5a planned. That grouping
+came from the module heuristic T4 deleted one wave earlier, so following it would have meant
+dispatching by a rule this sprint had already retired. Same tasks, same allowlists, one fewer agent.
+This is the first wave run under the contract the sprint is writing.
+
+- **T5**, full hackify. Phase 3 now dispatches exactly one subagent per wave, no cap and no module
+  split, with each task keeping its own allowlist and the wave bounded by their union. The Phase 2.5
+  lines say wave plan instead of dispatch batches, which runs one wave ahead of the spec-reviewer
+  template that T10 corrects next. Three sites past the named list carried the same assumption and
+  were fixed with it: the phases table, the "split the wave first" rule, and the pipelined-fan-out
+  example that used a wave as its illustration.
+- **T6**, quick. Per #13-A the whole change is the unit: split into file-disjoint units as before,
+  but hand all of them to one implementer. Splitting now writes the allowlists rather than driving
+  the dispatch count, and the "atomic change dispatches alone" sentence went with the old rule.
+  Quick's refuter language was already at the target state and was left alone.
+- **T7**, yolo. One agent per wave, waves still in dependency order. Three more sites claiming
+  parallel waves were corrected, including the workflow diagram.
+- **T4b**, reference docs. The work-doc template's Execution waves block now names task IDs in run
+  order (`W1: T1, T3, T2`) instead of bracketed module groups. `orchestration.md` had a row reading
+  "one implementer per task" that was **already stale before this sprint**, since the protocol was
+  per-batch when it was written; it now reads one implementer for the whole wave. The 2-task wave
+  was removed as an example of a flat parallel batch, because a wave is no longer one.
+
+**Wave-end evidence.** Validator exits 0 with 0 FAIL. Mirrors 9 of 9. All 21 pinned literal strings
+across the five files verified present by an independent check, not by trusting the agent's report.
+No em or en dashes. No surviving `hackify:wave-task-implementer`. Law-scout: 5 files, 0 findings,
+0 unaccounted, and thin again for the same reason as Wave 2. Perf-scout: no surface.
+
+**One finding the agent surfaced, now tracked as T5b.** Three places still claim Phase 3 runs
+parallel waves. Two are headings. The third is the reason given for Reviewer F existing at all,
+and this sprint weakens it: F was justified by parallel waves building each half of a feature
+blind to the other, and within one wave that is no longer true. F still earns its place across
+waves and against pre-existing code, so T5b rewrites the justification rather than dropping the
+reviewer.
+
+**A constraint that dissolved.** §5a's rule that only one task per wave may own
+`71-release-mechanism-pins.sh` existed to stop two concurrent agents colliding on one file. With
+one agent per wave there is no concurrency to collide, so the rule is moot from here on. Recording
+it because it is the first measured benefit of the change beyond token count.
 
 ## 7. Sprint Review
 

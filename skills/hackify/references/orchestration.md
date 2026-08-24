@@ -21,15 +21,15 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 | Run point | What fans out |
 |---|---|
 | Phase 2.5 | 1 spec reviewer, three lenses over one read |
-| Phase 3, each wave | one implementer per task |
+| Phase 3, each wave | one implementer for the whole wave |
 | Phase 5 | the evidence-gated reviewer panel, then the refuters |
 
 **Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
 
 | Fan-out shape | What to do |
 |---|---|
-| Flat batch, every unit independent and same-shaped (one agent per Phase 1 research question, a 2-task wave) | Dispatch subagents in ONE message. This is correct and stays the default. |
-| Pipelined, each unit's output feeds a following stage (a wave whose tasks pipeline into per-task verification, a reviewer panel whose findings pipeline into per-finding refutation, a loop-until-dry sweep) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
+| Flat batch, every unit independent and same-shaped (one agent per Phase 1 research question) | Dispatch subagents in ONE message. This is correct and stays the default. |
+| Pipelined, each unit's output feeds a following stage (a reviewer panel whose findings pipeline into per-finding refutation, a loop-until-dry sweep) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
 
 **The Workflow tool's opt-in is satisfied here.** It may only be called when the user explicitly opted into multi-agent orchestration, and one of its accepted forms is *"the user invoked a skill whose instructions tell you to call Workflow."* Invoking hackify is that invocation, and this file is that instruction. Do not ask the user for permission a second time, and do not fall back to a flat batch just because you are unsure whether you are allowed.
 
