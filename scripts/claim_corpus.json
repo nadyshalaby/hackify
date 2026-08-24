@@ -30,7 +30,7 @@
     "C4_check_exists": "A check [NN] reference naming no real check, or a claim that something is pinned or enforced that points at a comment rather than executable code. Repo-wide.",
     "C5_retired_vocabulary": "A retired name surviving in a live file. Repo-wide, allowlisted.",
     "C6_section_exists": "A doc telling a writer to use a work-doc section the template does not have. Repo-wide.",
-    "C7_literal_absent_claim": "A sentence claiming a phrase is absent, unpinned or not present, where it is in fact present. Repo-wide."
+    "C7_literal_absent_claim": "A sentence whose truth is decidable by looking for a literal, asserted in either direction: claiming a phrase is absent, unpinned or not present where it IS present, or claiming a phrase is present, named, wired or covered where it is NOT. Repo-wide. Widened to both polarities by decision #13-A after this table was frozen; the one-directional text it replaces is preserved in notes entry n9."
   },
   "replay_states": {
     "live_at_head": "The filed site still carries the false claim at the derived_at commit. Scoreable by running the check over the tree as it stands.",
@@ -206,14 +206,27 @@
       "one_line": "A CHANGELOG bullet named four sites for the Reviewer F inversion including the two mode skills, and {{task_file_index}} occurs zero times in quick/SKILL.md and yolo/SKILL.md.",
       "citation": "docs/work/done/2026-08-23-wave-implementer-migration.md:2490",
       "verdict_citation": "docs/work/done/2026-08-23-wave-implementer-migration.md:2619",
-      "reaching_class": "C1_annotated_count",
-      "scan_scope": "diff-scoped",
-      "bucket": "out_of_class",
-      "block_reason": "scope_blocked",
-      "why": "C1 names the shape, a count in prose that does not match, but the sentence carries no annotation and never did, so a diff-scoped annotated-count check has nothing to read even when replayed against the diff that introduced it.",
+      "reaching_class": "C7_literal_absent_claim",
+      "scan_scope": "repo-wide",
+      "bucket": "must_catch",
+      "why": "Under C7 widened to both polarities, the bullet asserts a phrase was carried into the two mode skills and it is not there. That is decidable by looking for the literal, with no annotation needed, which is what unblocked it: the C1 labelling failed on the missing annotation, not on the shape.",
       "replay": "requires_fixture",
-      "replay_note": "Fixed at 7b641e0. The bullet at the derived_at commit now says the two mode skills never carried that dispatch note at all.",
-      "polarity_note": "See notes entry n2. The archived plan's T5d asserts C7 reaches M4, but C7 as frozen here runs one way only, absent-claimed-yet-present. M4 is the inverse, present-claimed-yet-absent. Labelled under C1 rather than widening C7 to fit."
+      "replay_note": "Introduced mid-sprint and fixed at 7b641e0, so it is NOT live at the sprint base 03e7a12. Its replay base is 7b641e0~1, where CHANGELOG.md:20 carries the four-site claim and {{task_file_index}} occurs zero times in skills/quick/SKILL.md and skills/yolo/SKILL.md. Fixtures are therefore per-finding, not one global base.",
+      "polarity_note": "Was labelled C1/out_of_class/scope_blocked at freeze, on the grounds that C7 ran one direction only. Decision #13-A widened C7 rather than stretching the label. Recorded as AC1b bucket change 1 in docs/work/2026-08-24-claim-integrity.md.",
+      "bucket_history": [
+        {
+          "at": "803ef51",
+          "bucket": "out_of_class",
+          "reaching_class": "C1_annotated_count",
+          "reason": "frozen state, before any check existed"
+        },
+        {
+          "at": "this commit",
+          "bucket": "must_catch",
+          "reaching_class": "C7_literal_absent_claim",
+          "reason": "decision #13-A widened C7 to both polarities; the check moved first and the bucket followed. The banned direction is the reverse."
+        }
+      ]
     },
     {
       "id": "M5",
@@ -269,21 +282,21 @@
   ],
   "counts": {
     "total": 13,
-    "must_catch": 3,
-    "out_of_class": 10,
+    "must_catch": 4,
+    "out_of_class": 9,
     "out_of_class_by_block_reason": {
       "no_class_reaches": 5,
-      "scope_blocked": 4,
-      "refuted_on_fact": 1
+      "refuted_on_fact": 1,
+      "scope_blocked": 3
     },
     "by_refuter_verdict": {
       "UPHELD": 9,
       "REFUTED": 4
     },
     "must_catch_by_class": {
-      "C3_declared_vs_used": 1,
       "C6_section_exists": 1,
-      "C7_literal_absent_claim": 1
+      "C7_literal_absent_claim": 2,
+      "C3_declared_vs_used": 1
     },
     "classes_reaching_nothing": [
       "C1_annotated_count",
@@ -292,10 +305,10 @@
       "C5_retired_vocabulary"
     ],
     "by_replay": {
-      "live_at_head": 3,
+      "n_a_behavioural": 4,
       "class_live_via_siblings": 1,
       "requires_fixture": 5,
-      "n_a_behavioural": 4
+      "live_at_head": 3
     }
   },
   "counts_note": "Every total here is a clean partition, each finding counted exactly once. I6 is filed under refuted_on_fact only, even though no_class_reaches is also true of it, because refuted_on_fact is the stronger statement: no class may claim it. The runner cross-checks these totals against the per-finding data, so a later bucket edit that does not update this block turns the runner red. That is deliberate, and it is what AC1b is asking for.",
@@ -339,6 +352,11 @@
       "id": "n8",
       "title": "I4's reachability rests on a line wrap",
       "body": "C7 reaches I4 because the quoted literal and the NOT pinned claim sit on one physical line at the derived_at commit. This tree hard-wraps markdown and shell comments at about 80 columns, and M2 in this same corpus is the finding proving line-based matching goes blind on wrapped text. AC1 demands 100% of the reachable set, so this dependency is stated rather than assumed. If the wrap changes, I4 stops being reachable by a line-based C7 and the bucket needs revisiting under AC1b."
+    },
+    {
+      "id": "n9",
+      "title": "AC1b bucket change 1: M4 moved, and the direction it moved in is the point",
+      "body": "C7 as frozen read: 'A sentence claiming a phrase is absent, unpinned or not present, where it is in fact present. Repo-wide.' Decision #13-A widened it to both polarities, so M4 (a CHANGELOG bullet claiming a token was carried into two files it never reached) is now reachable, and the reachable set goes from 3 to 4. The order matters and is the whole reason AC1b exists: the CHECK was widened first, by a user decision, and the label followed. Moving a label so an unchanged check scores better is the banned move. M4 also does not replay at the sprint base, since it was born and died inside the sprint; its base is 7b641e0~1."
     }
   ]
 }

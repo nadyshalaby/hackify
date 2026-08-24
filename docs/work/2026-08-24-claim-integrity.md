@@ -49,6 +49,23 @@ in chat at every phase boundary.
 - **#7-A.** The previous sprint's backlog is NOT hand-fixed. It is this sprint's test corpus.
 - **#8-A.** Start by prototyping the check, scored against the previous sprint's thirteen verified
   round-5 findings. Rule text is written afterwards, around what the check actually does.
+- **#5-A.** A refuted Critical still needs adjudication and user sign-off. **#6-A.** In yolo there is
+  no gate and nobody to sign off, so a refuted Critical is fixed anyway.
+- **#9-B.** Widen the check to catch the past too: retired vocabulary, section-exists,
+  literal-absent. **#10-A.** Full plan, revised with all seven Criticals fixed.
+
+**Decided after W1 reported, on the frozen answer key's own evidence. The parent had quoted 5-6
+reachable; the derivation returned 3.**
+
+- **#11-A Grade on all three legs.** Replay at `03e7a12`, the sprint base where all four reachable
+  sites were live, plus the out-of-class false-positive suite, plus tamper. Two of the four were
+  fixed by the previous sprint itself, so HEAD alone cannot grade them.
+- **#12-B Build all four zero-reaching classes.** C1, C2, C4 and C5 reach none of the thirteen. They
+  ship anyway, on prevention grounds. **The score will not move when W2 and W3 land. That is
+  expected and is written down here so it is not misread as the check failing.**
+- **#13-A C7 runs both polarities.** Claiming a phrase is absent where it is present, and claiming
+  one is present where it is absent, are the same defect and one scanner covers both. This moves M4
+  into the reachable set, which is the AC1b entry recorded below.
 
 ### Primary Goal & Guardrails
 
@@ -80,12 +97,21 @@ The superseded text is preserved in the spec-review section below rather than de
 
 - [ ] **AC1** T1a freezes a per-finding label table for the 13 round-5 findings BEFORE any check is
       built: bucket, citation into the archived work-doc, the class that reaches it, and the scan
-      scope required. The check then hits **100% of the frozen reachable set** and claims **none** of
-      the out-of-class findings. **The number is derived in T1a, not asserted here**, because
-      asserting it now is how the last version of this AC went wrong.
+      scope required. **Frozen and committed alone at `803ef51`. The derived reachable set is 4 of
+      13**, 3 at freeze plus M4 under #13-A, **not the 5-6 the parent quoted.** Grading runs three
+      legs per #11-A: (a) the check hits **100% of the reachable set** replayed at `03e7a12`, the
+      sprint base where all four sites were live, each verified by reading the file at that commit;
+      (b) it claims **none** of the 9 out-of-class findings, the leg that cannot be tuned because
+      nothing about it rewards the check for firing; (c) tamper proves every branch reds on its own
+      message. **Legs (a) and (c) both have to pass. Leg (b) passing alone proves only that the
+      check is quiet, which an empty file also achieves.**
 - [ ] **AC1b** The label table is committed alone, before W2 opens, and any later change to a bucket
       needs a work-doc entry naming which finding moved and why. **No tuning the answer key to fit
-      the check.**
+      the check.** Committed alone at `803ef51`, before any check existed.
+      **Bucket change 1 of 1, M4, `out_of_class`/`scope_blocked` to `must_catch` under C7.** Cause:
+      #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
+      is the allowed direction.** The banned direction is moving a bucket so an unchanged check
+      scores better, and this entry exists so the two can be told apart later.
 - [ ] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
       runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The
       plan's original "23" was measured with a `^`-anchored command; the real universe is 88.)
@@ -179,7 +205,10 @@ new tasks carry decision #9-B's widened classes.
 - [ ] **T1a** Freeze the label table: 13 findings, bucket, archived-doc citation, reaching class,
       required scan scope. Note that four were REFUTED (I4, I6, M5, M6), three on scope and one on
       fact, so "verified" is the wrong word for the corpus as a whole. Commit alone.
-- [ ] **T1b** Fixtures plus the scoring runner, built from T1a's frozen table.
+- [~] **T1b** Fixtures plus the scoring runner, built from T1a's frozen table. **Runner built
+      (`scripts/score_claim_corpus.py`). Fixtures NOT built: the dispatch brief omitted that half.
+      Parent error, recorded here rather than folded quietly into a later task.** Under #11-A the
+      fixtures are what make leg (a) gradeable at `03e7a12`, so they land in W1b, before T6.
 - [ ] **T2** C2 citations: **extend `scripts/check_doc_links.py` (198 lines) and check `[57]`**,
       which already resolve cited paths and already handle fenced blocks, inline code and the
       `docs/work/` exclusion. C2 adds only the `:N` line-count half. Handle the hard-wrapped-path
@@ -197,8 +226,12 @@ new tasks carry decision #9-B's widened classes.
       sites keep `Implementation Log` deliberately as back-compat.
 - [ ] **T5c** **C6 section-name exists** (#9-B): a doc instructing a writer to use a named work-doc
       section must name one the template actually has.
-- [ ] **T5d** **C7 literal-absent claims** (#9-B): a sentence claiming a phrase is absent, unpinned
-      or not present must be false-able by looking. This is the class that reaches I4 and M4.
+- [ ] **T5d** **C7 literal-absent claims** (#9-B), **both polarities per #13-A**: a sentence
+      claiming a phrase is absent, unpinned or not present where it is in fact present, AND one
+      claiming a phrase is present where it is in fact absent. Reaches I4 and M4. **I4's claim and
+      its quoted literal sit on one physical line at `803ef51`, and M2 in this same corpus is the
+      finding proving line-based matching goes blind the moment text wraps. Match a normalised
+      paragraph, not a raw line.**
 - [ ] **T6** Score **once** against the frozen table. Record the score and every miss. **No tuning
       until it passes**; a bucket may move only with a work-doc entry saying which and why.
 - [ ] **T7** Tamper: delete each branch, prove each reds **with its own expected message**. Plus the
@@ -215,14 +248,18 @@ new tasks carry decision #9-B's widened classes.
 ### Execution waves (revised)
 
 ```
-W1: T1a, T1b           freeze the answer key, then build the runner
-W2: T2, T3             citations (extend 57) + check-exists (91, wired on landing)
-W3: T4, T5             annotations + declared-vs-used (92, wired on landing)
-W4: T5b, T5c, T5d      the three widened classes from #9-B
-W5: T6, T7             score once, then tamper incl. hostile arguments
-W6: T9, T10            the rule, and its wiring
-W7: T11, T12, T13      brief, backlog disposition, release
+W1  done   T1a frozen at 803ef51; T1b runner built, fixtures dropped by the dispatch
+W1b        T1b fixtures         the missing half; leg (a) cannot be graded without them
+W2         T2, T3               citations (extend 57) + check-exists (91, wired on landing)
+W3         T4, T5               annotations + declared-vs-used (92, wired on landing)
+W4         T5b, T5c, T5d        the widened classes; T5d now runs both polarities (#13-A)
+W5         T6, T7               score once at 03e7a12, then tamper incl. hostile arguments
+W6         T9, T10              the rule, and its wiring
+W7         T11, T12, T13        brief, backlog disposition, release
 ```
+
+**Expect a flat score through W2 and W3.** Those four classes reach nothing in the corpus and ship
+on prevention grounds under #12-B. The first movement in leg (a) comes from W4.
 
 ## 6. Daily Updates
 
