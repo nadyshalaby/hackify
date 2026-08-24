@@ -1758,3 +1758,49 @@ quantity scoped apart at `10-ban-list-cases.sh:264-270`.
 **The chmod hazard in wave A.** A1's new case needs `git grep` to genuinely fail to stat a tracked
 file, which means sealing a real file with `chmod 000`. Without a trap, an interrupt leaves the
 user's repo holding an unreadable file, and A3 already flags an untrapped window next door.
+
+### Round 3 fix waves B and C, landed
+
+**Wave B, `8799e92`, finding F1 (Critical).** Two lines, two files. `work-doc-template.md:104` and
+`SKILL.md:108` stopped telling the reader one commit per task, which is what
+`implement-and-test.md:258` had said was wrong since this sprint rewrote it.
+
+The agent made one judgment call worth keeping: it also dropped `and committable` from
+`SKILL.md:108`'s opening sentence. That is the same wrong claim worn as an adjective, on the line
+the finding named. A task is not independently committable when the wave lands as one commit, so
+leaving the word would have half-fixed the Critical. `independently testable` carries the sizing
+point on its own. Correct call, kept.
+
+The agent also said something about its own evidence that most would not: **all three green commands
+are structurally blind to this defect.** Nothing under `scripts/` pins the commit rule, so the
+validator, the tamper suite and the mirror check would have printed the same green if it had
+reversed the fix. They prove nothing broke, not that the fix is right. The check that actually
+closes F1 is the post-edit sweep, which now returns three live sites all saying the same thing.
+
+**Wave C, `facf94f`, findings B1/F2, F3, F4, F7.** Thirteen lines across four files, three of the
+four sites hand-edited on both mirror sides. The `[same-wave: yes|no]` output field became
+`[wave: same|cross|off-map]`, which fixes the backwards polarity and the arity in one move: F's
+METHOD has three states and the field was a boolean, so the third state had nowhere to go. F7's
+dispatch note was correctly left template-only, since it sits after the fence closes at `:220`.
+
+#### The brief I handed wave C had a defect in it, and the agent refused it
+
+My do-not-disturb list told wave C that `{{review_scope}}` must survive in Reviewer B's template and
+agent mirror. **The validator requires the exact opposite.** `71-release-mechanism-pins.sh:363-367`
+reds if that token appears in either B file, because B is never sliced and a scoped B is coverage
+deleted outright. The token is absent at HEAD. An agent that had followed my line literally and
+"restored" it would have turned the tree red.
+
+The cause is a parser I wrote to build the do-not-disturb lists. It matched `for f in ...; do` on a
+single line only, so a loop written across several lines with backslash continuations never updated
+the current file list, and every `check_token_present` inside it was attributed to **whatever loop
+happened to be parsed last.** Three such loops exist (`71:170`, `71:352`, `77:198`) and all three
+were mis-attributed. Only one reached a brief.
+
+This is the same fail-open shape the sprint keeps finding, one level up: a parse that does not match
+produced a confident wrong answer instead of an error. The lesson is not "write a better parser". It
+is that **a generated brief is evidence like any other and has to be checked against the source
+before it is handed to an agent.** I verified wave D's list line by line against the script text
+before dispatching it, and every entry held.
+
+Fifth time this sprint an agent has refused to act on a stale or wrong brief of mine.
