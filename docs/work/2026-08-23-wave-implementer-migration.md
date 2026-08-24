@@ -1899,3 +1899,63 @@ accurate rather than stale. Renaming it would ripple four ways for no gain.
 planned wave goes to ONE agent whatever its width`, and `coordinating parallel agents` at
 `phase-2.5-spec-reviewer.md:27` is the persona's career background, not a claim about Phase 3, in a
 world where the Phase 5 panel really is dispatched in parallel.
+
+---
+
+## The review-loop exit rule (decision #4-A, bounded)
+
+Decision **#4-A stands: keep running rounds until one is genuinely clean.** The instruction that
+came with it was to define "clean" properly so the loop cannot run forever. This section is that
+definition. It is binding from round 4 on, and it is written here rather than decided fresh each
+round, because a rule I re-derive every time is not a rule.
+
+### What ends the loop
+
+**A full round that returns zero Critical and zero Important findings against the diff actually on
+disk.** Minor findings are filed to the Sprint Backlog and do not hold the release.
+
+Deliberately NOT "zero findings of any severity". Minor is unbounded: a fresh panel can always want
+a clearer sentence, and there is no state of the tree where that stops being true. Waiting for zero
+Minors is not a high bar, it is an unreachable one, and it is precisely how a review loop becomes
+endless.
+
+### Three circuit breakers, any one of which stops the loop
+
+**1. No convergence.** If a round's Critical-plus-Important count is not strictly LOWER than the
+previous round's, stop and bring the remaining list to the user. Round 3 closed at **8** (Criticals
+A1 and F1, Importants B1, B2, F2, F4, F5, F7, after the refuter's two severity moves). So round 4
+must come in under 8 or the loop has stopped converging, and more rounds will not fix that.
+
+**2. The loop is eating its own tail.** If EVERY Critical and Important in a round was manufactured
+by a fix wave inside this loop, stop. Fix them and ship without another round. The test is
+`git blame` against the round-1 base commit, not my judgement: a finding is pre-existing if the line
+it cites predates this review loop. A round that only finds the damage its own predecessor did has
+stopped auditing the sprint and started auditing itself. Round 3 passed this test cleanly, which is
+why it earned its cost: all three of its Criticals were pre-existing rot that rounds 1 and 2 walked
+past, the exact opposite of round 2's wave-G items.
+
+**3. Hard ceiling at round 6.** If round 6 is not clean, stop, ship, and file everything outstanding
+as backlog. This exists so the rule terminates even if breakers 1 and 2 are somehow both evaded. It
+is a backstop, not a target.
+
+### The discipline rule that makes the exit reachable
+
+Breakers stop a runaway loop; they do not make it converge. The engine of an endless review loop is
+fix waves that manufacture new findings, so the rule attacks that directly:
+
+- **Every fix wave takes its whole equivalence class, in one allowlist and one commit.** Both halves
+  of a matched pair, every sibling of a reworded phrase, both mirror sides, and any comment quoting
+  a number the edit changes.
+- **The class is found by censusing the vocabulary of the CHANGE, not the wording of the FINDING**,
+  and the census runs BEFORE dispatch with its result recorded here.
+
+That last line is not theory. This round proved both directions inside one file. Censusing the
+finding's wording (`concurrent edit conflict`) needed three separate waves on the spec reviewer,
+each discovering the next. Censusing the change's vocabulary (every live use of `parallel`) closed
+the family in one pass and surfaced a site in the agent's YAML frontmatter that the mirror check
+cannot see by construction.
+
+### What this rule would have done to rounds 1 to 3
+
+Nothing. Round 3 met neither breaker and was not clean, so it correctly bought a round 4. The rule
+binds from here, and its first real test is whether round 4 comes in under 8.
