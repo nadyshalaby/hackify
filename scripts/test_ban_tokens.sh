@@ -89,16 +89,16 @@ source "$TB_MODULES_DIR/30-inventory-pins.sh"
 # instead of 112 and dropping 30-inventory-pins.sh ran 105, and BOTH printed ALL
 # BAN-TOKEN TAMPER TESTS PASSED and exited 0.
 #
-# MEASURED AGAIN WHEN THE FIFTH FRAGMENT ARRIVED, and the reading carries its own
-# baseline because the suite is bigger than it was: against a total of 149,
-# dropping 15-wi-absent-cases.sh ran 139 and still printed ALL BAN-TOKEN TAMPER
-# TESTS PASSED and exited 0. Its two rows below had to come out along with the
-# source line to get a count at all, and that is the gate working rather than a
-# flaw in the reading: the two older numbers were taken before this gate existed
-# and cannot be reproduced today, because a missing fragment now exits instead of
-# counting. A suite whose coverage can shrink silently is the measures-nothing
-# shape every case below exists to refuse, so the split pays for itself here
-# rather than leaving the hole open.
+# MEASURED AGAIN WHEN THE FIFTH FRAGMENT ARRIVED, and re-measured when the two
+# union cases landed in it, because the reading has to carry its own baseline:
+# against a total of 153, dropping 15-wi-absent-cases.sh ran 139 and still printed
+# ALL BAN-TOKEN TAMPER TESTS PASSED and exited 0. Its three rows below had to come
+# out along with the source line to get a count at all, and that is the gate
+# working rather than a flaw in the reading: the two older numbers were taken
+# before this gate existed and cannot be reproduced today, because a missing
+# fragment now exits instead of counting. A suite whose coverage can shrink
+# silently is the measures-nothing shape every case below exists to refuse, so
+# the split pays for itself here rather than leaving the hole open.
 #
 # THE NAMES ARE WRITTEN OUT, never grepped from the fragments. A list derived
 # from the files it polices goes empty at exactly the moment they go missing and
@@ -121,15 +121,18 @@ TB_WIRING=(
   # length into the reason it gives for counting the fail-closed cases by hand.
   # Add a name here and that comment goes stale, and no check can see it happen.
   "10-ban-list-cases.sh tb_plant_case tb_plant_every_token tb_case_green_path tb_case_real_file_plant"
-  # 15-wi-absent-cases.sh owns TWO rows, not one. Field 0 is the fragment and
-  # nothing here requires it to be unique, so that fragment's eight functions are
-  # listed on two rows of readable width rather than run off the end of one. ALL
-  # EIGHT are named, which is the whole point: nothing inside the fragment can
+  # 15-wi-absent-cases.sh owns THREE rows, not one. Field 0 is the fragment and
+  # nothing here requires it to be unique, so that fragment's ten functions are
+  # listed on three rows of readable width rather than run off the end of one.
+  # ALL TEN are named, which is the whole point: nothing inside the fragment can
   # stop existing without this gate saying so, and the fragment itself now hangs
   # off a single source line above, which is exactly the shape the gate was
-  # written to catch.
+  # written to catch. The third row arrived with the two union cases, and adding
+  # a row is the right answer rather than lengthening the other two: a row that
+  # runs off the screen is a row nobody rereads.
   "15-wi-absent-cases.sh tb_load_wi_absent tb_wi_fixture_ready tb_wi_scope_ready tb_run_wi_absent_cases"
-  "15-wi-absent-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_case_wi_unreadable_file tb_check_wi_failclosed_total"
+  "15-wi-absent-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_case_wi_unreadable_file"
+  "15-wi-absent-cases.sh tb_case_wi_deleted_unstaged tb_case_wi_unmerged_index tb_check_wi_failclosed_total"
   "20-corruption-and-wiring-cases.sh tb_case_token_guard tb_run_token_guards tb_case_blank_token_end_to_end tb_case_zero_tokens tb_write_wiring_fragment tb_case_exit_wiring"
   "30-inventory-pins.sh tb_count_call_sites tb_check_call_sites tb_check_list_size tb_check_plant_total"
 )

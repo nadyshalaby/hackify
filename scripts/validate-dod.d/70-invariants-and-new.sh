@@ -264,8 +264,42 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 # nothing in the validator traps EXIT, but the tamper suite that now calls this
 # function does, and a bare clear would delete the verdict trap that suite exits
 # through.
+# TWO SCANS, NOT ONE, AND THE WORKTREE GOES FIRST. git grep silently skips any
+# tracked path it cannot open as a readable regular file, and it only writes to
+# stderr when stat() fails with an errno other than ENOENT. So the tie-breaker
+# above catches the sealed file and nothing else. Measured on git 2.50.1 with one
+# tracked file holding the literal: deleted and not staged, replaced by a
+# directory, and marked skip-worktree all return rc 1 with empty stdout AND empty
+# stderr, which is a clean tree's exact face, while the blob in the index still
+# carries the literal. The everyday trigger is a mid-rename `rm <file>` that was
+# never staged: the check greens, and `git commit` without -a then ships the index
+# that still has it. A --cached scan finds the literal in all three.
+#
+# --cached ALONE WOULD BE WORSE, which is why this is a union and not a swap. Over
+# an unmerged path it returns rc 1 with empty stdout and empty stderr, the same
+# fail-open face, in the exact state a half-finished rename lives in; and it
+# cannot see a literal typed into the worktree and never staged, which is the
+# state this validator runs in, since it runs BEFORE the commit. Each half is
+# fail-closed on its own and the loop stops at the first half with anything to
+# report, so the union is strictly stronger than either one. In CI the index and
+# the worktree are identical, so the second scan costs one process and changes no
+# verdict.
+#
+# THE SCAN ORDER IS LOAD-BEARING, not stylistic. Exactly one red prints per call,
+# so whichever half reports first owns the message, and the sealed file is where
+# the two halves disagree about which message that should be: the worktree half
+# returns rc 1 with a stat error, the cached half returns a plain hit. Worktree
+# first is what keeps that case reporting the file nothing could read rather than
+# reporting a hit, and scripts/test_ban_tokens.d/15-wi-absent-cases.sh asserts on
+# that wording.
+#
+# A FAIL-CLOSED BRANCH OUTRANKS A HIT REPORT, which rc > 1 already did and stderr
+# on rc 1 now does too. A scan that could not finish tells the reader nothing
+# trustworthy about the hits it did manage to print, so naming the broken scan is
+# the more actionable of the two. Every red carries the mode that produced it, so
+# the reader knows which half of the union spoke.
 wi_absent() {
-  local lit="$1" hits rc err errtxt prev
+  local lit="$1" mode hits rc err errtxt prev
   err=$(mktemp 2>/dev/null) || err=''
   if [ -z "$err" ]; then
     red "  FAIL [40] could not create the stderr capture file, so the scan for '$lit' never ran"
@@ -274,35 +308,33 @@ wi_absent() {
   fi
   prev=$(trap -p EXIT)
   trap 'rm -f "$err"' EXIT
-  hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
-  rc=$?
-  errtxt=$(cat "$err")
-  rm -f "$err"
-  trap - EXIT
-  [ -n "$prev" ] && eval "$prev"
-  if [ "$rc" -gt 1 ]; then
-    red "  FAIL [40] git grep exited $rc scanning for '$lit', so finding nothing here would be finding nothing at all"
-    if [ -n "$errtxt" ]; then
-      printf '%s\n' "$errtxt" | sed 's/^/         git: /'
+  for mode in worktree cached; do
+    if [ "$mode" = cached ]; then
+      hits=$(git grep --cached -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
     else
-      printf '%s\n' "         git: exited $rc without writing anything to stderr"
+      hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
     fi
-    FAILED=$((FAILED + 1))
-    return
-  fi
-  if [ "$rc" -eq 1 ] && [ -n "$errtxt" ]; then
-    red "  FAIL [40] git grep exited 1 scanning for '$lit' but wrote to stderr, so a file it could not read is being counted as a file with nothing in it"
-    printf '%s\n' "$errtxt" | sed 's/^/         git: /'
-    FAILED=$((FAILED + 1))
-    return
-  fi
-  if [ -z "$hits" ]; then
+    rc=$?
+    errtxt=$(cat "$err")
+    { [ "$rc" -gt 1 ] || [ -n "$errtxt" ] || [ -n "$hits" ]; } && break
+  done
+  rm -f "$err"
+  if [ -n "$prev" ]; then eval "$prev"; else trap - EXIT; fi
+  if [ "$rc" -le 1 ] && [ -z "$errtxt" ] && [ -z "$hits" ]; then
     green "  ok   '$lit' survives in no live file"
     return
   fi
-  red "  FAIL [40] retired Phase 3 wording '$lit' survives in a live file:"
-  printf '%s\n' "$hits" | sed 's/^/         - /'
   FAILED=$((FAILED + 1))
+  if [ "$rc" -gt 1 ]; then
+    red "  FAIL [40] the $mode scan for '$lit' exited $rc, so finding nothing here would be finding nothing at all"
+  elif [ -n "$errtxt" ]; then
+    red "  FAIL [40] the $mode scan for '$lit' exited $rc but wrote to stderr, so a file it could not read is being counted as a file with nothing in it"
+  else
+    red "  FAIL [40] retired Phase 3 wording '$lit' survives in a live file, found by the $mode scan:"
+    printf '%s\n' "$hits" | sed 's/^/         - /'
+    return
+  fi
+  printf '%s\n' "${errtxt:-exited $rc without writing anything to stderr}" | sed 's/^/         git: /'
 }
 
 # The dead type is BANNED, not merely left unpinned. A presence pin alone cannot

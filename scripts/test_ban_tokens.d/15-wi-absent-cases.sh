@@ -36,10 +36,10 @@
 # THE FUNCTION IS PARSED OUT OF THE SHIPPED FRAGMENT, never copied, the same
 # bargain tb_extract_lists makes with the ban lists: a copy kept here would go
 # on passing long after the real one regressed. Sourcing the whole fragment is
-# not an option, it runs its forty top-level checks and moves FAILED on its own,
+# not an option, it runs its top-level checks and moves FAILED on its own,
 # which is the counter every assertion in this suite reads.
 #
-# THREE CASES, NOT ONE, and the split is structural rather than tidy.
+# FIVE CASES, NOT ONE, and the split is structural rather than tidy.
 #   (a) git grep itself exits above 1. That branch already worked before this
 #       case existed, so it would never have caught the mktemp defect. It is a
 #       regression pin on the branch the mktemp fix restructures around it.
@@ -50,13 +50,32 @@
 #       before the mktemp fix and greens after it, and the reason the whole
 #       section was written.
 #   (c) git opens the repository, reaches a tracked file and cannot stat it.
-#       This is the ONLY one of the three that lets git open a file at all, and
-#       that is precisely what (a) and (b) cannot reach: git returns 1 after a
+#       This is the only one of the FIRST THREE that lets git open a file at
+#       all, and that is precisely what (a) and (b) cannot reach: git returns 1 after a
 #       scan it could not finish, the SAME status a genuinely clean tree
 #       returns, so the check printed green over a file nothing had read.
 #       Stderr is the only thing that tells the two apart. Measured on git
 #       2.50.1: sealed file, rc 1, empty stdout, stat error on stderr; the same
 #       file readable, rc 1 and stderr empty.
+#   (d) a tracked file is deleted from the worktree and the deletion is never
+#       staged. The worktree scan returns rc 1 with empty stdout AND EMPTY
+#       STDERR, so the tie-breaker (c) rests on has nothing to read and the
+#       check greens while the blob in the index still carries the literal.
+#       Measured on git 2.50.1, and it is the everyday shape rather than an
+#       exotic one: a mid-rename `rm <file>` that was never staged, then
+#       `git commit` without -a ships the index that still has it. Replacing
+#       the file with a directory and marking it skip-worktree measure the
+#       same rc 1 / empty / empty, so one case stands for all three. This one
+#       reds ONLY because the union runs a --cached scan as well, which makes
+#       it the pin on keeping that half.
+#   (e) the index is unmerged and the stage-3 blob carries the literal. Over an
+#       unmerged path the --cached scan returns rc 1 with empty stdout and
+#       empty stderr, measured, which is (d)'s fail-open face wearing the other
+#       half's clothes, in the exact state a half-finished rename lives in. The
+#       WORKTREE scan reds on it, because a conflicted merge writes both sides
+#       into the file. So this is the pin on keeping the worktree scan, and it
+#       is a regression pin rather than a new fail-closed branch: it exists so
+#       that a later simplification to --cached alone cannot pass.
 # ---------------------------------------------------------------------------
 
 # Counted the way the fail-closed cases are counted, and counted APART from them.
@@ -66,6 +85,16 @@
 # first. Folding another function's branches into that total would leave the
 # constant's stated reason false while the number still added up, which is the
 # stale-rationale defect this repo keeps finding and no check can see.
+#
+# FIVE, AND THE PROPERTY IS STATED AT THE FUNCTION LEVEL rather than one per error
+# branch, because two of the five are not error branches at all. Every case here
+# proves the same thing: wi_absent refuses to print green in a state where one
+# half of the union could not see a literal that really is there. (a), (b) and (c)
+# reach that through an error branch, (d) and (e) reach it through the other
+# half's ordinary hit, and those two are what make deleting either half of the
+# union red. Writing the narrower "one case per fail-closed branch" reason here
+# would have gone false the moment (d) landed while the number still added up,
+# which is the same defect the paragraph above names.
 #
 # THE PIN FIRES TWICE NOW, in-line from tb_case_green_path and again from the
 # EXIT trap, where tb_check_plant_total in 30-inventory-pins.sh calls it beside
@@ -79,9 +108,9 @@
 #
 # The count still earns its place beside the wiring gate. tb_case_green_path is
 # itself a line in the driver's run order, so its absence is visible where these
-# two cases' absence is not, and the gate now names tb_case_wi_scan_failed,
-# tb_case_wi_mktemp_failed and this function on a row of their own, so deleting
-# one makes the suite refuse to run truncated. But the gate asks declare -F. It
+# five cases' absence is not, and the gate names every function this fragment
+# defines, across rows of its own, so deleting one makes the suite refuse to run
+# truncated. But the gate asks declare -F. It
 # sees a function that stopped EXISTING, never one left defined and no longer
 # called, and that second shape is the whole reason to count.
 #
@@ -90,7 +119,7 @@
 # exactly the kind the paragraph above names, found by a sweep and not by any
 # check.
 TB_WI_FAILCLOSED=0
-TB_EXPECT_WI_FAILCLOSED=3
+TB_EXPECT_WI_FAILCLOSED=5
 
 # The shipped source, read fresh on every run.
 TB_WI_SRC="scripts/validate-dod.d/70-invariants-and-new.sh"
@@ -107,7 +136,7 @@ tb_load_wi_absent() {
   local body
   body=$(sed -n '/^wi_absent() {$/,/^}$/p' "$TB_WI_SRC")
   if [ -z "$body" ]; then
-    tb_bad "wi_absent: nothing parsed out of $TB_WI_SRC, so both cases below would have measured nothing"
+    tb_bad "wi_absent: nothing parsed out of $TB_WI_SRC, so every case below would have measured nothing"
     return 1
   fi
   eval "$body"
@@ -115,16 +144,19 @@ tb_load_wi_absent() {
     tb_ok "wi_absent: the shipped definition parsed out of $TB_WI_SRC and is callable"
     return 0
   fi
-  tb_bad "wi_absent: the parsed text left no wi_absent defined, so both cases below would have measured nothing"
+  tb_bad "wi_absent: the parsed text left no wi_absent defined, so every case below would have measured nothing"
   return 1
 }
 
 tb_run_wi_absent_cases() {
   tb_load_wi_absent || return
-  # ABOVE the fixture guard on purpose, because that guard does not apply to this
-  # case and gating it there would let a vanished literal take the Critical
-  # regression pin out of the run. See the comment on tb_wi_fixture_ready.
+  # ABOVE the fixture guard on purpose, because that guard does not apply to these
+  # three cases and gating them there would let a vanished literal take the
+  # Critical regression pins out of the run. See the comment on
+  # tb_wi_fixture_ready.
   tb_case_wi_unreadable_file
+  tb_case_wi_deleted_unstaged
+  tb_case_wi_unmerged_index
   tb_wi_fixture_ready || return
   tb_case_wi_scan_failed
   tb_case_wi_mktemp_failed
@@ -139,14 +171,17 @@ tb_run_wi_absent_cases() {
 # The scope checked here is ':(top)', which is the scope case (b) hands wi_absent.
 # Same move tb_case_real_file_plant makes when its multibyte fixture goes plain.
 #
-# CASE (c) IS NOT COVERED BY THIS AND MUST NOT BE GATED ON IT. It brings its own
-# fixture, a throwaway repository holding one sealed file it writes the literal
-# into itself, so nothing that happens to the live tree can take that fixture away.
-# It has no vanished-fixture failure mode to guard against either: measured, a scan
-# scoped to one unreadable file returns rc 1 with empty stdout whether or not the
-# literal is in that file, so presence is not what (c) rests on. Pointing this
-# guard at (c) would mean sealing a real tracked file to satisfy it, and that would
-# leave the user's own tree holding something at mode 000 after any interrupt.
+# CASES (c), (d) AND (e) ARE NOT COVERED BY THIS AND MUST NOT BE GATED ON IT. Each
+# brings its own fixture, a throwaway repository it writes the literal into itself,
+# so nothing that happens to the live tree can take those fixtures away, and each
+# proves its own precondition with a matcher that is not the scan under test. None
+# of them has a vanished-fixture failure mode to guard against either: measured, a
+# scan scoped to one unreadable file returns rc 1 with empty stdout whether or not
+# the literal is in that file, so presence is not what (c) rests on, and (d) and
+# (e) read the literal back out of their own index and worktree before they call
+# anything. Pointing this guard at (c) would mean sealing a real tracked file to
+# satisfy it, and that would leave the user's own tree holding something at mode
+# 000 after any interrupt.
 tb_wi_fixture_ready() {
   # THIS FRAGMENT EXCLUDES ITSELF, for the reason WI_LIVE_PATHS excludes
   # 70-invariants-and-new.sh: the TB_WI_LIT assignment above is itself a tracked
@@ -288,6 +323,102 @@ tb_case_wi_unreadable_file() {
     tb_ok "wi_absent (unreadable file): the red says git wrote to stderr, so an exit status of 1 is no longer being read as a clean tree"
   else
     tb_bad "wi_absent (unreadable file): reddened for some reason other than the stderr-on-rc-1 branch"
+  fi
+}
+
+# Case (d). What it proves is written once, in the (d) entry of the section header
+# above, and is not restated here. The throwaway-repository bargain and the
+# GIT_DIR / GIT_WORK_TREE prefix are written once on tb_case_wi_unreadable_file
+# and are not restated either; both cases below make the same two moves for the
+# same two reasons.
+#
+# NO COMMIT, AND THE ABSENCE OF ONE IS THE POINT. An index entry is all --cached
+# reads, and it is also all a mid-rename working tree has: the deletion this case
+# stages is the one nobody staged. `git add` then `rm` is the whole fixture.
+#
+# THE STAGED BLOB IS PROVED TO STILL CARRY THE LITERAL, not assumed, the way
+# tb_case_wi_unreadable_file proves its permission bit. git show reads the blob
+# back out and /usr/bin/grep decides, so the scan under test is never asked to be
+# its own precondition. Without that proof an empty index would send this case
+# down the clean-tree green and tb_expect_red would blame the union.
+tb_case_wi_deleted_unstaged() {
+  local before="$FAILED"
+  local repo="$TB_TMP/wi-deleted"
+  local -a WI_LIVE_PATHS
+  TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
+  rm -rf "$repo"
+  git init -q "$repo" > /dev/null 2>&1 || { tb_bad "wi_absent (deleted, not staged): the throwaway repo could not be built, so this branch was never exercised"; return; }
+  printf '%s\n' "$TB_WI_LIT" > "$repo/gone.md"
+  git -C "$repo" add gone.md > /dev/null 2>&1
+  rm -f "$repo/gone.md"
+  git -C "$repo" show :gone.md 2>/dev/null | /usr/bin/grep -qF -e "$TB_WI_LIT" || { tb_bad "wi_absent (deleted, not staged): the staged blob does not carry the literal, so this branch was never exercised"; rm -rf "$repo"; return; }
+  WI_LIVE_PATHS=(':(top)gone.md')
+  tb_wi_scope_ready "wi_absent (deleted, not staged)" || { rm -rf "$repo"; return; }
+  GIT_DIR="$repo/.git" GIT_WORK_TREE="$repo" wi_absent "$TB_WI_LIT" > "$TB_OUT" 2>&1
+  rm -rf "$repo"
+  tb_expect_red "wi_absent (deleted, not staged): a staged blob the worktree scan cannot see reddens instead of reporting the literal gone" "$before"
+  # THE MODE IS ASSERTED, not just the red. Both this case and the unmerged one
+  # red on the same hit branch, so without the mode in the message either half of
+  # the union could be answering for the other and neither would be pinned.
+  if /usr/bin/grep -q 'found by the cached scan' "$TB_OUT"; then
+    tb_ok "wi_absent (deleted, not staged): the cached half of the union found it, so deleting that half would take this blind spot with it"
+  else
+    tb_bad "wi_absent (deleted, not staged): reddened for some reason other than a cached-scan hit"
+  fi
+}
+
+# Case (e). What it proves is written once, in the (e) entry of the section header
+# above, and is not restated here.
+#
+# THE CONFLICT IS REAL, not a hand-written index. Two branches change the same
+# line and `git merge` is allowed to fail, which is what puts stages 1, 2 and 3
+# in the index AND writes both sides into the worktree file. Building the stages
+# by hand with update-index would leave this case asserting the worktree half of
+# that shape instead of reproducing it, and the worktree half is the whole pin.
+#
+# THE IDENTITY IS SET ON THE THROWAWAY REPO, never globally and never in the
+# environment. `git commit` refuses without one, and a repo-local `git config`
+# dies with the fixture.
+#
+# THE BRANCH NAME IS READ BACK, never assumed to be main or master: init.defaultBranch
+# is the user's setting and this suite runs on their machine.
+tb_case_wi_unmerged_index() {
+  local before="$FAILED"
+  local repo="$TB_TMP/wi-unmerged"
+  local base
+  local -a WI_LIVE_PATHS
+  TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
+  rm -rf "$repo"
+  git init -q "$repo" > /dev/null 2>&1 || { tb_bad "wi_absent (unmerged index): the throwaway repo could not be built, so this branch was never exercised"; return; }
+  base=$(git -C "$repo" symbolic-ref --short HEAD 2>/dev/null)
+  git -C "$repo" config user.email tamper@example.invalid > /dev/null 2>&1
+  git -C "$repo" config user.name tamper > /dev/null 2>&1
+  printf 'shared\n' > "$repo/f.md"
+  git -C "$repo" add f.md > /dev/null 2>&1
+  git -C "$repo" commit -qm base > /dev/null 2>&1
+  git -C "$repo" branch side > /dev/null 2>&1
+  printf 'ours\n' > "$repo/f.md"
+  git -C "$repo" commit -qam ours > /dev/null 2>&1
+  git -C "$repo" checkout -q side > /dev/null 2>&1
+  printf '%s\n' "$TB_WI_LIT" > "$repo/f.md"
+  git -C "$repo" commit -qam theirs > /dev/null 2>&1
+  git -C "$repo" checkout -q "$base" > /dev/null 2>&1
+  git -C "$repo" merge side > /dev/null 2>&1
+  # BOTH HALVES OF THE FIXTURE ARE PROVED. An empty ls-files -u means the merge
+  # succeeded or never ran, and a worktree file without the literal means the
+  # conflict markers did not carry it, and either one would leave this case
+  # measuring nothing while still looking like a pass.
+  [ -n "$(git -C "$repo" ls-files -u)" ] || { tb_bad "wi_absent (unmerged index): the index came out merged, so this branch was never exercised"; rm -rf "$repo"; return; }
+  /usr/bin/grep -qF -e "$TB_WI_LIT" "$repo/f.md" || { tb_bad "wi_absent (unmerged index): the conflicted worktree file does not carry the literal, so this branch was never exercised"; rm -rf "$repo"; return; }
+  WI_LIVE_PATHS=(':(top)f.md')
+  tb_wi_scope_ready "wi_absent (unmerged index)" || { rm -rf "$repo"; return; }
+  GIT_DIR="$repo/.git" GIT_WORK_TREE="$repo" wi_absent "$TB_WI_LIT" > "$TB_OUT" 2>&1
+  rm -rf "$repo"
+  tb_expect_red "wi_absent (unmerged index): a stage-3 blob the cached scan reports as nothing reddens instead of reporting the literal gone" "$before"
+  if /usr/bin/grep -q 'found by the worktree scan' "$TB_OUT"; then
+    tb_ok "wi_absent (unmerged index): the worktree half of the union found it, so a later simplification to --cached alone would red here"
+  else
+    tb_bad "wi_absent (unmerged index): reddened for some reason other than a worktree-scan hit"
   fi
 }
 
