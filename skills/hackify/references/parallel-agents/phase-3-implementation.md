@@ -51,7 +51,7 @@ Bias against: refactoring outside the file allowlist or the task scope.
 5. `{{test_mode}}`, one of `test-first` | `test-after` |
    `manual smoke` | `none`, with a one-sentence justification.
 6. `{{test_command}}`, file-scoped test command template (e.g.
-   `<test runner command> {{test_file_path}}`).
+   `<test runner command> <test file path>`).
 7. `{{lint_command}}`, file-scoped lint command template.
 8. `{{typecheck_command}}`, file-scoped typecheck command template.
 9. `{{project_rules_path}}`, absolute filesystem path to the project's

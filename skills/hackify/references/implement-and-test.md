@@ -31,7 +31,7 @@ The implement phase is **wave-based, one foreground subagent per whole wave.** T
     wave. Ticking a task the agent never finished records work that is not on
     disk. Every not-landed ID stays unticked: re-dispatch it in the next wave
     dispatch on an agent failure, drop to Phase 3b with it on a plan failure.
-    Append one Implementation Log entry per landed task.
+    Append one Daily Updates entry per landed task.
 9.  Single commit for the wave (subject covers the wave; body lists the task
     IDs that landed).
 10. Advance to wave N+1.
@@ -54,7 +54,7 @@ f.  REPORT BACK, naming which of the wave's task IDs landed and which did not.
 
 **Stop at the first task you cannot finish.** Everything already written stays on disk and the report says which task IDs landed, so a failure late in the wave costs the tasks after it, never the ones before it. The parent re-dispatches the stopped task; it never re-runs the ones that already landed.
 
-Skip steps deliberately and the work-doc Implementation Log records why. **Watching the test fail is non-negotiable when test mode is test-first.** If the agent didn't watch it fail, the agent doesn't know if it tested the right thing.
+Skip steps deliberately and the work-doc Daily Updates entry records why. **Watching the test fail is non-negotiable when test mode is test-first.** If the agent didn't watch it fail, the agent doesn't know if it tested the right thing.
 
 ---
 
@@ -220,7 +220,7 @@ For UI cosmetic changes, copy edits, color tweaks where automated tests don't ad
 3. Walk the **golden path**, the primary user flow that touches your change.
 4. Walk **edge cases** the change could regress (RTL toggle if bilingual, mobile breakpoint, dark mode if relevant, empty state, error state).
 5. Test surrounding features for regressions, did your spacing change break a different page?
-6. **Log it in the Implementation Log:**
+6. **Log it in the Daily Updates entry:**
 
    ```markdown
    - **Test mode:** manual smoke (cosmetic-only)
