@@ -174,3 +174,89 @@ W6: T11, T12, T13         measured brief, backlog disposition, release
 ## 7. Sprint Review
 
 ## 8. Retrospective
+
+---
+
+## Phase 2.5 spec review: seven Criticals, and the plan does not survive as written
+
+**Every measurable Critical verified by the parent before acting.** Where my measurement differs from
+the reviewer's I record both rather than adopting either, because the difference is a regex choice
+and neither of us is authoritative.
+
+### The sprint indicted itself in its own plan
+
+The Repo Brief claimed **"Check ids in use: 23"** and AC2 consumed that as a closed universe. The
+command behind it anchors at `^`, so it only sees ids that begin a line. Measured unanchored:
+**88** (reviewer measured 81; different pattern scope). Live `check [NN]` references: **14** distinct
+by my regex, **25** by the reviewer's, and 14 of theirs are outside the 23.
+
+**Built as written, T3 would have reddened on `check [75h]`, a reference this project's own agent
+prompt cites.** A sprint about false count-claims put a false count-claim in its own plan, attached
+the command that produced it, and the command was the thing that was wrong. **That is AC6's
+refutation, found the same hour AC6 was written:** attaching a command proves reproducibility, never
+correctness.
+
+### The Critical that changes what this sprint is worth
+
+**AC1's 8-of-13 target is unreachable, and the error is mine.** My scratchpad classified 8 of the 13
+round-5 findings as "mechanically checkable". That was true in the sense "some script could in
+principle catch this" and false in the sense "THIS check design reaches it", and I built the headline
+AC on the first while meaning the second.
+
+Walking them honestly against the four planned classes:
+
+| Finding | Reachable by this design? |
+|---|---|
+| M3 `{{test_file_path}}` undeclared | **yes**, C3 |
+| I4 `4-5 reviewers` "NOT pinned" | **maybe**, C4, repo-wide so the diff scope does not block it |
+| M4 CHANGELOG counts a site it lacks | **maybe**, if replayed against its introducing diff |
+| M5, M6, M7 counts in prose | **no**, unannotated and pre-existing, and C1 is diff-scoped |
+| I2 retired section name | **no**, fits none of the four classes |
+| I5 CHANGELOG missing half | **no**, plan-consistency |
+| I6 three undeclared files | **no**, and it was REFUTED, so a must-catch bucket would demand the check reproduce my own false-clean grep |
+| I1, M1, M2 + I3 | out of class by design, correctly |
+
+So the realistic catch is **1 to 3 of 13, not 8**.
+
+### The other five Criticals, all verified
+
+- **T6 is self-contradictory:** "tune until AC1 holds, record misses honestly" leaves no misses. This
+  is the self-grading hole I flagged at dispatch, and it is real.
+- **T4 never defines "the diff"** and binds no fail-closed contract. Same trap as last sprint's
+  Critical, where `--cached` alone would have been a second fail-open and the fix was the union of
+  both modes plus an rc/stderr tie-breaker (`70-invariants-and-new.sh:278,290-311`).
+- **`[0]` reds from T2 landing until T8, three waves later.** A fragment on disk that nothing sources
+  is a FAIL (`scripts/validate-dod.sh:105-113`), so W2, W3 and W4 would all run against a red
+  validator, unable to tell their own breakage from the missing source line.
+- **AC7 would mass-red a frozen record.** `docs/work/` carries **619** citations (reviewer: 617)
+  against 30 live ones, and `check_doc_links.py:33,52` excludes it deliberately as a record "of what
+  was true then".
+- **AC3 closes the verb surface and leaves the arguments open.** A fixed enum of verbs proves
+  nothing about a repo-supplied path (traversal), a repo-supplied pattern handed to `grep -E`
+  (ReDoS), or any argument that becomes a shell word. Cites `~/.claude/CLAUDE.md` §3.6, "Validate ALL
+  user input at system boundaries" and "Sanitize file paths to prevent directory traversal".
+
+### Importants worth acting on
+
+- **T2 duplicates existing machinery.** `check_doc_links.py` is **198** lines, already resolves every
+  cited path, already handles fenced blocks and inline code, and already excludes `docs/work/`. C2
+  adds only the `:N` line-count half. Extend it; do not write a bash twin.
+- **Name the fragment split up front:** `91-claim-resolvers.sh` (does this pointer resolve) and
+  `92-claim-annotations.sh` (does the declared thing match the measured thing). Last sprint
+  discovered this at 511 lines.
+- **T11 collides with the template's own cap.** `references/repo-brief.md:13` says "Cap it at
+  **~200 words**". This sprint's brief, offered as AC6's first demonstration, is **342**. Two rules
+  gating one cell incompatibly, which is the I3 shape.
+- **AC7 says "fifteen backlog items"; the section has 17 or 19** depending on how the I2 siblings are
+  counted. Another unmeasured count-claim, in this sprint.
+- **Locked decision #2-A is covered by no AC and no task.** It appears once, in the Q&A. Writing the
+  rule last is exactly where the behavioural half of the ask gets lost.
+- **T3 has not chosen its grammar.** Bare `[NN]` in live markdown yields 136 hits and collides with
+  markdown reference-link syntax.
+
+### Not drift, ruled explicitly
+
+The #3-B and #3-C deferral is **not** goal drift: named in Out-of-Scope, with a reason, no shared
+file, follow-up stated. One asymmetry recorded for the user rather than settled here: #3-A is the
+cheapest of the three levers and the one that happens to serve the check, so "focus on the speed of
+the waves" ships on its thinnest reading.
