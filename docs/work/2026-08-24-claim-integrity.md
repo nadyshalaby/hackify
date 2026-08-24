@@ -455,6 +455,59 @@ plus `|| echo clean` on a verification is the exact anti-pattern.
   Parent re-measured and gets 3, all placeholders. The disagreement is a resolution-rule difference
   (suffix-tolerant against exact), not a defect. Recorded, not chased.
 
+### Evidence base for T9, gathered as the sprint ran
+
+T9 writes the rule. Decision #8-A said the rule text comes last, shaped around what the checks
+actually do rather than around what sounded good in the plan. This is the material, each item an
+observed failure in this sprint or the previous one, not a principle someone liked.
+
+**The four named in #4-A to #4-D, all confirmed live:**
+
+- Claiming without proving. Two instances: a validator said to enforce a `CHANGELOG.md:18` pointer
+  that is a comment block, and `hooks/test_block_banned_tokens.sh` said to enforce the dash ban,
+  which nothing does.
+- Reusing a number without re-deriving it. Three instances, all the same universe: "23 check ids"
+  (measured `^`-anchored), then "88" (a token count, not a declared set), against a real 82.
+- Citations that do not check out. Found in the wild: `CHANGELOG.md:482` cites `check [50]`, which
+  has never existed.
+- Fixing one site of a family. `Implementation Log` survives at 3 instruction sites
+  (`debug-when-stuck.md:19`, `:190`, `README.md:416`) after the filed site was fixed.
+
+**#2-A, re-derive before you write.** The strongest single case is the `check_doc_links.py` fenced
+blocks claim: `57-doc-links.sh:13` asserted the checker handles fenced code blocks. It never did,
+only inline-code spans. Anyone who read that comment as evidence would have been wrong about the
+code they were extending.
+
+**New, and the most useful thing this sprint has produced. A verification that can fail silently is
+not a verification.** Four instances in one session, all the parent's:
+
+1. `/usr/bin/grep -P` is unsupported by BSD grep. It exits with "invalid option", and with
+   `2>/dev/null || echo clean` the error prints as a pass. **This one reached a commit.**
+2. A `while read` subshell that had lost `git` from its PATH. Every iteration reported a false zero
+   and nearly filed twenty phantom findings.
+3. An unquoted `$s` in a `for` loop turned seven suite invocations into `rc=127`.
+4. Reading a `grep` exit code through `| head`, so the code belonged to `head`. Reported by the CI
+   agent against its own work, along with the detail that zsh's array is `pipestatus` and is
+   1-indexed, so `${PIPESTATUS[0]}` is silently empty.
+
+The shape is one sentence: **if a command's failure output is indistinguishable from its success
+output, running it proved nothing.** The tells are `2>/dev/null` on a checking command, a `||`
+fallback that prints a clean result, an exit code read through a pipe, and any zero you cannot show
+could have been non-zero.
+
+**New, rationale drift, carried over from the previous sprint's signature defect.** A comment giving
+one reason for a setting that has since acquired a second dependency. Live example produced BY this
+sprint: `ci.yml`'s `fetch-depth: 0` was documented as needed for the release-tag read, and is now
+also needed by the fixture suite, which resolves blobs 20 commits back. A reader trusting the comment
+could trim the checkout and break a suite for a reason the comment gave them no way to see.
+
+**What the rule must NOT claim.** The corpus is the evidence for this. Of thirteen real findings,
+nine are reachable by no check at all: a timing property, two policy sentences disagreeing, a
+completeness gap in a release note, a scanner's own line-based blind spot. **A rule that implies the
+checks make claim drift impossible would itself be the defect it bans.** AC6 already demotes the
+command-per-fact convention from a guarantee to an aid, on the evidence that this sprint's own brief
+attached a command to a fact and the command was the thing that was wrong.
+
 ## 7. Sprint Review
 
 ## 8. Retrospective
