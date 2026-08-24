@@ -1446,6 +1446,60 @@ context loading dominated and inverts where tasks are long and genuinely indepen
 change actually bought down is failure blast radius, through #11-A partial reporting, and the
 work-doc's two mid-wave agent deaths are the evidence.
 
+**Reviewer B, one Critical and one Important, both the signature class, both verified by the parent.**
+
+**Critical, F's report skeleton still asks for the answer the sprint retired.** This release inverted
+Reviewer F's priority: same-wave seams used to be the risky ones because separate agents wrote them
+blind to each other, and one agent per wave makes that backwards. METHOD, VERIFICATION 4
+(`:106-107`, "sides sit in DIFFERENT `W<n>` waves ... or whose consumer sits outside the map
+entirely, audit those first") and the dispatch note (`:224`, "to tell which seams cross a wave
+boundary") were all inverted. **The OUTPUT skeleton was not.** `phase-5-multi-review-f-coherence.md:200`
+and its mirror `agents/code-reviewer-coherence.md:199` still tag every seam `[same-wave: yes|no]`, so
+the one field the parent actually reads flags the category that is now low-risk **and has no slot at
+all for the consumer-outside-the-map class VERIFICATION 4 says to audit first**. Four more sites
+carry the retired label: `:52-53` and `agents/code-reviewer-coherence.md:51-52` call the prefix
+"your same-wave signal" three lines above the sentence saying the risk runs across waves, and
+`phase-5-multi-review-b-quality-plan.md:75` + `agents/code-reviewer-quality-plan.md:72` repeat it as
+"F's same-wave signal". **Six sites, two of them mirror pairs**, so both halves move together or
+`sync_agent_mirrors.py --check` drops off 9 of 9. It also falsifies `CHANGELOG.md:20`, which claims
+the METHOD, its VERIFICATION item and the dispatch note "were inverted together, across the
+template, its agent mirror, the Phase 5 protocol and the two mode skills". Three of four, not four.
+
+**Important, the retired reason for wave file-disjointness survives in five shipped sites.** This
+sprint rewrote `template-contract.md:13` to the surviving reason, allowlist bounding. Nine lines
+below it, `:22` still says **"Tasks that share a file, concurrent edits cause conflicts"**. Siblings:
+`phase-5-aggregation.md:24` ("edit the same file in the same wave, file conflicts") and, worse,
+`phase-2.5-spec-reviewer.md:289` + `agents/spec-reviewer.md:284`, a SEVERITY anchor telling a
+reviewer to file a **Critical citing a mechanism that no longer exists**. The repo's own pin says so
+in as many words at `71-release-mechanism-pins.sh:279-286`: **"DISJOINTNESS BUYS ATTRIBUTION NOW,
+not collision safety ... one writer per wave leaves no second writer to collide with."** The
+validator states the truth in a comment while five shipped files still teach the falsehood.
+
+**And the spec reviewer contradicts itself inside one file.** Its ROLE at `:39-42` claims expertise
+in "file-collision detection across parallel work" and "execution-wave planning for parallel
+sub-agent dispatch (one assistant message, multiple `Agent` calls)". Its own `:81` reads **"Nothing
+inside a wave runs in parallel any more"**. Both on disk, forty lines apart.
+
+**B did the split-plan check I asked for and came back with no obstacle.** It enumerated every
+`check_token_present` literal in fragments 71, 77 and 79 pointing at these four files and found none
+sitting inside a sentence a fix would touch, and its `same-wave` census under `scripts/` returned
+zero. **No edit lands in `71-release-mechanism-pins.sh` (496/500) or `README.md` (449/450).**
+
+**B's Minor is another of my numbers.** The metrics table I handed the panel says
+`10-ban-list-cases.sh` is 399 lines. `wc -l` says **413**. Under the 500 cap either way, so nothing
+changes, but that is the sixth citation error of mine an agent has caught this sprint.
+
+**Reviewer E's folded checklist was actually run, not just declared folded.** B read the
+README/CHANGELOG presentation surface and rendered `docs/assets/hackify-demo.gif`: the Phase 3
+caption reads "one agent per wave", legible at size, dark-theme consistent, 135,296 bytes. No
+findings.
+
+**Three things B checked and deliberately did not file**, so the clean half is stated rather than
+implied: the 16-functions / 11-wiring-names pair is correct on both sides, independently recounted;
+`tb_case_colon_filename` is not an untested-deletion hole because it increments `TB_MISCOUNT` at
+`:221`, pinned from the EXIT trap; and `71:284`'s citation of `phase-3-implementation.md:238` points
+at a block header whose content sits at `:239`, which is a valid block reference.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
