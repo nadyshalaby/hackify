@@ -3749,6 +3749,44 @@ B verified `[38h]`'s numbers independently by deleting all eight `Scope:` lines 
 watching the run stay green, which is F's hole reproduced from the other side.
 
 
+### 7an. Reviewer F, bounded settle round: the same Critical, found independently
+
+F echoed `Scope: settle all` and honoured the output bound, filing its one hardening idea
+under `Deferred, not a defect` rather than as a finding.
+
+**F found B's Critical independently, at the same line.** `phase-5-review.md:37`. Two lenses,
+different methods, same site. F's addition to the diagnosis: it is "the file the parent loads
+at dispatch", so the false sentence is not incidental prose, it is what the orchestrator reads
+when it decides how to run a wave. F also confirmed B's exoneration of `review-scope.md:54`
+from the other direction.
+
+Independent convergence is the strongest signal this panel has produced all sprint. Two
+reviewers who cannot see each other's reports landed on one line.
+
+**F-Important: the previous wave's own fix overstated.** `76:350-351` says B's marker "is all
+the gate has to read on a settle round", while `PLS_GATE` at `:357` enumerates THREE clauses
+the gate reads. F named the missing words exactly: "from B". So Fix 5 of the last wave, which
+deleted an overclaim, wrote a smaller one in its place. Correcting it finishes that fix rather
+than reopening it.
+
+**F's confirmations, all independently reproduced.** Skeleton line lives in 8 files and holds
+no `settle ` mark, so deleting one moves neither 12 nor 25. `PLS_BSKEL` 2/2, mirrors 9/9, the
+gate still refuses `Round: unnamed`. Every `NOTE ` producer has a matching consumer arm and no
+other prefix broke. Nothing load-bearing was lost in the comment reclaim: `[76g]:224-233`
+carries all three grep reasons and `pls_x_assert:271-275` carries the exit-2 reason, which is
+exactly the justification the parent verified before accepting the trade.
+
+**F reported two verification items as NO, which is the behaviour that makes the rest
+trustworthy.** It was not supplied a `task_file_index` and said so, reconstructing from the
+six changed paths and the commit log rather than either pretending or discarding a verified
+Critical. That input gap is the parent's dispatch error: B was given one and F was not.
+
+**One quiet note worth keeping.** F observed that both `'NOTE '*` producers are live but
+neither fires today, because the ROW regex skips `00-helpers.sh`. That is correct behaviour on
+a clean tree, and the tamper tests are what prove the arm works. It is recorded here so a
+future reader does not mistake a silent arm for a dead one.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
