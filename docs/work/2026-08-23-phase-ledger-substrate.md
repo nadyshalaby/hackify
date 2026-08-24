@@ -3628,6 +3628,79 @@ the `[76i]` note output and the widened `PLS_BSKEL` literal, and the bounded rou
 at exactly that.
 
 
+### 7ak. The fix wave, five fixes across three implementers, commit 529ef36
+
+Three implementers, no file collisions. All five fixes landed, validator green on the
+combined tree, mirrors 9/9, no version bumped.
+
+**The overclaim is gone from five sites, not the four I briefed.** Both B prompt copies,
+`review-scope.md:140`, the `0.14.2` CHANGELOG bullet, and a fifth the implementer working
+`review-scope.md` found outside its own allowlist and handed back: the `[76h]` comment at
+`76:350`, which called the marker "the gate's per-run evidence". Routed to the agent that
+owned 76 mid-flight and fixed in place at the same line count. `per-run evidence` now
+returns zero hits across `scripts/`, `skills/`, `agents/`, `rules/`, `README.md` and
+`CHANGELOG.md`.
+
+**Two implementers corrected the brief I gave them, both times in the sprint's own shape.**
+
+The `71` implementer was told the echo skeleton line lives in "the four sliced prompts".
+Disk says eight: the four prompts and their four `agents/` mirrors. It wrote eight and named
+both groups, on the grounds that putting "four" into a comment whose entire job is accuracy
+ships a fresh inaccuracy. My brief undercounted by forgetting the mirrors, which is the same
+class of error as every finding this sprint has produced.
+
+The `review-scope.md` implementer refused the phrasing I handed it. I asked for "the parent's
+ledger of what B was handed". B takes no `{{review_scope}}` at all, so no B slice exists for
+a ledger to record, and the gap B demonstrated was a *prose* narrowing the ledger's spec does
+not claim to capture. Writing my phrasing would have swapped one overclaim for a quieter one
+a level down. It anchored to what `review-scope.md:90` already says instead.
+
+The `76` implementer made a third correction of the same kind, unprompted: it wrote
+"the parent's **scope** ledger", because this repo has two ledgers and
+`phases/phase-5-review.md:5` distinguishes them by name. An unqualified "ledger" inside a
+prompt shipped in a fragment named for the *phase* ledger points at the wrong one.
+
+**`[76i]` proved, not asserted.** Both skip paths now print a `NOTE` rendered by a new reader
+arm at `76:488`. The implementer tampered each path on a full scratchpad copy of the tree
+rather than in the repo, and showed the note appearing where previously there had been no
+note, no count change and no line of any kind. The correct outcome is green plus a note, not
+a red: a skipped fragment is an unaccounted removal, not a failure.
+
+**The line that paid for it.** 76 sits at exactly 500 of 500. The room came from a six-line
+comment at old `:353-358` that opened "same three reasons spelled out above `[76g]`" and then
+restated all three anyway. Verified independently before accepting: `[76g]`'s comment at
+`:224-227` carries all three, and carries the `-c` reason *correctly* ("`-c` counts LINES, so
+two sites sharing one line would read as one site") where the deleted copy had it wrong ("the
+gate wording can share a line with other prose"). The reclaim removed a duplicate that was
+also inaccurate. There is now no runway left in that file.
+
+**One retraction, filed by the implementer against itself.** The `71` agent diffed a pre-edit
+validator run against a post-edit one and got an identical result, then noticed the two runs
+spanned different trees because sibling implementers were editing files mid-task. It withdrew
+the claim rather than letting it stand. That is the twentieth instance of the sprint's shape
+and the first one caught by the agent that made it, before anyone else read it.
+
+### 7al. The bounded final round, dispatched
+
+Per #31-A. B gets round `settle` with the scope ledger stated outright, 6 moved and 67
+carried out of 73, which is the parent-side answer to the finding B filed against its own
+marker. F gets `settle all`, because F never carries over.
+
+Both are bounded on OUTPUT, not on reading: defects only, and explicitly forbidden from
+proposing new pins, new checks or further hardening. Anything worth hardening goes under a
+`Deferred, not a defect` heading. The reason is stated to them plainly, that four consecutive
+rounds installed a new check and each became the next round's finding.
+
+**The law scout ran hollow on its first attempt, and said so.** `--text-only-ext .md,.sh`
+parses as ONE extension literal, because the flag is `action='append'`. Result:
+`files_scanned: 0`, `paths_unsupported: 6`, `findings: 0`. A zero-findings scan that measured
+nothing, which is the exact shape this sprint is named for, in the tool the sprint hardened.
+It was caught immediately because the scanner publishes `paths_unsupported` beside the zero.
+Re-run with the flag repeated: `files_scanned: 6`, `paths_unsupported: 0`, `findings: 0`.
+`extra_bans: 0` was also checked rather than assumed, no `ban-patterns` file exists in this
+repo, so that zero is honest too.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
