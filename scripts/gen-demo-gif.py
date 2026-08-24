@@ -22,6 +22,39 @@ TILE_ACTIVE = "#2C3E55"
 TILE_BORDER_ACTIVE = "#4A6FB5"
 FRAME_COUNT = 7
 FRAME_DURATION_MS = 600
+
+# ENCODER SETTINGS, MEASURED RATHER THAN ASSUMED, so the next person does not
+# re-derive them. Every row was saved from these same 7 frames in one run and
+# compared frame by frame against the optimize=False output with
+# ImageChops.difference().getbbox(), alongside n_frames, duration, loop and
+# size. Only optimize cleared the bar of smaller without moving a pixel.
+#   optimize=False              227,491  identical (the baseline, was shipped)
+#   optimize=True               135,296  identical, 40.5% smaller, KEPT
+#   interlace=True or False     135,296  identical, no effect at all: Pillow
+#     12.1.1 reads interlace only on the single-frame _save path and
+#     _write_multiple_frames never consults it
+#   include_color_table=False   135,296  identical, already the default
+#   include_color_table=True    136,064  identical but LARGER
+#   disposal=0 or disposal=1    135,296  identical, already the default
+#   disposal=2                  243,269  identical but larger than no
+#     optimization at all: restoring to background defeats the cross-frame
+#     delta that optimize exists to find
+#   disposal=3                  135,296  5 of the 7 frames CHANGED
+#   one shared global palette    60,087  every frame CHANGED, by up to 14 per
+#     channel. The frames carry 894 to 1166 distinct colors each, so a single
+#     256-entry table cannot hold them and the requantization is visible
+#   convert("P", dither=...)    135,296  identical either way, and that is the
+#     flag never REACHING the encoder rather than a measured neutral result. No
+#     GIF save option carries dither at all, and convert("P", palette=ADAPTIVE)
+#     routes to quantize(), which does not read convert's dither. Reaching it
+#     means adding a quantization step with a palette of its own, which is the
+#     shared-global-palette row above and its 14-per-channel drift
+# Per-frame cropping needs no flag of its own: optimize=True already crops each
+# frame to its difference bounding box, which is where most of the 40.5% comes
+# from. Two more were measured earlier and are not repeated here: 7 frames
+# (6 phases plus 1 settle) is minimal for the content, and quantize(colors=32)
+# with optimize lands at 139,778, LARGER than optimize on its own.
+
 PHASES = [
     (1, "Clarify", "batched wizard"),
     (2, "Plan", "hard gate"),
@@ -133,37 +166,7 @@ def render_frame(active_phase_index: int) -> Image.Image:
 def main(output_path: str = "docs/assets/hackify-demo.gif") -> None:
     """Build 7 frames (6 phase highlights + 1 settle) and save as animated GIF."""
     frames = [render_frame(i) for i in range(6)] + [render_frame(-1)]
-    # ENCODER SETTINGS, MEASURED RATHER THAN ASSUMED, so the next person does not
-    # re-derive them. Every row was saved from these same 7 frames in one run and
-    # compared frame by frame against the optimize=False output with
-    # ImageChops.difference().getbbox(), alongside n_frames, duration, loop and
-    # size. Only optimize cleared the bar of smaller without moving a pixel.
-    #   optimize=False              227,491  identical (the baseline, was shipped)
-    #   optimize=True               135,296  identical, 40.5% smaller, KEPT
-    #   interlace=True or False     135,296  identical, no effect at all: Pillow
-    #     12.1.1 reads interlace only on the single-frame _save path and
-    #     _write_multiple_frames never consults it
-    #   include_color_table=False   135,296  identical, already the default
-    #   include_color_table=True    136,064  identical but LARGER
-    #   disposal=0 or disposal=1    135,296  identical, already the default
-    #   disposal=2                  243,269  identical but larger than no
-    #     optimization at all: restoring to background defeats the cross-frame
-    #     delta that optimize exists to find
-    #   disposal=3                  135,296  5 of the 7 frames CHANGED
-    #   one shared global palette    60,087  every frame CHANGED, by up to 14 per
-    #     channel. The frames carry 894 to 1166 distinct colors each, so a single
-    #     256-entry table cannot hold them and the requantization is visible
-    #   convert("P", dither=...)    135,296  identical either way, and that is the
-    #     flag never REACHING the encoder rather than a measured neutral result. No
-    #     GIF save option carries dither at all, and convert("P", palette=ADAPTIVE)
-    #     routes to quantize(), which does not read convert's dither. Reaching it
-    #     means adding a quantization step with a palette of its own, which is the
-    #     shared-global-palette row above and its 14-per-channel drift
-    # Per-frame cropping needs no flag of its own: optimize=True already crops each
-    # frame to its difference bounding box, which is where most of the 40.5% comes
-    # from. Two more were measured earlier and are not repeated here: 7 frames
-    # (6 phases plus 1 settle) is minimal for the content, and quantize(colors=32)
-    # with optimize lands at 139,778, LARGER than optimize on its own.
+    # The ENCODER SETTINGS table at the top of this file explains these flags.
     frames[0].save(
         output_path,
         save_all=True,
