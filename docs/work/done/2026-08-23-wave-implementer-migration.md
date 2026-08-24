@@ -1,11 +1,11 @@
 ---
 slug: wave-implementer-migration
 title: One implementer per wave, and the vocabulary that follows it
-status: reviewing
+status: done
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: Phase 5, settle round dispatched (A, B, D, F over 03e7a12..657935b)
+current_task: done, shipped as v0.15.0 (tagged locally, not pushed)
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -2814,3 +2814,50 @@ opens), M5 (`README.md:254`, 95 IDs and 10 domains, measured 96 and 11), M6
 `sync_agent_mirrors.py` treating any unknown flag as WRITE mode; the mirror check's blindness to
 frontmatter and to anything outside the first fenced block; nothing checks the hero GIF against its
 phase table; `.claude-plugin/marketplace.json:15` pins `ref: v0.15.0` with no such tag yet.
+
+---
+
+## Phase 6, close-out
+
+**Decision #7-A.** The backlog is **not** hand-fixed. It becomes the first test corpus for the
+golden-rule check in the next sprint. Most of it is exactly what that check exists to catch, so
+fixing it by hand now would destroy the only labelled examples this project has. If the check cannot
+find these known-bad items, the check is not finished.
+
+**Decision #8-A.** The next sprint starts by **prototyping the check**, scored against this sprint's
+thirteen verified round-5 findings: it must catch the 8 mechanically checkable ones, must not claim
+the 1 semantic-drift one, and must leave the 4 real code defects alone. Rule text gets written after,
+around what the check actually does, rather than before, around what sounds right.
+
+**Landed:** `v0.15.0` tagged locally, not pushed, following the standing decision from #3-A.
+`.claude-plugin/marketplace.json:15` pins `ref: v0.15.0`, which now resolves.
+
+**Cleanup sweep.** Working tree clean, no stray untracked files, no dead branches belonging to this
+sprint (it ran on `main`). `refactor/tech-neutral-principles` exists and is checked out in a linked
+worktree; it predates this sprint and is deliberately left alone rather than swept up.
+
+## Retrospective
+
+**What the sprint set out to do, and did.** Phase 3 dispatches one agent per execution wave instead
+of one per task batch, the vocabulary follows it everywhere, and the same collapse applied to the
+refuters. All 23 checkboxes ticked, six suites green.
+
+**What actually cost the time.** Not the rename. **Sixteen recurrences of one defect: changing a
+rule silently falsifies the reason some other file gives for its behaviour.** No check can see it,
+and it recurred inside the fix waves written to close it. Five review rounds, 61 findings, and the
+majority of them were this.
+
+**The exit rule earned its keep.** Round counts went 6, 26, 15, 7, 13; Critical-plus-Important went
+8, 3, 6, and post-refuter round 5 closed at 4 against round 4's 3. The rule stopped the loop at the
+first round that failed to converge, which is a round earlier than judgement would have. Round 4 was
+the outlier, not the trend, and without a written rule I would have read its 3 as progress.
+
+**What the agents caught that no check could.** Four claims of mine, passed down in dispatch briefs,
+were wrong and were corrected by the agent receiving them rather than by any test: a check that does
+not exist, a "never shipped" that was shipped to main, a "caption" that is a different variable, and
+a claim that two test cases commit when one does. Every one was something I had read in this
+project's own notes and repeated without opening the file.
+
+**The one that matters most.** I committed the sprint's signature defect **inside the document built
+to track that defect**, and then propagated it into an agent's brief as a hard constraint. That is
+the argument for the next sprint in one sentence.
