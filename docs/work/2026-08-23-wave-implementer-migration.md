@@ -1547,6 +1547,73 @@ Criticals are pre-existing rot that rounds 1 and 2 walked past**, not items manu
 waves, which is the opposite of what wave G's three items were. Reviewer D returned empty at every
 severity. The loop is not purely feeding itself, and round 3 earned its cost.
 
+### Phase 5 round 3, refutation and decision table
+
+**One refuter, both lenses, sixteen verdicts, nothing killed.** All 13 findings UPHELD plus D's
+three corrections. Four refutations landed, every one at **sub-claim** level: it declined to kill a
+defect it had read verbatim on disk just because the reviewer reached for the wrong catalog row.
+
+| # | Filed | Verdict | Decision |
+|---|---|---|---|
+| A1 | Critical | **UPHELD**, third independent reproduction, git 2.50.1 | fix |
+| A2 | Minor | **UPHELD**, and load-bearing for A1's new case | fix, before A1's case |
+| A3 | Minor | UPHELD as filed, blast radius one command | fix |
+| A4 | Minor | UPHELD, **citation corrected**: `f` is at `:22`, `:170`, `:181`, not the cited lines | fix |
+| B1 | Critical | **UPHELD, severity overruled to Important** | fix |
+| B2 | Important | UPHELD, all five sites read as filed | fix |
+| B3 | Minor | UPHELD, 413 not 399 | already corrected |
+| F1 | Critical | **UPHELD on BOTH lenses** | fix first |
+| F2 | Important | UPHELD, and F's severity is the right one | same fix as B1 |
+| F3 | Important | UPHELD, **downgraded to Minor**, the next sentence corrects it | fix after F4 |
+| F4 | Important | UPHELD, **worst of the three**, stands alone with nothing correcting it | fix first of the three |
+| F5 | Important | UPHELD | fix |
+| F6 | Minor | UPHELD, same-line edit, 71 stays at 496/500 | fix |
+| F7 | Important | UPHELD, and it is **template-only**, after the fence, so no mirror pair | fix |
+| F8 | Minor | UPHELD, pre-existing, **"the one finding that survives the round unless it gets its own task"** | backlog as its own task |
+| D a/b/c | corrections | **ALL UPHELD**, (b) at Critical confidence | already corrected |
+
+**Ruling 1, B1 versus F2: F is right, Important not Critical.** B's two escalating arguments both
+died with counter-citations. `CHANGELOG.md:20` enumerates three things across four surfaces and the
+refuter checked all four moved, so it is **not falsified**; it never claimed the OUTPUT skeleton
+moved. And `test.edge-cases` is real (`law-scout.md:94`) but covers untested branches, not a report
+field with the wrong arity. What survives is that an agent reading its own OUTPUT skeleton can
+re-anchor on the label and quietly contradict its METHOD. Worth fixing, not worth a Critical, and
+`git grep -nF 'Seam list'` returns only producer headings and **zero consumers**.
+
+**Ruling 2, A1's counters: six, not four, plus a rationale nobody filed.** The four are right. Two
+more sit in the same file the fix already edits: `10-ban-list-cases.sh:253` **"TWO CASES, NOT ONE"**
+with its `(a)`/`(b)` enumeration becomes three, and `:331-337` says **"neither case below can prove
+it for itself: (a) dies on the pathspec and (b) dies in the shell, so both reach their verdict
+without git ever opening a file"**, which a third case that DOES open a file makes false.
+
+**And the sentence that authorized the bug: `70-invariants-and-new.sh:214`, "rc 1 is the honest
+clean tree, rc 0 is a hit, anything higher is a scan that never ran."** Neither Reviewer A nor the
+parent filed it. It goes false the moment the fix lands. Same for `:231`.
+
+**One number must NOT move, and the refuter said so before anyone could get it wrong.**
+`30-inventory-pins.sh:109-110`'s **"these three"** is `TB_EXPECT_FAILCLOSED=3`, the batched-ban
+cases, scoped apart from `wi_absent` at `10-ban-list-cases.sh:264-270`. It stays three. Only
+`eleven` and `all eleven` go to twelve. That is the fifth number in one sentence family, and
+"correcting" it is exactly how this fix wave would manufacture round 4.
+
+**My ':233 is falsified' claim was wrong, and that is the seventh correction of mine this sprint.**
+I said the rationale at `:233` cites a contract that does not transfer. It cites
+`00-helpers.sh:302-307`, and those lines read **"a screen that never ran must never be the reason a
+token prints green"**, which is a policy and does transfer. The grep-specific three-status mapping
+is at `:288-289`, which `:233` never cites. **The defect stands on the reproduction lens alone**,
+which is why a Critical needs both lenses to die.
+
+**The constraint that makes A1's test case hard, stated before dispatch.** Case (a) uses a bogus
+pathspec, rejected before git opens anything. Case (b) shims `mktemp` and dies in the shell. Neither
+opens a file. The new branch needs `git grep` to genuinely fail to stat a **tracked** file, so the
+fixture has to be a real file sealed with `chmod 000`, a third shape. Sealing a real repo file needs
+trap discipline the existing cases lack, and A3 already flags an untrapped window next door; moving
+to a scratch repo breaks `tb_wi_fixture_ready:345`, which proves the fixture against the real tree.
+Plus A2 bites: the new case inherits `WI_LIVE_PATHS=(':(top)')` and must call `tb_wi_scope_ready`.
+
+**Headroom.** `10-ban-list-cases.sh` is **413 of 500**. A case plus its rationale block runs about 40
+lines in this file, landing near 455. Under the cap. The one after it will not be.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
