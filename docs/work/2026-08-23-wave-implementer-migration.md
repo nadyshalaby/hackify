@@ -306,6 +306,27 @@ was not a no-op, the FAIL line verbatim showing the pin's OWN check id, the rest
 tail showing green again, and the commit sha identical before and after. Tamper on a scratchpad
 copy, and restore by file rather than `git checkout`, which would revert real work too.
 
+## 5c. What AC3's "is registered" can and cannot prove this session
+
+Measured after T1 landed. The running harness loads the INSTALLED plugin at
+`~/.claude/plugins/cache/hackify-marketplace/hackify/0.13.1/agents/`, which still holds
+`wave-task-implementer.md`. This repo is the SOURCE, now at 0.14.2, and holds
+`wave-implementer.md`. They are different trees.
+
+Two consequences, both operational:
+
+1. **Every remaining wave dispatches `hackify:wave-task-implementer`, the OLD type**, because
+   that is what resolves in this session. The new type cannot resolve until the plugin is
+   reinstalled at a version carrying the rename. This is not a defect and needs no workaround;
+   it just means the sprint renames an agent while running the previous release of itself.
+
+2. **AC3's "is registered" is verifiable structurally and NOT behaviourally this session.**
+   The file exists, `60-primitives.sh` lists it, and the mirror check passes, so the structural
+   half is proven. That a dispatch of `hackify:wave-implementer` actually RESOLVES cannot be
+   proven here, and no green check in this repo proves it either. Recording that gap rather
+   than letting the green triad imply coverage it does not have, which is this project's
+   recurring defect. First real dispatch after reinstall is the only evidence that closes it.
+
 ## 6. Daily Updates
 
 (Opened at Phase 3.)
