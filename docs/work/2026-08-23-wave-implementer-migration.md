@@ -2124,3 +2124,54 @@ command substitution really does return the parent's trap on bash 3.2 and 5.x; `
 persist, so neither the `GIT_DIR` pair nor the `mktemp` PATH shim outlives its case; nothing in the
 suite can touch anything outside `TB_TMP`. A swept for other rc-only `git grep` reads and found one,
 `15-wi-absent-cases.sh:157`, which is fail-closed.
+
+### Phase 5 round 4, Reviewer F: zero Critical, one Important, one Minor
+
+**F used the `[wave: same|cross|off-map]` field that fix wave C created two hours earlier**, and
+prioritised its cross-wave seams first. That is end-to-end proof the B1/F2 fix works in the only way
+that counts, a reviewer actually using it. It also opened by saying its runtime had loaded a stale
+copy of its own prompt and that it was following the on-disk contract instead. **Sixth time this
+sprint an agent has refused to act on a stale brief.**
+
+#### The Important: the last dead reason, and my census missed it three times over
+
+`skills/hackify/references/phases/phase-2.5-spec-review.md:13` still says
+**`Flag tasks sharing a file (parallel conflict)`**. The agent that protocol dispatches says
+`Nothing inside a wave runs in parallel any more` at `:82` and gives the attribution reason at
+`:286`. Every sibling already carries the new reason. Left standing, a parent reads the invariant as
+vacuous and stops splitting waves, which is the one outcome the rule exists to prevent.
+
+**Why my census walked past it, and it is the same mistake a third time.** I searched
+`share a file`. The file says `sharing a file`. Round 3 taught me to census the vocabulary of the
+change rather than the wording of the finding, and I did widen from `concurrent edit conflict` to
+`parallel`. But I still searched **one inflection of one phrase**. The rule needs a further clause:
+**a census searches word STEMS across every inflection, not a literal phrase.** `shar` would have
+caught all three of `share`, `shares`, `sharing`. This one cost a round.
+
+A re-run with `shar(e|es|ing) (a|the same) file|same file` plus every collision wording confirms
+`:13` is now the **last** site in this family. Everything else is either the rule stated with no
+reason attached (correct as written), the sanctioned `file-collision edge` name, or an unrelated
+sense of the word (a rule conflict, an `index.html` name collision, the refuter's per-finding
+numbering).
+
+#### The Minor: fix wave A corrected the heading and left the body
+
+`15-wi-absent-cases.sh:42` correctly reads `THREE CASES, NOT ONE`. But `:110`, `:118` and `:161` all
+still say **`both cases below`**, and `:82` still says `two cases`, while `TB_EXPECT_WI_FAILCLOSED`
+three lines away is 3 and the wiring table names the third case. Wave A fixed the enumeration block
+it was pointed at and left four sibling strings inside function bodies. The split then carried the
+lot across whole.
+
+**And the paragraph at `:86-91` says its own claims "were true when written and were falsified by
+fixes in files this fragment does not own", which is now itself false**, because the falsifying fix
+landed in this very file. Prose that is stale about its own staleness. A neat miniature of the whole
+sprint.
+
+#### What F cleared, on the record
+
+All 9 mirror pairs green on the fenced block, **and F read all 9 `description:` frontmatter lines
+against the prompts they advertise, including three agent files this diff never touched**, and found
+none stale. That is the half `--check` cannot see. All five retired phrases are gone from live files.
+The test-fragment split agrees on every seam: the source line, both wiring field-0 values, the
+cross-file counts (9 functions in `10-`, 8 in `15-`, 4 names, 3 fail-closed), and the pin citation
+naming the right fragment. No unwired symbols: all 8 new functions have live callers.
