@@ -63,6 +63,9 @@ reachable; the derivation returned 3.**
 - **#12-B Build all four zero-reaching classes.** C1, C2, C4 and C5 reach none of the thirteen. They
   ship anyway, on prevention grounds. **The score will not move when W2 and W3 land. That is
   expected and is written down here so it is not misread as the check failing.**
+- **#14-A Counts are guarded by floors in the checking code, not by annotations in prose.** Taken
+  after the T4 agent declined to build C1 and argued the class cannot be built under this sprint's
+  own guardrail. Replaces T4. See the Wave 3 entry for the full argument.
 - **#13-A C7 runs both polarities.** Claiming a phrase is absent where it is present, and claiming
   one is present where it is absent, are the same defect and one scanner covers both. This moves M4
   into the reachable set, which is the AC1b entry recorded below.
@@ -216,10 +219,16 @@ new tasks carry decision #9-B's widened classes.
 - [ ] **T3** C4 check-exists, in new `scripts/validate-dod.d/91-claim-resolvers.sh`, **wired into the
       sourced list in the same commit**. Name the reference grammar and its exclusions first: bare
       `[NN]` yields 136 hits in live markdown and collides with markdown reference-link syntax.
-- [ ] **T4** C1 annotated counts, in new `scripts/validate-dod.d/92-claim-annotations.sh`, **wired in
-      the same commit**. **Binds the union of staged and on-disk**, with the rc/stderr tie-breaker
-      from `70-invariants-and-new.sh:290-311`: rc 1 with anything on stderr is a scan that never ran,
-      never a green. Fixed verb vocabulary, constrained arguments per AC3.
+- [x] **T4** C1 annotated counts. **DECLINED, nothing built. Superseded by T4b under #14-A.**
+      The class cannot be built under this sprint's own guardrail: an annotation may carry a command
+      (banned), a pattern that becomes a regex (banned), a literal counted with `grep -F` (safe but
+      near-empty, since real count claims count files, rows and line spans rather than occurrences of
+      one string), or a name selecting a measurement hardcoded in the fragment (safe, but then the
+      fragment already holds the measurement and the annotation is a second place to keep in sync).
+- [ ] **T4b** **Floors in the checking code** for the quantities that matter, the working form of
+      the same idea. The repo already does this at `20-templates.sh:4` (`check_line_range`) and in
+      the `_FLOOR=` idiom in `[76]`, `[91]` and `[93]`. Pick the quantities other things actually
+      depend on; a floor on a number nobody reads is ceremony.
 - [ ] **T5** C3 declared vs used: every `{{token}}` in an agent prompt appears in its INPUTS list.
 - [ ] **T5b** **C5 retired vocabulary** (#9-B). Machinery already exists as `WI_DEAD_WORDS` in
       `70-invariants-and-new.sh`; it is unfed for this class. Feed it, with an allowlist, because six
@@ -507,6 +516,56 @@ completeness gap in a release note, a scanner's own line-based blind spot. **A r
 checks make claim drift impossible would itself be the defect it bans.** AC6 already demotes the
 command-per-fact convention from a guarantee to an aid, on the evidence that this sprint's own brief
 attached a command to a fact and the command was the thing that was wrong.
+
+### 2026-08-24, Wave 3, the first catch and a declined task
+
+**`[93]` is the first check in this sprint that catches a finding from the frozen answer key.** M3
+replays from its pinned blob and reds at the right file, line and token. Landed as `e9c461a`.
+
+**My brief was wrong about M3 in a way that changed the design, and the agent caught it.** I
+described the token as used in the prompt body while declared in no INPUTS list, which implies it sat
+outside that section. **It sits inside it**, at line 55 against an INPUTS anchor at 37, on a
+continuation line as an example for a different input. So any window over the INPUTS section, at any
+width, answers "the token is in there" and misses the finding. Declaration had to become structural:
+the token heads a numbered item on its own line. Both halves are pinned as tests, including one
+asserting that a window rule reads the fixture as clean. Reproduced independently before accepting it.
+
+**CI now runs the suites this sprint adds** (`8f26cb4`), which nothing did before. The same wave
+extended `ci.yml`'s `fetch-depth: 0` rationale, which documented one reason and had silently
+acquired a second: the fixture suite resolves blobs behind HEAD and reds environmentally on a shallow
+clone. A reader trusting that comment could have trimmed the checkout and broken a suite, with
+neither failure naming the setting. **The sprint produced that defect itself and caught it in the
+same wave.**
+
+### T4 declined, and #14-A replaces it
+
+The agent refused to build C1 and gave an argument that survives checking. Under the guardrail that
+nothing sourced from a repo file is executed, an annotation can carry exactly four things, and three
+are closed. A command is banned. A pattern that becomes a regex is banned. A literal counted with
+`grep -F` is safe but nearly empty. A name selecting a measurement hardcoded in the fragment is safe,
+**but then the fragment already holds the measurement, and the annotation is only a second place to
+keep in sync.**
+
+**I tested the weakest link rather than relaying it.** Of 774 count claims in live markdown, shell and
+Python, almost none are of the form "this exact phrase appears N times"; they count files, rows and
+line spans. So the safe slice really is near-empty.
+
+**Two supporting arguments, both empirical.** First, the writer who miscounts writes the annotation
+from the same wrong idea, and this sprint has three instances: "23 check ids" (`^`-anchored command),
+"88" (a token count, not a declared set), and the `~530` count-claim figure at line 174 of this doc,
+**whose recorded command contains `...`, which in that position matches any three characters rather
+than marking an elision, so the command counts something other than what the sentence says.** Third
+strike for AC6 in one sprint: attaching a command proves reproducibility, never correctness.
+
+Second, C1 was to be diff-scoped, so it would fire only when someone edits the line. **A count goes
+stale precisely when the line is left alone and the tree moves underneath it**, so a diff-scoped
+check watches the one moment the number is most likely to be right.
+
+**#14-A takes the alternative:** floors in the checking code, which is what the repo already does and
+what works. Same goal, mechanism that survives the guardrail.
+
+**The agent also caught a stale count of its own** and fixed it by deleting the number rather than
+updating it, since the live totals print on every run. That is the right instinct and belongs in T9.
 
 ## 7. Sprint Review
 
