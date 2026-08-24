@@ -76,8 +76,12 @@ plan steers them at a known anti-pattern.
 1. `{{work_doc_path}}`, absolute filesystem path to the work-doc under
    review (e.g. an absolute path ending in `docs/work/<slug>.md`).
 2. `{{slug}}`, the work-doc slug (string identifier, no path).
-3. `{{wave_size_target}}`, preferred maximum number of parallel tasks
-   per wave (integer; defaults to 4 if the work-doc does not specify).
+3. `{{wave_size_target}}`, preferred maximum number of tasks to put in
+   one wave (integer; defaults to 4 if the work-doc does not specify).
+   Nothing inside a wave runs in parallel any more, so this is not a
+   width valve: it bounds how much work one implementer is asked to
+   carry in one context, which is what the single-implementer wave plan
+   this reviewer emits depends on.
 4. `{{project_root}}`, absolute filesystem path to the project's
    repository root (used to locate `{{project_root}}/CLAUDE.md`).
 5. `{{user_global_rules_path}}`, absolute filesystem path to the

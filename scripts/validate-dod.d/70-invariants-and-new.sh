@@ -186,14 +186,18 @@ done
 # THE EXCLUDED PATHS ARE THE ONES ALLOWED TO SAY THE OLD WORDS. dist/ is
 # generated, docs/work/ is the sprint record that quotes the rename it carried
 # out, CHANGELOG.md is release history that has to name what was renamed, and
-# this fragment holds the very literals it bans. THE CHANGELOG ROW WAIVES
-# NOTHING TODAY, deliberately: that file carries the retired name without its
-# `hackify:` prefix, so the row is future-proofing for the release note this
-# rename has yet to be written into, not the record of a real hit being let
-# through. THE SELF-EXCLUSION TRAVELS WITH THIS BLOCK, and whoever splits this
-# fragment next has to carry it: 70 was split once already at the 500-LOC cap,
-# and a [40] that moves house while that path stays behind would red on its own
-# literals in the middle of the move. git grep reads TRACKED files,
+# this fragment holds the very literals it bans. THE CHANGELOG ROW WAIVES A
+# REAL OCCURRENCE, deliberately: 0.15.0's own release note has to quote the
+# retired type verbatim, prefix and all, to describe what the rename replaced,
+# and a release note that cannot name the old name cannot describe the change.
+# This comment used to claim the row waived nothing and was pure
+# future-proofing, and the release note written later in the SAME sprint
+# falsified it. That is the recurring defect this fragment exists to catch, so
+# it is recorded here rather than quietly corrected. THE SELF-EXCLUSION TRAVELS
+# WITH THIS BLOCK, and whoever splits this fragment next has to carry it: 70 was
+# split once already at the 500-LOC cap, and a [40] that moves house while that
+# path stays behind would red on its own literals in the middle of the move.
+# git grep reads TRACKED files,
 # which keeps an unsynced dist/ working tree out of the scan for free; [55]
 # already reds on an uncommitted file under skills/, agents/ and hooks/, so
 # scanning untracked paths here would buy no coverage and add false alarms.
@@ -211,12 +215,29 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 # is a hit, anything higher is a scan that never ran and must never be the
 # reason a dead phrase prints green. The failure prints file and line, because
 # the actionable half of an absence check is WHERE the ghost survived.
+#
+# STDERR GOES TO ITS OWN FILE AND NEVER INTO `hits`. The rc > 1 branch reports a
+# scan that did not run, and reporting only the number while discarding the one
+# sentence that says WHY leaves the reader with the least actionable half. It is
+# captured to a temp file rather than merged with `2>&1` on purpose: git grep can
+# write a warning and still exit 0 or 1, and merged text would then be read as a
+# matched line, turning a clean tree into a phantom hit. `rc=$?` stays the very
+# next statement after the substitution, so nothing in between can overwrite the
+# status this whole check rests on.
 wi_absent() {
-  local lit="$1" hits rc
-  hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>/dev/null)
+  local lit="$1" hits rc err errtxt
+  err=$(mktemp)
+  hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
   rc=$?
+  errtxt=$(cat "$err")
+  rm -f "$err"
   if [ "$rc" -gt 1 ]; then
     red "  FAIL [40] git grep exited $rc scanning for '$lit', so finding nothing here would be finding nothing at all"
+    if [ -n "$errtxt" ]; then
+      printf '%s\n' "$errtxt" | sed 's/^/         git: /'
+    else
+      printf '%s\n' "         git: exited $rc without writing anything to stderr"
+    fi
     FAILED=$((FAILED + 1))
     return
   fi

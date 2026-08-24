@@ -125,7 +125,7 @@ happens there, so that steps 4 onward are analysis rather than fetching.
    `## 5. Sprint Backlog` from the work-doc at `{{work_doc_path}}`, and
    only those. Approach, Daily Updates, Sprint Review and Retrospective
    carry nothing you check, and that includes the `Execution waves` block
-   with its task batches. Extract three lists,
+   with its per-wave task IDs. Extract three lists,
    verbatim where the work-doc allows: (a) every DoD bullet (D1, D2,
    …); (b) every Task (T1, T2, …) with its file-allowlist if stated;
    (c) every locked Q&A answer that constrains scope (e.g. "soft

@@ -235,10 +235,10 @@ If a section has nothing to report, write `None.` on its own line, never
 go silent.
 ```
 
-After all wave agents return:
-1. Read every report. Spot-check that no agent touched files outside its list (`git diff --name-only`, should match the union).
+After the wave's single agent returns:
+1. Read its report, starting with the `## Wave status` section at the top: that is where the agent names which task IDs landed and which did not. Spot-check that nothing landed OUTSIDE the union of the wave's allowlists (`git diff --name-only`, every path in the diff must appear in the union). Do not assert the reverse. A wave that stopped early writes a strict SUBSET of the union on purpose, so a union path missing from the diff is the stop working as designed, and only a diff path missing from the union is a violation.
 2. Run the repo-wide triad ONCE, `<test runner command> && <linter command> && <typecheck command>`, substituting the project's actual commands.
 3. If any are red, classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b).
 4. Run BOTH deterministic scouts over the wave-touched files (the union of this wave's allowlists), **before ticking anything**: the perf-scout (`../perf-scout.md`) and the law-scout (`../law-scout.md`). Give every candidate exactly one disposition, `fixed` (trivial and inside this wave's allowlist), `staged` (carried to Phase 5), or `false-positive: <one-line reason>`. Append both staging tables to this wave's Daily Updates entry. A candidate that vanishes without a row is a protocol violation.
-5. Tick all wave checkboxes. Append one Daily Updates entry per task.
-6. Single commit for the wave (subject covers the wave; body lists task IDs).
+5. Tick ONLY the task IDs the report's `## Wave status` lists as landed, never the whole wave. Ticking a task the agent never finished records work that is not on disk, which is the one thing a work-doc must never do. The not-landed IDs stay unticked: re-dispatch them in the next wave dispatch when the agent stopped for an agent reason (a bad prompt, a lost context, a tool failure), and drop to Phase 3b with them when it stopped for a plan reason (the task as written cannot be built). Append one Daily Updates entry per landed task, plus one line naming the stopping task and its reason whenever anything did not land.
+6. Single commit for the wave (subject covers the wave; body lists the task IDs that landed).

@@ -1,6 +1,6 @@
 ---
 name: yolo
-description: Full-discipline-zero-waiting companion to hackify. Same phases as full hackify (Clarify with exploration, in-chat Plan, Spec-review, parallel Implement, Verify, Multi-reviewer, Finish) but Phase 2 plan sign-off and the Phase 6 4-options menu are auto-passed, so YOLO never blocks waiting on you. Auto-discovery triggers (case-insensitive, scanned in the most recent user message only), /hackify:yolo, /yolo, "yolo", "yolo it", "go yolo", "just do it", "don't ask me", "no questions", "fully autonomous", "auto mode", "go full auto". Does NOT trigger on "just fix it" (could mean quick mode) or "do it" (too ambiguous). Phase 5 findings are auto-fixed in-place at EVERY severity, then re-scanned to zero. No work-doc on disk, so no pause and no resume across sessions.
+description: Full-discipline-zero-waiting companion to hackify. Same phases as full hackify (Clarify with exploration, in-chat Plan, Spec-review, Implement in waves, Verify, Multi-reviewer, Finish) but Phase 2 plan sign-off and the Phase 6 4-options menu are auto-passed, so YOLO never blocks waiting on you. Auto-discovery triggers (case-insensitive, scanned in the most recent user message only), /hackify:yolo, /yolo, "yolo", "yolo it", "go yolo", "just do it", "don't ask me", "no questions", "fully autonomous", "auto mode", "go full auto". Does NOT trigger on "just fix it" (could mean quick mode) or "do it" (too ambiguous). Phase 5 findings are auto-fixed in-place at EVERY severity, then re-scanned to zero. No work-doc on disk, so no pause and no resume across sessions.
 ---
 
 # Hackify YOLO (Full Discipline, Zero Waiting)
@@ -111,4 +111,4 @@ Route these to full hackify (`/hackify:hackify`) from the start.
 
 ## One-line summary
 
-Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → parallel impl (both scouts at every wave-end) → verify (ledger + 3 layers + ship gate) → the evidence-gated parallel Multi-reviewer panel, refute, address-all auto-fix every surviving severity, re-scan on a settled diff → touched-scope cleanup + commit to current branch locally + HTML report.
+Full hackify pipeline, no gates that wait on you, no work-doc on disk, clarify-with-exploration + goal anchor → in-chat plan → spec-review → wave impl, one agent per whole wave (both scouts at every wave-end) → verify (ledger + 3 layers + ship gate) → the evidence-gated parallel Multi-reviewer panel, refute, address-all auto-fix every surviving severity, re-scan on a settled diff → touched-scope cleanup + commit to current branch locally + HTML report.

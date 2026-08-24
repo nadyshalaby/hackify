@@ -124,7 +124,7 @@ On promotion, quick mode writes a work-doc from accumulated context (intent, cla
 
 ### YOLO mode
 
-`/hackify:yolo` is the full-autopilot sibling. Same workflow phases as `/hackify:hackify`, clarify (with exploration), in-chat plan, spec-review, parallel implementation, verify, multi-reviewer, finish, but two gates auto-pass:
+`/hackify:yolo` is the full-autopilot sibling. Same workflow phases as `/hackify:hackify`, clarify (with exploration), in-chat plan, spec-review, implementation waves, verify, multi-reviewer, finish, but two gates auto-pass:
 
 - **Phase 2 plan-gate**, no sign-off; the in-chat plan block is posted and Phase 2.5 begins immediately
 - **Phase 6 finish menu**, auto-picks Option 1: commit to current branch locally, no push
@@ -237,7 +237,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 
 ## Parallel agents
 
-Parallelism is the default, not the exception. Whenever two or more pieces of work are independent, implementation tasks in the same wave, code review concerns, cross-package verification, multi-boundary debug evidence, hackify dispatches foreground subagents in a single message and waits for the whole batch.
+Parallelism is the default, not the exception. Whenever two or more pieces of work are independent, code review concerns, cross-package verification, multi-boundary debug evidence, hackify dispatches foreground subagents in a single message and waits for the whole batch. Phase 3 is the exception: a planned wave goes to one foreground subagent whatever its width.
 
 The safety property that makes this work is a **strict file allowlist** baked into every agent's prompt. The wave planner groups tasks so no two tasks in the same wave touch the same file; each agent is told the exact files it may touch and instructed to stop if it discovers it needs another. Dispatch templates conform to a canonical seven-section contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), see [`skills/hackify/references/parallel-agents/template-contract.md`](skills/hackify/references/parallel-agents/template-contract.md) and the subdir index at [`skills/hackify/references/parallel-agents/README.md`](skills/hackify/references/parallel-agents/README.md).
 
@@ -376,7 +376,7 @@ See [`rules/four-principles.md`](rules/four-principles.md) for the canonical wri
 - **One file, not many.** The work-doc replaces a spec doc, a plan doc, a progress file, a review log, and a post-mortem. One file is easier to keep current than five.
 - **Clarify everything up front.** A batched questionnaire before any code is written catches misreads while they are cheap.
 - **One hard gate, not many.** Between Plan and Implement. Everything else runs continuously with progress reports.
-- **The parent never writes the code.** Every change, down to a one-line typo, is authored by a dispatched agent under a file allowlist; the parent plans, dispatches, verifies and reviews. Wave-based dependency ordering plus file allowlists make parallel implementation safe.
+- **The parent never writes the code.** Every change, down to a one-line typo, is authored by a dispatched agent under a file allowlist; the parent plans, dispatches, verifies and reviews. Wave-based dependency ordering plus file allowlists make one foreground subagent per whole wave safe.
 - **Evidence before claims.** No Definition-of-Done bullet is checked without fresh command output or a verifying script in the work-doc.
 - **Multi-reviewer is the floor.** A single lens always misses something. The quality, engineering-law and scope reviewer runs on every wave; security, performance and cross-module coherence join in parallel whenever the diff touches their surface, design conformance joins on UI-bearing diffs, and a lens that does not get its own agent is handed to the standing reviewer rather than dropped.
 - **Shipping means it runs, and findings survive a challenge first.** A green test suite is not a working app, so the ship gate builds, boots and smoke-drives the touched flow before a task may finish. Every finding faces an adversarial refuter that defaults to keeping it, because dropping a real defect costs more than fixing a phantom.
@@ -406,14 +406,14 @@ For one-line typo fixes with no behavioral impact, use the carve-out (no skill n
 **Does hackify lock me into a specific language or toolchain?**
 No. The reference rules are written in language-agnostic voice, package manager, linter, formatter, type system, test runner, and you supply the concrete commands for your own stack. The phases, the gate, the parallel-agent dispatch, the verification rigor, the multi-reviewer pass, none of that is tied to a language or toolchain.
 
-**How are the parallel subagents safe?**
-Two mechanisms. Each agent's prompt carries a strict file allowlist, the agent is told the exact files it may touch and is instructed to stop if it discovers it needs another. The wave planner groups tasks so no two agents in the same wave share a file. Tasks in wave N may only depend on results from waves 1 through N-1.
+**How are the implementation waves kept safe?**
+Two mechanisms. Each agent's prompt carries a strict file allowlist, the agent is told the exact files it may touch and is instructed to stop if it discovers it needs another. The wave planner groups tasks so no two tasks in the same wave share a file. Tasks in wave N may only depend on results from waves 1 through N-1.
 
 **Does the plugin depend on other plugins or skills?**
 No. Hackify is intentionally self-contained. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined in `SKILL.md` or one of the bundled reference files.
 
 **What happens if I interrupt mid-implementation?**
-The work-doc holds state. Implementation Log entries are written per task, so the following session reads the latest entry and picks up at the following unchecked checkbox. Interrupting during a parallel wave is safe, the parent waits for all dispatched agents to return before writing log entries.
+The work-doc holds state. Implementation Log entries are written per task, so the following session reads the latest entry and picks up at the following unchecked checkbox. Interrupting during a wave is safe, the parent waits for that wave's single dispatched agent to return before writing log entries.
 
 **Does the workflow support monorepos?**
 Yes. Each sub-project (e.g., backend and frontend repos) is its own git repo with its own `docs/work/` directory. When a task spans multiple projects, create one work-doc per project and link them via the `related` frontmatter field. Phase 4 verification fans out across packages by default, one agent per package.

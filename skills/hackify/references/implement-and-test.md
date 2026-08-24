@@ -1,8 +1,8 @@
 # Implement & Test (Phase 3 Walkthrough)
 
-The implement phase is **wave-based and parallel by default.** Tasks are sorted by priority and topological dependency, grouped into waves where no two tasks share a file, and each wave is dispatched to one foreground agent per task in a single message. Per-task discipline (TDD when applicable, file allowlist, fully green before reporting) is enforced inside each agent's prompt.
+The implement phase is **wave-based, one foreground subagent per whole wave.** Tasks are sorted by priority and topological dependency, grouped into waves where no two tasks share a file, and the whole wave is dispatched to exactly one foreground agent that carries every task in it, in run order. Per-task discipline (TDD when applicable, file allowlist, fully green before reporting) is enforced inside that agent's prompt.
 
-The single-task fallback (one agent, one task) only applies when a wave naturally has one task, e.g., a serializing migration step.
+**A one-task wave is the same dispatch** with one task in it, e.g., a serializing migration step. There is no other shape and no cap on wave width: no module split, no grouping decision at dispatch time.
 
 ---
 
@@ -12,12 +12,13 @@ The single-task fallback (one agent, one task) only applies when a wave naturall
 1.  Update frontmatter:    status: implementing,  current_task: W<n>:T<a>+T<b>+…
 2.  Confirm the wave plan from the work-doc Approach. Each wave member's
     file allowlist must NOT overlap with peers in the same wave.
-3.  Dispatch ONE Agent per task in the wave, in a SINGLE assistant message
-    (parallel Agent tool calls). Each prompt is self-contained per the
+3.  Dispatch ONE Agent for the WHOLE WAVE, however wide it is. Its prompt is
+    self-contained and carries the wave's task IDs in run order, per the
     template in references/parallel-agents/phase-3-implementation.md.
-4.  Wait for ALL agents to return.
-5.  Verify each agent stayed inside its file allowlist:
-       git diff --name-only ⇒ should match the union of allowlists.
+4.  Wait for the agent. Read its report: it names which task IDs landed.
+5.  Verify the wave diff stayed inside the file allowlists:
+       git diff --name-only ⇒ should match the union of allowlists,
+       and each task's hunks stay inside that task's OWN allowlist.
 6.  Run full project suite ONCE for the wave: test + lint + typecheck. All green.
 7.  Self-review against references/review-and-verify.md (parent does this).
 8.  Tick all wave Tasks checkboxes. Append one Implementation Log entry per task.
@@ -25,10 +26,10 @@ The single-task fallback (one agent, one task) only applies when a wave naturall
 10. Advance to wave N+1.
 ```
 
-Per-agent discipline (enforced inside each agent's prompt, see the template):
+Per-task discipline (enforced inside the wave agent's prompt, see the template). Steps a to e repeat for every task in the wave, in run order; step f runs once:
 
 ```
-a.  Decide test mode for the assigned task (test-first / test-after / manual / none).
+a.  Decide test mode for the current task (test-first / test-after / manual / none).
 b.  IF test-first:
        i.   Write the failing test.
        ii.  Run only the file-scoped test. SEE IT FAIL with the right error.
@@ -36,8 +37,11 @@ b.  IF test-first:
 c.  Write the minimum code to satisfy the task. NOTHING more.
 d.  Run the file-scoped test. See it pass.
 e.  Self-review per checklist before reporting done.
-f.  REPORT BACK. The parent runs repo-wide verification + commit.
+f.  REPORT BACK, naming which of the wave's task IDs landed and which did not.
+    The parent runs repo-wide verification + commit.
 ```
+
+**Stop at the first task you cannot finish.** Everything already written stays on disk and the report says which task IDs landed, so a failure late in the wave costs the tasks after it, never the ones before it. The parent re-dispatches the stopped task; it never re-runs the ones that already landed.
 
 Skip steps deliberately and the work-doc Implementation Log records why. **Watching the test fail is non-negotiable when test mode is test-first.** If the agent didn't watch it fail, the agent doesn't know if it tested the right thing.
 
@@ -221,7 +225,7 @@ If any step surprises you, **stop and treat it as a bug**, switch to Phase 3b de
 
 ---
 
-## Commits (one per task)
+## Commits (one per wave)
 
 ```
 <type>(<scope>): <subject>
@@ -240,12 +244,12 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 **Never** `--no-verify` unless the user explicitly told you to. Hook failures point at real issues.
 
-The Plan's task description goes in the commit subject. The commit body, if any, points to the work-doc and the task ID for traceability:
+One commit closes the whole wave, never one per task. The subject describes what the wave delivered; the body names the work-doc and lists every task ID that landed, which is what makes the commit traceable back to the Sprint Backlog. A wave that stopped early commits only the IDs its agent reported as landed, so the commit and the ticked checkboxes say the same thing:
 
 ```
-feat(invitations): add expires_at column
+feat(invitations): add expiry column and the expiry guard
 
-Implements T1 of docs/work/2026-05-03-add-invitation-expiry.md.
+Implements T1 and T2 of docs/work/2026-05-03-add-invitation-expiry.md.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 ```
