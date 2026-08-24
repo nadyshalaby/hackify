@@ -69,10 +69,10 @@ and charitable interpretation of "this probably counts as task T<n>".
 8. `{{task_file_index}}`, map of wave-qualified task ID → file
    allowlist, pre-built by the dispatching agent (e.g.
    `W1/T1: [src/a.ts, src/b.ts]`). Reviewer F receives the SAME
-   map; the `W<n>/` prefix is F's same-wave signal and is not
-   used by you, match on the `T<m>` part. The reviewer MUST NOT
-   infer this map from task description prose, the dispatcher is
-   responsible for providing it.
+   map; the `W<n>/` prefix tells F which seams cross a wave
+   boundary and is not used by you, match on the `T<m>` part.
+   The reviewer MUST NOT infer this map from task description
+   prose, the dispatcher is responsible for providing it.
 
 9. `{{repo_brief}}`, the sprint's shared repo-context brief (stack,
    test / lint / typecheck commands, layering rules, where things

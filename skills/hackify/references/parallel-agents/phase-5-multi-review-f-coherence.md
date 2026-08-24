@@ -50,7 +50,7 @@ Bias against: accepting "they are close enough" between two shapes.
    `W2/T4: [src/invitations/invitations.service.ts]`,
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
    the SAME map Reviewer B receives; the `W<n>/` prefix is your
-   same-wave signal and is not used by B, which matches on the
+   wave-boundary signal and is not used by B, which matches on the
    `T<m>` part. One agent writes a whole wave, so files sharing a
    `W<n>` prefix came from a single implementer that saw both sides.
    The highest-risk seams run ACROSS wave numbers, and between any
@@ -197,7 +197,7 @@ stated in one line. Use this exact report skeleton:
 Scope: <the `{{review_scope}}` value you received, verbatim>
 
 ## Seam list
-- <symbol>, producer `<file>:<line>` → consumers `<file>:<line>`, … [same-wave: yes|no]
+- <symbol>, producer `<file>:<line>` → consumers `<file>:<line>`, … [wave: same|cross|off-map]
 
 ## Critical
 - <symbol>, <disagreement in one line>; producer `<file>:<line>`; consumer `<file>:<line>`.
@@ -222,7 +222,7 @@ heading, never go silent.
 ## Dispatch notes
 
 - **Gated on the seam, not on size.** F dispatches in the same single parent message as the rest of the panel, B always plus whichever of A, D and E the gate put on it. What earns F its slot is the diff crossing a module boundary, never diff size or file count. Most non-trivial waves do cross one, because a wave's implementer is blind to the waves that ran before it and to every line of pre-existing code, and F is the only lens that compares producer against consumer. When the diff stays inside one module there is no counterpart to compare against and F's residual checklist folds into B. The carve-out is the same as the rest of the wave: a purely one-line typo / comment / config-only diff.
-- **`{{task_file_index}}` is the dispatcher's job, and it is built ONCE for the whole wave.** Reviewers B and F both receive it, so build it once from the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. F reads the `W<n>` prefix to tell which seams cross a wave boundary; B matches on `T<m>` to map each touched file back to its authorizing task. In quick mode there is one implementation agent, so pass a single-entry map (`W1/T1: [...]`); in yolo, build it from the in-chat plan block. A reviewer that receives an unfilled placeholder must refuse and report `unfilled placeholder: task_file_index`.
+- **`{{task_file_index}}` is the dispatcher's job, and it is built ONCE for the whole wave.** Reviewers B and F both receive it, so build it once from the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. F reads the `W<n>` prefix to tell which seams cross a wave boundary; B matches on `T<m>` to map each touched file back to its authorizing task. In quick mode there is one implementation agent, so pass one entry per task, all keyed under wave 1 (`W1/T1: [...]`, `W1/T2: [...]`); in yolo, build it from the in-chat plan block. A reviewer that receives an unfilled placeholder must refuse and report `unfilled placeholder: task_file_index`.
 - **Findings feed the address-all loop** in `review-and-verify.md` like every other reviewer's. An `Unwired symbols` row with a named work-doc task is also a Reviewer B plan-consistency signal, expect the two reports to overlap there; that agreement is a confirmation, not a duplicate to drop.
 
 ## See also

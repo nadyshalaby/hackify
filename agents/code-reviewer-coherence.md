@@ -49,7 +49,7 @@ Bias against: accepting "they are close enough" between two shapes.
    `W2/T4: [src/invitations/invitations.service.ts]`,
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
    the SAME map Reviewer B receives; the `W<n>/` prefix is your
-   same-wave signal and is not used by B, which matches on the
+   wave-boundary signal and is not used by B, which matches on the
    `T<m>` part. One agent writes a whole wave, so files sharing a
    `W<n>` prefix came from a single implementer that saw both sides.
    The highest-risk seams run ACROSS wave numbers, and between any
@@ -196,7 +196,7 @@ stated in one line. Use this exact report skeleton:
 Scope: <the `{{review_scope}}` value you received, verbatim>
 
 ## Seam list
-- <symbol>, producer `<file>:<line>` → consumers `<file>:<line>`, … [same-wave: yes|no]
+- <symbol>, producer `<file>:<line>` → consumers `<file>:<line>`, … [wave: same|cross|off-map]
 
 ## Critical
 - <symbol>, <disagreement in one line>; producer `<file>:<line>`; consumer `<file>:<line>`.
