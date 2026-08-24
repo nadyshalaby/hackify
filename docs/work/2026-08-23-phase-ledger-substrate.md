@@ -3607,6 +3607,27 @@ site at `76:298`, `printf '%s\n' "$files" | ...`, so the repair matches the surr
 idiom rather than inventing one. Both files were already in this round's diff for the
 Importants, so the fix costs no extra review surface. Decision #23-C applies cleanly.
 
+### 7aj. Decision #31, one bounded final round
+
+Asked because the carry-over law cannot close on this wave: it changes files, and the law
+only closes on a round that finds nothing AND changes nothing. Four rounds running, each
+new mechanism became the next round's finding, so the question was whether the loop
+converges at all.
+
+**#31-A chosen: one bounded final round.** B and F re-dispatch over only the five files this
+wave touched, defects only, and they may not propose new hardening or new checks. Clean means
+the loop closes under its own rule. Not clean means the remainder is logged and the round
+closes anyway.
+
+The argument that made a final round worth buying rather than skipping: this is the first
+wave of the sprint that **installs no new mechanism**. It deletes false claims, widens one
+value set, adds `note` lines for skips that were silent, and fixes two quotings. The pattern
+that produced findings in rounds one through four, shipping a check and then finding the
+check's own hole, has nothing to bite on here. The residual new surface is real but small,
+the `[76i]` note output and the widened `PLS_BSKEL` literal, and the bounded round is scoped
+at exactly that.
+
+
 ## 8. Retrospective
 
 _(filled at Phase 6)_
