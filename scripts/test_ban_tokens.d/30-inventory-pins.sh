@@ -106,8 +106,8 @@ tb_check_plant_total() {
 # The fail-closed cases, counted the way the plants are, and for a sharper reason.
 # They hang off tb_case_green_path rather than off their own line in the run
 # order, so the run order cannot show they happened; the wiring gate cannot see
-# them either, because not one of the twelve names it lists for
-# 10-ban-list-cases.sh is one of these three, and all twelve survive deleting
+# them either, because not one of the four names it lists for
+# 10-ban-list-cases.sh is one of these three, and all four survive deleting
 # them. Delete the call and every remaining assertion still passes over a suite
 # that stopped testing the one branch it was written for. A total read from the
 # EXIT trap is what is left, and it fires whether the run finished or died half

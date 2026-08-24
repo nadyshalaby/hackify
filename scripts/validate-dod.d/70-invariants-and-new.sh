@@ -252,7 +252,7 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 # said the same thing about this block since the day it was written. The red
 # names the capture file rather than the exit status, so it stays tellable apart
 # from the rc > 1 red underneath it. Pinned by
-# scripts/test_ban_tokens.d/10-ban-list-cases.sh section 3.
+# scripts/test_ban_tokens.d/15-wi-absent-cases.sh section 3.
 #
 # THE TEMP FILE IS TRAPPED AROUND ITS OWN WINDOW, not for the life of the
 # fragment. `rm -f` sits on the happy path, so a Ctrl-C between the mktemp and it

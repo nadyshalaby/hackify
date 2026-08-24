@@ -75,19 +75,30 @@ TB_SRC_77="scripts/validate-dod.d/77-reviewer-roster.sh"
 TB_MODULES_DIR="$REPO_ROOT/scripts/test_ban_tokens.d"
 source "$TB_MODULES_DIR/00-harness.sh"
 source "$TB_MODULES_DIR/10-ban-list-cases.sh"
+source "$TB_MODULES_DIR/15-wi-absent-cases.sh"
 source "$TB_MODULES_DIR/20-corruption-and-wiring-cases.sh"
 source "$TB_MODULES_DIR/30-inventory-pins.sh"
 
 # WIRING GATE, and the reason this file has one at all. This driver became four
-# sourced fragments when the single file hit the 500-LOC cap, and the split
-# bought a failure mode the single file could not have had: delete a source line
-# above and its whole section of the suite leaves with it, while the run order
-# below simply calls fewer functions and the verdict still reads green. That was
-# measured, not feared. Dropping 20-corruption-and-wiring-cases.sh ran 102
-# assertions instead of 112 and dropping 30-inventory-pins.sh ran 105, and BOTH
-# printed ALL BAN-TOKEN TAMPER TESTS PASSED and exited 0. A suite whose coverage
-# can shrink silently is the measures-nothing shape every case below exists to
-# refuse, so the split pays for itself here rather than leaving the hole open.
+# sourced fragments when the single file hit the 500-LOC cap, and five when
+# 10-ban-list-cases.sh hit the same cap in its turn. The split bought a failure
+# mode the single file could not have had: delete a source line above and its
+# whole section of the suite leaves with it, while the run order below simply
+# calls fewer functions and the verdict still reads green. That was measured,
+# not feared. Dropping 20-corruption-and-wiring-cases.sh ran 102 assertions
+# instead of 112 and dropping 30-inventory-pins.sh ran 105, and BOTH printed ALL
+# BAN-TOKEN TAMPER TESTS PASSED and exited 0.
+#
+# MEASURED AGAIN WHEN THE FIFTH FRAGMENT ARRIVED, and the reading carries its own
+# baseline because the suite is bigger than it was: against a total of 149,
+# dropping 15-wi-absent-cases.sh ran 139 and still printed ALL BAN-TOKEN TAMPER
+# TESTS PASSED and exited 0. Its two rows below had to come out along with the
+# source line to get a count at all, and that is the gate working rather than a
+# flaw in the reading: the two older numbers were taken before this gate existed
+# and cannot be reproduced today, because a missing fragment now exits instead of
+# counting. A suite whose coverage can shrink silently is the measures-nothing
+# shape every case below exists to refuse, so the split pays for itself here
+# rather than leaving the hole open.
 #
 # THE NAMES ARE WRITTEN OUT, never grepped from the fragments. A list derived
 # from the files it polices goes empty at exactly the moment they go missing and
@@ -102,17 +113,23 @@ source "$TB_MODULES_DIR/30-inventory-pins.sh"
 # partial verdict is ever printed.
 TB_WIRING=(
   "00-harness.sh tb_ok tb_bad tb_extract_lists tb_load_list tb_expect_red tb_expect_green"
+  # Four names against a fragment that defines nine functions. The five left out
+  # all hang off tb_case_green_path rather than off the run order, and the cases
+  # among them are counted rather than named, by TB_FAILCLOSED and TB_MISCOUNT,
+  # which is the trade 30-inventory-pins.sh writes out beside both totals. The
+  # count matters outside this file too: that same fragment reads THIS row's
+  # length into the reason it gives for counting the fail-closed cases by hand.
+  # Add a name here and that comment goes stale, and no check can see it happen.
   "10-ban-list-cases.sh tb_plant_case tb_plant_every_token tb_case_green_path tb_case_real_file_plant"
-  # 10-ban-list-cases.sh owns THREE rows, not one. Field 0 is the fragment and
-  # nothing here requires it to be unique, so the wi_absent cases are listed on
-  # their own rows rather than run off the end of the first one. They were
-  # invisible to this gate until now: the fragment defines seventeen functions and
-  # this list named four of them, so deleting the whole wi_absent section would
-  # have been a silent coverage loss instead of a red. (The count in
-  # 30-inventory-pins.sh is this gate's name total for the fragment, a different
-  # quantity from the functions the fragment defines.)
-  "10-ban-list-cases.sh tb_load_wi_absent tb_wi_fixture_ready tb_wi_scope_ready tb_run_wi_absent_cases"
-  "10-ban-list-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_case_wi_unreadable_file tb_check_wi_failclosed_total"
+  # 15-wi-absent-cases.sh owns TWO rows, not one. Field 0 is the fragment and
+  # nothing here requires it to be unique, so that fragment's eight functions are
+  # listed on two rows of readable width rather than run off the end of one. ALL
+  # EIGHT are named, which is the whole point: nothing inside the fragment can
+  # stop existing without this gate saying so, and the fragment itself now hangs
+  # off a single source line above, which is exactly the shape the gate was
+  # written to catch.
+  "15-wi-absent-cases.sh tb_load_wi_absent tb_wi_fixture_ready tb_wi_scope_ready tb_run_wi_absent_cases"
+  "15-wi-absent-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_case_wi_unreadable_file tb_check_wi_failclosed_total"
   "20-corruption-and-wiring-cases.sh tb_case_token_guard tb_run_token_guards tb_case_blank_token_end_to_end tb_case_zero_tokens tb_write_wiring_fragment tb_case_exit_wiring"
   "30-inventory-pins.sh tb_count_call_sites tb_check_call_sites tb_check_list_size tb_check_plant_total"
 )
