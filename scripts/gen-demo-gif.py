@@ -28,7 +28,12 @@ FRAME_DURATION_MS = 600
 # compared frame by frame against the optimize=False output with
 # ImageChops.difference().getbbox(), alongside n_frames, duration, loop and
 # size. Only optimize cleared the bar of smaller without moving a pixel.
-#   optimize=False              227,491  identical (the baseline, was shipped)
+#   optimize=False              227,491  the reference every other row is
+#     measured against, and what the CURRENT generator emits with the flag off.
+#     It reached main at 69030e8 but no tagged release. The last RELEASED size
+#     is 226,856 (f1a2057, v0.2.5), from the older generator whose phase-3 tile
+#     tag still read "parallel waves". That 635-byte tag growth is why this
+#     table measures 40.5% and the 0.15.0 release note measures 40.4%
 #   optimize=True               135,296  identical, 40.5% smaller, KEPT
 #   interlace=True or False     135,296  identical, no effect at all: Pillow
 #     12.1.1 reads interlace only on the single-frame _save path and
