@@ -132,7 +132,7 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 | "Groom already created the work-doc, so Phase 2 step 1 has nothing to do" | It confirms section 0 is present and in sync. Confirming IS the step, and skipping it is how a groomed task runs with no durable ledger. Nobody writes the block twice, nobody writes it zero times. |
 | "The code is done. I can skip the ledger now" | The ledger opens at task start, before any code. It is the order-enforcer, not a trophy for the end. |
 | "This phase does not apply. I'll delete its item" | Do not delete. Mark it `completed` with `skipped: <reason>`. Silent deletion hides drift. |
-| "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (waves, reviewers), never across them. |
+| "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (the Phase 5 reviewer panel, Phase 1 research agents), never across them. |
 | "Tests are green, that's Phase 4 done" | Phase 4's exit artifact includes the three ship-gate rows. A green triad is not a booted app. |
 | "The last re-scan came back clean, Phase 5 is done" | Only if the diff has not changed since that scan. Fixes applied after a scan were never reviewed. |
 
