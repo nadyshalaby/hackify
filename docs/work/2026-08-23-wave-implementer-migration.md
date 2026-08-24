@@ -2029,3 +2029,51 @@ answer this question at all, and reading it as a staleness check would have been
 Two full syncs produce byte-identical checksums across all 794 files on disk, and the shipped
 `claude-code` copies carry every round-3 fix (`wave-partitioning risks`, `wave: same|cross|off-map`,
 `never one per task`, the attribution rationale).
+
+### Phase 5 round 4, Reviewer D: empty, and decision #5-C is closed
+
+**Zero findings at every severity, and it is the right answer.** D returned empty in round 3 too, but
+this time it did the work decision #5-C asked for and closed the one candidate that had been carried
+across rounds.
+
+**The staged GIF candidate resolved the opposite way from how it was filed.**
+`gen-demo-gif.py:173` passes `optimize=True`, staged under `perf.network.oversized-payload`. D
+reproduced it on Pillow 12.1.1: `optimize=False` gives 227,491 bytes, `optimize=True` gives 135,296,
+and `ImageChops.difference().getbbox()` returns `None` on all seven frames. **The 40.5% saving is
+already taken and it is lossless.** `optimize=True` is the fix, not the defect. The shipped file is
+byte-identical to that output.
+
+**#5-C also asked for the other encoder settings, so D swept the palette sizes the comment never
+covered:**
+
+| quantize | bytes | max per-channel drift |
+|---|---|---|
+| 16 | 74,511 | 35 to 38 |
+| 32 | 126,549 | 16 to 25 |
+| 64 | 133,397 | 10 to 14 |
+| 128 | 139,602 | 8 to 13 |
+| **256** | **135,296** | **0** |
+
+Every palette under 256 either drifts visibly on anti-aliased text or comes back **larger**. 64
+colours buys 1.4% in exchange for 12-per-channel banding, and 128 is bigger than 256. 135,296 bytes
+is the pixel-exact floor for this content. **Decision #5-C is closed with measurements rather than
+deferred again.**
+
+**Three things D checked and deliberately did not file**, which is the half usually left implied:
+
+`[40]`'s `for dead in "${WI_DEAD_WORDS[@]}"; do wi_absent "$dead"; done` is literally a spawn per
+loop item, but `perf.process.spawn-per-item`'s own guard exempts bounded constant lists and
+`check_list_size` pins that list at 3 on the line directly above. The harm model for that ID is
+growth, and four fixed spawns have none. D also noted that filing it would contradict its own GIF
+dismissal, which is the kind of self-consistency check a panel usually does not apply to itself.
+
+The new `15-wi-absent-cases.sh` runs one `git init`, not one per case (the second occurrence is
+prose). Measured at roughly 15ms inside a 9,160ms CI-only suite, 0.16%, and correctly placed in the
+CI suite rather than the pre-commit validator.
+
+`hooks/` and `skills/lawkeeper/scripts` came back empty, so per-prompt hook latency, one of the only
+two perf currencies this repo actually has, is untouched this round.
+
+**And it checked for a budget to breach before claiming there was none.** No `SECONDS` pin, no
+`timeout`, and the work-doc's only timing figure is "about 10s" for the tamper suite, which at 9.16s
+is inside it.
