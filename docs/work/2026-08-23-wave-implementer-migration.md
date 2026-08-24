@@ -1261,6 +1261,49 @@ stale snapshot: it still advertises `hackify:wave-task-implementer` and a refute
 carrying the retired two-dispatch rule. Both files on disk are correct. Registry lag, not drift, and
 the same 0.13.1-installed-plugin gap already recorded against AC3 and the settle round.
 
+**Wave E, and the two citations in my brief it refused to act on.** I pinned the literal
+`Never leave a finding unjudged` and cited it at `phase-5-refute.md:187`. Neither is right. The live
+rule reads `Never leave a finding or a lens unjudged` and sits at `:140`; `:187` is a severity
+anchor. The agent kept the real line byte-identical, quoted it correctly in the new prose, and
+reported both errors instead of editing a load-bearing rule to match my typo. **A brief is not
+evidence**, and this is the second time this sprint an agent has caught mine being wrong.
+
+**B5's fix, and why the number moved rather than the words.** The cap is now per finding rather than
+a flat total for the round, because the round is what grew: one refuter, every finding, every
+severity, so any fixed total shrinks as the round gets bigger. It is sized against the widest block
+the skeleton can produce, a Critical carrying a verdict line, two lens lines, a
+`would change my mind` line and a `new severity` line, which is exactly where #2-A's cost lands. The
+text now says why the number is what it is, and closes with the rule that a later change adding a
+line to a block RAISES this number and never licenses dropping a finding to fit it. `## Verification`
+sits outside the budget, so the squeeze cannot just move one level down.
+
+**Wave E also filed a defect against itself.** Its own W2 fix put the seven new function names into
+the wiring gate, which falsified a comment in a file it could not reach saying the gate `cannot see
+them either ... its four-name row for this fragment`. It could not fix it, so it wrote down exactly
+what it had broken and handed it over. That became wave F's C2.
+
+**Wave F, and the trap it flagged before anyone could fall into it.** Its census found
+`scripts/test_ban_tokens.sh:109` claiming the fragment `defined eleven functions`. It defines
+sixteen; eleven is how many names the GATE lists, a different quantity sitting in the same sentence.
+**And it warned that `30-inventory-pins.sh:109-110` also says eleven and is CORRECT there**, because
+its referent really is the gate's name count. Both verified by the parent: 16 defined, 11 listed. A
+follow-up fixer working from a grep would have "corrected" the right one into being wrong.
+
+**C2's rewrite did not just delete the dead claims, it stated the hole that survives.** W2 closed
+half of it: the gate asks `declare -F`, so it sees a function that stopped EXISTING and never one
+left defined and no longer called. That second shape is still the counter's job, which is why the
+total keeps earning its place. A comment that explains why a pin fires where it fires is worth
+keeping; only the specific claims had died.
+
+**Wave F left a matched pair alone on purpose, and was right to.** `phase-ledger.md:135` and
+`SKILL.md:75` carry the same stale claim in two spellings, and only one was inside its allowlist. It
+judged that fixing half a matched pair leaves the next reader unable to tell which spelling is
+intended, and recommended a single wave owning both files. That is wave G.
+
+**Every changed line in `scripts/` across waves F and G is a comment line**, proved by diffing out
+comment-prefixed lines and getting nothing back. These are live check files and a prose fix has no
+business changing behaviour.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
