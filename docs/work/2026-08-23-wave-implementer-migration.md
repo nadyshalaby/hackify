@@ -1804,3 +1804,45 @@ before it is handed to an agent.** I verified wave D's list line by line against
 before dispatching it, and every entry held.
 
 Fifth time this sprint an agent has refused to act on a stale or wrong brief of mine.
+
+### Wave A's new test case, designed against a measurement rather than an assumption
+
+A1's fix widens `wi_absent` so a scan that could not read a file stops printing green. Proving it
+needs a third test case, and the two that exist cannot be copied: case (a) dies on a bogus pathspec
+and case (b) kills `mktemp`, so **neither one ever lets git open a file.** The new case has to make
+`git grep` genuinely fail to stat a tracked file, which is a third shape.
+
+Measured in a scratch repo on git 2.50.1, one tracked file at mode 000, scope narrowed to that one
+path:
+
+| scan | rc | stdout | stderr |
+|---|---|---|---|
+| sealed file, literal absent from it | 1 | empty | `failed to stat 'sealed.md': Permission denied` |
+| sealed file, literal present in it | 1 | empty | same |
+| whole tree, literal only in the sealed file | 1 | empty | same |
+| **control: same file, mode restored** | **1** | **empty** | **empty** |
+
+Three things fall out of that table, and each one settles a question that was open.
+
+**The bug is exactly as filed.** A sealed file and a genuinely clean tree both return rc 1 with no
+output. Reading the status alone cannot separate them, which is what the shipped comment at
+`70-invariants-and-new.sh:214` claims it can.
+
+**The discriminator is safe.** The control row is the one that matters: a readable file gives rc 1
+with an EMPTY stderr, so widening the failure branch to "rc 1 AND stderr non-empty" cannot fire on
+an honest clean tree. That was measured, not reasoned.
+
+**The literal does not matter, so the fixture guard does not apply.** Rows one and two are
+identical, which means once the scope is one unreadable file, whether `TB_WI_LIT` occurs anywhere is
+irrelevant. `tb_wi_fixture_ready` exists to stop cases (a) and (b) passing over a fixture that fell
+out of the tree; case (c) has no such failure mode and must not be made to satisfy that guard. This
+was the thing most likely to send the fix wrong: an agent that assumed the guard was mandatory would
+have sealed a real file in the working repo to satisfy it.
+
+So the fixture is a scratch git repo, the way `tb_make_unreadable` already builds a scratch tree
+rather than touching real files, plus a `git init`. Nothing in the user's own worktree is ever
+sealed, which removes the hazard of an interrupt stranding a repo file at mode 000.
+
+Two details worth carrying into the case: git writes the stat error **twice**, so an assertion must
+not require exactly one line; and the seal must be self-checked before it is relied on, the same way
+`00-harness.sh:49-51` proves its own permission bit took effect instead of assuming it.
