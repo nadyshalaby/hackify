@@ -1846,3 +1846,56 @@ sealed, which removes the hazard of an interrupt stranding a repo file at mode 0
 Two details worth carrying into the case: git writes the stat error **twice**, so an assertion must
 not require exactly one line; and the seal must be self-checked before it is relied on, the same way
 `00-harness.sh:49-51` proves its own permission bit took effect instead of assuming it.
+
+### Fix waves D, D2 and D3, and why one wave became three
+
+**Wave D, `e972712`, findings B2, F5, F8.** Six lines across six files. The three collision-safety
+sites now give the attribution reason, the Critical severity on the spec-reviewer anchor stayed put,
+and the two rediscovery sites stopped claiming that many implementers on one wave derive the repo
+simultaneously.
+
+The agent caught something in its own first draft worth recording: it initially argued the Repo
+Brief saves a re-derivation **per task**, which is wrong. A wave's agent is one context, so it
+derives the stack once no matter how many tasks it carries, and that saving is exactly what per-wave
+dispatch already bought and already states at `phase-3-implementation.md:5`. Counting it again in
+`repo-brief.md` would have been the same double-count this sprint keeps producing. The honest count
+is waves plus the reviewer panel, not tasks. It also would have contradicted `SKILL.md:110` and
+`:310`, both of which say `one agent at a time` and are correct.
+
+**Wave D2, `25eb2d4`.** Wave D reported, out of allowlist and unfixed, that the spec reviewer
+contradicts itself inside one file: its ROLE claimed `file-collision detection across parallel work`
+and `execution-wave planning for parallel sub-agent dispatch (one assistant message, multiple Agent
+calls)` while its own INPUTS forty lines below reads `Nothing inside a wave runs in parallel any
+more`. Both shipped. Reviewer B had filed it; it was outside the five sites B2 enumerated.
+
+**Wave D3, `da2eaf2`.** Wave D2 in turn reported a third one: `parallelism risks` in the same file,
+in three places. One of those three is the agent's YAML `description:` line.
+
+#### The lesson is about where the census pointed, not how many rounds it took
+
+Three waves in one file, each finding the next, is the trickle this sprint's whole discipline exists
+to prevent. The cause was not too few rounds. **My census searched for the phrasing of the findings
+as filed, not for the vocabulary of the change.** B2 was filed against collision-safety wording, so
+I censused `share a file` and `concurrent edit`. The spec reviewer's ROLE said neither: it said
+`parallel work` and `parallel sub-agent dispatch`. Same defect, different words, invisible to the
+search I ran.
+
+Widening to the vocabulary of the CHANGE (every live use of `parallel`) rather than the wording of
+the FINDING closed the family in one pass and turned up the frontmatter site as well.
+
+**The frontmatter site is the one that matters beyond this sprint.** `sync_agent_mirrors.py` asserts
+byte-identity of the fenced BLOCK only. Everything above the fence, including the `description:`
+that Claude Code actually reads when deciding whether to dispatch this agent, is invisible to
+`[75h]` by construction. A description can drift arbitrarily far from the prompt it advertises and
+all nine pairs still report ok. That is a real gap in a check this repo leans on, and it is
+recorded here rather than fixed, because widening the mirror check is outside a sprint about
+dispatch vocabulary.
+
+**Deliberately not changed:** the graph edge is still called a `file-collision edge` at four sites.
+The wave planner still builds that edge, and naming it after the resource two tasks contend for is
+accurate rather than stale. Renaming it would ripple four ways for no gain.
+
+**Also verified correct and left alone:** `SKILL.md:236` already reads `Phase 3 is the exception: a
+planned wave goes to ONE agent whatever its width`, and `coordinating parallel agents` at
+`phase-2.5-spec-reviewer.md:27` is the persona's career background, not a claim about Phase 3, in a
+world where the Phase 5 panel really is dispatched in parallel.
