@@ -1959,3 +1959,73 @@ cannot see by construction.
 
 Nothing. Round 3 met neither breaker and was not clean, so it correctly bought a round 4. The rule
 binds from here, and its first real test is whether round 4 comes in under 8.
+
+### Fix wave A, `3de880d`, and the split it forced, `3971668`
+
+The Critical landed as designed: `wi_absent` now refuses a clean result that arrived with anything
+on `git grep`'s stderr, both authorizing comments moved with it, six counters moved, two deliberately
+did not, and A2, A3, A4 and F6 rode along. The tamper suite went 147 to 149.
+
+**The proof that matters is the revert test.** With the new branch deleted, `tb_case_wi_unreadable_file`
+fails and **cases (a) and (b) both still pass.** That is the direct evidence the new case is not
+redundant with the two it sits beside, and it is the check this repo has shipped two tests without.
+
+The agent also improved on the brief in two places. It reproduced the measurement independently
+before writing anything rather than trusting my table. And for A2 it used `local -a WI_LIVE_PATHS`
+instead of the save-and-restore pair I suggested, because bash hands the global back on **every**
+exit path including the early returns, which a restore at the tail would miss. It probed that the
+global is `UNSET` afterwards rather than left as an empty array. For A3 it deliberately declined the
+`trap -p EXIT` pattern I pointed at, because this suite prints its verdict from an EXIT trap and a
+trap installed inside the case would shadow it, so a signal arriving in that window would cost the
+run its verdict entirely. It wrote the reasoning into the comment. Both are better than what I asked
+for, and both were flagged rather than slipped in.
+
+#### The cap forced a split, and the split hid the round's sharpest defect
+
+The honest version of the new case put `10-ban-list-cases.sh` at 511 against the hard 500 cap. The
+agent stopped and asked instead of compressing rationale to fit, which is what the brief demanded
+and the right call: the last few lines are exactly where reasons start getting deleted.
+
+The split follows this repo's own remedy, recorded at `test_ban_tokens.sh:82`. It moved 8 functions
+and 4 variables into `15-wi-absent-cases.sh`, leaving 233 and 300 lines. Pure move, 149 passing
+before and after.
+
+**And it carried a defect that every green check in this repo would have missed.**
+`tb_wi_fixture_ready` excludes its own fragment from a `git grep`, because the `TB_WI_LIT`
+assignment is itself a tracked occurrence that would otherwise be counted. That assignment moved
+files. Left pointing at the old fragment, the guard would report the fixture literal present
+**forever**, and would go on saying so even after the literal vanished from every live file. A
+permanent fail-open inside the guard whose entire job is to prevent fail-opens, and the validator,
+the tamper suite and the mirror check all stay green straight through it.
+
+The agent found it in its own census and then proved it, by pointing `TB_WI_LIT` at a string that
+exists nowhere in the repo: the corrected exclusion reds, the stale one passes. That is the same
+defect shape as A1 itself, one level up, discovered while fixing A1.
+
+#### Two bookkeeping calls worth recording
+
+`test_ban_tokens.sh:109`'s `seventeen functions / four of them` sentence was **retired rather than
+renumbered.** It described why the wi_absent cases needed extra rows in a list naming four of one
+fragment's seventeen functions. After the split no file has that shape, and the protection changed
+form: deleting the section is now deleting a source line, which is what the gate at `:82` already
+catches. New numbers on a dissolved fact would have been the defect this wave exists to close.
+
+`30-inventory-pins.sh`'s `twelve` became `four` and **`these three` stayed three**, exactly as the
+refuter warned two rounds ago.
+
+#### My own error, corrected in the history
+
+`git add -A` on the exit-rule commit swept wave A's entire script diff into a commit whose subject
+says it is a docs change. Caught because the next agent opened on a clean tree and said so. Nothing
+was pushed, so it was unwound and recommitted as `3de880d` (the fix) and `2d806c9` (the rule), same
+tree, honest attribution. The lesson is narrow and worth keeping: `git add -A` while a fix wave's
+work sits unstaged silently merges two commits' worth of change under one message.
+
+### AC8, re-proven after the round-3 fixes
+
+`sync-runtimes.sh` regenerated 792 files across 7 runtimes. Proven current by **byte comparison, not
+by the dry-run**: the dry-run lists every file unconditionally rather than diffing, so it cannot
+answer this question at all, and reading it as a staleness check would have been a false green.
+Two full syncs produce byte-identical checksums across all 794 files on disk, and the shipped
+`claude-code` copies carry every round-3 fix (`wave-partitioning risks`, `wave: same|cross|off-map`,
+`never one per task`, the attribution rationale).
