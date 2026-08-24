@@ -697,7 +697,7 @@ Phase 4. Every row below carries fresh output from this phase, not a figure quot
 | 5 | No Phase 3 doc calls `batch` a unit of dispatch | All five retired phrases return zero live files. Six surviving `batch` uses inspected one by one: five are the wizard/tool-batch sense, six are orchestration's flat-parallel-fan-out sense. **One borderline line referred to Phase 5**, see below | PASS with one open question |
 | 6 | Exactly one refuter per round, judging every finding | Seven files carry the one-refuter rule; `both lenses` appears in five. **Evidence corrected after B filed the original proof as unsound** (the four searches below never included the bare plural, so the row passed on a search that could not have failed). Re-run with `refuters` added: 6 live hits, every one accounted for by inspection, 5 in `CHANGELOG.md` describing past releases in the past tense (`:142`, `:152` under `## [0.12.0]`; `:271` under `## [0.9.0]`; `:10` says the refuters *collapsed*; `:306` is the role noun) and 1 in `orchestration.md:87` listing agent roles (`Implementers, reviewers, refuters and scouts`). Zero live rules claim more than one refuter per round. Original searches retained: `two refuters` 1 (CHANGELOG:271, historical), `two per Critical` 0, `second refuter` 2 (both CHANGELOG, historical), `batched refuter` 1 (CHANGELOG, historical) | PASS |
 | 7 | Every pin updated, each proven to bite by tamper | Implementer harness: 12 tamper steps, ANSI stripped before counting, asserting non-empty diff + every FAIL is its own with matching count + tree restored, HEAD identical throughout, plus 2 excluded-path controls proving the scan is not vacuous. **Plus one independent tamper by the parent**, which reproduced `FAIL 'hackify:wave-implementer' missing from skills/quick/SKILL.md` | PASS |
-| 8 | Mirrors 9 of 9; validator 0 FAIL; `dist/` across 7 runtimes | **Half proven, half deliberately stale.** Proven now: `validate-dod.sh` exit 0, 0 FAIL lines, `ALL CHECKS PASSED`; mirrors 9 of 9. NOT true right now: `dist/` is **100 files behind its live sources** (byte comparison, 785 dist copies with a live counterpart). It was 57 behind when B filed the finding; every fix wave since has widened the gap, which is expected and not a defect. B1 was re-severed to Important and routed to the Phase 6 landing step, so the regeneration is scheduled, not forgotten. **This row is not evidence until `sync-runtimes.sh` re-runs after the last fix lands and the stale count returns to 0.** | PENDING |
+| 8 | Mirrors 9 of 9; validator 0 FAIL; `dist/` across 7 runtimes | Re-proven at `2cbe9c9`, after the last fix landed. `validate-dod.sh` exit 0, **0 FAIL lines** (ANSI stripped first), `ALL CHECKS PASSED`; mirrors **9 of 9**; tamper suite **147 passed, 0 failed**. `sync-runtimes.sh` re-run: `OK, synced 792 files across 7 runtimes`, and 792 counted independently on disk across the 7 dirs (146/129/129/1/129/129/129, copilot-cli ships MANIFEST only). **Stale count 0 of 785**, by byte comparison of every dist copy against its live source, down from 100 before the re-run. Validator still green after. **This row goes stale again the moment any further fix lands**, because `dist/` is a build output, not a tracked artifact: `dist/.gitignore` is `*` with one `!.gitignore`, so `git ls-files dist` returns exactly one path and nothing under `dist/` is ever committed. Re-run `sync-runtimes.sh` after the last fix of the sprint, whenever that turns out to be. | PASS |
 | 9 | Version bumped, CHANGELOG written, README within cap | `plugin.json` 0.15.0; marketplace 0.15.0 with stable ref `v0.15.0` and edge ref `main`; README badge `0.15.0`; `## [0.15.0]` heading present; README 449 lines against a 450 cap | PASS |
 
 **Beyond the acceptance criteria**, the five CI gates `validate-dod.sh` does not cover all exit 0:
@@ -1303,6 +1303,36 @@ intended, and recommended a single wave owning both files. That is wave G.
 **Every changed line in `scripts/` across waves F and G is a comment line**, proved by diffing out
 comment-prefixed lines and getting nothing back. These are live check files and a prose fix has no
 business changing behaviour.
+
+**Wave G, and the first empty census of the sprint.** It landed all three, and its census came
+back **empty and said so out loud** rather than going quiet. That is the signal decision #4-C is
+waiting for, one level down: no live rule anywhere claims per-task Phase 3 dispatch, more than one
+spec reviewer, more than one refuter per round, or a wave that fans out. Every surviving hit is a
+guard asserting the dead thing is absent, a ban-list entry enforcing the current rule, or a
+CHANGELOG line describing a past release in the past tense. Verified by the parent: 16 functions
+defined against the comment's new `sixteen`, 11 wiring names against `30-inventory-pins.sh`'s
+`eleven`, both numbers now correct in their own file and neither reachable by a grep-driven
+"correction" of the other.
+
+**Wave G also found that a whole class of this sprint's censuses were false cleans.** `grep -r
+<pattern> dist` from the dist root returns nothing across 634 markdown files while the same pattern
+scoped to `dist/claude-code/agents` finds it. The parent chased the mechanism: `dist/.gitignore`
+holds `*` with a single `!.gitignore` negation, so **nothing under `dist/` is tracked at all**
+(`git ls-files dist` returns exactly one path, the ignore file itself), and this session's `grep` is
+a shell function wrapping ugrep with `--ignore-files`. Start the walk AT `dist` and that ignore file
+applies to everything under it; start it one level down and it never loads. **No repo check is
+affected**: the only script that touches `dist` greps `sync-runtimes.sh --dry-run`'s own stdout
+rather than the filesystem, and scripts run under `bash`, which never sees the interactive shell
+function. The false clean is confined to session-level greps, and the fix is to scope per runtime
+directory.
+
+**Every item wave G fixed was manufactured by the two waves before it.** D1 is the half of a matched
+pair wave F could not reach; D2 is a number wave E wrote wrong; D3 is the sibling wave F left when it
+fixed the other one. None of the three is pre-existing rot. That is a different failure mode from
+"each round uncovers more of what was already there", and it is what the next dispatch has to
+design against: **put the whole equivalence class in one allowlist**, both halves of a matched pair,
+every sibling of a reworded phrase, both mirror sides, and any comment citing a number the edit
+changes.
 
 ### Three-layer re-verify
 
