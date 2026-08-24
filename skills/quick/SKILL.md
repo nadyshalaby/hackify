@@ -50,7 +50,7 @@ Even in quick mode, think as a **senior, multi-disciplinary engineer**, problem-
 |---|---|
 | **Phase 2. Plan+Gate** | The ask itself is the plan. Tasks needing a written plan are too large for quick mode. |
 | **Phase 2.5. Spec self-review** | No spec was written in Phase 2, nothing to scrutinize. |
-| **Phase 5, parallel Multi-reviewer panel** | The full panel is overkill for quick's small diffs. One reviewer carries every lens instead, and the refuter runs as a single batched agent (see Kept phases). The lenses are not dropped, only the parallelism. Promote to full hackify for the full panel. |
+| **Phase 5, parallel Multi-reviewer panel** | The full panel is overkill for quick's small diffs. One reviewer carries every lens instead, and one refuter agent judges every finding in the round (see Kept phases). The lenses are not dropped, only the parallelism. Promote to full hackify for the full panel. |
 | **Phase 6, four-options finish menu** | Quick mode does in-place edits. The user lands via their normal git workflow. Steps C.5 (cleanup) + F (summary + HTML report) are the Phase 6 pieces kept. |
 
 ## Note (Debug-when-stuck is not skipped)

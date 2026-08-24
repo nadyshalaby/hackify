@@ -1,6 +1,6 @@
 ---
 name: code-reviewer-coherence
-description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear when parallel wave agents build each half of a feature blind to the other. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Dispatched whenever the diff crosses a module boundary, which is most non-trivial waves; folds into Reviewer B when the diff stays inside a single module and there is no counterpart to compare against. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
+description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear because a wave's implementer is blind to every wave that ran before it and to every line of pre-existing code. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Dispatched whenever the diff crosses a module boundary, which is most non-trivial waves; folds into Reviewer B when the diff stays inside a single module and there is no counterpart to compare against. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -50,8 +50,10 @@ Bias against: accepting "they are close enough" between two shapes.
    `W2/T5: [web/src/features/invitations/InviteForm.tsx]`). This is
    the SAME map Reviewer B receives; the `W<n>/` prefix is your
    same-wave signal and is not used by B, which matches on the
-   `T<m>` part. Files sharing a `W<n>` prefix were written by
-   agents blind to each other and are the highest-risk seams. The
+   `T<m>` part. One agent writes a whole wave, so files sharing a
+   `W<n>` prefix came from a single implementer that saw both sides.
+   The highest-risk seams run ACROSS wave numbers, and between any
+   file in the map and a consumer the diff never touched. The
    reviewer MUST NOT infer this map from task prose, the dispatcher is
    responsible for providing it.
 
@@ -100,8 +102,8 @@ sides of the disagreement.
    its PRODUCER (where it is defined) and every CONSUMER (grep the
    whole repo for the symbol, not just the diff, a consumer outside
    the diff is the most dangerous kind). Mark every seam whose two
-   sides sit in different tasks sharing a `W<n>` prefix in
-   `{{task_file_index}}`, audit those first.
+   sides sit in DIFFERENT `W<n>` waves in `{{task_file_index}}`, or
+   whose consumer sits outside the map entirely, audit those first.
 3. SHAPE AGREEMENT. For every seam, compare the producer's declared
    shape against what each consumer actually reads: field names,
    optionality, nullability, array-versus-single, enum member sets,
@@ -142,8 +144,8 @@ If ANY answer is "no", loop back to METHOD.
    (yes / no)
 3. Does every finding cite a file:line for BOTH sides of the
    disagreement? (yes / no)
-4. Did you audit every same-wave seam from `{{task_file_index}}`
-   first, and say so? (yes / no)
+4. Did you audit every cross-wave seam from `{{task_file_index}}`,
+   and every seam reaching outside it, first, and say so? (yes / no)
 5. Did you apply all five agreement lenses (shape, semantic, error and
    lifecycle, duplicate-concept, wiring) to every seam? (yes / no)
 6. For every symbol the diff added, did you confirm a live consumer or

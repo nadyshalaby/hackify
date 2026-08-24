@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W5:T11+T10b+T3b+T5c
+current_task: W5c:T11
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -253,14 +253,14 @@ census cannot fail. This backlog is the corrected shape.
   reads the reporting sentence. That reporting half IS the mitigation the user was given in
   exchange for accepting a larger blast radius, so it ships pinned on both mirror sides.
 
-- [ ] **T3b** The refuter's type-to-INPUTS row. Added by Wave 4. It lists `finding_verbatim`,
+- [x] **T3b** The refuter's type-to-INPUTS row. Added by Wave 4. It lists `finding_verbatim`,
   `lens`, `project_root`, `head_sha`; `lens` is the input T8 just retired, and the other three were
   **already drifted** against the template's `findings_batch` / `base_sha` / `head_sha` before this
   sprint. This is a row a dispatcher builds a call from, so it is the Group B defect class again:
   wrong, load-bearing, and pinned by nothing.
   `Files:` `skills/hackify/references/parallel-agents/README.md`
 
-- [ ] **T5c** The rest of the falsified Reviewer F justification, plus two retired words. Added by
+- [x] **T5c** The rest of the falsified Reviewer F justification, plus two retired words. Added by
   Wave 4. F's own template still says it exists "because Phase 3 builds in parallel waves: separate
   agents write separate files with no sight of each other", which this sprint makes untrue inside a
   wave. Same rewrite as T5b, and the same rule: F is not weakened, its reason is corrected. The
@@ -268,7 +268,7 @@ census cannot fail. This backlog is the corrected shape.
   will neither make nor complain about.
   `Files:` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md`, `agents/code-reviewer-coherence.md`, `skills/quick/SKILL.md`, `skills/yolo/SKILL.md`
 
-- [ ] **T10b** Phase 2.5 phase doc, follows T10's finished output. Added by Phase 2.5.
+- [x] **T10b** Phase 2.5 phase doc, follows T10's finished output. Added by Phase 2.5.
   `Files:` `skills/hackify/references/phases/phase-2.5-spec-review.md`
 
 ### Wave 6, docs and release
@@ -493,10 +493,79 @@ live sites are new tasks: **T3b** (the refuter's type-to-INPUTS row, three of wh
 wrong even before this sprint) and **T5c** (F's justification in its own template and mirror, plus
 two retired words in quick and yolo). README's copies belong to T12.
 
+### 2026-08-24, Wave 5a, the last of the retired vocabulary (T10b, T3b, T5c)
+
+Three agents were spent on this wave. The first died on a dropped connection partway through T5c;
+the second stalled after 600 seconds with one act completed; the third finished. **Nothing was
+redone across any of it.** See the Retrospective for the plan change that followed and for what the
+failures actually cost.
+
+- **T10b**, the Phase 2.5 phase doc stops describing the dispatch batches T10 deleted from the
+  reviewer's output. It now names the one section the reviewer really emits.
+- **T3b**, the refuter's type-to-INPUTS row. It listed `finding_verbatim`, `lens`, `project_root`,
+  `head_sha`. `lens` was retired by T8 the wave before; the other three were **already wrong before
+  this sprint** against the template's real `project_root` / `base_sha` / `head_sha` /
+  `findings_batch`. This is the Group B defect class again: a row a dispatcher builds a call from,
+  wrong, load-bearing, and pinned by nothing. T11 fixes the pinned-by-nothing half.
+- **T5c**, the rest of Reviewer F's falsified justification, in five places across four files.
+
+**T5c turned out to be bigger than its own description.** It was scoped as a prose fix to F's stated
+reason for existing. The first agent noticed that F's METHOD rested on the same assumption and was
+now backwards: it told F to audit same-wave seams FIRST, because same-wave files came from agents
+blind to each other. One agent per wave makes that exactly wrong. Same-wave files now come from one
+context that saw both sides, and the risky seams run ACROSS wave numbers, or out to a consumer the
+diff never touched. The agent inverted the method, its VERIFICATION item, and the `{{task_file_index}}`
+dispatch note together. A later agent found `phase-5-review.md:15` still telling the dispatcher the
+old version, which was outside the planned allowlist and was added to it.
+
+**This is the second time this sprint that changing a rule falsified the REASON another component
+was given for existing**, after Reviewer F's own justification in Wave 4. Both were caught by
+reading the neighbours rather than by any check. Nothing in the validator can see a rationale that
+has quietly become untrue, which is worth saying out loud rather than trusting the green triad to
+imply otherwise.
+
+**Wave-end evidence.** Validator exits 0 with 0 FAIL. Mirrors 9 of 9. Law-scout: 7 files, 0
+findings, 0 unaccounted. No em or en dashes. Every pinned literal across the touched files verified
+present. `git grep` for the three retired claims returns only `README.md:101`, which is T12's file
+in Wave 6, and `CHANGELOG.md`, which is release history and correctly keeps them.
+
 ## 7. Sprint Review
 
 (Opened at Phase 4.)
 
 ## 8. Retrospective
 
-(Opened at Phase 6.)
+(Opened at Phase 6. Two findings recorded early, while the evidence was in front of me.)
+
+### Out of scope, found mid-sprint, NOT fixed here
+
+**`scripts/sync_agent_mirrors.py` treats every unrecognised flag as write mode.** `main()` tests
+for `--list` and `--check` and falls through to `run(check_only=False)` for anything else, so
+`--help`, `-h`, a typo, or a stray flag silently rewrites all nine mirror files instead of printing
+usage. A Wave 5b agent hit this for real: it ran `--help` expecting usage text and got a full
+resync. No damage, the resync happened to be what its task wanted, which is exactly why this kind
+of defect survives. It is out of THIS sprint's scope (wave dispatch vocabulary), so it is recorded
+rather than fixed, per the no-scope-creep rule. The fix is small: an explicit flag whitelist that
+exits non-zero on anything unrecognised, and a `--help` that prints the usage block already sitting
+in the module docstring at line 38.
+
+### Wave planning was changed mid-sprint, after two agent deaths
+
+Wave 5 as planned held T11, T10b, T3b and T5c. Its agent died on a dropped connection partway into
+T5c; the re-dispatch stalled after 600 seconds with no output. Both deaths landed on the same wave,
+and the common factor is length: T11's tamper protocol needs four artifacts per pin across four
+pins, which is a long chain of validator runs inside one agent.
+
+So the remaining backlog was re-planned into smaller waves rather than retried at the same size.
+This is a PLANNING change, not a dispatch-time split: the new contract says the pre-flight plan is
+the dispatch plan and is never regrouped at dispatch time, and re-planning after a failure is a
+different act from quietly splitting a planned wave because it looked big. Recording it because an
+unrecorded plan change is indistinguishable from the thing the contract forbids.
+
+**What the failures cost, measured rather than asserted.** Nothing was redone. T10b and T3b landed
+before the first death and were untouched by everything after. T5c's largest file survived both
+deaths intact. The second agent's only completed act, the mirror resync, also survived. That is
+#11-A working as designed, and it is the clearest evidence this sprint produced that the
+keep-what-landed clause earns its place. The cost was real too: the first death left the tree RED
+between waves, because one mirror side was edited and the other was not. A per-task dispatch would
+not have done that. Both halves of the tradeoff showed up within an hour of shipping it.
