@@ -1,6 +1,6 @@
 # The repo brief (build it once, hand it to every agent)
 
-A dispatched agent starts cold. Left to itself it re-derives the same facts every other agent on the wave is deriving at the same moment: what the stack is, how tests run, where things live, which layering rules apply. On a fifteen-task sprint that is fifteen rediscoveries of one repo, and the reviewer panel does it again.
+A dispatched agent starts cold. Left to itself it re-derives the same facts the wave before it already derived: what the stack is, how tests run, where things live, which layering rules apply. On a five-wave sprint that is five rediscoveries of one repo, and the reviewer panel does it again with several agents at once.
 
 **The parent already knows all of it** by the end of Phase 1. Write it down once, pass it as `{{repo_brief}}` to every implementer and every reviewer, and tell them not to re-derive it.
 

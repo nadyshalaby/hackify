@@ -19,7 +19,7 @@ This file is the canonical 7-section contract every per-task template in this di
 
 ## When NOT to fan out
 
-- **Tasks that share a file**, concurrent edits cause conflicts. The wave planner MUST split same-file tasks across waves.
+- **Tasks that share a file**, the file stops mapping to exactly one task, so a wave that stops early cannot be read back as a set of task IDs. The wave planner MUST split same-file tasks across waves.
 - **Tightly-coupled investigations**, when finding A informs question B, run sequentially.
 - **Tasks that need shared state**, they'll race.
 - **One-line typo / config-only diffs**, multi-reviewer is overkill. Self-review is enough.

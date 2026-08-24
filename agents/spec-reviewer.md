@@ -281,7 +281,7 @@ lens; a "no" on any one of the three is a "no".
     "this is a minor version bump" = Critical (release will be tagged
     wrong; same failure mode as v0.1.0 install rejection).
   - Tasks T5 and T6 both modify `parallel-agents.md` and the plan puts
-    them in the same wave = Critical (concurrent edit conflict).
+    them in the same wave = Critical (breaks task-to-file attribution).
   - Task T9 reads a CHANGELOG entry that Task T11 creates, but T9 is
     scheduled in an earlier wave than T11 = Critical.
   - *Architectural-risk lens:*

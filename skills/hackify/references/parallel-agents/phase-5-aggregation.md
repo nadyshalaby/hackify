@@ -21,7 +21,7 @@ When N agents return with overlapping or contradictory findings:
 
 - Sending agent #1, waiting, sending agent #2, that's serial dressed as parallel. Send both in one message.
 - Dispatching agents to "find answers" without enough context to ground the search, they'll generalize and waste tokens. Always include: workspace path, project, what you've ruled out, what you suspect, what files you think are involved.
-- Dispatching agents to edit **the same file** in the same wave, file conflicts. The wave planner is what prevents this; if two tasks share a file, push one to a later wave.
+- Dispatching agents to edit **the same file** in the same wave, the file stops mapping to exactly one task, so a partial diff cannot be read back as task IDs. The wave planner is what prevents this; if two tasks share a file, push one to a later wave.
 - Dispatching agents to edit code in parallel **without a per-agent file allowlist**, without "you may only modify these files", agents drift. Always pin the file list.
 - Dispatching agents to do **the same thing twice** for "redundancy", they'll come back with similar answers and you've doubled the cost. Multi-reviewer dispatches different *lenses* on the same diff, that's not redundancy.
 - Forgetting agents can't see the conversation history. Their prompt MUST be self-contained.
