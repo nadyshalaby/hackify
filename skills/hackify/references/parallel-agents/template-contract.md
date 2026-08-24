@@ -10,10 +10,10 @@ This file is the canonical 7-section contract every per-task template in this di
 
 - **Phase 1 research**, different parts of the codebase, different reference docs, different open questions. One agent per question.
 - **Phase 2.5 spec self-review**, one reviewer, three lenses over one read of the work-doc, checking it for inconsistent / conflicting logic before code is written (internal consistency + execution-wave plan + architectural risk). MANDATORY before Phase 3.
-- **Phase 3 implementation waves**, group tasks by dependency, dispatch each wave's tasks to one agent each in a single message. **Tasks in the same wave MUST NOT share files.** This is what makes parallel implementation safe.
+- **Phase 3 implementation waves**, group tasks by dependency, then dispatch each wave to ONE agent that carries the whole wave, however wide it is. **Tasks in the same wave MUST NOT share files.** That is why waves are partitioned: every task keeps its own file allowlist, and the wave is bounded by their union, which never widens what one task may touch.
 - **Phase 4 verification across packages**, backend + frontend + shared package; one agent per package runs `test && lint && typecheck` in parallel.
 - **Phase 5 multi-reviewer**, an evidence-gated panel dispatched in parallel, capped at five. Quality, layering, engineering law plus plan consistency and scope is one lens on one read and stands on every wave; security/correctness, performance and cross-module coherence each run when the diff gives that lens something to look at; design conformance runs on UI-bearing diffs. MANDATORY for any non-trivial diff.
-- **Phase 5 adversarial refuters**, one per Critical finding (reproduction lens) plus one batched agent for the Important+Minor set, dispatched together before any fix is applied, and a second refuter (authority lens) only for Criticals whose first refuter refuted. MANDATORY for any non-trivial diff.
+- **Phase 5 adversarial refuter**, ONE per review round, judging every finding at every severity and carrying both lenses itself (reproduction, then authority), dispatched before any fix is applied. MANDATORY for any non-trivial diff.
 - **Phase 3b debug evidence**, multi-component bug; one agent per boundary instruments + logs. Same prompt as Phase 1 research, `investigation.md`, run in `debug` mode.
 - **Multi-project work**, task touches multiple sibling projects (e.g. a backend repo AND a frontend repo); one agent per repo runs the same investigation or implementation wave in its own scope.
 

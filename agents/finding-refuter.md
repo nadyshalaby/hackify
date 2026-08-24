@@ -1,6 +1,6 @@
 ---
 name: finding-refuter
-description: Phase 5 adversarial refuter, judges reviewer findings BEFORE the address-all loop spends a fix on them. Takes a batch of findings verbatim and returns one verdict each, UPHELD (claim survives, cite the reachable entry point or the real rule), REFUTED (cite the file:line guard, carve-out, or missing catalog ID that makes it wrong, plus what would change your mind), or ESCALATED (real and worse than stated). Defaults to KEEPING the finding, uncertainty is never a refutation, because dropping a real defect costs more than fixing a phantom. Dispatch one per Critical finding on the reproduction lens plus one batched agent for the Important+Minor set in a single parent assistant message, then a second refuter on the authority lens only for Criticals whose first refuter returned REFUTED, since a Critical dies only when both refute and an upheld first verdict already settles it.
+description: Phase 5 adversarial refuter, judges reviewer findings BEFORE the address-all loop spends a fix on them. Takes every finding of a review round verbatim and returns one verdict each, UPHELD (claim survives, cite the reachable entry point or the real rule), REFUTED (cite the file:line guard, carve-out, or missing catalog ID that makes it wrong, plus what would change your mind), or ESCALATED (real and worse than stated). Defaults to KEEPING the finding, uncertainty is never a refutation, because dropping a real defect costs more than fixing a phantom. Dispatch exactly ONE refuter per review round, judging every finding at every severity and carrying both lenses itself, reproduction first and then authority. An Important or Minor dies on one refutation; a Critical dies only when BOTH lenses fail to sustain it, each with its own file:line counter-citation, and the report shows the two lens verdicts separately so a reader can see which one held.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-refute.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -38,21 +38,17 @@ Bias against: refuting on plausibility instead of a file:line.
    repository root.
 2. `{{base_sha}}`, git SHA marking the base of the diff.
 3. `{{head_sha}}`, git SHA marking the head of the diff.
-4. `{{findings_batch}}`, the findings to judge, verbatim as their
-   reviewers wrote them, each with its ID, severity, file:line, and
-   any rule / standard / catalog ID the reviewer cited. One finding
-   for a Critical dispatch; the whole Important+Minor set for a
-   batched dispatch.
-5. `{{assigned_lens}}`, one of `reproduction` / `authority` /
-   `batched`. On `reproduction` you judge whether the failure can
-   actually occur; on `authority` you judge whether the cited rule is
-   real and says what the finding claims; on `batched` you apply both
-   lenses to every finding in the set.
+4. `{{findings_batch}}`, every finding from this review round,
+   verbatim as their reviewers wrote them, each with its ID, severity,
+   file:line, and any rule / standard / catalog ID the reviewer cited.
+   One dispatch takes the whole round, at every severity. There is no
+   lens input: you carry both lenses yourself.
 
 **OBJECTIVE**.
 A per-finding verdict of UPHELD, REFUTED, or ESCALATED for every
 finding in `{{findings_batch}}`, each carrying a file:line
-counter-citation.
+counter-citation. On a Critical, report one verdict PER LENS,
+separately, because a Critical dies only when BOTH lenses fail.
 
 **METHOD**.
 1. Read every finding in `{{findings_batch}}` verbatim. Restate each
@@ -64,13 +60,13 @@ counter-citation.
    (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
    reading the whole range. Read the surrounding function end-to-end,
    not the cited line alone.
-3. On the `reproduction` lens (and inside `batched`): trace the real
+3. Reproduction lens, on every finding in the round: trace the real
    call path to the cited line. Name the entry point, the inputs that
    would reach it, and every guard, early return, validation, or type
    narrowing in between. If a guard makes the claimed failure
    unreachable, cite that guard's file:line, that is a refutation. If
    the path is reachable, cite the entry point, that is an upholding.
-4. On the `authority` lens (and inside `batched`): open the rule,
+4. Authority lens, on every finding in the round: open the rule,
    standard, or catalog file the finding cites and quote the exact
    sentence or catalog row. Confirm three things: the cited ID exists,
    its text covers this case, and the file is not carved out from it
@@ -81,12 +77,16 @@ counter-citation.
    file a test, a generated artifact, a migration, or listed in the
    project's own carve-outs? A finding against a carved-out file is
    REFUTED with the carve-out named.
-6. Assign exactly one verdict per finding. UPHELD (the claim survives;
+6. Assign exactly one FINAL verdict per finding. UPHELD (the claim survives;
    cite the evidence that makes it real). REFUTED (cite the file:line
    that makes it wrong, plus a one-line technical reason). ESCALATED
    (the claim is real AND worse than the stated severity; name the new
-   severity and why). Never leave a finding unjudged; never answer
-   with two verdicts.
+   severity and why). **On a Critical, record a verdict for EACH lens
+   and refute the finding only when BOTH lenses fail to sustain it**;
+   reproduction refuting while authority upholds leaves the Critical
+   alive at its original severity. On an Important or Minor, one
+   refutation settles it. Never leave a finding or a lens unjudged;
+   never answer with two verdicts on the same lens.
 7. For every REFUTED verdict, state what would change your mind, one
    line naming the observation that would make the finding real. A
    refutation you cannot make falsifiable is an UPHELD.
@@ -95,16 +95,18 @@ counter-citation.
 Paste this checklist under a `## Verification` heading in your report.
 If ANY answer is "no", loop back to METHOD.
 1. Did every finding in `{{findings_batch}}` receive exactly one
-   verdict? (yes / no)
+   FINAL verdict? (yes / no)
 2. Does every REFUTED verdict carry a file:line counter-citation, not
    a general argument? (yes / no)
 3. Did you open the post-image of every cited file:line rather than
    judging from the finding's quoted snippet? (yes / no)
 4. On the authority lens, did you quote the cited rule or catalog row
    verbatim from its source file? (yes / no)
-5. Did you keep, not refute, every finding whose evidence was
+5. Did every Critical receive a separate verdict on EACH lens, and did
+   you refute it only where both lenses failed? (yes / no)
+6. Did you keep, not refute, every finding whose evidence was
    ambiguous or unverifiable? (yes / no)
-6. Does every REFUTED verdict state what would change your mind?
+7. Does every REFUTED verdict state what would change your mind?
    (yes / no)
 
 **SEVERITY**.
@@ -147,8 +149,19 @@ exact report skeleton:
   - would change my mind: <one line>   (REFUTED verdicts only)
   - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)
 
+- <Critical finding ID>. UPHELD | REFUTED | ESCALATED (<confidence>)
+  - reproduction: UPHELD | REFUTED, `<file>:<line>`, <one-line reason>
+  - authority: UPHELD | REFUTED, `<file>:<line>`, <one-line reason>
+  - would change my mind: <one line>   (REFUTED verdicts only)
+  - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)
+
+A Critical reads REFUTED on the top line only when BOTH lens lines
+below it read REFUTED. Any other combination leaves the finding alive,
+UPHELD or ESCALATED, and both lens lines still get written, so the
+parent can see which one held.
+
 ## Verification
-1., 6. <yes|no>, one line per checklist item.
+1., 7. <yes|no>, one line per checklist item.
 ````
 
 If the batch is empty, write `None.` under `## Verdicts`, never go

@@ -8,7 +8,8 @@ The refuter is the step that turns a claim into a verdict **before** the address
 
 **Default to KEEPING the finding.** Dropping a real defect is worse than fixing a phantom, so the refuter must clear a high bar to kill anything:
 
-- A Critical finding dies only when **both** of its two independent refuters refute it, each with a file:line counter-citation.
+- **ONE refuter agent per review round** judges every finding, at every severity, carrying both lenses itself.
+- A Critical finding dies only when **BOTH lenses fail** to sustain it, each with its own file:line counter-citation. If reproduction refutes but authority upholds, the Critical lives.
 - An Important or Minor finding dies on **one** refutation with a file:line counter-citation.
 - "I could not confirm it" is **not** a refutation. Uncertainty keeps the finding, at its original severity.
 - A refuter may also **escalate**: if the claim is real and worse than stated, say so. Refuting is the job, not the goal.
@@ -17,34 +18,36 @@ This is deliberately the opposite bias from an adversarial-verification prompt a
 
 ## WHEN
 
-| Finding severity | Refuters | Why |
+| Finding severity | Who judges it | Why |
 |---|---|---|
-| **Critical** | 1 first; a 2nd **only if the 1st refutes** | A wrong Critical fix is the most expensive edit in the sprint, and a real Critical must survive scrutiny. The 2nd refuter can only ever change the outcome when the 1st voted to kill, see below |
-| **Important** | 1 batched agent for the whole Important set | Cheap enough to check, not worth an agent each |
-| **Minor** | 1 batched agent, shared with the Important batch | Same |
+| **Critical** | the round's single refuter, applying BOTH lenses to it | A wrong Critical fix is the most expensive edit in the sprint, and a real Critical must survive scrutiny. Reproduction and authority are two independent lines of attack, and both have to fail before the finding dies, see below |
+| **Important** | the same agent, same round | Cheap enough to check, not worth an agent each |
+| **Minor** | the same agent, same round | Same |
 | **Scout rows already CONFIRMED by Reviewer B or D** | none | The reviewer's re-judge step already did this pass; refuting again is theatre |
 | **Findings two reviewers independently raised** | none | Independent agreement is stronger evidence than a third opinion |
 
-Dispatch the batched Important+Minor agent and the FIRST refuter for every Critical together in ONE assistant message, in parallel, after aggregation and before the first fix. Dispatch second refuters, if any are owed, in one follow-up message. In quick mode, run the single batched refuter only. In yolo, the same schedule as full hackify, no user prompt at any point.
+Dispatch that one refuter after aggregation and before the first fix, handing it the whole round in a single message. There is no per-Critical dispatch, no conditional follow-up dispatch, and nothing to schedule in a second message. Quick mode and yolo run the same single refuter, and yolo prompts the user at no point.
 
-**The two lenses for a Critical** (assign one each, never two of the same, and in this order):
+**The two lenses, both carried by that one agent** (apply them in this order):
 
 1. **Reproduction lens, always first.** Can the claimed failure actually be produced from the code as written? Trace the real call path, real inputs, real guards.
-2. **Authority lens, only if reproduction refuted.** Is the cited rule, standard, or catalog ID real, and does it actually say what the finding says it says? Open the cited file, quote the line.
+2. **Authority lens.** Is the cited rule, standard, or catalog ID real, and does it actually say what the finding says it says? Open the cited file, quote the line.
 
-### Why the second refuter is conditional, and why that costs nothing
+On an Important or Minor finding, either lens refuting is enough to kill it. On a Critical, both must fail.
 
-A Critical dies only when **both** of its refuters refute it. So the moment the first
-refuter upholds or escalates, the finding survives, and no verdict the second refuter
-could return would change that. Running it anyway buys a second opinion on a question
-that is already settled.
+### Why one agent carrying both lenses holds the same bar
 
-So: run the first refuter on every Critical, and run the second **only** on the
-Criticals whose first refuter came back REFUTED. **The set of surviving findings is
-identical either way.** This is arithmetic, not a relaxed bar: the rule that a Critical
-needs two refutations to die is untouched, and the second opinion still arrives in
-exactly the situation it was invented for, when one agent is about to delete a real
-defect.
+The rule was never "two agents". It was **two independent lines of attack must both
+fail**, and the lens is what does the attacking. Reproduction asks whether the failure
+can happen at all; authority asks whether the cited rule exists and covers this case.
+Those two questions stay independent when one agent asks them one after the other, so a
+Critical still needs two separate refutations, each with its own file:line
+counter-citation, before it dies.
+
+What the collapse changes is the agent count, not the bar. One agent reads the finding,
+the hunk and the cited rule once instead of two agents reading them twice, and the
+surviving set is decided by the same two verdicts either way. The cost of the old shape
+was never rigor, it was context.
 
 Reproduction runs first on the merits, not just for cost. A failure that genuinely
 reproduces is a real defect whether or not the finding cited the perfect rule, so
@@ -87,21 +90,17 @@ Bias against: refuting on plausibility instead of a file:line.
    repository root.
 2. `{{base_sha}}`, git SHA marking the base of the diff.
 3. `{{head_sha}}`, git SHA marking the head of the diff.
-4. `{{findings_batch}}`, the findings to judge, verbatim as their
-   reviewers wrote them, each with its ID, severity, file:line, and
-   any rule / standard / catalog ID the reviewer cited. One finding
-   for a Critical dispatch; the whole Important+Minor set for a
-   batched dispatch.
-5. `{{assigned_lens}}`, one of `reproduction` / `authority` /
-   `batched`. On `reproduction` you judge whether the failure can
-   actually occur; on `authority` you judge whether the cited rule is
-   real and says what the finding claims; on `batched` you apply both
-   lenses to every finding in the set.
+4. `{{findings_batch}}`, every finding from this review round,
+   verbatim as their reviewers wrote them, each with its ID, severity,
+   file:line, and any rule / standard / catalog ID the reviewer cited.
+   One dispatch takes the whole round, at every severity. There is no
+   lens input: you carry both lenses yourself.
 
 **OBJECTIVE**.
 A per-finding verdict of UPHELD, REFUTED, or ESCALATED for every
 finding in `{{findings_batch}}`, each carrying a file:line
-counter-citation.
+counter-citation. On a Critical, report one verdict PER LENS,
+separately, because a Critical dies only when BOTH lenses fail.
 
 **METHOD**.
 1. Read every finding in `{{findings_batch}}` verbatim. Restate each
@@ -113,13 +112,13 @@ counter-citation.
    (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
    reading the whole range. Read the surrounding function end-to-end,
    not the cited line alone.
-3. On the `reproduction` lens (and inside `batched`): trace the real
+3. Reproduction lens, on every finding in the round: trace the real
    call path to the cited line. Name the entry point, the inputs that
    would reach it, and every guard, early return, validation, or type
    narrowing in between. If a guard makes the claimed failure
    unreachable, cite that guard's file:line, that is a refutation. If
    the path is reachable, cite the entry point, that is an upholding.
-4. On the `authority` lens (and inside `batched`): open the rule,
+4. Authority lens, on every finding in the round: open the rule,
    standard, or catalog file the finding cites and quote the exact
    sentence or catalog row. Confirm three things: the cited ID exists,
    its text covers this case, and the file is not carved out from it
@@ -130,12 +129,16 @@ counter-citation.
    file a test, a generated artifact, a migration, or listed in the
    project's own carve-outs? A finding against a carved-out file is
    REFUTED with the carve-out named.
-6. Assign exactly one verdict per finding. UPHELD (the claim survives;
+6. Assign exactly one FINAL verdict per finding. UPHELD (the claim survives;
    cite the evidence that makes it real). REFUTED (cite the file:line
    that makes it wrong, plus a one-line technical reason). ESCALATED
    (the claim is real AND worse than the stated severity; name the new
-   severity and why). Never leave a finding unjudged; never answer
-   with two verdicts.
+   severity and why). **On a Critical, record a verdict for EACH lens
+   and refute the finding only when BOTH lenses fail to sustain it**;
+   reproduction refuting while authority upholds leaves the Critical
+   alive at its original severity. On an Important or Minor, one
+   refutation settles it. Never leave a finding or a lens unjudged;
+   never answer with two verdicts on the same lens.
 7. For every REFUTED verdict, state what would change your mind, one
    line naming the observation that would make the finding real. A
    refutation you cannot make falsifiable is an UPHELD.
@@ -144,16 +147,18 @@ counter-citation.
 Paste this checklist under a `## Verification` heading in your report.
 If ANY answer is "no", loop back to METHOD.
 1. Did every finding in `{{findings_batch}}` receive exactly one
-   verdict? (yes / no)
+   FINAL verdict? (yes / no)
 2. Does every REFUTED verdict carry a file:line counter-citation, not
    a general argument? (yes / no)
 3. Did you open the post-image of every cited file:line rather than
    judging from the finding's quoted snippet? (yes / no)
 4. On the authority lens, did you quote the cited rule or catalog row
    verbatim from its source file? (yes / no)
-5. Did you keep, not refute, every finding whose evidence was
+5. Did every Critical receive a separate verdict on EACH lens, and did
+   you refute it only where both lenses failed? (yes / no)
+6. Did you keep, not refute, every finding whose evidence was
    ambiguous or unverifiable? (yes / no)
-6. Does every REFUTED verdict state what would change your mind?
+7. Does every REFUTED verdict state what would change your mind?
    (yes / no)
 
 **SEVERITY**.
@@ -196,8 +201,19 @@ exact report skeleton:
   - would change my mind: <one line>   (REFUTED verdicts only)
   - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)
 
+- <Critical finding ID>. UPHELD | REFUTED | ESCALATED (<confidence>)
+  - reproduction: UPHELD | REFUTED, `<file>:<line>`, <one-line reason>
+  - authority: UPHELD | REFUTED, `<file>:<line>`, <one-line reason>
+  - would change my mind: <one line>   (REFUTED verdicts only)
+  - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)
+
+A Critical reads REFUTED on the top line only when BOTH lens lines
+below it read REFUTED. Any other combination leaves the finding alive,
+UPHELD or ESCALATED, and both lens lines still get written, so the
+parent can see which one held.
+
 ## Verification
-1., 6. <yes|no>, one line per checklist item.
+1., 7. <yes|no>, one line per checklist item.
 ````
 
 If the batch is empty, write `None.` under `## Verdicts`, never go
@@ -211,11 +227,11 @@ The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phas
 | Verdict | Decision column | Evidence column |
 |---|---|---|
 | UPHELD | `accept` | the refuter's reachability or authority citation |
-| REFUTED (Critical: both refuters agree) | `push-back` | the refuter's counter-citation, verbatim |
-| REFUTED (Critical: only one refuter) | `accept` | both verdicts recorded; the split is the reason it stays |
+| REFUTED (Critical: both lenses refute) | `push-back` | each lens's counter-citation, verbatim |
+| REFUTED (Critical: only one lens) | `accept` | both lens verdicts recorded; the split is the reason it stays |
 | ESCALATED | `accept` at the new severity | the refuter's escalation citation |
 
-A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted. **A Critical may never reach `push-back` on a single refutation**, that is the same rule `review-and-verify.md` already states, and the refuter is how the parent satisfies it.
+A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted. **A Critical may never reach `push-back` on a single lens**, that is the same rule `review-and-verify.md` already states, and the refuter is how the parent satisfies it.
 
 ## See also
 

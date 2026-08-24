@@ -278,14 +278,17 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 
 # (1) The implementer takes a WHOLE WAVE, so both mirror sides must keep taking a
 # task LIST rather than a single task. Lose that and per-wave dispatch regresses to
-# one agent per task, handing back every token it saved. The spec reviewer below is
-# still the one emitting batches, and keeps its own cap pin until it stops.
+# one agent per task, handing back every token it saved. The spec reviewer has now
+# stopped emitting batches for it to dispatch off, so what it owes Phase 3 is a wave
+# plan whose waves are file-disjoint and capped. Those two properties are the entire
+# reason one agent can safely take a whole wave, and they replace the old batch cap.
 for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
 done
 for f in "agents/spec-reviewer.md" "$DEPS_TPL"; do
-  check_token_present 'Cap a batch at 3 tasks' "$f"
+  check_token_present 'one dispatched implementer per wave' "$f"
+  check_token_present 'no two tasks share a file' "$f"
 done
 
 # (2) A batch STOPS at the first task it cannot finish. Without this a batched
@@ -295,12 +298,16 @@ for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents
   check_token_present 'STOP there' "$f"
 done
 
-# (3) The second refuter is conditional ONLY because a Critical needs both refuters
-# to die. If that rule ever weakens to "one refutation kills a Critical", skipping
-# the second refuter stops being free and starts deleting real defects.
+# (3) ONE refuter per round judges every finding now, so the both-lenses rule is the
+# only thing still holding a Critical up. The bar was never "two agents", it was two
+# independent lines of attack that must both fail; let that weaken to one lens killing
+# a Critical and the collapse stops being free and starts deleting real defects. The
+# both-lenses pin runs over BOTH mirror sides, because the agent copy is what runs.
 check_token_present 'dies only when' "$REFUTE_TPL"
-check_token_present 'only if the 1st refutes' "$REFUTE_TPL"
-check_token_present 'identical either way' "$REFUTE_TPL"
+check_token_present 'ONE refuter agent per review round' "$REFUTE_TPL"
+for f in "agents/finding-refuter.md" "$REFUTE_TPL"; do
+  check_token_present 'BOTH lenses fail' "$f"
+done
 
 # (3b) F is gated on a SEAM, not on risk, and B inherits its checklist when it folds.
 # F is the only lens that compares a producer against its consumers, so a fold that is

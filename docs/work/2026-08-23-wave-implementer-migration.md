@@ -5,7 +5,7 @@ status: implementing
 type: refactor
 created: 2026-08-23
 project: hackify
-current_task: W4:T8+T10+T9+T9b+T5b
+current_task: W5:T11+T10b+T3b+T5c
 worktree: none
 branch: main
 sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agent per wave, rename the unit everywhere, and apply the same collapse to the refuters.
@@ -211,14 +211,14 @@ census cannot fail. This backlog is the corrected shape.
 
 ### Wave 4, the dependent agents
 
-- [ ] **T8** Refuters collapse to one per round over all findings.
+- [x] **T8** Refuters collapse to one per round over all findings.
   `Files:` `skills/hackify/references/parallel-agents/phase-5-refute.md`, `agents/finding-refuter.md`
-- [ ] **T9** Phase 5 dispatch text for the single refuter.
+- [x] **T9** Phase 5 dispatch text for the single refuter.
   `Files:` `skills/hackify/references/phases/phase-5-review.md`
-- [ ] **T9b** Refuter fan-out prose. Added by Phase 2.5: AC6 had uncovered sites.
+- [x] **T9b** Refuter fan-out prose. Added by Phase 2.5: AC6 had uncovered sites.
   `Files:` `skills/hackify/references/review-and-verify.md`, `skills/hackify/references/parallel-agents/template-contract.md`
 
-- [ ] **T5b** The three surviving "parallel waves" claims, found by the Wave 3 implementer and
+- [x] **T5b** The three surviving "parallel waves" claims, found by the Wave 3 implementer and
   confirmed on disk. Two are section headings (`SKILL.md:130`, `phase-3-implement.md:1`); the third
   is Reviewer F's stated justification at `SKILL.md:183`, "Phase 3's parallel waves build each half
   of a feature blind to the other", which THIS sprint falsifies for the within-a-wave case. F still
@@ -227,7 +227,7 @@ census cannot fail. This backlog is the corrected shape.
   `B is the standing member of every wave`, which must survive.
   `Files:` `skills/hackify/SKILL.md`, `skills/hackify/references/phases/phase-3-implement.md`
 
-- [ ] **T10** Spec reviewer emits a wave plan, not dispatch batches.
+- [x] **T10** Spec reviewer emits a wave plan, not dispatch batches.
   `Files:` `skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md`, `agents/spec-reviewer.md`
 
 ### Wave 5, guard the new vocabulary
@@ -252,6 +252,21 @@ census cannot fail. This backlog is the corrected shape.
   what you completed, report why you stopped". Only `STOP there` is pinned (`71:297`); nothing
   reads the reporting sentence. That reporting half IS the mitigation the user was given in
   exchange for accepting a larger blast radius, so it ships pinned on both mirror sides.
+
+- [ ] **T3b** The refuter's type-to-INPUTS row. Added by Wave 4. It lists `finding_verbatim`,
+  `lens`, `project_root`, `head_sha`; `lens` is the input T8 just retired, and the other three were
+  **already drifted** against the template's `findings_batch` / `base_sha` / `head_sha` before this
+  sprint. This is a row a dispatcher builds a call from, so it is the Group B defect class again:
+  wrong, load-bearing, and pinned by nothing.
+  `Files:` `skills/hackify/references/parallel-agents/README.md`
+
+- [ ] **T5c** The rest of the falsified Reviewer F justification, plus two retired words. Added by
+  Wave 4. F's own template still says it exists "because Phase 3 builds in parallel waves: separate
+  agents write separate files with no sight of each other", which this sprint makes untrue inside a
+  wave. Same rewrite as T5b, and the same rule: F is not weakened, its reason is corrected. The
+  agent side is a mirror pair, so its frontmatter `description:` needs a hand-edit the sync script
+  will neither make nor complain about.
+  `Files:` `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md`, `agents/code-reviewer-coherence.md`, `skills/quick/SKILL.md`, `skills/yolo/SKILL.md`
 
 - [ ] **T10b** Phase 2.5 phase doc, follows T10's finished output. Added by Phase 2.5.
   `Files:` `skills/hackify/references/phases/phase-2.5-spec-review.md`
@@ -422,6 +437,61 @@ reviewer.
 `71-release-mechanism-pins.sh` existed to stop two concurrent agents colliding on one file. With
 one agent per wave there is no concurrency to collide, so the rule is moot from here on. Recording
 it because it is the first measured benefit of the change beyond token count.
+
+### 2026-08-24, Wave 4, the refuter and the spec reviewer (T8, T9, T9b, T10, T5b)
+
+One agent, five tasks, plus both sets of validator pins that track them. The §5a rule that only one
+task per wave may own `71-release-mechanism-pins.sh` is moot now, as Wave 3 noted: with one agent
+there is no second writer to collide with.
+
+- **T8**, the refuter collapses to one agent per round, and the Critical bar survives the collapse.
+  Decision #14-A alone would have weakened a real safety property: today a Critical dies only when
+  two independent agents both refute it, and one agent means one refutation kills it. The pin
+  guarding that rule said so in as many words. The user was shown this and chose **#2-A**: one
+  agent, but a Critical may only be refuted when BOTH lenses fail, reproduction and authority, each
+  with its own file:line counter-citation. Reproduction refutes while authority upholds and the
+  Critical lives. Important and Minor still die on one refutation. `{{assigned_lens}}` is retired as
+  an input, since the single agent always carries both. The Critical's OUTPUT shows each lens
+  verdict separately, because a merged verdict hides exactly the thing the rule protects.
+- **T9, T9b**, the same rule restated wherever it was written down: the Phase 5 protocol, the
+  review-and-verify decision-table step, and the sub-agent contract's mandatory list. The sentence
+  that a Critical may never be pushed back on a single refutation survives, restated as a single
+  lens. `template-contract.md:13` also carried a **pre-existing** Phase 3 defect, saying a wave's
+  tasks go to one agent each; that is the third file found carrying that same stale claim.
+- **T10**, the spec reviewer stops emitting dispatch batches. Its whole batching step is gone, not
+  blanked, and the steps after it renumbered. Wave capping and file-disjoint partitioning stay,
+  because those two properties are the entire reason one agent can safely take a whole wave.
+- **T5b**, the three surviving "parallel waves" claims. Two headings, and Reviewer F's reason for
+  existing. F is not weakened: its justification now rests on what is still true, that a wave's
+  implementer is blind to the waves before it and to every line of pre-existing code, which is
+  where a producer and its consumers drift apart.
+
+**Pins moved with the prose they track.** Removed `only if the 1st refutes`, `identical either
+way`, `Cap a batch at 3 tasks`. Added `ONE refuter agent per review round`, `BOTH lenses fail`
+(over both mirror sides), `one dispatched implementer per wave` and `no two tasks share a file`
+(over both spec-reviewer sides). Every pin comment was rewritten to argue the new rule, because a
+pin whose comment still defends the retired rule is worse than no comment.
+
+**Wave-end evidence.** Validator exits 0 with 0 FAIL (1422 ok lines). Mirrors 9 of 9. `71` at 483
+of 500. Ten files touched, all ten inside the wave's union. Law-scout: 10 files, 0 findings, 0
+unaccounted. No em or en dashes. METHOD steps and VERIFICATION items in the renumbered spec-reviewer
+independently re-checked: both run 1..20 with no gap or duplicate, and every cross-reference
+resolves, including the `14 to 20` / `14-19` pair, which name the whole lens and its checks
+respectively and are both correct.
+
+**The implementer reproduced §5b's no-op tamper on itself, and said so.** Its first tamper on
+`BOTH lenses fail` appended a character outside the pinned phrase, so the phrase still matched and
+the validator printed green. It caught that, redid the tamper inside the phrase, and only then did
+the pin bite. This is the exact failure mode §5b was written about, reproduced by an agent that had
+read §5b. AC7's full four-artifact protocol still belongs to T11; what Wave 4 has is a
+presence-and-bite spot-check, and the doc should not claim more.
+
+**What Wave 4 found beyond its own scope**, now tracked rather than mentioned. `SKILL.md` was still
+instructing a dispatcher to send two refuters per Critical, which would have falsified AC6 while the
+tree stayed green; the implementer fixed it in place under T5b's allowlist and flagged it. Two more
+live sites are new tasks: **T3b** (the refuter's type-to-INPUTS row, three of whose four inputs were
+wrong even before this sprint) and **T5c** (F's justification in its own template and mirror, plus
+two retired words in quick and yolo). README's copies belong to T12.
 
 ## 7. Sprint Review
 

@@ -1,4 +1,4 @@
-# Phase 3, Implement (parallel waves, mandatory)
+# Phase 3, Implement (one agent per wave, mandatory)
 
 Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
 

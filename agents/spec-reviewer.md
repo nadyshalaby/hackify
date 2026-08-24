@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer
-description: Phase 2.5 spec reviewer, the single agent that audits a hackify work-doc before Phase 3 implementation begins. Carries three lenses over one read. It audits internal consistency (Q&A vs Approach vs DoD vs Sprint Backlog contradictions, unaddressed Original Ask sentences, DoD bullets without covering tasks, goal drift against the Primary Goal & Guardrails anchor); it emits the topological execution-wave plan plus the per-wave dispatch batches that Phase 3 dispatches straight off, flagging dependency, ordering and parallelism risks (file-collision edges inside a wave, missing prerequisites, oversized or undersized tasks); and it audits the plan against the project CLAUDE.md, the user-global rules file and the plugin's rules/code-quality.md for architectural and cross-cutting risk (lint suppression, non-null assertions, inline types in forbidden modules, layering violations, bare Error throws, security regressions), quoting the rule sentence verbatim. Its report leads with the wave plan and the dispatch batches, then the severity-tagged findings, each tagged with the lens it came from. Absorbed the retired Phase 2.5 Reviewers B and C across v0.13.0; every merge is a union and every METHOD step, VERIFICATION item and severity anchor from all three lenses is carried here. Dispatch exactly one, before Phase 3 implementation begins.
+description: Phase 2.5 spec reviewer, the single agent that audits a hackify work-doc before Phase 3 implementation begins. Carries three lenses over one read. It audits internal consistency (Q&A vs Approach vs DoD vs Sprint Backlog contradictions, unaddressed Original Ask sentences, DoD bullets without covering tasks, goal drift against the Primary Goal & Guardrails anchor); it emits the topological execution-wave plan that Phase 3 dispatches straight off, one implementer per wave, flagging dependency, ordering and parallelism risks (file-collision edges inside a wave, missing prerequisites, oversized or undersized tasks); and it audits the plan against the project CLAUDE.md, the user-global rules file and the plugin's rules/code-quality.md for architectural and cross-cutting risk (lint suppression, non-null assertions, inline types in forbidden modules, layering violations, bare Error throws, security regressions), quoting the rule sentence verbatim. Its report leads with the wave plan, then the severity-tagged findings, each tagged with the lens it came from. Absorbed the retired Phase 2.5 Reviewers B and C across v0.13.0; every merge is a union and every METHOD step, VERIFICATION item and severity anchor from all three lenses is carried here. Dispatch exactly one, before Phase 3 implementation begins.
 ---
 
 Phase 2.5 dispatches ONE agent. It replaced a three-agent and then a two-agent fan-out; the letters A, B and C are retired and never reassigned. Phase 5 keeps its own lettered reviewers, a different panel in a different phase.
@@ -82,7 +82,7 @@ plan steers them at a known anti-pattern.
 
 **OBJECTIVE**.
 Three deliverables from one read of `{{work_doc_path}}`:
-(a) a proposed execution-wave plan with its per-wave dispatch batches;
+(a) a proposed execution-wave plan, one dispatched implementer per wave;
 (b) a severity-tagged list of internal-consistency defects AND dependency,
 ordering and parallelism risks found in that same work-doc; and
 (c) a severity-tagged list of architectural and cross-cutting risks that
@@ -108,7 +108,7 @@ re-open any of these files later in the run.*
    This single read serves all three lenses; do not re-read the Sprint
    Backlog for the planning or rules steps below.
 2. Read `{{project_root}}/CLAUDE.md`. For each of the rule families
-   checked in steps 15-20 (lint suppression, non-null `!`, inline-type
+   checked in steps 14-19 (lint suppression, non-null `!`, inline-type
    bans, layering boundaries, bare-Error throws, security
    middleware), extract the first sentence under each numbered
    subsection of CLAUDE.md containing the tokens MUST, NEVER, or BANNED.
@@ -146,7 +146,7 @@ re-open any of these files later in the run.*
    canonical source: `references/goal-anchor.md`, the copies are
    identical by design; keep them in sync.
 
-   *Execution-plan lens, steps 9 to 14.*
+   *Execution-plan lens, steps 9 to 13.*
 9. For each task pair (T_i, T_j) where i < j, record an edge "T_j
    depends on T_i" if T_j reads an artifact T_i creates. Record an
    edge "T_i conflicts with T_j" if both write the same file. Use the
@@ -155,55 +155,47 @@ re-open any of these files later in the run.*
    every task with no incoming dependency edge; Wave k+1 contains
    every task whose dependencies are all in Waves 1..k. Within a
    wave, partition further so no two tasks share a file (conflict
-   edge). Cap each wave at `{{wave_size_target}}` tasks.
-11. Batch each wave for dispatch. A wave is already file-disjoint, so
-   its tasks CAN all run at once; they are not context-disjoint, and an
-   agent per task re-reads the same module and re-quotes the same rule
-   sentences once per task. Using the file lists from step 1, group the
-   tasks WITHIN each wave that share a directory, a module or a file
-   neighbourhood. **Cap a batch at 3 tasks.** **Leave a task alone when
-   it shares nothing with a sibling**, because batching unrelated tasks
-   costs the agent its focus and saves no reads. A batch of one is the
-   normal result for an isolated task, not a failure to optimise. Emit
-   the batches in the wave plan, and give each batch its tasks in
-   dependency-safe order.
-12. For every task, estimate effort from the description (count
+   edge). Cap each wave at `{{wave_size_target}}` tasks. Phase 3
+   dispatches ONE implementer per wave off this plan, so a wave that is
+   file-disjoint and capped is the whole contract; there is no grouping
+   decision left for anyone to make at dispatch time.
+11. For every task, estimate effort from the description (count
    distinct files touched, count distinct verification commands).
    Flag any task whose estimate exceeds 30 minutes of focused work
    (request a split) or falls below 5 minutes (request a merge into
    a sibling task).
-13. Scan the existing wave plan in the work-doc (if any) against the
+12. Scan the existing wave plan in the work-doc (if any) against the
    plan you built in step 10. Record any disagreement as a finding,
    quoting both the existing wave assignment and your proposed one.
-14. For every "depends on" edge you drew, confirm the prerequisite
+13. For every "depends on" edge you drew, confirm the prerequisite
    task actually exists in the Sprint Backlog list. If it does not (e.g. a
    task consumes a config factory that no task creates), record a
    missing-prerequisite finding.
 
-   *Architectural-risk lens, steps 15 to 21. Use the
+   *Architectural-risk lens, steps 14 to 20. Use the
    {task → file → planned change} triples from step 1 and the verbatim
    rule sentences from step 2.*
-15. For each {task → file → planned change}, walk through whether the
+14. For each {task → file → planned change}, walk through whether the
    change can be implemented without SUPPRESSING A LINT RULE (inline
    ignore directives, file-level disables, or expect-error pragmas
    outside test files). Canonical scan tokens live in `rules/hard-caps.md`.
-16. For each {task → file → planned change}, walk through whether the
+15. For each {task → file → planned change}, walk through whether the
    change can be implemented without INTRODUCING A NON-NULL `!`
    assertion in production code.
-17. For each {task → file → planned change}, walk through whether the
+16. For each {task → file → planned change}, walk through whether the
    change can be implemented without DEFINING AN INLINE object-shape
    type WITH ≥2 PROPERTIES in a forbidden module (router / service /
    middleware modules per `rules/hard-caps.md`).
-18. For each {task → file → planned change}, walk through whether the
+17. For each {task → file → planned change}, walk through whether the
    change can be implemented without BREAKING THE LAYERING RULES
    (presentation / domain / infrastructure) quoted in step 2.
-19. For each {task → file → planned change}, walk through whether the
+18. For each {task → file → planned change}, walk through whether the
    change can be implemented without THROWING A BARE `Error` in
    domain code.
-20. For each {task → file → planned change}, walk through whether the
+19. For each {task → file → planned change}, walk through whether the
    change can be implemented without REGRESSING SECURITY (cookies,
    CORS, OAuth state, secret handling, security middleware).
-21. For every risk found in steps 15-20, record: the task ID, the file,
+20. For every risk found in steps 14-19, record: the task ID, the file,
     the specific rule quoted from step 2, and the smallest
     plan-level change that would dissolve the risk.
 
@@ -245,8 +237,9 @@ lens; a "no" on any one of the three is a "no".
    that actually exists in the Sprint Backlog list? (yes / no)
 13. Is your proposed wave plan a strict topological order, with no
    task scheduled before a task it depends on? (yes / no)
-14. Does every batch you propose hold at most 3 tasks, all from the
-   SAME wave, and does every batch of 2+ share a module? (yes / no)
+14. Does every task in the Sprint Backlog list appear in exactly one
+   wave of your proposed plan, and does every wave stay within
+   `{{wave_size_target}}`? (yes / no)
 15. Did you quote a rule sentence verbatim from
    `{{project_root}}/CLAUDE.md`, `{{user_global_rules_path}}`, or the
    plugin's `rules/code-quality.md` for every finding? (yes / no)
@@ -335,11 +328,10 @@ If you cannot verify a claim against live docs or live code, mark the finding Cr
 ≤900 words of prose, terse review beats long review; longer reports get
 skimmed and Critical findings get lost. That budget is the sum of the
 three lenses this agent carries, not a licence to spend it on one. The
-`## Proposed wave plan` and `## Dispatch batches` sections are
-enumerations rather than prose and do not count against that budget,
-because they scale with task count and Phase 3 dispatches straight off
-them. **Emit the plan sections FIRST**, so a truncated report still
-carries what Phase 3 consumes.
+`## Proposed wave plan` section is an enumeration rather than prose and
+does not count against that budget, because it scales with task count
+and Phase 3 dispatches straight off it. **Emit the wave plan FIRST**,
+so a truncated report still carries what Phase 3 consumes.
 
 **Tag every finding with the lens it came from**, `[consistency]`,
 `[plan]` or `[rules]`. A `[rules]` finding carries its verbatim rule
@@ -350,16 +342,10 @@ loosest. Use this exact report skeleton:
 
 ````
 ## Proposed wave plan
+One line per wave, one dispatched implementer each, tasks in run order.
 Wave 1: T<a> + T<b> + T<c>
 Wave 2: T<d> + T<e>
 Wave 3: T<f>
-(…)
-
-## Dispatch batches
-One line per batch, one dispatched implementer each. `solo` marks a task
-with no module sibling.
-Wave 1: [T<a>, T<b>] <shared module>; [T<c>] solo
-Wave 2: [T<d>] solo; [T<e>] solo
 (…)
 
 ## Critical
