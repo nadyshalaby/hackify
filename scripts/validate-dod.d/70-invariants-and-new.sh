@@ -160,14 +160,21 @@ yellow "[40] the Phase 3 implementer rename, live name present and dead name abs
 # Its roots are a strict superset, which is why the retired implementer type is
 # banned here instead of being added to that regex.
 
-WI_TYPE_SITES="skills/hackify/SKILL.md skills/quick/SKILL.md skills/yolo/SKILL.md"
-WI_TYPE_SITES="$WI_TYPE_SITES skills/hackify/references/parallel-agents/README.md"
+# BOTH LISTS IN THIS BLOCK ARE ARRAYS, never space-separated strings looped
+# unquoted. That shape word-splits on any path carrying a space and leaves
+# globbing live on every entry, so one stray character in a filename quietly
+# changes which files get checked. WI_LIVE_PATHS below and WI_DEAD_WORDS at the
+# foot of the block are both arrays already, so this is the shape the rest of
+# [40] follows and these two were the odd pair out.
+WI_TYPE_SITES=('skills/hackify/SKILL.md' 'skills/quick/SKILL.md' 'skills/yolo/SKILL.md')
+WI_TYPE_SITES+=('skills/hackify/references/parallel-agents/README.md')
 # The size is hand-written beside the list, the shape [77] and [80] both use: a
 # bound read back out of a list cannot police that list. Drop a site from the
-# string and its own check leaves with it, and the run stays green one check
-# shorter, which is the failure this whole block exists to stop.
-check_list_size "$(printf '%s' "$WI_TYPE_SITES" | wc -w | tr -d ' ')" 4 "the [40] dispatch-site file set"
-for f in $WI_TYPE_SITES; do check_token_present 'hackify:wave-implementer' "$f"; done
+# array and the element count drops with it, so that site's own check leaves the
+# run and the run stays green one check shorter, which is the failure this whole
+# block exists to stop.
+check_list_size "${#WI_TYPE_SITES[@]}" 4 "the [40] dispatch-site file set"
+for f in "${WI_TYPE_SITES[@]}"; do check_token_present 'hackify:wave-implementer' "$f"; done
 
 # THE #11-A REPORTING HALF, ON BOTH MIRROR SIDES. [38f](2) already pins the
 # STOPPING half, 'STOP there'. The half that says what to REPORT after the stop
@@ -175,10 +182,10 @@ for f in $WI_TYPE_SITES; do check_token_present 'hackify:wave-implementer' "$f";
 # wider blast radius. This sprint spent it: two implementers died mid-wave, and
 # a report naming which task IDs were already on disk is what made the
 # re-dispatch a handful of tasks instead of the whole wave over again.
-WI_MIRRORS="agents/wave-implementer.md"
-WI_MIRRORS="$WI_MIRRORS skills/hackify/references/parallel-agents/phase-3-implementation.md"
-check_list_size "$(printf '%s' "$WI_MIRRORS" | wc -w | tr -d ' ')" 2 "the [40] implementer mirror pair"
-for f in $WI_MIRRORS; do
+WI_MIRRORS=('agents/wave-implementer.md')
+WI_MIRRORS+=('skills/hackify/references/parallel-agents/phase-3-implementation.md')
+check_list_size "${#WI_MIRRORS[@]}" 2 "the [40] implementer mirror pair"
+for f in "${WI_MIRRORS[@]}"; do
   check_token_present 'KEEP everything that already landed on disk' "$f"
   check_token_present 'which task IDs landed, which task IDs did not' "$f"
 done
@@ -211,10 +218,18 @@ WI_LIVE_PATHS+=(':(top,exclude)CHANGELOG.md')
 WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 
 # STATUS IS GIT GREP'S ALONE: a plain command substitution with no pipe inside
-# it, so `pipefail` has nothing to launder. rc 1 is the honest clean tree, rc 0
-# is a hit, anything higher is a scan that never ran and must never be the
-# reason a dead phrase prints green. The failure prints file and line, because
-# the actionable half of an absence check is WHERE the ghost survived.
+# it, so `pipefail` has nothing to launder. rc 0 is a hit and anything above 1
+# is a scan that never ran. rc 1 DOES NOT settle the question by itself, and
+# this comment used to say it did: it read rc 1 as the honest clean tree, which
+# is what let the check green over a file it could not open. git grep returns 1
+# for a tree with no match AND for a scan that could not stat a tracked file.
+# Measured on git 2.50.1, one tracked file at mode 000 with the pathspec scoped
+# to it: rc 1, empty stdout, and 'failed to stat ... Permission denied' on
+# stderr, printed twice. The control, the same file at mode 644, is rc 1 with
+# stderr EMPTY. So stderr is the tie-breaker rc alone cannot be, and rc 1 with
+# anything on stderr is a scan that never ran and must never be the reason a
+# dead phrase prints green. The failure prints file and line, because the
+# actionable half of an absence check is WHERE the ghost survived.
 #
 # STDERR GOES TO ITS OWN FILE AND NEVER INTO `hits`. The rc > 1 branch reports a
 # scan that did not run, and reporting only the number while discarding the one
@@ -228,7 +243,9 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/70-invariants-and-new.sh')
 # THE mktemp IS CHECKED, and it is checked because the unchecked version routed
 # every call in this block into the green branch. A failed mktemp leaves `err`
 # empty, `2>"$err"` then dies in the shell BEFORE git runs, and bash hands back
-# 1, which is git grep's honest no-match. All four calls failed open together and
+# 1. That is a status git grep itself returns, and with no capture file there is
+# no stderr for the tie-breaker above to read either, so the failure arrives
+# wearing a clean tree's exact face. All four calls failed open together and
 # [40] could not fail at all. The contract this now matches is the one
 # 00-helpers.sh:302-307 already states for the batched screen, a scan that never
 # ran must never be the reason a token prints green, and the comment above has
@@ -270,6 +287,12 @@ wi_absent() {
     else
       printf '%s\n' "         git: exited $rc without writing anything to stderr"
     fi
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  if [ "$rc" -eq 1 ] && [ -n "$errtxt" ]; then
+    red "  FAIL [40] git grep exited 1 scanning for '$lit' but wrote to stderr, so a file it could not read is being counted as a file with nothing in it"
+    printf '%s\n' "$errtxt" | sed 's/^/         git: /'
     FAILED=$((FAILED + 1))
     return
   fi

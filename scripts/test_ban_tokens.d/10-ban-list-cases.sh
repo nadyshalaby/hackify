@@ -250,15 +250,24 @@ tb_case_colon_filename() {
 # not an option, it runs its forty top-level checks and moves FAILED on its own,
 # which is the counter every assertion in this suite reads.
 #
-# TWO CASES, NOT ONE, and the split is structural rather than tidy.
+# THREE CASES, NOT ONE, and the split is structural rather than tidy.
 #   (a) git grep itself exits above 1. That branch already worked before this
 #       case existed, so it would never have caught the mktemp defect. It is a
 #       regression pin on the branch the mktemp fix restructures around it.
 #   (b) mktemp fails, so 2>"$err" dies in the shell before git ever runs and
-#       bash hands back 1, which is git grep's honest no-match. All four calls
-#       then fail open together and [40] cannot fail at all. This is the case
-#       that reds before the fix and greens after it, and the reason the whole
+#       bash hands back 1. With no capture file there is no stderr either, so
+#       the failure wears a clean tree's exact face. All four calls then fail
+#       open together and [40] cannot fail at all. This is the case that reds
+#       before the mktemp fix and greens after it, and the reason the whole
 #       section was written.
+#   (c) git opens the repository, reaches a tracked file and cannot stat it.
+#       This is the ONLY one of the three that lets git open a file at all, and
+#       that is precisely what (a) and (b) cannot reach: git returns 1 after a
+#       scan it could not finish, the SAME status a genuinely clean tree
+#       returns, so the check printed green over a file nothing had read.
+#       Stderr is the only thing that tells the two apart. Measured on git
+#       2.50.1: sealed file, rc 1, empty stdout, stat error on stderr; the same
+#       file readable, rc 1 and stderr empty.
 # ---------------------------------------------------------------------------
 
 # Counted the way the fail-closed cases are counted, and counted APART from them.
@@ -292,7 +301,7 @@ tb_case_colon_filename() {
 # exactly the kind the paragraph above names, found by a sweep and not by any
 # check.
 TB_WI_FAILCLOSED=0
-TB_EXPECT_WI_FAILCLOSED=2
+TB_EXPECT_WI_FAILCLOSED=3
 
 # The shipped source, read fresh on every run.
 TB_WI_SRC="scripts/validate-dod.d/70-invariants-and-new.sh"
@@ -323,18 +332,32 @@ tb_load_wi_absent() {
 
 tb_run_wi_absent_cases() {
   tb_load_wi_absent || return
+  # ABOVE the fixture guard on purpose, because that guard does not apply to this
+  # case and gating it there would let a vanished literal take the Critical
+  # regression pin out of the run. See the comment on tb_wi_fixture_ready.
+  tb_case_wi_unreadable_file
   tb_wi_fixture_ready || return
   tb_case_wi_scan_failed
   tb_case_wi_mktemp_failed
 }
 
-# THE FIXTURE LITERAL IS PROVED PRESENT, not assumed, and neither case below can
-# prove it for itself: (a) dies on the pathspec and (b) dies in the shell, so both
-# reach their verdict without git ever opening a file. Let the literal fall out of
-# the tree, which is exactly what the next rename does, and both go on passing over
-# a fixture that can no longer tell a fail-open apart from an honestly clean tree.
+# THE FIXTURE LITERAL IS PROVED PRESENT, not assumed. This guard covers cases (a)
+# and (b), and neither of them can prove it for itself: (a) dies on the pathspec
+# and (b) dies in the shell, so both reach their verdict without git ever opening a
+# file. Let the literal fall out of the tree, which is exactly what the next rename
+# does, and both go on passing over a fixture that can no longer tell a fail-open
+# apart from an honestly clean tree.
 # The scope checked here is ':(top)', which is the scope case (b) hands wi_absent.
 # Same move tb_case_real_file_plant makes when its multibyte fixture goes plain.
+#
+# CASE (c) IS NOT COVERED BY THIS AND MUST NOT BE GATED ON IT. It brings its own
+# fixture, a throwaway repository holding one sealed file it writes the literal
+# into itself, so nothing that happens to the live tree can take that fixture away.
+# It has no vanished-fixture failure mode to guard against either: measured, a scan
+# scoped to one unreadable file returns rc 1 with empty stdout whether or not the
+# literal is in that file, so presence is not what (c) rests on. Pointing this
+# guard at (c) would mean sealing a real tracked file to satisfy it, and that would
+# leave the user's own tree holding something at mode 000 after any interrupt.
 tb_wi_fixture_ready() {
   # THIS FRAGMENT EXCLUDES ITSELF, for the reason WI_LIVE_PATHS excludes
   # 70-invariants-and-new.sh: the TB_WI_LIT assignment above is itself a tracked
@@ -362,8 +385,16 @@ tb_wi_scope_ready() {
   return 1
 }
 
+# EACH CASE OWNS ITS SCOPE AND HANDS IT BACK. WI_LIVE_PATHS is the global
+# wi_absent reads, and every case below used to assign it and walk away, so the
+# last one to run left its pathspec sitting there for whatever came next. The
+# fix is `local -a WI_LIVE_PATHS`: bash's dynamic scoping means the eval'd
+# wi_absent called from inside the case still reads it, and the shell puts the
+# global back on the way out, including on the early returns these cases take.
+# A save-and-restore pair at the tail would miss exactly those.
 tb_case_wi_scan_failed() {
   local before="$FAILED"
+  local -a WI_LIVE_PATHS
   TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
   # An unknown pathspec magic is rejected by git before it opens a single file,
   # measured at 128 here, which reaches the branch without leaning on a
@@ -379,10 +410,25 @@ tb_case_wi_scan_failed() {
   fi
 }
 
+# THE SHIM IS ON A LOCAL PATH, so it cannot outlive the call whatever happens.
+# The `PATH="$saved"` line below is still the narrow window, it puts the real
+# mktemp back the moment wi_absent returns, but it only ever ran on the happy
+# path: an early return between the two left the shim on PATH for every case
+# after this one. `local PATH` is the backstop that closes that, on every exit
+# from the function including the returns above it.
+#
+# NOT wi_absent's trap save-and-restore, and the difference is this suite's own
+# shape. It prints its verdict from an EXIT trap, so a trap installed here would
+# shadow tb_finish for the length of the window and a signal arriving inside it
+# would cost the run its verdict entirely. The shim DIRECTORY needs no trap
+# either: it is written under TB_TMP, and the driver's trap removes that tree on
+# every exit path there is.
 tb_case_wi_mktemp_failed() {
   local before="$FAILED"
   local shim="$TB_TMP/mktemp-shim"
   local saved="$PATH"
+  local -a WI_LIVE_PATHS
+  local PATH="$PATH"
   TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
   WI_LIVE_PATHS=(':(top)')
   tb_wi_scope_ready "wi_absent (no temp file)" || return
@@ -402,6 +448,58 @@ tb_case_wi_mktemp_failed() {
     tb_bad "wi_absent (no temp file): reddened for some reason other than the missing-capture-file branch"
   fi
   rm -rf "$shim"
+}
+
+# Case (c). What it proves is written once, in the (c) entry of the section
+# header above, and is not restated here.
+#
+# THE FIXTURE IS A THROWAWAY REPOSITORY, never a sealed file in the working repo.
+# `git init` under TB_TMP, one file, `git add`, then the seal. Sealing a real
+# tracked file would leave the user's own tree holding something at mode 000 after
+# any interrupt, and no cleanup discipline is worth that risk. TB_TMP is outside
+# the repo, so the literal written into the fixture is invisible to every other
+# scan in this suite. An index entry is enough here, no commit: `git grep` with no
+# rev reads tracked files out of the working tree, measured.
+#
+# GIT_DIR AND GIT_WORK_TREE RATHER THAN A cd. wi_absent runs a bare `git grep`, so
+# something has to point it at the fixture, and bash restores a variable
+# assignment prefixed onto a FUNCTION call the moment that call returns. A cd
+# would have to be undone by hand, and a cd left behind would be far worse than a
+# leaked pathspec: TB_WI_SRC is a relative path, tb_wi_fixture_ready greps the
+# real tree, and the driver's EXIT trap would be removing the shell's own cwd.
+#
+# git add's own status is not checked, and does not need to be. An untracked
+# fixture is scanned by nothing, so wi_absent returns its clean-tree green and
+# tb_expect_red reddens on the spot. The failure is loud either way.
+tb_case_wi_unreadable_file() {
+  local before="$FAILED"
+  local repo="$TB_TMP/wi-sealed"
+  local rc
+  local -a WI_LIVE_PATHS
+  TB_WI_FAILCLOSED=$((TB_WI_FAILCLOSED + 1))
+  rm -rf "$repo"
+  git init -q "$repo" > /dev/null 2>&1 && printf '%s\n' "$TB_WI_LIT" > "$repo/sealed.md" || { tb_bad "wi_absent (unreadable file): the throwaway repo could not be built, so this branch was never exercised"; return; }
+  git -C "$repo" add sealed.md > /dev/null 2>&1
+  chmod 000 "$repo/sealed.md"
+  # THE SEAL IS PROVED, NOT ASSUMED, the way tb_make_unreadable proves its own
+  # bit. chmod 000 is a no-op for root and on filesystems that ignore modes, and
+  # the proof is an INDEPENDENT matcher rather than the git scan, because that
+  # scan is the thing under test and cannot also be its own precondition.
+  /usr/bin/grep -cF -e "$TB_WI_LIT" "$repo/sealed.md" > /dev/null 2>&1
+  rc=$?
+  [ "$rc" -gt 1 ] || { tb_bad "wi_absent (unreadable file): grep read the sealed file at rc $rc, so nothing was sealed and this branch was never exercised"; tb_drop_unreadable "$repo"; return; }
+  WI_LIVE_PATHS=(':(top)sealed.md')
+  tb_wi_scope_ready "wi_absent (unreadable file)" || { tb_drop_unreadable "$repo"; return; }
+  GIT_DIR="$repo/.git" GIT_WORK_TREE="$repo" wi_absent "$TB_WI_LIT" > "$TB_OUT" 2>&1
+  tb_drop_unreadable "$repo"
+  tb_expect_red "wi_absent (unreadable file): a tracked file git cannot stat reddens instead of reporting the literal gone" "$before"
+  # git writes the stat error TWICE, measured, so this asks whether the branch's
+  # own wording is there rather than counting stderr lines.
+  if /usr/bin/grep -q 'but wrote to stderr' "$TB_OUT"; then
+    tb_ok "wi_absent (unreadable file): the red says git wrote to stderr, so an exit status of 1 is no longer being read as a clean tree"
+  else
+    tb_bad "wi_absent (unreadable file): reddened for some reason other than the stderr-on-rc-1 branch"
+  fi
 }
 
 tb_check_wi_failclosed_total() {

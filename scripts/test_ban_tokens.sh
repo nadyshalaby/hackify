@@ -106,13 +106,13 @@ TB_WIRING=(
   # 10-ban-list-cases.sh owns THREE rows, not one. Field 0 is the fragment and
   # nothing here requires it to be unique, so the wi_absent cases are listed on
   # their own rows rather than run off the end of the first one. They were
-  # invisible to this gate until now: the fragment defines sixteen functions and
+  # invisible to this gate until now: the fragment defines seventeen functions and
   # this list named four of them, so deleting the whole wi_absent section would
   # have been a silent coverage loss instead of a red. (The count in
   # 30-inventory-pins.sh is this gate's name total for the fragment, a different
   # quantity from the functions the fragment defines.)
   "10-ban-list-cases.sh tb_load_wi_absent tb_wi_fixture_ready tb_wi_scope_ready tb_run_wi_absent_cases"
-  "10-ban-list-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_check_wi_failclosed_total"
+  "10-ban-list-cases.sh tb_case_wi_scan_failed tb_case_wi_mktemp_failed tb_case_wi_unreadable_file tb_check_wi_failclosed_total"
   "20-corruption-and-wiring-cases.sh tb_case_token_guard tb_run_token_guards tb_case_blank_token_end_to_end tb_case_zero_tokens tb_write_wiring_fragment tb_case_exit_wiring"
   "30-inventory-pins.sh tb_count_call_sites tb_check_call_sites tb_check_list_size tb_check_plant_total"
 )

@@ -284,7 +284,7 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 #
 # DISJOINTNESS BUYS ATTRIBUTION NOW, not collision safety, and the pin staying put
 # through the change is what makes the two easy to confuse. Collision safety was the
-# original reason and CHANGELOG.md:22 records it dissolving on contact: one writer
+# original reason and CHANGELOG.md:18 records it dissolving on contact: one writer
 # per wave leaves no second writer to collide with. What survives is that every
 # touched file maps to exactly one task, which is how the parent reads a PARTIAL
 # diff back as a set of task IDs. phase-3-implementation.md:238 leans on that
