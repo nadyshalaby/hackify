@@ -2077,3 +2077,50 @@ two perf currencies this repo actually has, is untouched this round.
 **And it checked for a budget to breach before claiming there was none.** No `SECONDS` pin, no
 `timeout`, and the work-doc's only timing figure is "about 10s" for the tamper suite, which at 9.16s
 is inside it.
+
+### Phase 5 round 4, Reviewer A: one Critical, and A1's fix was only a quarter of the fix
+
+**A1 closed the sub-case it was filed against and left three siblings open.** The stderr tie-breaker
+catches an unreadable file. It does not catch the other three ways `git grep` silently skips a
+tracked path, because in those `git grep` writes **nothing** to stderr.
+
+**Reproduced by the parent independently before acting.** One tracked file holding the retired
+literal, scanned with the check's own pathspec, git 2.50.1:
+
+| worktree state | worktree rc | stdout | stderr | `--cached` still finds it? |
+|---|---|---|---|---|
+| normal | 0 | HIT | empty | yes |
+| `chmod 000` | 1 | empty | **PRESENT**, caught | yes |
+| **deleted, not staged** | 1 | empty | **EMPTY, prints green** | **yes** |
+| **replaced by a directory** | 1 | empty | **EMPTY, prints green** | **yes** |
+| **`skip-worktree`, sparse checkout** | 1 | empty | **EMPTY, prints green** | **yes** |
+
+Three of the four print `ok '<lit>' survives in no live file` while **the tracked blob still contains
+the literal**. No state of the working directory makes that green defensible, because the blob is
+what a commit ships.
+
+**The everyday trigger is not exotic.** Mid-rename, `rm agents/wave-task-implementer.md` without
+staging the deletion. `[40]` goes green. `git commit` without `-a` commits the index, which still
+holds the retired file. That is exactly the half-applied rename `[40]` was written to catch, and it
+walks straight through.
+
+**And this is the sprint's signature defect pointing the other way for once.** The block's own
+comment at `:207` says `git grep reads TRACKED files`, which is INDEX semantics. `:277` implements
+WORKTREE semantics. **The comment was right and the code was wrong**, rather than the usual
+arrangement. Nothing could see the disagreement because both readings print green on a healthy tree.
+
+Standards cited: CWE-754, improper check for exceptional conditions; OWASP A04:2021 Insecure Design,
+fail-open control.
+
+**A's two Minors,** both real: as root, `chmod 000` is a no-op, so case (c)'s guard `tb_bad`s and the
+whole suite exits 1, meaning a root container can never pass (CI runs as `runner`, so CI is fine);
+and `trap - EXIT` followed by `[ -n "$prev" ] && eval "$prev"` leaves the caller's EXIT trap
+uninstalled for one statement, which in the tamper suite is the trap that prints the verdict.
+
+**What A checked and found clean, measured rather than assumed:** the `sed`/`eval` that lifts
+`wi_absent` out of the shipped file is fail-closed (a missing brace makes the whole eval a parse
+error, so `declare -F` reds and nothing runs); no file-descriptor leak; `trap -p EXIT` inside a
+command substitution really does return the parent's trap on bash 3.2 and 5.x; `VAR=x func` does not
+persist, so neither the `GIT_DIR` pair nor the `mktemp` PATH shim outlives its case; nothing in the
+suite can touch anything outside `TB_TMP`. A swept for other rc-only `git grep` reads and found one,
+`15-wi-absent-cases.sh:157`, which is fail-closed.
