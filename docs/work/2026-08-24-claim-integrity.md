@@ -398,6 +398,63 @@ precisely what decision #7-A ruled out. `[91]` does not currently catch the firs
 backticked form is outside its shipped grammar, deliberately, since widening before the reword would
 red on correct text.
 
+### 2026-08-24, Wave 2 landed, and a clean measurement
+
+`[91]` shipped as `789451d` and `[57]`'s line half as `559a446`. The fixtures landed as `6c9a4d4`
+after a split: the first draft came in at exactly 500 lines, which passes the cap with no headroom
+in a repo that already has two files stuck at 497. It is now four modules, longest function 32 lines.
+
+**Clean measurement, taken on `6c9a4d4` with an empty worktree**, since all three agents correctly
+flagged that their own greens were taken with siblings' work in the tree:
+
+```
+validate-dod.sh            ALL CHECKS PASSED
+test_ban_tokens.sh         ALL BAN-TOKEN TAMPER TESTS PASSED
+lawkeeper test_audit.py    56/56 passed
+test_inject_context.sh     29 passed, 0 failed
+test_block_banned_tokens   41/41 passed
+test_doc_link_lines.py     23/23 passed      (new)
+test_claim_fixtures.py     37 passed, 0 failed (new)
+corpus score               0 of 4 caught, 0 of 9 wrongly claimed
+```
+
+**The score did not move, exactly as #12-B predicted.** Written down before the wave ran so it could
+not be reinterpreted afterwards.
+
+**Both new checks found the sprint's own defect class already live in the repo, which the corpus
+score cannot show.** `[91]`'s author found `CHANGELOG.md:482` citing a check `[50]` that has never
+existed. `[57]`'s author found `57-doc-links.sh:13` claiming the checker handles fenced code blocks,
+which it never did, only inline-code spans. **That second one is a comment asserting behaviour its
+own code does not have, found by the agent sent to extend that code.** Neither is in the corpus, and
+neither would appear in any score. They are the better argument for this sprint than the score is.
+
+**A third fail-open, same shape as parent error 7.** A shell loop lost `git` from its subshell and
+every iteration printed UNRESOLVABLE from a command that never ran, which nearly filed twenty
+phantom findings. Re-run in Python: **3**, and all three are literal placeholder text
+(`name.md:1`, `some/file.md:42`) inside the checkers' own example comments. Not defects.
+
+**Three instances of one failure mode in one session is a pattern, not bad luck.** All three were
+shell one-liners whose failure output is indistinguishable from a clean result: `grep -P` on BSD
+grep, a subshell without `git`, an unquoted `$s` in a for loop. **The rule T9 writes must name this
+shape specifically**: a checking command that can fail silently is not a check, and `2>/dev/null`
+plus `|| echo clean` on a verification is the exact anti-pattern.
+
+### Open follow-ups from wave 2, none hand-fixed
+
+- **`scripts/test_doc_link_lines.py` is not in CI.** `.github/workflows/ci.yml` enumerates suites
+  explicitly at lines 77, 89 and 96 and does not name it, so nothing runs it. **A test nothing runs
+  is the `[0]`-shaped defect this sprint is about.** Goes into W3.
+- **16 single check ids across 14 header rows are never verified against the fragment they are
+  attributed to.** `[76i]` covers range endpoints only, by construction. All 16 are correct today.
+  Blocked on `76-phase-ledger-substrate.sh` being at exactly 500 lines, so the shared parser cannot
+  be extracted without a split first.
+- **`CHANGELOG.md:482` and `CHANGELOG.md:69`** both go to the T12 disposition pass, not a hand fix.
+  Widening `[91]` to backticked references would take in-scope claims from 31 to 74, but cannot land
+  until `:69` is reworded, or it reds on correct intent.
+- **Six citation paths in `.sh` files that no check resolves** were reported by `[57]`'s author.
+  Parent re-measured and gets 3, all placeholders. The disagreement is a resolution-rule difference
+  (suffix-tolerant against exact), not a defect. Recorded, not chased.
+
 ## 7. Sprint Review
 
 ## 8. Retrospective
