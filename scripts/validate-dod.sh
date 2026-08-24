@@ -51,6 +51,9 @@
 #   85-design-spec-conformance.sh, check [85], design-spec catalog conformance
 #                   (contract + WCAG AA contrast)
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
+#   91-claim-resolvers.sh, check [91], every 'check [NN]' claim in a live file
+#                   resolves to a check id the validator actually declares, so a
+#                   doc cannot cite a check that was never written
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -163,6 +166,7 @@ source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
+source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being
