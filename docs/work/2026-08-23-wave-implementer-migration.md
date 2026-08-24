@@ -1117,6 +1117,56 @@ all 15 files appear there. Mirrors 9 of 9. All size caps met. No lint suppressio
 assertions, no empty catches, no bare `Error` throws anywhere in the diff. E's folded checklist was
 run and returned nothing, which is the outcome the fold predicted.
 
+### Phase 5 settle round, refutation and decision table
+
+One refuter, both lenses, per #14-A and #2-A. 26 findings in, 6 refuted, 4 re-severed, 1 escalated.
+The refuter exceeded its 350-word cap and said so in its first line, arguing that
+`phase-5-refute.md:187` ("Never leave a finding unjudged") is the harder constraint. **That overrun
+is the evidence for B5**, which is the finding about that very cap. A report that proves its own
+finding by being written is the best kind.
+
+**The headline it found that nobody filed: one word, three severities.** The bare plural `refuters`
+survives at exactly six live sites, and B2 filed two of them Critical, B7 filed three Important and
+B9 filed one Minor. Same one-word edit. It is ONE Minor cleanup task, not six findings at three
+levels. It also protected `orchestration.md:87` (`Implementers, reviewers, refuters and scouts must
+not propose a goal`) as a genuine role-class collective that must NOT be changed.
+
+| ID | Verdict | Severity | Note |
+|---|---|---|---|
+| A1 mktemp fail-open | UPHELD, both lenses | Critical | Severity is not set by how likely mktemp is to fail. It is set by the repo having written the rule as "must never" at `70:213-218` and having a correct implementation of it at `00-helpers.sh:302-307`, one file away. |
+| F1 yolo second refuter | UPHELD, both lenses | Critical | Half-right sentence: "two refutations to die" survives as two LENSES under #2-A. Rewrite to the lens framing, do not delete. |
+| F2 tick all wave | UPHELD, both lenses | Critical | Ships to every runtime. |
+| B5 refuter word cap | **ESCALATED to Critical** | Critical | The finding's own premise was false and the refuter said so: B's 650 cap was re-reasoned in v0.13.0 for the C-merge, not for #14-A. The real basis is that 350 was sized for a ONE-finding dispatch and #14-A handed one agent the whole round without rescaling. |
+| B1 stale `dist/` | UPHELD, both lenses | **re-severed to Important** | And **explicitly do not fix in this round**: this round will change more source files, so regenerating now guarantees it goes stale again. Phase 6 landing step, then re-prove AC8. |
+| B2 AC6 bare plural | UPHELD on authority only | **re-severed to Minor** | Reproduction REFUTED: neither cited line instructs a dispatch, a reader follows the protocol file. Authority upheld because `orchestration.md:25` sits in a table whose sibling rows DO carry counts, so the plural is not purely collective. Critical lives under both-must-fail, then merges into the one-word cleanup. |
+| A2 unpinned phase doc | **REFUTED** | closed | Concrete counter: a literal revert reds on all three `WI_DEAD_WORDS`, because the base file at `03e7a12` contains all three phrases and is not excluded from `WI_LIVE_PATHS`. The stated net claim is false. Would change its mind: a REWRITE using none of the three phrases, shown green. |
+| A4 unquoted word-split | **REFUTED** | closed | `WI_TYPE_SITES` is a string because `:169` counts it with `wc -w`; `WI_DEAD_WORDS` is an array because its elements contain spaces. Not the same job. Every element is a hardcoded glob-free literal. |
+| B11 CHANGELOG count | **REFUTED** | closed | `roughly fifteen` is hedged and 16 sits inside the hedge. It also falsified the finding's own citation: "sixteen sites" is in the commit BODY, not the subject. |
+| B13 `wi_absent` placement | **REFUTED** | closed | Moving it to `00-helpers.sh` would manufacture the hidden coupling global §2.8 bans, since it closes over fragment-local `WI_LIVE_PATHS`. Extract on the second use; there is one. |
+| F7 F-template direction | **REFUTED** | closed | And it ruled on the parent's pre-downgrade explicitly: correct, and conservative. `:106` carries the right direction into METHOD. Free polish, not a finding. |
+| D1 GIF `optimize=False` | **REFUTED as a Phase 5 finding**, re-routed | Phase 6 | Not disputing the measurement. `gen-demo-gif.py:142` is byte-identical at `03e7a12` and `phase-3-implement.md:97` forbids adjacent cleanup. Textbook Phase 6 offer-to-fix. |
+| A3 no trap | UPHELD | Minor severity, **stronger fix** | Named two in-repo precedents with written rationale: `80-file-size-caps.sh:328-339` arm-and-clear around the window, and `check-collisions.sh:30-31`. Copy 80's shape, not a standing trap. |
+| B3 T6b undeclared | UPHELD | Important | Every other late task (T4b, T5b, T5c, T3b, T10b, T11b, T14) carries an "Added by" note. T6b alone has none. |
+| B4 / F5 stale pin comment | UPHELD | Important | Both upheld, and the refuter flagged a protocol error in MY dispatch: `phase-5-refute.md:26` says two-reporter findings bypass refutation, so these should never have reached it. |
+| B6 untested fail-closed branch | UPHELD | Important | `test_ban_tokens.d/10-ban-list-cases.sh:108-140` already carries the `chmod 000` fail-closed pattern for both screens. **This is the test that would have caught A1.** |
+| B7 / F6 dead-shape docs | UPHELD, **scoped down** | Important | `phase-5-aggregation.md:5`, `runtime-adapters.md:17`, `review-triage/SKILL.md:3` real. `:24` and `:25` REFUTED: file-disjointness is still live and pinned at `71:290-293`. |
+| B8 CHANGELOG bullet | UPHELD | **re-severed to Minor** | The 0.15.0 Fixed bullet covers the class and no AC requires a per-rule bullet. |
+| F3 union assertion | UPHELD | Important | Same file and same block as F2, four lines apart. One edit. |
+| F4 quick/yolo Wave status | UPHELD | Important | Incomplete fix confirmed on disk. |
+| B9 README plural | UPHELD | Minor | Length-neutral swap available: `adversarial refuters` to `the adversarial refuter`. |
+| B10 orchestration wording | UPHELD, **citation off by one** | Minor | The defect is at `:123`, not `:122`, and BOTH halves of that line are now wrong, not just the two words I proposed rewording. |
+| B12 unlabelled OUTPUT form | UPHELD | Minor | First-hand evidence: the refuter hit the ambiguity formatting this very report and had to resolve it from `:210-213`. |
+| F8 ambiguous tick line | UPHELD | Minor | Correctly Minor: that file disambiguates itself, where F2's two files contradict outright. |
+| F9 vacuous same-wave rule | UPHELD, **scope corrected** | Minor | `:257` is NOT vacuous: its parenthetical states a live invariant pinned at `71:290-293`, and parallel agents still run in Phases 1 and 5. Reframe, do not delete. `:134`'s `N implementers` is defensible across waves. |
+
+**One thing the refuter saw, declined to file, and was right to hand up instead.**
+`71-release-mechanism-pins.sh:283-284` justifies the disjointness pin as `the entire reason one agent
+can safely take a whole wave`, while `CHANGELOG.md:22` says a collision-safety constraint `dissolved
+on contact` with one writer. With one writer, disjointness buys per-task allowlist ATTRIBUTION, not
+collision safety. Same stale-rationale class as B4 and F5. **The parent is filing it as N1**, because
+a refuter declining to file is not the same as a defect not existing, and this is the fifth instance
+of the sprint's signature defect.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
