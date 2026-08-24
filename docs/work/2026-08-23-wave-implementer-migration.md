@@ -987,6 +987,70 @@ through `%s`, `rm -f ""` is inert, and the two JSON manifests are a clean 0.14.2
 also correctly declined to file the missing `v0.15.0` tag, which `[27d]` carves out for the
 in-flight version by design.
 
+**Reviewer F, cross-module coherence. Two Criticals, five Importants, two Minors, and it corrected
+three of its own line numbers before reporting rather than after being challenged.**
+
+F closed with the sentence that justifies the lens existing: `validate-dod.sh` prints ALL CHECKS
+PASSED and `sync_agent_mirrors.py --check` passes all nine pairs, and every finding below survives
+both. All four headline citations were re-read on disk by the parent before acceptance.
+
+**F1, Critical. Yolo still instructs the conditional second-refuter dispatch this release deleted.**
+`phase-5-refute.md:29` says there is `no conditional follow-up dispatch, and nothing to schedule in a
+second message. Quick mode and yolo run the same single refuter.` `skills/yolo/SKILL.md:108` says
+`A Critical still needs two refutations to die; the second refuter is dispatched only when the first
+one votes to refute.` Lines 65 and 67 of that same table were updated in wave 4 and 108 was missed.
+A dispatcher builds a real call out of this, so it is not prose drift.
+
+**F2, Critical. A third Phase 3 protocol file still ticks the whole wave.**
+`phase-3-implementation.md:243` now says `Tick ONLY the task IDs ... never the whole wave. Ticking a
+task the agent never finished records work that is not on disk, which is the one thing a work-doc
+must never do.` `implement-and-test.md:24` still says `Tick all wave Tasks checkboxes.` **Fix wave B
+edited this exact file four lines below**, correcting its commit section, and left the tick step
+standing. The finding it was sent to fix reproduced itself inside the file it was fixing.
+
+**F3, Important. Same file, same wave, the other half of the same finding.**
+`phase-3-implementation.md:239` says `Do not assert the reverse`, because a stopped wave writes a
+strict subset of the allowlist union. `implement-and-test.md:20` still says
+`git diff --name-only => should match the union of allowlists`, which is the reverse.
+
+**F4, Important. Quick and yolo dispatch the implementer but never tell the parent to read
+`## Wave status`.** Producer `agents/wave-implementer.md:188`, non-consumers `skills/quick/SKILL.md:41`
+and `skills/yolo/SKILL.md:65`. An earlier F round already filed this, it was ESCALATED and accepted,
+and the fix wired only the two full-hackify sites. **A finding fixed in two of its four places is a
+finding that will be filed again**, and it was.
+
+**F5, Important. `71-release-mechanism-pins.sh:294`'s comment still argues in the batch vocabulary
+the release retired**, reasoning about `the whole reason one-agent-per-task felt safe` while pinning
+text that no longer describes batches. Block (1) of that file was rewritten and block (2) was not.
+
+**F6, Important. `phase-5-aggregation.md:5` names two trigger shapes that are both dead**, a wave of
+implementers and the reviewer panel plus its refuters, against `phase-3-implementation.md:5` and
+`phase-5-refute.md:29`.
+
+**F7, Important. The F template contradicts itself three lines apart, and it is mirrored.**
+`phase-5-multi-review-f-coherence.md:53` calls the `W<n>/` prefix `your same-wave signal`, while
+`:54-56` say one agent writes a whole wave so same-wave files came from a context that saw both
+sides, and the risky seams run ACROSS wave numbers. Same defect in `agents/code-reviewer-coherence.md`
+at `:52` against `:55`. Parent's read: the wording is stale rather than contradictory, since the
+prefix really is the wave marker and the sentence is only wrong about which direction it points.
+Going to the refuter at Minor, not Important, with that argument stated.
+
+**F8, F9, Minor.** `phase-3-implement.md:37` `Tick wave checkboxes` is ambiguous against its own
+`:101`. `skills/hackify/SKILL.md:257` prohibits same-wave file sharing between agents, now vacuous,
+and `:134` still says `N implementers`.
+
+**F dropped a candidate rather than filing it, correctly.** `phase-3-implement.md:66` says
+`No cap on wave width` while `phase-2.5-spec-reviewer.md:162` caps waves at `{{wave_size_target}}`.
+F reconciled them itself: the INPUTS block at `:79-84` was deliberately rewritten this release to say
+the cap `is not a width valve: it bounds how much work one implementer is asked to carry in one
+context`. Different bounds at different times, coherent by design. That is the behaviour the refuter
+exists to enforce, arriving before the refuter had to.
+
+**One honest partial in F's verification.** The task-file index it was handed was commit-grouped with
+no `W<n>/` prefixes, so it treated each commit group as a wave proxy and said so rather than claiming
+the map it was promised. That is a defect in MY dispatch, not in F's audit: the F template asks for a
+`W<n>/T<m>` map and I supplied a commit-to-file map instead.
+
 ### Three-layer re-verify
 
 **Layer 1, fresh triad.** Run in Phase 4, not quoted from a wave-end: `validate-dod.sh` exit 0, 0 FAIL
