@@ -334,14 +334,16 @@ That is **twice in one sprint** the parent has named a check that does not exist
 now this. Two independent instances of one failure mode is the strongest evidence this sprint has
 produced for C4, the class T3 is building right now, and it is worth more than the corpus score.
 
-**A finding that cuts the other way, recorded because it is inconvenient.** The tracked tree contains
-**zero** em or en dashes across every file. The dash rule sits at full compliance with no enforcement
-at all. That is a real counter-example to this sprint's premise that prose alone does not hold, and
-it should not be buried. The honest reading is narrower than it first looks: the dash rule is
-mechanical, a single character with no judgement in it, while the claims this sprint targets need
-someone to decide what counts as evidence. Prose holds fine for the first kind. The sixteen
-recurrences that opened this sprint were all the second kind. **Worth revisiting at the retrospective
-rather than settling here.**
+**CORRECTED. The paragraph that stood here was false, and parent error 7 below is how.** It claimed
+the tracked tree contains zero em or en dashes. It does not. Measured properly: **26 live files carry
+48 dashes**, plus 22 archived work-docs carrying 1,890 more. Broken down, 14 of the live files are
+lawkeeper test-corpus fixtures (deliberately bad code, out of scope), 9 are front-end assets, 2 are
+config comments that genuinely break the rule (`.gitignore:12`, `.claude/hooks/ban-allowlist:1`), and
+1 is `CHANGELOG.md`, whose 6 are inside quoted historical headings that themselves contained a dash.
+
+**So the counter-example survives, but much weaker than stated.** The markdown this workflow authors
+is very close to clean under zero enforcement, which is still worth something. It is not clean, and
+the difference between "zero" and "close to zero" is the whole distinction this sprint is about.
 
 **Not this sprint.** Adding a dash checker is a new rule with a new scanner, not a claim check, and
 it is outside the Original Ask. Logged here so it is findable, not built.
@@ -349,6 +351,52 @@ it is outside the Original Ask. Logged here so it is findable, not built.
 **One measurement caveat the agent raised and was right about.** Its five-suite green was taken with
 two sibling agents' in-flight work already in the worktree, so it is a real result for its own three
 files but not a clean measurement of its diff alone. Re-measure once all three waves are in.
+
+### 2026-08-24, Wave 2 part one, and the two worst parent errors so far
+
+**Parent error 7, and it is the one that matters most.** The paragraph above originally claimed the
+tree contains zero em or en dashes. That claim came from `/usr/bin/grep -clP '...' file... 2>/dev/null
+|| echo "0 in all three"`. **BSD grep does not support `-P`.** It exits with "invalid option",
+`2>/dev/null` swallowed the message, and `|| echo` turned the error into a clean report. **A command
+that never ran was read as a green, and the green was committed into the document about not doing
+that.**
+
+This is the exact rc-and-stderr discipline recorded at `70-invariants-and-new.sh:290-311`, which the
+parent quoted to three separate agents in their dispatch briefs during the same hour it was being
+violated here. Every dash check in this sprint before this point was false-clean, including the one
+that "verified" the fixtures agent's three files. All have been re-measured with a checker that exits
+non-zero when it cannot read a file, and they are genuinely clean.
+
+**The lesson is narrower than "be careful" and worth stating as a rule.** A verification command
+whose failure mode is indistinguishable from its success output is not a verification. `|| echo
+clean` and `2>/dev/null` on a checking command are the specific shape. This belongs in T9's rule text.
+
+**Parent error 8, caught by the T3 agent.** The brief told it the check-id universe is 88, correcting
+the work-doc's 23. **88 is the count of distinct `[NN]` tokens in the fragments, not the set of check
+ids that exist.** 80 are declared by a `yellow "[NN]"` header; the other 8 are `[70]`, which names a
+check family, and `[78a]` through `[78f]`, which label comment blocks. A resolver built from 88 would
+let a fabricated `check [78c]` resolve silently, and the agent's second tamper case proves it. **Both
+numbers the parent has offered for this universe, 23 and 88, were wrong in different ways, which is
+the strongest possible argument for AC6 being a convention rather than a guarantee.**
+
+**A measurement trap worth recording.** `git grep -E` ignores `\b`; `/usr/bin/grep -E` honours it.
+The same pattern returns 0 through one and real hits through the other. The agent nearly reported a
+correct parent fact as wrong because of it.
+
+### Two live defects found by T3, neither in the corpus
+
+- **`CHANGELOG.md:482` cites `check [50]`. No check `[50]` has ever existed.**
+  `50-runtimes-and-companions.sh` declares `[24]`, `[25]`, `[26]` and `[28]`. Someone wrote the
+  fragment's filename number where a check id goes. This is the sprint's own defect class, already
+  shipped in release history, found by the check built to catch it.
+- **`CHANGELOG.md:69` says `check [70]`,** which names a check family rather than a printed check.
+  Correct intent, wrong grammar. Needs a reword before the check's grammar can widen to backticked
+  references, which would take in-scope claims from 31 to 74.
+
+Both are left unfixed for now and go to the T12 disposition pass, because fixing them by hand is
+precisely what decision #7-A ruled out. `[91]` does not currently catch the first one: the
+backticked form is outside its shipped grammar, deliberately, since widening before the reword would
+red on correct text.
 
 ## 7. Sprint Review
 
