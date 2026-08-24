@@ -2403,3 +2403,93 @@ slip through.
 
 A rated it Minor. Sent to the refuter to rule, including whether the polarity really flipped this
 sprint or was always an absence pin.
+
+---
+
+### Phase 5 round 5, Reviewer F: zero Critical, two Important, two Minor
+
+F built a nine-seam list over every boundary-crossing symbol in the diff, tagged each `same` / `cross`
+/ `off-map`, and audited the off-map ones first. The clean half is worth recording because it is the
+larger half: all five `15-wi-absent-cases.sh` assertion strings match the text `wi_absent` now emits
+including which scan owns each red, every count in that comment-heavy fragment reproduces
+(`TB_EXPECT_WI_FAILCLOSED=5`, "these three cases", "both cases below", the ten wiring names, "four
+names against a fragment that defines nine"), `CHANGELOG.md:14` matches the implementation clause by
+clause, all three cross-file pointers land where they claim, all 9 mirror pairs pass **and** every
+`agents/*.md` frontmatter `description:` matches its prompt including the two rewritten this round,
+`dist/` carries this round's markdown change in all six runtimes that mirror `skills/`, and the
+retired vocabulary is gone by stem.
+
+**Dispatch caveat, outside the counts.** F's runtime prompt was the pre-inversion contract
+(`[same-wave: yes|no]`). HEAD carries the inverted text in both mirror halves and in `dist/`. F
+noticed, reviewed against the shipped contract, and used `[wave: same|cross|off-map]`. Seventh such
+refusal this sprint; stale plugin snapshot, not a defect at HEAD.
+
+#### Important 1, the wave-status record is written to a section the template retired
+
+`implement-and-test.md:34` says "Append one **Implementation Log** entry per landed task". The
+template's live section name is `## 6. Daily Updates` (`work-doc-template.md:124`), with
+`Implementation Log` listed at `:5` only as a **prior** name kept readable for archived docs. Both
+siblings of that line already say Daily Updates (`phase-3-implementation.md:243`,
+`phase-3-implement.md:103`).
+
+**Verified, and the class is six sites, not one.** Censusing the vocabulary rather than F's wording
+splits every live `Implementation Log` hit into two groups:
+
+*Correct, must not change* (five back-compat mentions that name the legacy label deliberately):
+`README.md:192`, `commands/summary.md:7`, `commands/summary.md:34`, `work-doc-template.md:5`,
+`SKILL.md:224`.
+
+*Wrong, instructions to WRITE to a retired section* (six): `implement-and-test.md:34` (F's site),
+`:57`, `:223`, `debug-when-stuck.md:19` ("Open a new section in the Implementation Log"), `:190`,
+and `README.md:416` ("Implementation Log entries are written per task").
+
+**Blame ruling, for breaker 2.** Not loop-manufactured. The retired name is at `03e7a12:23` and at
+the last pre-loop commit `69030e8:23`. Wave C (`5e29f09`) reflowed the line, "per task" → "per landed
+task", and carried the wrong name through instead of fixing it. **Pre-existing sprint rot, and older
+than the sprint.**
+
+Scope question for the refuter: only `implement-and-test.md:34` is in this diff. The other five are
+untouched files, and `phase-3-implement.md:97` forbids adjacent cleanup, which is how round 2's
+refuter re-routed the GIF finding to Phase 6. The class rule and the no-adjacent-cleanup rule point
+opposite ways here. `README.md` is also at 449/450, so its fix must be line-neutral.
+
+#### Important 2, two live rules gate the same table cell incompatibly
+
+`phase-5-refute.md:242` maps `REFUTED (Critical: both lenses refute)` → `push-back` with no sign-off,
+and `review-and-verify.md:428,432` echoes it. `review-triage/SKILL.md:61` says the opposite: "A bare
+`push-back` on a Critical row is forbidden", requiring adjudication-reviewer escalation **plus user
+sign-off** before the cell may flip. `:3`, rewritten by wave E this round, wires the refuter's
+verdicts straight into that column.
+
+**Verified on disk, both sides.** The refuter template and `review-and-verify.md` both carry the
+"never on a single lens" clause, so they agree with each other; neither mentions sign-off, which is
+what review-triage requires unconditionally.
+
+**Blame ruling, for breaker 2.** Not loop-manufactured, and not sprint-manufactured either. The row
+exists verbatim at the sprint base (`03e7a12:214`, then reading "both refuters agree") and the
+guardrail dates to `154dbbb7`, 2026-07-26. This sprint renamed refuters to lenses on one side and
+rewrote the description on the other; **the contradiction predates both edits.**
+
+#### Minor 1, an undeclared mustache token
+
+`agents/wave-implementer.md:55` uses `{{test_file_path}}`, declared in no INPUTS list and in no
+dispatch-table row, inside a string whose other half already uses the `<...>` convention its own
+`:196` and `template-contract.md:147` require. Pre-existing, both mirror halves.
+
+#### Minor 2, a CHANGELOG bullet counts a site it does not have
+
+`CHANGELOG.md:20` names four sites for the F inversion "including the two mode skills", but
+`{{task_file_index}}` occurs zero times in `quick/SKILL.md` and `yolo/SKILL.md`. What those carry is
+F's rationale (`yolo/SKILL.md:67`), which the bullet does not itemize.
+
+#### Round 5 standing after three of four reviewers
+
+D 1 Important, A 0, F 2 Important. **Critical+Important = 3, pre-refuter.** Round 4 closed at 3
+post-refuter. Breaker 1 requires strictly lower, so on these numbers the loop stops unless the
+refuter kills one. B is still out. The count that breaker 1 reads is the post-refuter count, which is
+the convention the rule itself uses ("Round 3 closed at 8 ... after the refuter's two severity
+moves"), so the refuter runs before the breaker is applied.
+
+**Breaker 2 does not fire.** It needs EVERY Critical and Important in the round to be
+loop-manufactured. D's Important is (a regression the round-4 union fix introduced), but both of F's
+trace to before the loop, and Important 2 predates the sprint entirely.
