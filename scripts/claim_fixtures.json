@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "what_this_is": "Replay sources for the claim-integrity check, one entry per must_catch finding in claim_corpus.json. Three of the four must_catch findings were fixed before this sprint opened, so they cannot be scored against the tree as it stands. Each of those pins the historical file content by git BLOB SHA, which is a content hash, so a pinned source can never drift. The fourth is still live and is scored against the worktree instead, which is a first-class kind here rather than a special case.",
+  "why_blob_shas": "A blob SHA is derived from the bytes themselves, so 'this content was live at that commit' is verifiable rather than asserted. Copying a snapshot into the repo would have made the fixture an unverifiable claim about history, which is the defect class this sprint exists to catch. Commits are recorded as full 40-char SHAs for the same reason: an abbreviated or relative commit-ish (ab5cb74~1) is an expression, not a pin.",
+  "worktree_means_the_worktree": "kind 'worktree' means the files on disk right now, NOT the corpus term 'live_at_head' and NOT the corpus derived_at commit 2ccb728. Those are different things and conflating them is easy, so it is said here once: a worktree fixture scores what a check would see if it ran today.",
+  "field_guide": {
+    "id": "The finding id in claim_corpus.json. Read-only there, never written by anything here.",
+    "kind": "blobs when the defect was fixed and the content has to come from history. worktree when the defect is still on disk.",
+    "scored_as": "Which site this entry scores. Required, because corpus note n5 says whoever scores a finding must state which site they are counting.",
+    "files": "For kind blobs only. Every file the replay materialises, each pinned by blob SHA plus its byte size, both asserted after materialisation.",
+    "path": "Where the file is written inside the replay scope, and the path a witness names.",
+    "blob": "40-char lowercase hex git blob SHA. Validated for shape, then confirmed to be a blob object, then confirmed to hash back to this value after it is read.",
+    "size": "Byte length of the blob. Asserted alongside the hash, because the failure this guards is a silently EMPTY file, which an absent-polarity witness would otherwise pass with flying colours.",
+    "commit": "Full 40-char commit SHA the path resolved at. Provenance, and the input to the historical-path resolver.",
+    "origin_note": "Human-readable version of commit plus path. Prose, never parsed.",
+    "witnesses": "What must be true of the materialised content for the fixture to be carrying the defect. Every literal is matched LITERALLY, as raw bytes, never as a regex and never executed.",
+    "polarity": "present when the literal must occur, absent when it must occur zero times. Both directions matter: C7 was widened to both polarities by decision 13-A, and M4 is the absent direction.",
+    "count": "Exact occurrence count. Only allowed on a blob-pinned file, where the content hash makes the number safe to freeze.",
+    "lines": "1-based line numbers carrying the literal. Same rule as count, blob-pinned files only.",
+    "note": "Prose. Never parsed, never executed."
+  },
+  "worktree_witnesses_carry_no_numbers": "A witness on a worktree file may assert presence or absence and nothing more. Line numbers and counts are refused there by the validator, because freezing a number against content that is free to move would reintroduce the exact drift this check hunts. On a blob-pinned file the content hash makes those numbers permanent, so they are asserted.",
+  "fixtures": [
+    {
+      "id": "I2",
+      "kind": "blobs",
+      "class": "C6_section_exists",
+      "scored_as": "The filed site, implement-and-test.md:34, as it stood before ab5cb74 fixed it. NOT the three live siblings (debug-when-stuck.md:19, debug-when-stuck.md:190, README.md:416) that the corpus records under replay class_live_via_siblings. Corpus note n5 requires this call to be written down, so here it is: this fixture scores the filed finding, and a sibling hit is a different thing.",
+      "files": [
+        {
+          "path": "skills/hackify/references/implement-and-test.md",
+          "blob": "a4b2960d294290c037ce8bc29261690398cc5843",
+          "size": 13032,
+          "commit": "6495b2b23450d5257e999716d15a00565888f44f",
+          "origin_note": "ab5cb74~1, the commit before the filed site was corrected"
+        }
+      ],
+      "witnesses": [
+        {
+          "path": "skills/hackify/references/implement-and-test.md",
+          "polarity": "present",
+          "literal": "Append one Implementation Log entry per landed task.",
+          "count": 1,
+          "lines": [34],
+          "note": "The filed site. This is the instruction-to-a-writer shape C6 is defined on, pointing at a work-doc section the template retired for Daily Updates."
+        },
+        {
+          "path": "skills/hackify/references/implement-and-test.md",
+          "polarity": "present",
+          "literal": "Implementation Log",
+          "count": 3,
+          "lines": [34, 57, 223],
+          "note": "Three occurrences, not four. The sprint brief handed to the implementer said lines 5, 34, 57 and 223; line 5 of this blob is the one-task-wave sentence and carries no such literal. Measured with: git cat-file blob a4b2960 | grep -nF 'Implementation Log'"
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "kind": "blobs",
+      "class": "C3_declared_vs_used",
+      "scored_as": "The filed site, agents/wave-implementer.md:55, as it stood before ab5cb74. The file was renamed from agents/wave-task-implementer.md at 58c1118, which is an ANCESTOR of this commit, so the wave-implementer.md name is already correct here and the old name does not resolve at all.",
+      "files": [
+        {
+          "path": "agents/wave-implementer.md",
+          "blob": "16a167089b89773632ae96700c40c05420be7eb1",
+          "size": 12808,
+          "commit": "6495b2b23450d5257e999716d15a00565888f44f",
+          "origin_note": "ab5cb74~1, the commit before the token was declared"
+        }
+      ],
+      "witnesses": [
+        {
+          "path": "agents/wave-implementer.md",
+          "polarity": "present",
+          "literal": "{{test_file_path}}",
+          "count": 1,
+          "lines": [55],
+          "note": "The used half of C3. This token appears once in the prompt body."
+        },
+        {
+          "path": "agents/wave-implementer.md",
+          "polarity": "present",
+          "literal": "**INPUTS**.",
+          "count": 1,
+          "lines": [37],
+          "note": "The declared half of C3. The INPUTS list starts here and never names test_file_path, which is the whole finding. A C3 check parses the list; this witness only proves the list is present to be parsed."
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "kind": "blobs",
+      "class": "C7_literal_absent_claim",
+      "scored_as": "The filed site, CHANGELOG.md:20, plus both files the bullet names, as they stood before 7b641e0. M4 was born and died inside the previous sprint, so it does not replay at that sprint's base either; this is its own base, which is why fixtures are per finding rather than one global commit.",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "blob": "fd2c1be115b4636a468b16bfee8904fd8920766a",
+          "size": 232043,
+          "commit": "1249914fddbd5a0bb073f80c29a0dcd512710a3b",
+          "origin_note": "7b641e0~1, the commit before the bullet was corrected"
+        },
+        {
+          "path": "skills/quick/SKILL.md",
+          "blob": "4fe598cfdb61fb2b51d51cf75c917ce09bb0851b",
+          "size": 18970,
+          "commit": "1249914fddbd5a0bb073f80c29a0dcd512710a3b",
+          "origin_note": "7b641e0~1, the first of the two mode skills the bullet claims were covered"
+        },
+        {
+          "path": "skills/yolo/SKILL.md",
+          "blob": "183a57bc6af9c990977077f39ea1b039b48b8ae5",
+          "size": 17267,
+          "commit": "1249914fddbd5a0bb073f80c29a0dcd512710a3b",
+          "origin_note": "7b641e0~1, the second of the two mode skills the bullet claims were covered"
+        }
+      ],
+      "witnesses": [
+        {
+          "path": "CHANGELOG.md",
+          "polarity": "present",
+          "literal": "across the template, its agent mirror, the Phase 5 protocol and the two mode skills",
+          "count": 1,
+          "lines": [20],
+          "note": "The claim. It says the task_file_index dispatch note was carried into four sites, the last two being the mode skills below."
+        },
+        {
+          "path": "skills/quick/SKILL.md",
+          "polarity": "absent",
+          "literal": "task_file_index",
+          "note": "The counter-evidence. Zero occurrences, so the claim above is false for this file."
+        },
+        {
+          "path": "skills/yolo/SKILL.md",
+          "polarity": "absent",
+          "literal": "task_file_index",
+          "note": "Same, and this is exactly why every pinned file also asserts its hash and byte size. An absent witness passes just as happily against a file that materialised EMPTY, which is the false-zero shape this whole mechanism is built to refuse."
+        }
+      ]
+    },
+    {
+      "id": "I4",
+      "kind": "worktree",
+      "class": "C7_literal_absent_claim",
+      "scored_as": "The filed site on disk now, 71-release-mechanism-pins.sh, against the ban list in 77-reviewer-roster.sh. The round 5 refuter re-routed this one to Phase 6 rather than fixing it, so it needs no fixture and is scored where it lives.",
+      "witnesses": [
+        {
+          "path": "scripts/validate-dod.d/71-release-mechanism-pins.sh",
+          "polarity": "present",
+          "literal": "\"4-5 reviewers\" row is deliberately NOT pinned",
+          "note": "The claim and its quoted literal on ONE physical line, which is what makes it reachable by a line-based check. Corpus note n8 flags that this reachability rests on the line wrap holding. No line number is frozen here on purpose: worktree content is free to move, and pinning a number against it would rebuild the drift this check hunts."
+        },
+        {
+          "path": "scripts/validate-dod.d/77-reviewer-roster.sh",
+          "polarity": "present",
+          "literal": "4-5 reviewers",
+          "note": "The counter-evidence. The phrase the comment calls unpinned is sitting in RR_BANS."
+        }
+      ]
+    }
+  ]
+}
