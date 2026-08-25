@@ -36,8 +36,9 @@ in its own header: a stale count inside the machinery built to catch stale count
 is the defect wearing the uniform. The parts are imported rather than sourced out
 of a numbered directory, which is the shape check [97] recognises as reachable: a
 suite reached by import from a file CI names is wired, and
-skills/lawkeeper/scripts/test_scoping.py is the existing precedent. scripts/tamper_harness.py holds the shared runners and carries
-no test of its own, so it is not an entrypoint and needs no wiring.
+skills/lawkeeper/scripts/test_scoping.py is the existing precedent.
+scripts/tamper_harness.py holds the shared runners and carries no test of its
+own, so it is not an entrypoint and needs no wiring.
 
 Standalone, exits non-zero on any failure. Reads the repository and writes only
 under its own temporary directories. It mutates nothing tracked, ever: a fragment

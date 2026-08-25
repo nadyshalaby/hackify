@@ -30,6 +30,8 @@ in a temp file and a tree is built under a temp prefix, so a row that dies halfw
 leaves nothing behind to restore.
 """
 
+import os
+
 from tamper_harness import (COUNT_BUMP, PASS_PREFIX, RED_CALL, REPO_ROOT, TEMPLATE,
                             expect, expect_red, git, refute, run_check,
                             run_check_without_python, run_fragment, tampered,
@@ -352,3 +354,146 @@ def test_98_the_orchestrator_sources_the_fragment_and_names_it_in_the_header():
   text = (REPO_ROOT / 'scripts' / 'validate-dod.sh').read_text(encoding='utf-8')
   expect(text, 'source "$DOD_MODULES_DIR/98-work-doc-ledger-sync.sh"',
          '#   98-work-doc-ledger-sync.sh, check [98],')
+
+
+# --- discovery and reads, three ways a doc used to leave the corpus unseen ------
+
+# A non-ASCII name. git C-quotes it by default, so it stops ending in .md and drops.
+NON_ASCII_DOC = 'docs/work/zzq-%s-planted.md' % chr(0x3bb)
+
+# Discovery reverted to what shipped before the hardening: no -z, split on newline.
+NO_NUL_DISCOVERY = (("'git', 'ls-files', '-z', '--'", "'git', 'ls-files', '--'"),
+                    (".split('\\0')", ".split('\\n')"))
+
+# The gate refuse_read() opens a path through; blinded, it follows a link anywhere.
+RESOLVE_GATE = ('real == full and real.startswith(ROOT + os.sep) '
+                'and not os.path.islink(full)')
+
+# A real status at column 0 UNDER a block scalar quoting an indented one. Only the
+# column-0 line is this document's status; the indented one is a line of that scalar.
+BLOCK_SCALAR_DOC = ('---\nslug: zzq-scratch\nsprint_goal: |\n  status: done\n'
+                    'status: implementing\n---\n\nbody\n')
+
+
+def _tree_with_symlinked_doc():
+  """A tree whose tracked zzq-link.md links to a bad status outside the repository."""
+  root = _tree()
+  outside = write(temp_dir('ledger-outside-'), 'zzq-outside.md', _doc(BAD_STATUS))
+  os.symlink(str(outside), str(root / 'docs/work/zzq-link.md'))
+  git(root, 'add', '-A')
+  return root
+
+
+def test_98_a_doc_named_with_a_non_ascii_byte_is_still_judged():
+  rc, out = run_check('98', cwd=_tree({NON_ASCII_DOC: _doc(BAD_STATUS)}))
+  expect_red(rc, out, NON_ASCII_DOC + ':3 sets status: ' + QUOTE + BAD_STATUS)
+
+
+def test_98_discovery_without_nul_records_drops_that_doc_without_a_word():
+  """The defect reached for real, not by moving a number. No floor notices, because
+  the twelve docs beside it clear WL_DOC_FLOOR: a green over a doc nobody read."""
+  root = _tree({NON_ASCII_DOC: _doc(BAD_STATUS)})
+  with tampered('98', *NO_NUL_DISCOVERY) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  assert rc == 0, out
+  refute(out, BAD_STATUS, NON_ASCII_DOC)
+  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS))
+
+
+def test_98_a_symlinked_work_doc_is_reported_rather_than_followed():
+  """A refusal is a finding, not a skip: a doc this check declined to read is not a
+  doc that passed, and the status behind the link must not appear anywhere."""
+  rc, out = run_check('98', cwd=_tree_with_symlinked_doc())
+  expect_red(rc, out, 'docs/work/zzq-link.md does not resolve to a plain file under '
+             'the repository root (it reaches ', 'zzq-outside.md), so this check '
+             'refused to follow it rather than read what it points at')
+  refute(out, BAD_STATUS)
+
+
+def test_98_blinding_the_resolve_gate_follows_the_link_out_of_the_tree():
+  with tampered('98', (RESOLVE_GATE, 'True')) as frag:
+    rc, out = run_fragment(frag, cwd=_tree_with_symlinked_doc())
+  expect_red(rc, out, 'docs/work/zzq-link.md:3 sets status: ' + QUOTE + BAD_STATUS)
+  refute(out, 'does not resolve to a plain file')
+
+
+def test_98_an_indented_status_inside_a_block_scalar_is_not_the_doc_status():
+  """An innocent doc and the false accusation it used to draw. The count is asserted
+  too, so a row passing because the doc never reached the corpus cannot look alike."""
+  rc, out = run_check('98', cwd=_tree({'docs/work/planted.md': BLOCK_SCALAR_DOC}))
+  assert rc == 0, out
+  refute(out, 'sets status: done while the file sits outside')
+  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
+
+
+def test_98_a_stripped_frontmatter_read_would_accuse_that_innocent_doc():
+  root = _tree({'docs/work/planted.md': BLOCK_SCALAR_DOC})
+  with tampered('98', ('if not lines[num].startswith(key):',
+                       'if not lines[num].strip().startswith(key):'),
+                      ('value = lines[num][len(key):]',
+                       'value = lines[num].strip()[len(key):]')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  expect_red(rc, out, 'docs/work/planted.md:4 sets status: done while the file sits '
+             'outside docs/work/done/')
+
+
+# --- the fence mask, and the archived count that rests on it -------------------
+
+CODE_FENCE = TICK * 3
+# Applied once in judge(), so every reader below judges the same masked copy.
+FENCE_MASK = 'body = unfenced(lines)'
+
+# Two separate evasions, each hiding an open row a working mask reports at line 12.
+# SHADOWED quotes the heading in a fence ABOVE the real one, so a fence-blind search
+# stops at the decoy and the block ends at the real heading below it. EARLY_END puts
+# a fenced `## ` INSIDE the real block, so a fence-blind terminator fires on it.
+SHADOWED = (CODE_FENCE + '\n## 0. Phase ledger\n' + CODE_FENCE
+            + '\n\n## 0. Phase ledger\n\n- [>] Phase 3. Implement\n')
+EARLY_END = ('## 0. Phase ledger\n\n' + CODE_FENCE + '\n## not a heading\n'
+             + CODE_FENCE + '\n\n- [>] Phase 3. Implement\n')
+
+# An archived doc whose ONLY ledger heading sits inside a fence, over a closed row.
+FENCED_ONLY = (CODE_FENCE + '\n## 0. Phase ledger\n- [x] Phase 1. Clarify\n'
+               + CODE_FENCE + '\n\n## 1. Original ask\n\nthe ask\n')
+
+
+def _fence_blind(root):
+  """The mask reverted to reading raw lines, over the tree at `root`."""
+  with tampered('98', (FENCE_MASK, 'body = list(lines)')) as frag:
+    return run_fragment(frag, cwd=root)
+
+
+def _evasion(body):
+  """One fenced evasion, both directions. Fence-blind, nothing in the per-doc walk
+  notices; the only thing left to red is the control, whose own decoy doc separates
+  just while both halves of the mask work."""
+  root = _tree({'docs/work/done/planted.md': _doc('done', body)})
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out, 'docs/work/done/planted.md:12 carries an open - [>] row')
+  rc, out = _fence_blind(root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
+  refute(out, 'carries an open')
+
+
+def test_98_a_fenced_decoy_heading_does_not_shadow_the_real_ledger():
+  _evasion(SHADOWED)
+
+
+def test_98_a_fenced_heading_inside_the_block_does_not_end_it_early():
+  _evasion(EARLY_END)
+
+
+def test_98_a_fenced_ledger_heading_does_not_count_toward_the_archived_floor():
+  """The subtlest guard of the five, both directions in one row. WL_ARCHIVED counts a
+  doc only when the block actually judged is the real one, so this corpus leaves
+  assertion (b) nothing to judge. Blind the mask and those same docs count, the floor
+  holds, and its message goes. Floors run before the control and a failing one returns
+  first, so the missing floor line is how this row knows it held."""
+  root = _tree({'docs/work/done/archived-%d.md' % n: _doc('done', FENCED_ONLY)
+                for n in range(SCRATCH_DOCS - 1)})
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out, 'the scan found 0 archived doc(s) carrying a section 0 phase '
+             'ledger against a floor of 1')
+  rc, out = _fence_blind(root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
+  refute(out, 'archived doc(s) carrying a section 0 phase ledger against a floor of')
