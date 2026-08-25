@@ -51,6 +51,7 @@ FRAGMENTS = {
   '95': FRAGMENT_DIR / '95-literal-absent-claims.sh',
   '97': FRAGMENT_DIR / '97-test-suites-reachable.sh',
   '98': FRAGMENT_DIR / '98-work-doc-ledger-sync.sh',
+  '99': FRAGMENT_DIR / '99-work-doc-status-claims.sh',
 }
 
 # Every fragment routes its reds through a two-line helper: a `red` call that
@@ -208,6 +209,76 @@ def run_check_without_python(key):
   needs the environment broken, and a runner carrying five parameters to cover
   every shape breaks the three-parameter cap for one caller in ten."""
   return _run(FRAGMENTS[key], REPO_ROOT, _child_env(path='/nonexistent'))
+
+
+# --- work-doc fixtures, shared by the two suites that scan docs/work/ ----------
+#
+# WHY THEY SIT HERE. Checks [98] and [99] were one fragment until the 500-LOC cap
+# split them, and their suites split with them. Both build the same throwaway git
+# tree, so the builder lives in the one module both import and neither imports back.
+# A second copy would be two fixtures drifting apart, which is the defect class the
+# battery exists to refuse.
+
+# Above the doc floor of 10 that both fragments carry, so a row meaning to reach a
+# later branch is never stopped by the first floor on the way.
+SCRATCH_DOCS = 12
+
+# A created date on or after the day section 0 became a work-doc section, and one
+# before it. Written out rather than read from the fragment, for the reason that
+# fragment gives at its own control: a fixture built from the constant it tests moves
+# with a tamper on that constant and proves nothing.
+AFTER_LEDGER = '2026-08-24'
+BEFORE_LEDGER = '2026-05-11'
+
+# An archived doc whose ledger is CLOSED, carrying every construct that must not be
+# read as a ledger row. Two of them are the whole point of the block-range rule. The
+# open row under `## Groom Provenance` sits between section 0 and section 1, which is
+# where the groom path inserts that heading, so it is inside the block under a
+# section-1 terminator and outside it under the terminator the fragment actually
+# uses. The Sprint Backlog rows use the identical grammar and every archived doc in
+# the real tree carries some.
+CLEAN_ARCHIVED = (
+  '## 0. Phase ledger\n\n'
+  '- [x] Phase 1. Clarify\n'
+  '- [x] Phase 2. Plan + Gate\n\n'
+  '## Groom Provenance\n\n'
+  '- [ ] a row the groom block carries, outside section 0\n\n'
+  '## 1. Original ask\n\nthe ask\n\n'
+  '## 5. Sprint Backlog\n\n'
+  '- [ ] T1, a backlog task nobody ticked\n'
+  '- [>] T2, the backlog task in flight\n')
+
+
+def work_doc(status, created=AFTER_LEDGER, body=''):
+  """One synthetic work-doc. The status sits on line 3 and the created key on line 4,
+  which is what the rows citing a line number depend on. `created=None` writes no
+  created key at all, which is how a row reaches the branch that reports a doc whose
+  date cannot be read."""
+  head = '---\nslug: zzq-scratch\nstatus: %s\n' % status
+  if created is not None:
+    head += 'created: %s\n' % created
+  return head + '---\n\n%s' % body
+
+
+def work_doc_tree(extra=None, template=None):
+  """A throwaway git tree: the work-doc template plus SCRATCH_DOCS clean docs.
+
+  `extra` is {relative path: body} for whatever a row wants to plant on top.
+  `template` replaces the template body, which is how a row collapses the status
+  vocabulary for real instead of by moving a floor."""
+  root = temp_dir('workdoc-')
+  if template is None:
+    template = (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8')
+  write(root, TEMPLATE, template)
+  write(root, 'docs/work/live.md', work_doc('implementing'))
+  for n in range(SCRATCH_DOCS - 1):
+    write(root, 'docs/work/done/archived-%d.md' % n,
+          work_doc('done', AFTER_LEDGER, CLEAN_ARCHIVED))
+  for rel, body in (extra or {}).items():
+    write(root, rel, body)
+  git(root, 'init', '-q')
+  git(root, 'add', '-A')
+  return root
 
 
 def expect(out, *needles):

@@ -6,11 +6,20 @@ the same structure scripts/test_tamper_fragments.py uses and the one check [97]
 blesses in its own header: a suite reached by import from a file CI names is
 wired.
 
-WHY A FIFTH FILE RATHER THAN A SECTION IN test_tamper_fragments.py. That file was
-already 465 lines against the project's 500-line hard cap when these rows were
-written, and one section per fragment does not fit in the 35 lines left. Splitting
-was the instruction rather than trimming coverage to fit, and check [97] plus the
-PARTS tuple in the entrypoint are what keep the split file reachable.
+WHAT THIS FILE COVERS AND WHAT ITS SIBLING DOES. Check [98] carries the two
+assertions that read a work-doc's SECTION 0 BLOCK, (b) an archived doc closes
+every ledger row and (d) an archived doc written since section 0 shipped carries
+the block at all. The two that read FRONTMATTER, (a) the status vocabulary and
+(c) a live doc claiming it was archived, moved to check [99] when the fragment hit
+the 500-LOC cap, and their rows moved with them to
+scripts/test_tamper_status_claims.py. The letters did not change, so a row here
+naming assertion (b) names the same assertion it always did.
+
+WHY A FILE PER FRAGMENT RATHER THAN A SECTION IN test_tamper_fragments.py. That
+file was already 465 lines against the project's 500-line hard cap when these rows
+were written, and one section per fragment does not fit in the 35 lines left.
+Splitting was the instruction rather than trimming coverage to fit, and check [97]
+plus the PARTS tuple in the entrypoint are what keep the split files reachable.
 
 WHAT A ROW HERE IS. One branch of check [98], broken on purpose, with the EXPECTED
 FAILURE MESSAGE asserted rather than the exit status alone. A branch that reds in
@@ -18,12 +27,13 @@ another branch's words is a branch nobody can debug, and the two failures a
 validator must never confuse, "the check looked and found the defect" and "the
 check never ran", both arrive as a non-zero status.
 
-EVERY ROW BUILDS ITS OWN TREE, and that is the difference from the rows for the
-neighbouring fragments. Check [98] reads tracked work-docs out of the working
-directory, so a throwaway git tree carrying a template and a dozen synthetic docs
-lets a row decide exactly what the check sees. It also keeps the rows independent
-of whether the live tree happens to be clean, which matters while the sprint's own
-archived doc still carries the defect this check was written to find.
+EVERY ROW BUILDS ITS OWN TREE. Check [98] reads tracked work-docs out of the
+working directory, so a throwaway git tree carrying a template and a dozen
+synthetic docs lets a row decide exactly what the check sees. THE TREE IS BUILT
+ABOVE EVERY FLOOR ON PURPOSE: floors are judged before any per-doc red prints, so
+a fixture one doc short never reaches the assertion it meant to test and looks
+exactly like a pass. tamper_harness.work_doc_tree is what keeps that from
+happening by accident, and the two suites share it rather than keeping a copy each.
 
 NOTHING HERE WRITES INTO THE REPOSITORY. A fragment is tampered by editing a COPY
 in a temp file and a tree is built under a temp prefix, so a row that dies halfway
@@ -32,102 +42,41 @@ leaves nothing behind to restore.
 
 import os
 
-from tamper_harness import (COUNT_BUMP, PASS_PREFIX, RED_CALL, REPO_ROOT, TEMPLATE,
+from tamper_harness import (AFTER_LEDGER, BEFORE_LEDGER, CLEAN_ARCHIVED, COUNT_BUMP,
+                            PASS_PREFIX, RED_CALL, REPO_ROOT, SCRATCH_DOCS, TEMPLATE,
                             expect, expect_red, git, refute, run_check,
                             run_check_without_python, run_fragment, tampered,
-                            temp_dir, write)
+                            temp_dir, work_doc, work_doc_tree, write)
 
-QUOTE = chr(39)
 TICK = chr(96)
+CODE_FENCE = TICK * 3
 
-# Above check [98]'s own WL_DOC_FLOOR of 10, so a row that means to reach a later
-# branch is never stopped by the first floor on the way.
-SCRATCH_DOCS = 12
+# Every archived doc in a clean tree is a subject of BOTH assertions, so the two
+# subject counts on the pass line are the same number today. They are asserted
+# separately anyway, because they count different sets and only stay equal while
+# every archived fixture both carries a ledger and is dated after the pin.
+ARCHIVED = SCRATCH_DOCS - 1
 
-# A value no template row could carry, so a planted status can never collide with
-# a real one.
-BAD_STATUS = 'zzq-not-a-declared-status'
+# The same doc with one row moved INSIDE the block. This is the discriminator for
+# the clean fixture: if both came back the same way, the negative control below
+# would be proving nothing.
+OPEN_ARCHIVED = CLEAN_ARCHIVED.replace('- [x] Phase 2. Plan + Gate',
+                                       '- [>] Phase 2. Plan + Gate')
 
-# The status row check [98] reads the vocabulary out of. Written as pieces because
-# the cell is delimited by the character bash reads as a command substitution.
-STATUS_ROW_HEAD = '| %sstatus%s |' % (TICK, TICK)
+# An archived doc with no section 0 anywhere, which is what assertion (d) exists
+# for. Deleting the block used to be a way to turn a red green.
+NO_LEDGER = '## 1. Original ask\n\nthe ask\n'
 
 # The fragment's own CONTROL verdict line, assembled rather than written out. It
 # is a format string carrying its own conversions, so building it by concatenation
 # is what keeps the % operator away from them.
+QUOTE = chr(39)
 CONTROL_LINE = ('print(' + QUOTE + 'CONTROL %s' + QUOTE + ' % (' + QUOTE + 'ok'
-                + QUOTE + ' if control(allowed) else ' + QUOTE + 'fail' + QUOTE + '))')
+                + QUOTE + ' if control() else ' + QUOTE + 'fail' + QUOTE + '))')
 
-# An archived doc whose ledger is CLOSED, carrying every construct that must not
-# be read as a ledger row. Two of them are the whole point of the block-range
-# rule. The open row under `## Groom Provenance` sits between section 0 and
-# section 1, which is where the groom path inserts that heading, so it is inside
-# the block under a section-1 terminator and outside it under the terminator the
-# fragment actually uses. The Sprint Backlog rows use the identical grammar and
-# every archived doc in the real tree carries some.
-CLEAN_ARCHIVED = (
-  '## 0. Phase ledger\n\n'
-  '- [x] Phase 1. Clarify\n'
-  '- [x] Phase 2. Plan + Gate\n\n'
-  '## Groom Provenance\n\n'
-  '- [ ] a row the groom block carries, outside section 0\n\n'
-  '## 1. Original ask\n\nthe ask\n\n'
-  '## 5. Sprint Backlog\n\n'
-  '- [ ] T1, a backlog task nobody ticked\n'
-  '- [>] T2, the backlog task in flight\n')
-
-# The same doc with one row moved INSIDE the block. This is the discriminator for
-# the row above: if both came back the same way, the negative control would be
-# proving nothing.
-OPEN_ARCHIVED = CLEAN_ARCHIVED.replace('- [x] Phase 2. Plan + Gate',
-                                       '- [>] Phase 2. Plan + Gate')
-
-
-def _doc(status, body=''):
-  """One synthetic work-doc. The status sits on line 3, which every row cites."""
-  return '---\nslug: zzq-scratch\nstatus: %s\n---\n\n%s' % (status, body)
-
-
-def _tree(extra=None, template=None):
-  """A throwaway git tree: the work-doc template plus SCRATCH_DOCS clean docs.
-
-  `extra` is {relative path: body} for whatever a row wants to plant on top.
-  `template` replaces the template body, which is how a row collapses the
-  vocabulary for real instead of by moving a floor."""
-  root = temp_dir('ledger-')
-  if template is None:
-    template = (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8')
-  write(root, TEMPLATE, template)
-  write(root, 'docs/work/live.md', _doc('implementing'))
-  for n in range(SCRATCH_DOCS - 1):
-    write(root, 'docs/work/done/archived-%d.md' % n, _doc('done', CLEAN_ARCHIVED))
-  for rel, body in (extra or {}).items():
-    write(root, rel, body)
-  git(root, 'init', '-q')
-  git(root, 'add', '-A')
-  return root
-
-
-def _template_without_the_status_row():
-  """The real template with its status row deleted, and nothing else changed."""
-  lines = (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8').split('\n')
-  kept = [ln for ln in lines if not ln.startswith(STATUS_ROW_HEAD)]
-  assert len(kept) == len(lines) - 1, 'expected exactly one status row, got %d' % (
-    len(lines) - len(kept))
-  return '\n'.join(kept)
-
-
-def _declared_status_count():
-  """How many values the template's status row declares, counted from the template
-  every run rather than written down here. A count typed into a test is a claim
-  with a shelf life, and it goes stale the first time the vocabulary grows, which
-  is the exact defect this suite exists to catch elsewhere."""
-  for line in (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8').split('\n'):
-    if line.startswith(STATUS_ROW_HEAD):
-      cell = line.strip().strip('|').split('|')[1]
-      return len([part for part in cell.split('/') if part.strip()])
-  raise AssertionError('the template declares no status row, so there is nothing '
-                       'to count and every row below would assert against a guess')
+# The branch assertion (d) takes once a doc IS a dated subject. Blinding it leaves
+# every subject count where it was, so no floor moves and only the control notices.
+LEDGER_BRANCH = 'if has_ledger:'
 
 
 # --- the baseline, and the counts it has to name -------------------------------
@@ -136,43 +85,21 @@ def test_98_a_clean_tree_greens_and_names_what_it_examined():
   """Without a measured green every red below could be the scratch tree rather
   than the tamper. The counts are asserted too, because a pass line with no
   numbers reads the same whether the scan examined every doc or none of them."""
-  rc, out = run_check('98', cwd=_tree())
+  rc, out = run_check('98', cwd=work_doc_tree())
   assert rc == 0, out
   expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS),
-         '(%d section 0 ledger(s) found, %d of them archived and judged)'
-         % (SCRATCH_DOCS - 1, SCRATCH_DOCS - 1),
+         '(%d archived ledger(s) judged, %d archived doc(s) resolved against the '
+         'pin date)' % (ARCHIVED, ARCHIVED),
          'the positive control separated its reported docs from its clean ones')
-
-
-# --- assertion (a), the status vocabulary --------------------------------------
-
-def test_98_a_status_the_template_does_not_declare_reds_and_names_the_row():
-  """The vocabulary comes out of the template at runtime, so the red has to name
-  the declaring site a reader is meant to go and read."""
-  root = _tree({'docs/work/planted.md': _doc(BAD_STATUS)})
-  rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/planted.md:3 sets status: %s%s%s, which is none of '
-             'the %d value(s) the row at %s declares' % (QUOTE, BAD_STATUS, QUOTE,
-                                                         _declared_status_count(),
-                                                         TEMPLATE))
-
-
-def test_98_a_doc_with_no_status_field_reds_rather_than_being_skipped():
-  """A doc that states no phase at all is the shape a value check silently drops:
-  there is nothing to compare, so a naive reader moves on and the doc leaves the
-  subject set without leaving the count."""
-  root = _tree({'docs/work/planted.md': '# no frontmatter here\n\nbody\n'})
-  rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/planted.md carries no status field in its '
-             'frontmatter')
 
 
 # --- assertion (b), an archived doc is finished --------------------------------
 
 def test_98_an_archived_doc_with_an_open_ledger_row_reds_and_quotes_it():
-  root = _tree({'docs/work/done/planted.md': _doc('done', OPEN_ARCHIVED)})
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, OPEN_ARCHIVED)})
   rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/done/planted.md:9 carries an open - [>] row inside '
+  expect_red(rc, out, 'docs/work/done/planted.md:10 carries an open - [>] row inside '
              'its ## 0. Phase ledger block',
              'still shows a phase nobody closed: - [>] Phase 2. Plan + Gate')
 
@@ -183,7 +110,7 @@ def test_98_an_open_row_outside_the_ledger_block_is_not_a_subject():
   identical grammar section 0 uses. None of them may be reported. A check that
   counted open rows file-wide would red on every archived doc in the real tree,
   which is the fabrication this sprint exists to refuse."""
-  rc, out = run_check('98', cwd=_tree())
+  rc, out = run_check('98', cwd=work_doc_tree())
   assert rc == 0, out
   refute(out, 'carries an open')
 
@@ -195,28 +122,88 @@ def test_98_the_wrong_block_terminator_would_red_on_a_groomed_doc():
   section 0 and every groomed doc in the tree reds. Without this the negative
   control would pass under either reading and prove nothing."""
   with tampered('98', ("HEADING = '## '", "HEADING = '## 1.'")) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'carries an open - [ ] row inside its ## 0. Phase ledger '
              'block', 'a row the groom block carries, outside section 0')
 
 
-# --- assertion (c), a live doc is not archived ---------------------------------
+# --- assertion (d), an archived doc written since the ledger shipped has one ----
 
-def test_98_a_live_doc_that_says_it_was_finished_reds():
-  root = _tree({'docs/work/planted.md': _doc('done')})
+def test_98_an_archived_doc_created_after_the_pin_with_no_section_0_reds():
+  """THE HOLE THIS ASSERTION CLOSES. Assertion (b) judges the rows of a block, so
+  a doc with no block was a non-subject and deleting section 0 turned a red green.
+  The message names the law a reader has to go and read, not just the defect."""
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, NO_LEDGER)})
   rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/planted.md:3 sets status: done while the file sits '
-             'outside docs/work/done/')
+  expect_red(rc, out, 'docs/work/done/planted.md is archived and its frontmatter says '
+             'created %s, on or after the day section 0 became a work-doc section, '
+             'yet it carries no ## 0. Phase ledger block' % AFTER_LEDGER,
+             'never deleted, per skills/hackify/references/phase-ledger.md:91')
+
+
+def test_98_an_archived_doc_created_before_the_pin_needs_no_section_0():
+  """THE OTHER DIRECTION, and the reason the rule is dated at all. Most archived
+  docs in the real tree predate the day section 0 became a work-doc section, a count
+  this docstring deliberately does not pin. A rule that reddened on them would demand
+  a ledger for sprints that ran before the mechanism existed, which is a record
+  reconstructed to satisfy a check.
+  The count is asserted too, so a row passing because the doc never reached the
+  corpus cannot look the same as one passing because the date was read."""
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', BEFORE_LEDGER, NO_LEDGER)})
+  rc, out = run_check('98', cwd=root)
+  assert rc == 0, out
+  refute(out, 'carries no ## 0. Phase ledger block')
+  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
+
+
+def test_98_an_archived_doc_whose_created_date_cannot_be_read_reds():
+  """Deleting the date must not become the new way out. Both shapes are covered,
+  the field absent altogether and a value that is not a date, because a rule that
+  only checked for absence would accept `created: last tuesday` as a pass."""
+  for body in (work_doc('done', None, CLEAN_ARCHIVED),
+               work_doc('done', 'last tuesday', CLEAN_ARCHIVED)):
+    rc, out = run_check('98', cwd=work_doc_tree({'docs/work/done/planted.md': body}))
+    expect_red(rc, out, 'docs/work/done/planted.md sits under docs/work/done/ and its '
+               'frontmatter carries no created field reading as a YYYY-MM-DD date at '
+               'column 0', 'removing that field is not a way out of the section 0 rule')
+
+
+def test_98_blinding_the_created_rule_hides_the_defect_and_only_the_control_notices():
+  """THE ROW THE CONTROL EXISTS FOR. Take the branch that decides whether a dated
+  archive actually has its block, and make it always say yes. Every subject count
+  stays where it was, so no floor moves and nothing in the per-doc walk has a word
+  to say about the planted doc. The control is the one thing that notices, because
+  its own no-ledger doc stops coming back reported."""
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, NO_LEDGER)})
+  with tampered('98', (LEDGER_BRANCH, 'if True:')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)',
+             'one created after the ledger shipped with no section 0 at all')
+  refute(out, 'carries no ## 0. Phase ledger block')
+
+
+def test_98_a_created_rule_that_reports_every_archive_is_caught_by_the_same_control():
+  """The other direction, and the reason the control carries clean docs at all. A
+  rule degraded to always-fail is still a broken rule, and a positive-only control
+  would report ok right through it."""
+  with tampered('98', (LEDGER_BRANCH, 'if False:')) as frag:
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
 
 
 # --- the floors, and the collapses they exist to catch -------------------------
 
 def test_98_the_doc_floor_reds_before_any_doc_is_judged():
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, OPEN_ARCHIVED)})
   with tampered('98', ('WL_DOC_FLOOR=10', 'WL_DOC_FLOOR=9999')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree({'docs/work/planted.md': _doc(BAD_STATUS)}))
+    rc, out = run_fragment(frag, cwd=root)
   expect_red(rc, out, 'tracked doc(s) under docs/work/ against a floor of 9999',
              'a scan over nothing measures nothing')
-  refute(out, BAD_STATUS)
+  refute(out, 'carries an open')
 
 
 def test_98_a_tree_with_no_work_docs_reds_on_the_doc_floor():
@@ -231,28 +218,9 @@ def test_98_a_tree_with_no_work_docs_reds_on_the_doc_floor():
              'against a floor of 10')
 
 
-def test_98_the_vocabulary_floor_reds_on_its_own_message():
-  with tampered('98', ('WL_VOCAB_FLOOR=4', 'WL_VOCAB_FLOOR=9999')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
-  expect_red(rc, out, 'the template parse read %d status value(s) against a floor '
-             'of 9999' % _declared_status_count(),
-             'would resolve against an empty vocabulary')
-
-
-def test_98_a_template_that_loses_its_status_row_reds_without_accusing_every_doc():
-  """The vocabulary collapsing for real. Two halves, and the second is the one
-  that is easy to get wrong: with nothing to compare against, every doc in the
-  tree looks wrong, so the per-doc sentence has to stay quiet and let the floor
-  say what actually happened."""
-  root = _tree(template=_template_without_the_status_row())
-  rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'the template parse read 0 status value(s) against a floor of 4')
-  refute(out, 'which is none of the')
-
-
 def test_98_the_archived_ledger_floor_reds_on_its_own_message():
-  with tampered('98', ('WL_LEDGER_FLOOR=1', 'WL_LEDGER_FLOOR=9999')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
+  with tampered('98', ('WL_LEDGER_FLOOR=2', 'WL_LEDGER_FLOOR=9999')) as frag:
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'archived doc(s) carrying a section 0 phase ledger against a '
              'floor of 9999', 'assertion (b) judged nothing')
 
@@ -260,17 +228,35 @@ def test_98_the_archived_ledger_floor_reds_on_its_own_message():
 def test_98_an_archive_carrying_no_ledger_at_all_reds_on_that_floor():
   """The same collapse reached for real. Archived docs with no section 0 leave
   assertion (b) with an empty subject set, and a check that reported a confident
-  zero there would be green over a scan that never looked."""
-  root = temp_dir('ledger-none-')
-  write(root, TEMPLATE, (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8'))
-  write(root, 'docs/work/live.md', _doc('implementing'))
-  for n in range(SCRATCH_DOCS - 1):
-    write(root, 'docs/work/done/archived-%d.md' % n, _doc('done', '## 1. Ask\n\nx\n'))
-  git(root, 'init', '-q')
-  git(root, 'add', '-A')
+  zero there would be green over a scan that never looked. Dated BEFORE the pin so
+  assertion (d) has nothing to say and the floor is what this row measures."""
+  root = work_doc_tree({'docs/work/done/archived-%d.md' % n:
+                        work_doc('done', BEFORE_LEDGER, NO_LEDGER)
+                        for n in range(SCRATCH_DOCS - 1)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'the scan found 0 archived doc(s) carrying a section 0 phase '
-             'ledger against a floor of 1')
+             'ledger against a floor of 2')
+
+
+def test_98_the_created_floor_reds_on_its_own_message():
+  with tampered('98', ('WL_CREATED_FLOOR=2', 'WL_CREATED_FLOOR=9999')) as frag:
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
+  expect_red(rc, out, 'archived doc(s) against the day section 0 became a work-doc '
+             'section, against a floor of 9999', 'assertion (d) judged nothing')
+
+
+def test_98_an_archive_that_all_predates_the_pin_reds_on_the_created_floor():
+  """The created floor reached for real, and the reason it is a SECOND floor. Every
+  archived doc here still carries a closed ledger, so assertion (b)'s floor holds
+  and its silence looks like a clean run. Only a floor counting what assertion (d)
+  actually resolved can tell that half of the check judged nothing."""
+  root = work_doc_tree({'docs/work/done/archived-%d.md' % n:
+                        work_doc('done', BEFORE_LEDGER, CLEAN_ARCHIVED)
+                        for n in range(SCRATCH_DOCS - 1)})
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out, 'the scan resolved 0 archived doc(s) against the day section 0 '
+             'became a work-doc section, against a floor of 2',
+             'a doc could drop its section 0 unseen')
 
 
 # --- the positive control, and both ways it earns the silence ------------------
@@ -281,32 +267,8 @@ def test_98_a_control_that_never_runs_cannot_green_the_check():
   because a control that did not run says nothing about whether the judge still
   works."""
   with tampered('98', (CONTROL_LINE, 'pass')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'the positive control did not hold (control verdict: none)')
-
-
-def test_98_a_judge_that_stops_discriminating_is_caught_only_by_the_control():
-  """THE ROW THE CONTROL EXISTS FOR. Blind the vocabulary comparison and a clean
-  tree is judged exactly as it was before: no doc is reported, and every floor
-  still holds, so nothing else in the fragment has anything to say. The control is
-  the one thing that notices, because its bad-status doc stops coming back
-  reported. Without it this tamper ships a check that greens over a comparison
-  that no longer compares."""
-  with tampered('98', ('if allowed and value not in allowed:',
-                       'if allowed and False:')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
-  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)',
-             'a bad status value')
-
-
-def test_98_a_judge_that_reports_everything_is_caught_by_the_same_control():
-  """The other direction, and the reason the control carries clean docs at all.
-  A comparison that degraded to always-fail is still a broken comparison, and a
-  positive-only control would report ok right through it."""
-  with tampered('98', ('if allowed and value not in allowed:',
-                       'if allowed and True:')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
-  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
 
 
 # --- the branches that only fire when the run itself is broken -----------------
@@ -319,7 +281,7 @@ def test_98_a_missing_interpreter_reds_rather_than_skipping():
 
 def test_98_a_failed_stderr_capture_reds_rather_than_running_blind():
   with tampered('98', ('wl_err=$(mktemp 2>/dev/null)', 'wl_err=$(false)')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree())
+    rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'could not create the stderr capture file, so the work-doc '
              'scan never ran')
 
@@ -338,11 +300,12 @@ def test_98_blinding_the_whole_red_helper_leaves_a_silent_green():
   """Both halves of the red path blinded: the run is silent AND exits 0, which is
   the fail-open a check exists to make impossible. Asserted so the shape is on
   record, the same row scripts/test_tamper_fragments.py carries for [95] and [97]."""
-  root = _tree({'docs/work/planted.md': _doc(BAD_STATUS)})
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, NO_LEDGER)})
   with tampered('98', (RED_CALL, ':'), (COUNT_BUMP, ':')) as frag:
     rc, out = run_fragment(frag, cwd=root)
   assert rc == 0, out
-  refute(out, BAD_STATUS, PASS_PREFIX)
+  refute(out, 'carries no ## 0. Phase ledger block', PASS_PREFIX)
 
 
 # --- the fragment is wired into the run at all ---------------------------------
@@ -356,94 +319,29 @@ def test_98_the_orchestrator_sources_the_fragment_and_names_it_in_the_header():
          '#   98-work-doc-ledger-sync.sh, check [98],')
 
 
-# --- discovery and reads, three ways a doc used to leave the corpus unseen ------
-
-# A non-ASCII name. git C-quotes it by default, so it stops ending in .md and drops.
-NON_ASCII_DOC = 'docs/work/zzq-%s-planted.md' % chr(0x3bb)
-
-# Discovery reverted to what shipped before the hardening: no -z, split on newline.
-NO_NUL_DISCOVERY = (("'git', 'ls-files', '-z', '--'", "'git', 'ls-files', '--'"),
-                    (".split('\\0')", ".split('\\n')"))
-
-# The gate refuse_read() opens a path through; blinded, it follows a link anywhere.
-RESOLVE_GATE = ('real == full and real.startswith(ROOT + os.sep) '
-                'and not os.path.islink(full)')
-
-# A real status at column 0 UNDER a block scalar quoting an indented one. Only the
-# column-0 line is this document's status; the indented one is a line of that scalar.
-BLOCK_SCALAR_DOC = ('---\nslug: zzq-scratch\nsprint_goal: |\n  status: done\n'
-                    'status: implementing\n---\n\nbody\n')
-
-
-def _tree_with_symlinked_doc():
-  """A tree whose tracked zzq-link.md links to a bad status outside the repository."""
-  root = _tree()
-  outside = write(temp_dir('ledger-outside-'), 'zzq-outside.md', _doc(BAD_STATUS))
-  os.symlink(str(outside), str(root / 'docs/work/zzq-link.md'))
-  git(root, 'add', '-A')
-  return root
-
-
-def test_98_a_doc_named_with_a_non_ascii_byte_is_still_judged():
-  rc, out = run_check('98', cwd=_tree({NON_ASCII_DOC: _doc(BAD_STATUS)}))
-  expect_red(rc, out, NON_ASCII_DOC + ':3 sets status: ' + QUOTE + BAD_STATUS)
-
-
-def test_98_discovery_without_nul_records_drops_that_doc_without_a_word():
-  """The defect reached for real, not by moving a number. No floor notices, because
-  the twelve docs beside it clear WL_DOC_FLOOR: a green over a doc nobody read."""
-  root = _tree({NON_ASCII_DOC: _doc(BAD_STATUS)})
-  with tampered('98', *NO_NUL_DISCOVERY) as frag:
-    rc, out = run_fragment(frag, cwd=root)
-  assert rc == 0, out
-  refute(out, BAD_STATUS, NON_ASCII_DOC)
-  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS))
-
+# --- reads, and the doc that used to leave the corpus unseen -------------------
 
 def test_98_a_symlinked_work_doc_is_reported_rather_than_followed():
   """A refusal is a finding, not a skip: a doc this check declined to read is not a
-  doc that passed, and the status behind the link must not appear anywhere."""
-  rc, out = run_check('98', cwd=_tree_with_symlinked_doc())
-  expect_red(rc, out, 'docs/work/zzq-link.md does not resolve to a plain file under '
-             'the repository root (it reaches ', 'zzq-outside.md), so this check '
-             'refused to follow it rather than read what it points at')
-  refute(out, BAD_STATUS)
-
-
-def test_98_blinding_the_resolve_gate_follows_the_link_out_of_the_tree():
-  with tampered('98', (RESOLVE_GATE, 'True')) as frag:
-    rc, out = run_fragment(frag, cwd=_tree_with_symlinked_doc())
-  expect_red(rc, out, 'docs/work/zzq-link.md:3 sets status: ' + QUOTE + BAD_STATUS)
-  refute(out, 'does not resolve to a plain file')
-
-
-def test_98_an_indented_status_inside_a_block_scalar_is_not_the_doc_status():
-  """An innocent doc and the false accusation it used to draw. The count is asserted
-  too, so a row passing because the doc never reached the corpus cannot look alike."""
-  rc, out = run_check('98', cwd=_tree({'docs/work/planted.md': BLOCK_SCALAR_DOC}))
-  assert rc == 0, out
-  refute(out, 'sets status: done while the file sits outside')
-  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
-
-
-def test_98_a_stripped_frontmatter_read_would_accuse_that_innocent_doc():
-  root = _tree({'docs/work/planted.md': BLOCK_SCALAR_DOC})
-  with tampered('98', ('if not lines[num].startswith(key):',
-                       'if not lines[num].strip().startswith(key):'),
-                      ('value = lines[num][len(key):]',
-                       'value = lines[num].strip()[len(key):]')) as frag:
-    rc, out = run_fragment(frag, cwd=root)
-  expect_red(rc, out, 'docs/work/planted.md:4 sets status: done while the file sits '
-             'outside docs/work/done/')
+  doc that passed, and the open row behind the link must not appear anywhere."""
+  root = work_doc_tree()
+  outside = write(temp_dir('ledger-outside-'), 'zzq-outside.md',
+                  work_doc('done', AFTER_LEDGER, OPEN_ARCHIVED))
+  os.symlink(str(outside), str(root / 'docs/work/done/zzq-link.md'))
+  git(root, 'add', '-A')
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out, 'docs/work/done/zzq-link.md does not resolve to a plain file '
+             'under the repository root (it reaches ', 'zzq-outside.md), so this '
+             'check refused to follow it rather than read what it points at')
+  refute(out, 'carries an open')
 
 
 # --- the fence mask, and the archived count that rests on it -------------------
 
-CODE_FENCE = TICK * 3
 # Applied once in judge(), so every reader below judges the same masked copy.
 FENCE_MASK = 'body = unfenced(lines)'
 
-# Two separate evasions, each hiding an open row a working mask reports at line 12.
+# Two separate evasions, each hiding an open row a working mask reports at line 13.
 # SHADOWED quotes the heading in a fence ABOVE the real one, so a fence-blind search
 # stops at the decoy and the block ends at the real heading below it. EARLY_END puts
 # a fenced `## ` INSIDE the real block, so a fence-blind terminator fires on it.
@@ -467,9 +365,10 @@ def _evasion(body):
   """One fenced evasion, both directions. Fence-blind, nothing in the per-doc walk
   notices; the only thing left to red is the control, whose own decoy doc separates
   just while both halves of the mask work."""
-  root = _tree({'docs/work/done/planted.md': _doc('done', body)})
+  root = work_doc_tree({'docs/work/done/planted.md':
+                        work_doc('done', AFTER_LEDGER, body)})
   rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/done/planted.md:12 carries an open - [>] row')
+  expect_red(rc, out, 'docs/work/done/planted.md:13 carries an open - [>] row')
   rc, out = _fence_blind(root)
   expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
   refute(out, 'carries an open')
@@ -484,16 +383,17 @@ def test_98_a_fenced_heading_inside_the_block_does_not_end_it_early():
 
 
 def test_98_a_fenced_ledger_heading_does_not_count_toward_the_archived_floor():
-  """The subtlest guard of the five, both directions in one row. WL_ARCHIVED counts a
+  """The subtlest guard of the set, both directions in one row. WL_ARCHIVED counts a
   doc only when the block actually judged is the real one, so this corpus leaves
   assertion (b) nothing to judge. Blind the mask and those same docs count, the floor
   holds, and its message goes. Floors run before the control and a failing one returns
   first, so the missing floor line is how this row knows it held."""
-  root = _tree({'docs/work/done/archived-%d.md' % n: _doc('done', FENCED_ONLY)
-                for n in range(SCRATCH_DOCS - 1)})
+  root = work_doc_tree({'docs/work/done/archived-%d.md' % n:
+                        work_doc('done', AFTER_LEDGER, FENCED_ONLY)
+                        for n in range(SCRATCH_DOCS - 1)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'the scan found 0 archived doc(s) carrying a section 0 phase '
-             'ledger against a floor of 1')
+             'ledger against a floor of 2')
   rc, out = _fence_blind(root)
   expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
   refute(out, 'archived doc(s) carrying a section 0 phase ledger against a floor of')

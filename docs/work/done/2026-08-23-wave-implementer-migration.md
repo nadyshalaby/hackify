@@ -12,6 +12,40 @@ sprint_goal: Collapse Phase 3 dispatch from one agent per task batch to one agen
 related: 2026-08-23-phase-ledger-substrate.md
 ---
 
+## 0. Phase ledger
+
+<!-- LEDGER WRITTEN RETROACTIVELY, 2026-08-25, during the claim-integrity sprint. This
+block belongs at the top of the body, per the section-order law in
+skills/hackify/references/work-doc-template.md. -->
+
+- [x] Phase 1. Clarify (lock the goal anchor) (the goal anchor at §Primary Goal & Guardrails, and §2's five wizard answers recorded verbatim)
+- [x] Phase 2. Plan + Gate (work-doc + user "go") (§3, §4 and §5 written before any edit, and wave 1 ran off that backlog)
+- [x] Phase 2.5. Spec review (1 reviewer, patch the doc) (§5a carries the reviewer's wave plan, and `a172922` applied its corrections)
+- [x] Phase 3. Implement (all waves committed) (all 23 backlog tasks ticked, and §6 names the commit behind each wave)
+- [x] Phase 4. Verify (Evidence Ledger + triad green) (§7's Evidence Ledger, one row per acceptance criterion with fresh output)
+- [x] Phase 5. Review (decision table empty) (five review rounds recorded, closed at §"Round 5 fix waves, all landed, and the loop is closed")
+- [x] Phase 6a. Re-verify + land choice (Steps A, B, C) (0.15.0 released at `2766b49`, recorded under §"Phase 6, close-out")
+- [x] Phase 6b. Cleanup sweep (Step C.5) (the cleanup-sweep paragraph in §"Phase 6, close-out")
+- [x] **Phase 6c. Archive work-doc to `done/` (Step D)** (`28d53d2` moved this file into `done/`)
+- [x] Phase 6d. Update log + HTML report (Step F) **never ran**, see the note below
+
+**This ledger was never written while the sprint ran, and it is written now from what the file
+itself records rather than from memory.** The doc was created on 2026-08-23 at 18:59, in commit
+`8ff646d`. The heading entered the work-doc template that same morning at 11:13, in commit
+`b96d2db`, and the validator learned to read it at 13:02, in commit `8fa8d58`. So section 0 was
+owed from the first line this file ever had, and it simply never got one. Every row above is
+ticked from a section of this doc or from the commit named beside it.
+
+**Phase 6d did not run.** Step F produces two artifacts, the printed update log appended under an
+`## Update log` heading and `2026-08-23-wave-implementer-migration.report.html` beside this file.
+This doc carries no update-log section and no report sits in `docs/work/done/`, while four other
+archived sprints there have one. The row is closed with a written reason rather than deleted,
+because the ledger law at `skills/hackify/references/phase-ledger.md:91` says a step that did not
+happen is marked `completed` with the reason appended, never removed. The `## Retrospective` at
+the end of this doc is filled, and it belongs to Step D rather than Step F, so it is not evidence
+that Step F ran. The missing update log stays missing rather than being reconstructed two days
+later by someone who was not there.
+
 ## 1. Original ask
 
 Verbatim:
