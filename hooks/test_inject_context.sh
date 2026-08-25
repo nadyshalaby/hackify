@@ -114,7 +114,7 @@ for bad in "" "/nonexistent/rules.md"; do
   fi
 done
 
-echo "[9] all four always-on files count independently"
+echo "[9] all five always-on files count independently"
 prompt sess-c | "$HOOK" "$ROOT/rules/hard-caps.md" >/dev/null
 OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/expert-mindset.md" | ctx)
 expect "expert-mindset still gets its own turn 1" "$OUT" "## The stakes"
@@ -122,6 +122,8 @@ OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/perf-guardrails.md" | ctx)
 expect "perf-guardrails still gets its own turn 1" "$OUT" "## The twelve guardrails"
 OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/phase-discipline.md" | ctx)
 expect "phase-discipline still gets its own turn 1" "$OUT" "## The five laws"
+OUT=$(prompt sess-c | "$HOOK" "$ROOT/rules/claim-integrity.md" | ctx)
+expect "claim-integrity still gets its own turn 1" "$OUT" "## The golden rule"
 
 echo "[10] the phase-discipline laws survive into the turn-2 pointer"
 # Two turns against one session id, asserting on the SECOND output. A static
@@ -144,6 +146,41 @@ expect "turn 2 is the pointer" "$PD_PTR" "[hackify always-on]"
 expect_not "turn 2 does not repeat the full laws" "$PD_PTR" "## The five laws"
 expect "wizard mandate survives the digest" "$PD_PTR" "Every question goes through the wizard tool"
 expect "scope carve-out survives the digest" "$PD_PTR" "unless it is trivial or read-only"
+
+echo "[11] the claim-integrity laws survive into the turn-2 pointer"
+# Same distinction [76e] was built on, and the whole point of this block: a grep
+# of rules/claim-integrity.md proves a law sits in the file, never that it reaches
+# a single prompt after the first of a session. This rule bans exactly that move,
+# so testing it by presence would be the defect on display inside its own suite.
+#
+# The truncation assertion is the one nobody would think to write. digest_of()
+# stops at DIGEST_MAX_CHARS = 900 and returns what it had plus "; ...", so a file
+# that grows past the cap loses its TAIL laws with no error anywhere: hooks.json
+# is still wired, the file is still complete on disk, turn 1 still carries
+# everything, and every prompt after it is quietly missing the end of the list.
+# Two assertions are needed, not one. The "; ..." check catches an overrun, and
+# the last-law check catches a law de-bolded, reworded into a duplicate of an
+# earlier lead (leads are de-duplicated) or dropped outright.
+CI="$ROOT/rules/claim-integrity.md"
+prompt sess-ci | "$HOOK" "$CI" >/dev/null      # turn 1, full text
+CI_PTR=$(prompt sess-ci | "$HOOK" "$CI" | ctx) # turn 2, pointer
+expect "turn 2 is the pointer" "$CI_PTR" "[hackify always-on]"
+expect_not "turn 2 does not repeat the full laws" "$CI_PTR" "## The golden rule"
+expect "golden rule survives the digest" "$CI_PTR" "Code is the only source of truth"
+expect "the re-derive law survives the digest" "$CI_PTR" "re-derive every fact from the code"
+expect "claiming without proving survives" "$CI_PTR" "Prove every claim with fresh output"
+expect "the stale-number law survives" "$CI_PTR" "A number you did not just count is already wrong"
+expect "the citation law survives" "$CI_PTR" "Open every citation you write"
+expect "the one-site-of-a-family law survives" "$CI_PTR" "Fixing the filed site is not fixing the defect"
+expect "the rationale-drift law survives" "$CI_PTR" "A comment's reason may no longer be the only one"
+expect "the speed law survives" "$CI_PTR" "Hand agents your facts and permission to refute them"
+expect "the silent-verification law survives" "$CI_PTR" "can fail silently is not a verification"
+expect "the clean-result law survives" "$CI_PTR" "ability to have returned a dirty one"
+expect "the absence law survives" "$CI_PTR" "ability to have found the thing present"
+expect_not "the digest is not truncated at DIGEST_MAX_CHARS" "$CI_PTR" "; ..."
+# Deliberately the LAST law in the file. If the digest ever overruns, this is the
+# first assertion to fail, which is what turns a silent tail-drop into a red.
+expect "the last law still reaches turn 2" "$CI_PTR" "Say what the checks do not reach"
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

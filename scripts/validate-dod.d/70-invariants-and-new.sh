@@ -104,13 +104,14 @@ while IFS= read -r t; do
   esac
 done <<<"$HOOK_TARGETS"
 
-yellow "[38] all four always-on rules files are injected via UserPromptSubmit"
+yellow "[38] all five always-on rules files are injected via UserPromptSubmit"
 # Here-string, not `jq | grep -q`: grep -q short-circuits and can SIGPIPE the
 # producer under pipefail (see the [24] comment in 50-runtimes-and-companions.sh).
-# All four entries are checked, not just one: v0.14.0 made phase discipline
-# always-on, and an entry dropped from hooks.json is that whole law gone silently.
+# All five entries are checked, not just one: v0.14.0 made phase discipline
+# always-on and claim integrity joined as the fifth, and an entry dropped from
+# hooks.json is that whole law gone silently.
 UPS_HOOK_CMDS=$(jq -r '.hooks.UserPromptSubmit[].hooks[].command' hooks/hooks.json 2>/dev/null)
-for r in hard-caps expert-mindset perf-guardrails phase-discipline; do
+for r in hard-caps expert-mindset perf-guardrails phase-discipline claim-integrity; do
   if grep -qF "rules/$r.md" <<<"$UPS_HOOK_CMDS"; then
     green "  ok   hooks.json UserPromptSubmit injects rules/$r.md"
   else
@@ -122,6 +123,7 @@ done
 # dist/claude-code/; the carve-out is 33 chars against QUALIFIER_MAX_CHARS = 34 and
 # qualifier() drops rather than truncates, so a reword deletes it after prompt one.
 check_token_present 'rules/phase-discipline.md' "hooks/inject-context.sh"
+check_token_present 'rules/claim-integrity.md' "hooks/inject-context.sh"
 check_token_present 'unless it is trivial or read-only' "rules/phase-discipline.md"
 
 yellow "[38b] the always-on injector is session-aware, not per-prompt"
