@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: implementing
+status: review
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 3 W1, plan revised after spec review
+current_task: Phase 5 review panel, all backlog tasks landed and 0.15.1 cut
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -158,7 +158,15 @@ The superseded text is preserved in the spec-review section below rather than de
       `scripts/test_literal_absent_claims.py`. Each runs its own shipped check over the **whole live
       tree** and asserts rc 0 plus the pass line. Each has a floor companion so a scan that read
       nothing cannot pass as a scan that found nothing: [93] asserts at least 350 uses over 15
-      prompts in 15 files, [95] asserts `pairs == 0` underneath its own floors. That is a
+      prompts in 15 files. **The [95] half of this sentence was overstated and is corrected here,
+      2026-08-25, from Reviewer F.** [95] does floor its file count at 100 and its claim count at 5,
+      but it floors nothing on the PAIRING step, and the live tree forms zero pairs. So [95]'s clean
+      live run says its scan read a real corpus and found 15 claims; it does NOT say the pairer
+      still works, because nothing on the live path would notice if it stopped. That the pairer
+      works is proven elsewhere, by `test_i4_is_caught_with_its_counter_evidence_named` and by the
+      replay catching I4, both against pinned fixtures rather than the live tree. Leg (b)'s evidence
+      is therefore [93] and [94] at full strength and [95] at reduced strength, and the missing
+      live-path floor is recorded as a follow-up rather than papered over. That is a
       false-positive measurement over the entire repository rather than over nine rows, and a check
       that fired spuriously anywhere would redden its own test.
 
@@ -170,9 +178,16 @@ The superseded text is preserved in the spec-review section below rather than de
       still both have to pass. Leg (b) is now able to fail, which is the only reason to keep it.
 
       **Bucket change 1 of 1, M4, `out_of_class`/`scope_blocked` to `must_catch` under C7.** Cause:
-      #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
-      is the allowed direction.** The banned direction is moving a bucket so an unchanged check
-      scores better, and this entry exists so the two can be told apart later.
+      #13-A widened C7 to both polarities. **Corrected 2026-08-25, found by Reviewer B.** This read "the check widened first and the
+      bucket followed, which is the allowed direction". **No check widened.** The DECISION widened
+      the class, the bucket followed the decision, and the build was then refused:
+      `95-literal-absent-claims.sh:46` says "THE PRESENT-POLARITY HALF IS NOT BUILT" and gives its
+      reason, and #15-A accepted that refusal. The direction is still the allowed one, a bucket
+      following a widened class rather than a bucket moved so an unchanged check scores better, and
+      the answer key has carried the gap all along in `must_catch_buildable: 3` against
+      `must_catch_refused: 1`. But the sentence justifying this sprint's only bucket change
+      described a build that never happened, and it was sitting inside the clause whose whole job is
+      policing bucket changes.
 - [x] **AC1b, entry 2 of 2. Decision #15-A, a bucket change considered and REFUSED.** The user
       accepted W4's refusal to build a check for M4 and dropped the build target from 4 to 3.
       **The bucket was NOT moved.** Moving M4 to `out_of_class` would turn a 3 of 4 into a 3 of 3
@@ -186,7 +201,7 @@ The superseded text is preserved in the spec-review section below rather than de
 - [x] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
       runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The plan's
       original "23" was measured with a `^`-anchored command, and the "88" that replaced it counted
-      every `[NN]` token rather than the declared ones. The declared universe is 82, which check
+      every `[NN]` token rather than the declared ones. The declared universe is NOT written here: this AC asserted 82 while [91] derives 86 at HEAD, which is the very defect the AC is about. Check
       `[91]` derives at runtime and this AC deliberately does not hardcode. Corrected here because
       an AC asserting a wrong count in a sprint about wrong counts is the defect on display.)
 - [x] **AC3, ticked against the RE-POINTED criterion, not the one as written.** Clause (a) named a verb vocabulary that does not exist, because it was written for the annotation design #14-A declined; T7 refused to invent one and re-pointed the battery at the data paths that do exist, writing up what is therefore NOT proven under its dated heading. Original text: The check never executes anything sourced from a repo file, proven on **both** halves:
@@ -279,7 +294,7 @@ block is the sprint's own first demonstration of AC6.**
   stale; use two syncs and compare checksums. (d) The session `grep` honours `.gitignore`, so
   `grep -r` under `dist/` silently returns nothing; use `/usr/bin/grep`. (e) `block-banned-tokens.sh`
   rejects em dashes. (f) **`71-release-mechanism-pins.sh` and `test_ban_tokens.d/15-wi-absent-cases.sh`
-  are both at 497/500.** Anything landing there needs a split plan, not an edit.
+  are both at 497/500.** **Stale at HEAD, corrected 2026-08-25 from Reviewer B.** #17-B split `71-release-mechanism-pins.sh`, which is 344 lines now; `15-wi-absent-cases.sh` is still 497 and still needs its split. Anything landing there needs a split plan, not an edit.
 
 ### Execution waves
 
