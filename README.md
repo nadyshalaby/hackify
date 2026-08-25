@@ -254,6 +254,7 @@ rules/                                 always-on engineering law (since v0.2.2)
   performance.md                       canonical perf-violation catalog, 95 stable IDs, 10 domains (since v0.7.0)
   perf-guardrails.md                   tight always-on perf stub, injected every prompt (since v0.7.0)
   phase-discipline.md                  phase order + always-open step ledger + wizard mandate, injected every prompt (since v0.14.0)
+  claim-integrity.md                   code is the only source of truth, prove every claim, injected every prompt (since v0.15.0)
 agents/                                formal sub-agent definitions (since v0.2.2, claude-code only)
   codebase-investigator.md             Phase 1 research + Phase 3b debug, read-only, mode-switched
   spec-reviewer.md                     Phase 2.5, all three spec lenses
@@ -266,7 +267,7 @@ agents/                                formal sub-agent definitions (since v0.2.
   wave-implementer.md                  Phase 3 wave implementer, one agent per wave
 hooks/                                 prompt-time + edit-time enforcement (claude-code only)
   hooks.json                           UserPromptSubmit + PreToolUse hook declarations
-  inject-context.sh                    injects the 4 always-on rules files, full on the first prompt, pointer after (since v0.11.0)
+  inject-context.sh                    injects the 5 always-on rules files, full on the first prompt, pointer after (since v0.11.0)
   inject_context.py                    session-aware injector companion, counts turns per session (since v0.11.0)
   block-banned-tokens.sh               PreToolUse (Write|Edit|Bash), blocks banned tokens in JS/TS (since v0.4.2)
   scan_edit.py                         Write/Edit detector reused by the hook (lawkeeper lexer + check regexes)

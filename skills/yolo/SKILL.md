@@ -43,7 +43,7 @@ Open a **phase ledger** at task start, one item per phase. Clarify → Plan → 
 
 ## Expert mindset (always-on)
 
-Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier, and prove every claim with fresh evidence. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md` and `rules/phase-discipline.md`, four injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in YOLO too).
+Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier, and prove every claim with fresh evidence. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md`, `rules/phase-discipline.md` and `rules/claim-integrity.md`, five injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in YOLO too).
 
 ## Auto-pass behavior (the two gates YOLO skips)
 

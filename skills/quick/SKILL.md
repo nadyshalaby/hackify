@@ -31,7 +31,7 @@ Open a **phase ledger** at task start, one item per kept phase. Clarify → Impl
 
 ## Expert mindset (always-on)
 
-Even in quick mode, think as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier. Small tasks are where broken work hides. Prove instead of claim; when unsure, ask. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md` and `rules/phase-discipline.md`, four injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in quick mode too).
+Even in quick mode, think as a **senior, multi-disciplinary engineer**, problem-solver, security, performance, architect, advisor, verifier. Small tasks are where broken work hides. Prove instead of claim; when unsure, ask. Doctrine: `../hackify/references/expert-mindset.md` (a tight version is injected every prompt from `rules/expert-mindset.md`, beside the always-on `rules/hard-caps.md`, `rules/perf-guardrails.md`, `rules/phase-discipline.md` and `rules/claim-integrity.md`, five injected files in all, so the caps, the performance law and the no-silent-drop phase law all bind in quick mode too).
 
 ## Kept phases
 
