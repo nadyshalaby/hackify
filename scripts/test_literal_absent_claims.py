@@ -49,10 +49,15 @@ OK_LINE = re.compile(r'ok\s+all (\d+) quoted phrase\(s\) called unpinned across 
                      r'(\d+) live file\(s\).*?\((\d+) pinning claim\(s\) examined\)')
 
 
-def run_fragment(replay_root=None):
-    """Source the shipped fragment the way the orchestrator does. Returns (rc, text)."""
+def run_fragment(replay_root=None, fragment=FRAGMENT):
+    """Source the shipped fragment the way the orchestrator does. Returns (rc, text).
+
+    `fragment` is a parameter only so the positive-control rows below can drive a
+    TAMPERED COPY of the shipped file. The copy is written under a tempdir and
+    the tracked file is never written to, the pattern scripts/tamper_harness.py
+    already uses for every row it has."""
     script = ('FAILED=0; source scripts/validate-dod.d/00-helpers.sh; '
-              'source %s; exit $FAILED' % FRAGMENT)
+              'source %s; exit $FAILED' % fragment)
     env = dict(os.environ)
     env.pop('LA_REPLAY_ROOT', None)
     if replay_root is not None:
@@ -70,6 +75,22 @@ def scratch(files):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(body, encoding='utf-8')
     return root
+
+
+def tampered(old, new):
+    """A COPY of the shipped fragment with one literal replaced, exactly once.
+
+    The occurrence count is asserted rather than assumed, on
+    scripts/tamper_harness.py's rule: a search text that no longer occurs means
+    the row has stopped editing what it names and is measuring the untampered
+    file, which passes and proves nothing."""
+    body = (REPO_ROOT / FRAGMENT).read_text(encoding='utf-8')
+    assert body.count(old) == 1, (
+        'the tamper text %r occurs %d times, not once; this row is no longer '
+        'editing what it names' % (old, body.count(old)))
+    target = Path(tempfile.mkdtemp(prefix='la-tamper-')) / '95-literal-absent-claims.sh'
+    target.write_text(body.replace(old, new), encoding='utf-8')
+    return target
 
 
 def i4_spec():
@@ -143,6 +164,53 @@ def test_the_live_scan_forms_no_pair_at_all():
     assert pairs == 0, 'pairs=%d' % pairs
     assert files >= 100 and claims >= 5, (files, claims)
     assert 'known-findings list' not in out, out
+
+
+# --- 2b. the positive control -------------------------------------------------
+
+def test_the_pass_line_reports_that_the_positive_control_ran():
+    """The zero above is only worth reading beside the evidence that a pair
+    could still have formed. A reader must not have to take it on trust."""
+    rc, out = run_fragment()
+    assert rc == 0, out
+    assert ('the positive control formed and reported its synthetic pair') in out, out
+
+
+def test_the_control_corpus_never_leaks_into_the_live_counts():
+    """The control drives the SAME judge() the live scan does, so its two
+    synthetic files and its one synthetic pair have to stay out of the numbers
+    the pass line reports. A leak would show up as a non-zero pair total on a
+    tree whose honest pair total is zero, and as two extra files."""
+    rc, out = run_fragment()
+    pairs, files, claims = (int(g) for g in OK_LINE.search(out).groups())
+    assert rc == 0, out
+    assert pairs == 0, 'the control pair leaked into the reported total: %d' % pairs
+    assert 'control-claimant' not in out and 'control-carrier' not in out, out
+
+
+def test_a_pairing_rule_that_can_never_fire_reds_on_the_control():
+    """The defect the control was written for. Zero pairs is the honest live
+    answer, so a subjects() that had stopped forming pairs at all would print
+    the same zero and the same green. Closing the subject window to nothing is
+    that breakage in its simplest form: the scan still reads every file, still
+    counts every claim paragraph, and still comes back clean."""
+    frag = tampered('WINDOW = 30', 'WINDOW = 0')
+    rc, out = run_fragment(fragment=frag)
+    assert rc != 0, 'a pairing rule that can never fire printed no failure:\n%s' % out
+    assert 'the positive control did not hold' in out, out
+    assert OK_LINE.search(out) is None, 'a green printed beside the red:\n%s' % out
+
+
+def test_a_blinded_counter_evidence_lookup_reds_on_the_control():
+    """The other half of the machinery. A pair can form and still never be
+    reported if the lookup that finds the phrase elsewhere goes blind, and that
+    failure is invisible on a tree where nothing was going to be reported."""
+    frag = tampered(
+        '    return sorted(q for q, text in corpus.items() if q != path and phrase in text)',
+        '    return []')
+    rc, out = run_fragment(fragment=frag)
+    assert rc != 0, out
+    assert 'the positive control did not hold' in out, out
 
 
 def test_a_runtime_absence_sentence_does_not_fire():

@@ -52,8 +52,15 @@ TSR_CI='.github/workflows/ci.yml'
 # own floor. An empty CI list is louder but no better: it makes every suite look
 # unreachable and names a list of files when the defect is in the parse. Floors rather
 # than exact counts, because suites are added and retired most waves and only a
-# collapse toward zero means the discovery broke. Live numbers when these were set:
-# 10 tracked entrypoints and 14 command paths parsed out of ci.yml.
+# collapse toward zero means the discovery broke. NO LIVE PAIR IS WRITTEN HERE ANY
+# MORE: the two numbers this paragraph carried were the ones true when the floors
+# were set and both had drifted upward since, which is the rotting-comment shape
+# 57-doc-links.sh:20-26 answers by carrying the command instead of the count. Both
+# sides re-derive with
+#   git ls-files | grep -E '(^|/)test_[^/]*\.(py|sh)$' | grep -v '\.d/' | wc -l
+#   grep -E '^[[:space:]]*run:' .github/workflows/ci.yml \
+#     | grep -oE '[A-Za-z0-9_./-]+\.(py|sh)' | sort -u | wc -l
+# and both are printed live on this check's own pass line.
 TSR_ENTRY_FLOOR=5
 TSR_CI_FLOOR=6
 

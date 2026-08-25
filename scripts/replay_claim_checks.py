@@ -25,9 +25,17 @@ graded against.
 FAIL CLOSED, ALWAYS. A must_catch finding with no fixture, a class the table does
 not map, a missing fragment, a bash that will not start, an empty finding set, a
 red run that names none of the fixture's own files: every one of them raises. A
-`caught: false` is only ever produced by a run that happened and came back clean,
-because "the check did not fire" and "the check never ran" look identical in a
-score and mean opposite things.
+`caught: false` is only ever produced by a run that HAPPENED, and there are two
+shapes of it: the check ran and came back clean, or it ran, reddened about a file
+the fixture pinned, and never named the thing the finding is about. Both are
+misses and both are measurements. What can never produce one is a run that did
+not take place, because "the check did not fire" and "the check never ran" look
+identical in a score and mean opposite things.
+
+The second shape is deliberate rather than tolerated, and verdict() below is
+where it is decided. A red run about the right FILE is not a red run about the
+right FINDING, and scoring it as a catch would credit the check with work the
+witness literals say it did not do.
 
 Exit codes: 0 every finding replayed, 4 a replay could not be scored, 5 a fixture
 or manifest failure underneath it.
@@ -178,14 +186,22 @@ def check_for(class_name):
 def run_fragment(check, replay_root, repo_root=REPO_ROOT):
   """Source the shipped fragment the way scripts/validate-dod.sh does.
 
-  Returns (rc, ANSI-stripped combined output). The bash line is the contract the
-  three existing suites already drive the fragments through, copied rather than
-  reinvented, so this runner cannot drift into testing something the orchestrator
-  never runs."""
+  Returns (rc, ANSI-stripped combined output).
+
+  `set -uo pipefail` LEADS THE LINE because scripts/validate-dod.sh sets that mode
+  before sourcing anything (`grep -n '^set -uo pipefail' scripts/validate-dod.sh`
+  re-derives the line), and the status handling inside these fragments is
+  written against exactly that: `set -o pipefail` is why several of them read
+  git's or grep's status on its own line rather than off the end of a pipe. Run
+  without it, this runner measured the fragments under a shell mode the validator
+  does not ship, and the sprint's headline number came out of that run.
+  scripts/tamper_harness.py:170 already used the full line; this one did not, and
+  the two are now the same contract rather than two readings of it."""
   root = Path(repo_root)
   _require_file(root, HELPERS)
   _require_file(root, check.fragment)
-  script = ('FAILED=0; source %s; source %s; exit $FAILED' % (HELPERS, check.fragment))
+  script = ('set -uo pipefail; FAILED=0; source %s; source %s; exit $FAILED'
+            % (HELPERS, check.fragment))
   env = dict(os.environ)
   for name in REPLAY_VARS:
     env.pop(name, None)

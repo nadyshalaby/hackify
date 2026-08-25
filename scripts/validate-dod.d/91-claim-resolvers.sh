@@ -37,19 +37,19 @@
 # `[78f]` label comment blocks INSIDE check [78]. Building the known set from the
 # token sweep would have made a fabricated `[78c]` resolve, which is the whole
 # failure this block exists to refuse. NO COUNTS ARE WRITTEN HERE: this paragraph
-# carried three (88 bare, 81 declared, seven extras) and every one of them had
-# gone stale. Re-derive both sides with
+# carried three of them and every one had gone stale. Re-derive both sides with
 #   grep -ohE '\[[0-9]+[a-z]?\]' scripts/validate-dod.d/*.sh | sort -u | wc -l
 #   grep -ohE 'yellow "\[[0-9]+[a-z]?\]' scripts/validate-dod.d/*.sh | sort -u | wc -l
 #
 # HOW THE MARKDOWN REFERENCE-LINK COLLISION IS EXCLUDED. Live markdown carries
-# 136 bare `[NN]` tokens, almost all of them reference-link syntax: `[label][12]`
-# at the use site and `[12]: https://...` at the definition. Keying on the bare
-# token would drown this check in false positives. THE EXCLUSION RULE IS THAT
-# THE LITERAL WORD "check" OR "checks" PLUS ONE SPACE MUST IMMEDIATELY PRECEDE
-# THE BRACKET. Neither markdown reference form can produce that, so all 136 are
-# out by construction rather than by an exception list, and what is left is 31
-# sentences that really do assert a check exists.
+# bare `[NN]` tokens in bulk, nearly all reference-link syntax: `[label][12]` at
+# the use site and `[12]: https://...` at the definition. Keying on the bare token
+# would drown this check in false positives. THE EXCLUSION RULE IS THAT THE
+# LITERAL WORD "check" OR "checks" PLUS ONE SPACE MUST IMMEDIATELY PRECEDE THE
+# BRACKET, which neither markdown form can produce, so they are out by
+# construction rather than by an exception list. NO COUNT HERE EITHER, on the
+# rule above: the surviving claim total is printed by this check's own pass line
+# on every run, and a printed number cannot go stale the way a comment can.
 #
 # THE RANGE-ENDPOINT CARVE-OUT CANNOT TRIP THIS, BY CONSTRUCTION.
 # 76-phase-ledger-substrate.sh:201 argues that `check [75]` claims nothing about
@@ -158,8 +158,13 @@ import io, os, re, subprocess, sys
 FRAGDIR = "scripts/validate-dod.d"
 ORCH = "scripts/validate-dod.sh"
 # A fragment declares a check by printing its header. The orchestrator's two
-# non-fragment checks never print their id, so their only declaration site is
-# the manifest comment block at the top of the orchestrator.
+# non-fragment checks DO print their id, [0] and [0b] both do, but through
+# printf rather than through yellow() at line start, so FRAG_DECL cannot see
+# either one and the manifest comment block at the top of the orchestrator is
+# their only machine-readable declaration site. That block is also wider than
+# those two: any comment line there opening with a bracketed id declares it, so
+# the orchestrator side is not two ids but however many that grammar yields, and
+# the count this check reports is the one to read rather than a number here.
 FRAG_DECL = re.compile(r'^yellow "\[(\d+[a-z]?)\]', re.M)
 ORCH_DECL = re.compile(r'^#\s+\[(\d+[a-z]?)\]', re.M)
 # The word, one space, the bracket. See the exclusion rule above.

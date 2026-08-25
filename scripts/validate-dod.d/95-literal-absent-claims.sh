@@ -56,6 +56,29 @@
 # which three blobs were pinned is not a check, so it is refused here and
 # reported instead.
 #
+# ZERO PAIRS IS THE HONEST ANSWER, AND IT IS WHY THERE IS A POSITIVE CONTROL.
+# I4 was the only pair this check ever formed on the live tree and #16-C fixed
+# the sentence, so the live run now resolves fifteen-odd claim paragraphs into no
+# pairs at all and prints a green saying so. That green is the SAME LINE this
+# check would print if the pairing had silently stopped working: a subjects()
+# that matched nothing, a QUOTED that stopped compiling to anything useful, a
+# WINDOW that closed. Flooring LA_PAIRS at 1 is not the answer, because the zero
+# is true and a floor would redden a clean tree for telling the truth.
+#
+# SO THE ZERO IS EARNED BEFORE IT IS TRUSTED. A synthetic two-file corpus, built
+# from source literals in this file and never read off disk, is put through the
+# SAME judge() the live scan uses: one file makes a pinning claim about a quoted
+# phrase, the other carries that phrase, and the pair MUST form and MUST be
+# reported. If it does not, the machinery that would have found a live pair is
+# broken, this run's zero means nothing, and the check reds instead of printing
+# it. The pass line says the control ran, so a reader never has to take the zero
+# on trust.
+#
+# THE LIMIT, NAMED. The control takes its claim wording from CLAIMS, so a
+# vocabulary edited to something no real prose carries moves the control with it
+# and the pair still forms. That direction is LA_CLAIM_FLOOR's job, and it is why
+# both guards are here rather than either one alone.
+#
 # NOTHING SOURCED FROM A REPO FILE IS EXECUTED OR COMPILED INTO A PATTERN. Every
 # pattern below is a literal in this file. A phrase parsed out of a document is
 # used only as a needle for an exact substring search, never interpolated into a
@@ -88,10 +111,16 @@ yellow "[95] every claim that a quoted phrase is not pinned is true when the phr
 # into either file is invisible here. The test file drives the REAL fragment
 # through a replay root for exactly that reason.
 #
-# THE FLOORS ARE WHAT STOP A VACUOUS PASS. Measured after #16-C fixed I4: 234
-# live files, 10 paragraphs carrying a pinning claim phrase. Floors sit near
-# half of each, so ordinary prose churn never reddens this and a collapse still
-# does. If the claim vocabulary stops matching, this check goes silent, and a
+# THE FLOORS ARE WHAT STOP A VACUOUS PASS. They sit near half of each live
+# total, so ordinary prose churn never reddens this and a collapse still does.
+# NO MEASURED PAIR IS WRITTEN HERE ANY MORE, and that is the fix rather than an
+# omission: the two numbers this paragraph used to carry were taken once and
+# both had drifted by the next wave, which is the rotting claim this very check
+# exists to catch, committed in its own header. The live pair is on the pass
+# line every run prints, and the file half re-derives with
+#   git ls-files -- ':(top)' ':(top,exclude)dist/*' ':(top,exclude)docs/work/*' | wc -l
+# minus the EXCLUDE tuple below. 57-doc-links.sh:20-26 sets this convention.
+# If the claim vocabulary stops matching, this check goes silent, and a
 # silent check that prints green is the exact shape the sprint exists to refuse.
 LA_FILE_FLOOR=100
 LA_CLAIM_FLOOR=5
@@ -100,6 +129,7 @@ LA_FILES=0
 LA_CLAIMS=0
 LA_PAIRS=0
 LA_MODE=none
+LA_CONTROL=none
 
 la_fail() {
   red "  FAIL $*"
@@ -111,6 +141,7 @@ la_read_size() {
   while IFS= read -r line; do
     case "$line" in
       'SIZE '*) read -r LA_FILES LA_CLAIMS LA_PAIRS LA_MODE <<<"${line#SIZE }" ;;
+      'CONTROL '*) LA_CONTROL=${line#CONTROL } ;;
     esac
   done <<<"$1"
 }
@@ -141,18 +172,29 @@ la_floors_hold() {
   return 0
 }
 
+# THE CONTROL IS JUDGED AFTER THE FLOORS AND BEFORE THE GREEN, and a failed one
+# counts as a finding like any other: it prints, it bumps the status, and it
+# takes the pass line with it. It does NOT gate the per-claim walk, because a
+# real finding must still be reported even on a run whose control has broken.
+la_control_holds() {
+  [ "$LA_CONTROL" = ok ] && return 0
+  la_fail "[95] the positive control did not hold (control verdict: $LA_CONTROL). A synthetic two-file corpus in which one file calls a quoted phrase unpinned and the other carries that phrase must form exactly one pair and report it. Until it does, this run's count of genuinely-unpinned phrases is not evidence of anything: a pairing that had stopped working would print the same number"
+  return 1
+}
+
 # AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim.
 la_verdict() {
   local line bad=0
   la_read_size "$1"
   la_floors_hold || return
+  la_control_holds || bad=$((bad + 1))
   while IFS= read -r line; do
     case "$line" in
       'FAIL '*) la_fail "${line#FAIL }"; bad=$((bad + 1)) ;;
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all $LA_PAIRS quoted phrase(s) called unpinned across $LA_FILES live file(s) are genuinely unpinned ($LA_CLAIMS pinning claim(s) examined)"
+  green "  ok   all $LA_PAIRS quoted phrase(s) called unpinned across $LA_FILES live file(s) are genuinely unpinned ($LA_CLAIMS pinning claim(s) examined), and the positive control formed and reported its synthetic pair before that count was trusted"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -185,6 +227,9 @@ CLAIMS = ('NOT pinned', 'not pinned', 'is not pinned', 'never pinned', 'unpinned
 # so the bound is not load-bearing, it is just tight enough to mean 'the subject
 # of this sentence' rather than 'somewhere in this paragraph'.
 WINDOW = 30
+# The control's subject. Deliberately a string no live file carries, so the two
+# corpora can never reach into one another even by accident.
+CONTROL_PHRASE = 'zzq-positive-control-subject'
 LIVE = [':(top)', ':(top,exclude)dist/*', ':(top,exclude)docs/work/*']
 EXCLUDE = ('scripts/claim_corpus.json', 'scripts/claim_fixtures.json',
            'scripts/test_claim_fixtures.py',
@@ -306,9 +351,13 @@ def report(path, rows, hit):
           'file(s): %s' % (path, line, phrase, claim, len(where), ', '.join(where)))
 
 
-def scan(corpus, mode):
-    """Judge every claim/subject pair, then print the one SIZE line."""
-    claims = pairs = 0
+def judge(corpus):
+    """(findings, claims, pairs) for one corpus. Nothing is printed here.
+
+    Split out of scan() so the positive control drives the SAME pairing code the
+    live scan does. A control that exercised a copy would go green while the
+    shipped path rotted, which is the defect class this whole check is about."""
+    findings, claims, pairs = [], 0, 0
     for path in sorted(corpus):
         for para, rows in paragraphs(corpus[path]):
             if not any(c in para for c in CLAIMS):
@@ -317,9 +366,32 @@ def scan(corpus, mode):
             for phrase, claim in subjects(para):
                 pairs += 1
                 where = elsewhere(corpus, path, phrase)
-                if not where:
-                    continue
-                report(path, rows, (phrase, claim, where))
+                if where:
+                    findings.append((path, rows, (phrase, claim, where)))
+    return findings, claims, pairs
+
+
+def control():
+    """True when a corpus that MUST form one pair forms exactly one. See header.
+
+    Both files are built here from source literals. CONTROL_PHRASE is a string
+    no live file carries, and the corpus is its own dict besides, so elsewhere()
+    can only ever see these two files and the live tree cannot change the
+    verdict in either direction."""
+    said = '%s%s%s' % (TICK, CONTROL_PHRASE, TICK)
+    corpus = {'control-claimant': 'notes\n\nThe %s row is %s in this tree.\n'
+                                  % (said, CLAIMS[0]),
+              'control-carrier': 'notes\n\nSomewhere: %s\n' % said}
+    findings, claims, pairs = judge(corpus)
+    return (len(findings), claims, pairs) == (1, 1, 1)
+
+
+def scan(corpus, mode):
+    """Judge one corpus, report what it found, then print CONTROL and SIZE."""
+    findings, claims, pairs = judge(corpus)
+    for path, rows, hit in findings:
+        report(path, rows, hit)
+    print('CONTROL %s' % ('ok' if control() else 'fail'))
     print('SIZE %d %d %d %s' % (len(corpus), claims, pairs, mode))
 
 

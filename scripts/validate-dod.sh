@@ -19,17 +19,24 @@
 #                   structural invariants (excised files stay excised, skill
 #                   frontmatter, hook command targets, always-on injection,
 #                   perf surfaces)
-#   71-release-mechanism-pins.sh, checks [38c]-[38g], one block per shipped
-#                   saving, each pinning the guard rail that keeps the saving
-#                   from becoming a silent loss of rigor. Split out of 70 at
-#                   the 500-LOC cap; the check IDs moved with the blocks
-#   72-diff-slicing-pins.sh, checks [38e]-[38h], the v0.11.0 diff-slicing and
-#                   carry-over mechanism, plus the settle-echo contract's own
-#                   FILE SET ([38h]), which sits beside [38e] because [38e] is
-#                   the block it guards. Split out of 71 at the same 500-LOC
+#   71-release-mechanism-pins.sh, checks [38c]-[38d] and [38f]-[38g], one block
+#                   per shipped saving, each pinning the guard rail that keeps
+#                   the saving from becoming a silent loss of rigor. Split out
+#                   of 70 at the 500-LOC cap; the check IDs moved with the
+#                   blocks. TWO RUNS AND NOT ONE, because this file does not
+#                   declare [38e] and never has: 72 does. Written as one run
+#                   the row read as [38c]-[38g], which sent a reader looking
+#                   for [38e] here to a fragment that has no such block
+#   72-diff-slicing-pins.sh, checks [38e] and [38h], the v0.11.0 diff-slicing
+#                   and carry-over mechanism, plus the settle-echo contract's
+#                   own FILE SET ([38h]), which sits beside [38e] because [38e]
+#                   is the block it guards. Split out of 71 at the same 500-LOC
 #                   cap, IDs and all; the cut was taken here rather than at
 #                   [38f] so that every line 71 keeps stays at the number a
-#                   live citation already names
+#                   live citation already names. TWO SINGLE IDS AND NOT A
+#                   RANGE, for the reason the row above gives pointed the other
+#                   way: [38f] and [38g] sit in 71, so a run of [38e]-[38h]
+#                   claimed two blocks this file does not hold
 #   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned
 #                   from both ends, the live agent type present at every
 #                   dispatch site and the dead one absent from the whole
@@ -85,6 +92,19 @@
 #                   cannot sit green-on-demand and absent from every automated
 #                   run. Same shape as [0] one layer up: [0] catches a fragment
 #                   nothing sources, this catches a suite nothing runs
+#
+# HOW THE 71 AND 72 ROWS ABOVE WENT WRONG AT ONCE, recorded here rather than in
+# either row because it is a property of the row FORMAT and not of those two
+# fragments. Both were written as a single range and both had the right
+# endpoints: 71 read [38c]-[38g] while declaring no [38e], and 72 read
+# [38e]-[38h] while declaring neither [38f] nor [38g]. [76i] compares a row's
+# range endpoints against the fragment's lowest and highest declared check, so
+# it read both rows and agreed with both. What no endpoint comparison can be
+# asked about is the ids in the MIDDLE of a run, which is where both errors sat,
+# and a reader looking up [38e] was sent to 71 where it does not exist. Set
+# membership in both directions, every id a row names is declared by that
+# fragment and every id that fragment declares is named by that row, is the
+# rule that reaches them; it is [76i]'s to widen and is not bought here.
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -251,12 +271,21 @@ source "$DOD_MODULES_DIR/97-test-suites-reachable.sh"
 # halves, take BOTH from one run of your own rather than adjusting one of
 # them against the other. Every wrong version of this line so far was quoted from
 # whoever wrote it last.
+#
+# IT PRINTS ITS OWN ID, like every other check and for the same reason. [0] does
+# it at line start above; this block did not, so `[0b]` was enumerated in the
+# manifest, labelled in this comment, and then absent from every line the run
+# emitted. A reader grepping a transcript for the id that the manifest told them
+# to expect found nothing and had no way to tell a check that passed from one
+# that never ran. printf rather than yellow(), on [0]'s reasoning: this is the
+# one file whose checks must still speak when 00-helpers.sh is not loaded.
+printf '\033[33m%s\033[0m\n' "[0b] the run's own ok-line total is at or above its floor"
 DOD_OK_FLOOR=1350
 if [ "${DOD_OK_COUNT:-0}" -lt "$DOD_OK_FLOOR" ]; then
-  printf '\033[31m%s\033[0m\n' "  FAIL this run printed only ${DOD_OK_COUNT:-0} ok lines against a floor of $DOD_OK_FLOOR; checks did not fail, they stopped running, so find what went quiet before trusting this verdict"
+  printf '\033[31m%s\033[0m\n' "  FAIL [0b] this run printed only ${DOD_OK_COUNT:-0} ok lines against a floor of $DOD_OK_FLOOR; checks did not fail, they stopped running, so find what went quiet before trusting this verdict"
   FAILED=$((FAILED + 1))
 else
-  printf '\033[33m%s\033[0m\n' "  note $DOD_OK_COUNT ok lines counted through the shell printers, at or above the floor of $DOD_OK_FLOOR (the transcript carries more from the delegated Python checkers, 3 on a built tree and 2 where dist/ has never been synced)"
+  printf '\033[33m%s\033[0m\n' "  note [0b] $DOD_OK_COUNT ok lines counted through the shell printers, at or above the floor of $DOD_OK_FLOOR (the transcript carries more from the delegated Python checkers, 3 on a built tree and 2 where dist/ has never been synced)"
 fi
 
 if [ "$FAILED" -eq 0 ]; then

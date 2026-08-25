@@ -51,6 +51,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCORER = 'scripts/score_claim_corpus.py'
 RUNNER = 'scripts/replay_claim_checks.py'
 
+# The bash line the fragments are sourced through, and the shell mode inside it.
+# Both runners in this repo must use the SAME line, and it must be the one
+# scripts/validate-dod.sh sets, or a replay measures a shell the validator does
+# not ship. Written out here so a change to either runner reds rather than
+# quietly re-measuring everything under different rules.
+MODE = 'set -uo pipefail'
+SHELL_LINE = "'%s; FAILED=0; source %%s; source %%s; exit $FAILED'" % MODE
+
 # The measured verdicts, recorded so a change in what the shipped checks do reds
 # here instead of being absorbed into a moving headline. matched_literal is the
 # FIRST witness literal the fragment quoted back, in manifest order, which for I2
@@ -248,6 +256,54 @@ def test_a_missing_fragment_is_refused_rather_than_run_green():
         assert '00-there-is-no-such-check.sh' in str(exc), exc
         return
     raise AssertionError('a missing fragment ran instead of raising')
+
+
+def test_the_replay_shell_mode_is_the_one_the_validator_ships():
+  """The fragments are written against `set -uo pipefail` and were replayed
+  without it.
+
+  Several of them read git's or grep's status on its own line rather than off
+  the end of a pipe, and say in their comments that this is because pipefail
+  reports the RIGHTMOST non-zero status. Running them under a different shell
+  mode measures something the orchestrator never runs, and the sprint's headline
+  number came out of exactly that run.
+
+  Asserted as SOURCE TEXT on all three sides rather than inferred from a passing
+  replay, because a replay under the wrong mode passes too. That is the whole
+  reason the gap survived: nothing about the output looked different."""
+  runner_src = (REPO_ROOT / RUNNER).read_text(encoding='utf-8')
+  harness_src = (REPO_ROOT / 'scripts/tamper_harness.py').read_text(encoding='utf-8')
+  orchestrator = (REPO_ROOT / 'scripts/validate-dod.sh').read_text(encoding='utf-8')
+  assert SHELL_LINE in runner_src, 'the runner no longer sources under %r' % MODE
+  assert SHELL_LINE in harness_src, (
+      'the runner and scripts/tamper_harness.py no longer drive the fragments '
+      'through the same bash line, so the two disagree about what was measured')
+  assert '\n%s\n' % MODE in orchestrator, (
+      'scripts/validate-dod.sh no longer sets %r, so the line the two runners '
+      'copy is no longer the one that ships' % MODE)
+
+
+def test_a_red_run_about_the_wrong_thing_is_the_second_shape_of_a_measured_miss():
+  """The branch the module docstring used to contradict.
+
+  It said a `caught: false` is only ever produced by a run that happened AND
+  CAME BACK CLEAN. verdict() also returns false when rc != 0, a pinned path
+  matched, and no witness literal did, which is a run that came back RED. The
+  DOCSTRING was the half that changed, because the branch is right and is
+  asserted directly above: a red run about the right file is not a red run about
+  the right finding, and scoring it as a catch would credit the check with work
+  the witnesses say it did not do.
+
+  Behaviour and prose are pinned together here on purpose. Either one alone can
+  drift away from the other silently, which is what happened."""
+  spec = spec_for('I2')
+  output = 'FAIL %s:900 something else entirely went wrong\n' % spec.files[0].path
+  caught, matched_path, matched_literal = runner.verdict(1, output, spec)
+  assert caught is False and matched_path is not None and matched_literal is None
+  doc = ' '.join(runner.__doc__.split())
+  assert 'a run that HAPPENED, and there are two shapes of it' in doc, doc
+  assert 'never named the thing the finding is about' in doc, doc
+  assert 'came back clean' in doc, doc
 
 
 # --- 3. the command never comes out of a document -----------------------------

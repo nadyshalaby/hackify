@@ -129,6 +129,29 @@ yellow "[94] every instruction naming a work-doc section names one the template 
 # precisely why the test file drives the REAL fragment through a replay root
 # instead of asserting against a copy of the scanner.
 #
+# A HUNDRED PERCENT EXCUSED IS WHY THERE IS A POSITIVE CONTROL. Live, this check
+# examines six mentions and excuses all six, so nothing it validates ever reaches
+# a verdict and the pass line it prints is the SAME LINE it would print if the
+# back-compat carve-out had widened until it swallowed everything. The excused
+# total cannot be floored against the examined total, because six from six is the
+# honest live state and a ratio floor would redden a clean tree. What can be done
+# instead is to exercise the discriminator on input that cannot be read two ways.
+# Two synthetic paragraphs, source literals in this file and never read off disk,
+# are judged before any live count is trusted: an instruction carrying no rename
+# marker MUST come back 'fail', and the same instruction carrying one MUST come
+# back 'excused'. That is what makes a green here mean the method could still
+# have come back dirty.
+#
+# WHAT THE CONTROL CATCHES AND WHAT IT DOES NOT, measured by tampering rather
+# than reasoned. Widen BACKCOMPAT until it swallows everything and the control's
+# unexcused case comes back excused, the pair stops separating, and this reds on
+# the message below. Point BACKCOMPAT at a marker no real prose carries and the
+# control still holds, because it builds its excused case out of BACKCOMPAT
+# itself and so moves with it. That direction is not blind, it just reds
+# somewhere else: every genuinely excused live site stops being excused and gets
+# reported as an instruction site. Both directions red, by two different routes,
+# and only the first of the two was unreachable before this control existed.
+#
 # THE FLOORS ARE WHAT STOP A VACUOUS PASS. If the pathspec resolves to nothing,
 # if the template's heading grammar stops matching, or if the paragraph splitter
 # stops finding text, every count collapses toward zero and this reds instead of
@@ -143,6 +166,7 @@ SE_HEADINGS=0
 SE_MENTIONS=0
 SE_EXCUSED=0
 SE_MODE=none
+SE_CONTROL=none
 
 se_fail() {
   red "  FAIL $*"
@@ -155,6 +179,7 @@ se_read_size() {
     case "$line" in
       'SIZE '*) read -r SE_FILES SE_HEADINGS SE_MENTIONS SE_EXCUSED SE_MODE \
         <<<"${line#SIZE }" ;;
+      'CONTROL '*) SE_CONTROL=${line#CONTROL } ;;
     esac
   done <<<"$1"
 }
@@ -193,6 +218,17 @@ se_floors_hold() {
   return 0
 }
 
+# THE CONTROL IS JUDGED AFTER THE FLOORS AND BEFORE THE GREEN, never instead of
+# the per-site walk. A dead premise reports itself through the FAIL lines below,
+# and gating that walk on the control would swallow the one sentence that
+# explains it. So a failed control counts as a finding like any other: it prints,
+# it bumps the status, and it takes the pass line away with it.
+se_control_holds() {
+  [ "$SE_CONTROL" = ok ] && return 0
+  se_fail "[94] the positive control did not hold (control verdict: $SE_CONTROL). A synthetic paragraph naming a policed section with no rename marker in it must be judged unexcused, and the same paragraph carrying a back-compat marker must be excused. Until that pair separates, an all-excused live count is not evidence the carve-out still discriminates, and this check cannot show it could have come back dirty"
+  return 1
+}
+
 # AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim. A summary that
 # contradicts the failure above it is the fail-open shape this fragment exists
 # to refuse, so the pass line is reached only when nothing failed.
@@ -200,13 +236,14 @@ se_verdict() {
   local line bad=0
   se_read_size "$1"
   se_floors_hold || return
+  se_control_holds || bad=$((bad + 1))
   while IFS= read -r line; do
     case "$line" in
       'FAIL '*) se_fail "${line#FAIL }"; bad=$((bad + 1)) ;;
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all instruction site(s) naming a work-doc section across $SE_FILES live file(s) name one of the template's $SE_HEADINGS heading(s) ($SE_MENTIONS mention(s) examined, $SE_EXCUSED excused as back-compat prose)"
+  green "  ok   all instruction site(s) naming a work-doc section across $SE_FILES live file(s) name one of the template's $SE_HEADINGS heading(s) ($SE_MENTIONS mention(s) examined, $SE_EXCUSED excused as back-compat prose), and the positive control separated an unexcused synthetic site from an excused one before that count was trusted"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -303,6 +340,25 @@ def judge(para):
             return ('excused', name, cite(rows, name))
         return ('fail', name, cite(rows, name))
     return None
+
+
+def control():
+    """Judge two synthetic paragraphs whose verdicts are known. See the header.
+
+    The policed name is taken from POLICED rather than copied, so retiring that
+    entry retires the control with it instead of leaving it exercising a name
+    nothing polices. The marker is taken from BACKCOMPAT for the same reason.
+    Both inputs are built here and neither is read off disk, so no document can
+    change what this proves."""
+    name, mark = POLICED[0], BACKCOMPAT[0]
+    plain = paragraphs('Open a new %s entry for each landed task.' % name)
+    marked = paragraphs('%s: the %s label is still read here.' % (mark, name))
+    if not plain or not marked:
+        return False
+    verdicts = (judge(plain[0]), judge(marked[0]))
+    if any(v is None for v in verdicts):
+        return False
+    return tuple(v[0] for v in verdicts) == ('fail', 'excused')
 
 
 def live_files():
@@ -403,6 +459,7 @@ def scan(paths, root, setup):
 
 NAMES = headings()
 ALIVE = guard_premise(NAMES)
+print('CONTROL %s' % ('ok' if control() else 'fail'))
 ROOT = replay_root()
 if ROOT is None:
     scan(live_files(), '.', ('live', NAMES, ALIVE))

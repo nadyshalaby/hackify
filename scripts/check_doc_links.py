@@ -36,6 +36,13 @@ in it. Form 3 checks the line number ONLY. When the path does not resolve, form
 2 owns that finding and this half stays quiet rather than printing the same
 pointer twice.
 
+Every form is held to one containment rule: a pointer resolves only to a file
+INSIDE the repo root. `..` is in the path class of all three forms, so before
+this rule a citation like `../secret/private.py:99` was resolved through the
+repo-root base, opened, and its length printed in the finding. Candidates that
+escape are dropped before they are opened, which costs nothing real: a pointer
+out of the tree could never be followed by a reader of the tree either.
+
 Out of scope, deliberately:
   - Anchor fragments (#heading). references/finish.md describes anchor checking
     as Phase 6 work on the USER's repo; it is not a validator concern here.
@@ -167,27 +174,65 @@ class Resolver(NamedTuple):
             current = current.parent
         return walked + [self.repo] + list(self.skill_roots)
 
+    def inside(self, candidate: pathlib.Path) -> bool:
+        """True when `candidate` really lands inside the repo, symlinks resolved.
+
+        A pointer is text a document chose, and `..` sits inside the path
+        character class of every form read here. Joined onto a base, and the
+        repo root is one of the bases, `../secret/private.py` names a file no
+        checkout contains. Nothing stopped that: the candidate was opened and
+        counted, and `FAIL ... ../secret/private.py has 3 lines` was a real run
+        of this checker. That is an existence-and-length oracle for the
+        filesystem AROUND the repo, reachable by committing a citation, and an
+        unbounded read besides.
+
+        So containment is judged BEFORE anything is opened and a candidate that
+        escapes is dropped rather than read. RESOLVED, NOT SPELLED: a lexical
+        `..` test would reject `../sibling.md` written from a subdirectory,
+        which is an ordinary correct pointer that stays well inside the tree,
+        and would still be fooled by `a/../../b`. Only the resolved path knows.
+
+        The residual hole, named rather than glossed: a symlink INSIDE the repo
+        that points out of it resolves outside and is refused, which is right,
+        but a symlink outside that points back in would be accepted. This tree
+        has neither, and the check is a containment rule rather than a sandbox.
+        """
+        try:
+            resolved = candidate.resolve()
+        except (OSError, RuntimeError):
+            return False
+        root = self.repo.resolve()
+        return resolved == root or root in resolved.parents
+
     def locate(self, pointer: str, source: pathlib.Path) -> list:
         """Every real file a pointer could name, nearest accepted base first.
 
         Returns ALL of them rather than picking one. A slashless pointer names
         no single file by construction, and guessing which `SKILL.md` was meant
         is how a check invents a finding nobody can act on.
+
+        Containment is tested first and existence second, so a pointer that
+        escapes the repo is never even stat-ed, let alone read.
         """
         hits = [base / pointer for base in self.bases(source)
-                if (base / pointer).is_file()]
+                if self.inside(base / pointer) and (base / pointer).is_file()]
         if hits or '/' in pointer:
             return hits
-        return list(self.by_name.get(pointer, ()))
+        return [hit for hit in self.by_name.get(pointer, ()) if self.inside(hit)]
 
     def resolves(self, pointer: str, source: pathlib.Path) -> bool:
         """Prose rule: any accepted base, or any file of that name anywhere."""
         return bool(self.locate(pointer, source))
 
+    def resolves_link(self, pointer: str, source: pathlib.Path) -> bool:
+        """Link rule: only the file-relative reading, which is what a click does.
 
-def resolves_link(pointer: str, source: pathlib.Path) -> bool:
-    """Link rule: only the file-relative reading, which is what a click does."""
-    return (source.parent / pointer).is_file()
+        Held to the same containment rule as everything else. A link out of the
+        repo cannot be followed by a reader of this repo, so calling it resolved
+        would be asserting something no checkout can honour.
+        """
+        target = source.parent / pointer
+        return self.inside(target) and target.is_file()
 
 
 def is_exempt(pointer: str) -> bool:
@@ -215,7 +260,8 @@ def scan_file(path: pathlib.Path, resolver: Resolver) -> list:
         for pointer, form in pointers_in_line(line):
             if is_exempt(pointer):
                 continue
-            ok = resolves_link(pointer, path) if form == 'link' else resolver.resolves(pointer, path)
+            ok = (resolver.resolves_link(pointer, path) if form == 'link'
+                  else resolver.resolves(pointer, path))
             if not ok:
                 findings.append(Finding(path.relative_to(resolver.repo), number, pointer, form))
     return findings

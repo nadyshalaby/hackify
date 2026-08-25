@@ -50,10 +50,15 @@ OK_LINE = re.compile(r'ok\s+all instruction site\(s\).*?across (\d+) live file\(
                      r'prose\)')
 
 
-def run_fragment(replay_root=None):
-    """Source the shipped fragment the way the orchestrator does. Returns (rc, text)."""
+def run_fragment(replay_root=None, fragment=FRAGMENT):
+    """Source the shipped fragment the way the orchestrator does. Returns (rc, text).
+
+    `fragment` is a parameter only so the positive-control rows below can drive a
+    TAMPERED COPY of the shipped file. The copy is written under a tempdir and
+    the tracked file is never written to, which is the pattern
+    scripts/tamper_harness.py already uses for every row it has."""
     script = ('FAILED=0; source scripts/validate-dod.d/00-helpers.sh; '
-              'source %s; exit $FAILED' % FRAGMENT)
+              'source %s; exit $FAILED' % fragment)
     env = dict(os.environ)
     env.pop('SE_REPLAY_ROOT', None)
     if replay_root is not None:
@@ -70,6 +75,21 @@ def scratch(body, name='doc.md'):
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding='utf-8')
     return root
+
+
+def tampered(old, new):
+    """A COPY of the shipped fragment with one literal replaced, exactly once.
+
+    The count is asserted rather than assumed, on scripts/tamper_harness.py's
+    rule: a search text that no longer occurs means the row has stopped editing
+    what it names, and would then measure the untampered file and pass."""
+    body = (REPO_ROOT / FRAGMENT).read_text(encoding='utf-8')
+    assert body.count(old) == 1, (
+        'the tamper text %r occurs %d times, not once; this row is no longer '
+        'editing what it names' % (old, body.count(old)))
+    target = Path(tempfile.mkdtemp(prefix='se-tamper-')) / '94-section-exists.sh'
+    target.write_text(body.replace(old, new), encoding='utf-8')
+    return target
 
 
 def _by_id(ident):
@@ -126,23 +146,73 @@ def test_the_live_tree_comes_back_clean():
     assert '  ok   all instruction site(s)' in out, out
 
 
-def test_the_six_back_compat_sites_are_excused_and_counted():
-    """The boundary the whole check turns on. Six live sites name the retired
-    label on purpose. The count is asserted exactly, not as a floor, because
-    this is the number that must not quietly drift: a seventh excused site means
-    a new marker started swallowing something.
+def test_the_back_compat_sites_are_excused_and_counted():
+    """The boundary the whole check turns on, stated as a FLOOR.
 
-    Every live mention is one of those six since the wave that retired the
-    known-findings list, so the partition below also states that the live tree
-    holds no unexcused instruction site at all."""
+    WHICH CONTRACT CHANGED AND WHY. This row used to pin `excused == 6` exactly
+    while the fragment's own floors paragraph said the opposite in as many
+    words: floors and not exact counts, because prose gains and loses these
+    mentions every wave. Two contracts for one property is one too many, and the
+    TEST is the half that moved, because the fragment's reading is the one that
+    survives an honest seventh back-compat sentence being written.
+
+    The exact count was standing in for a real risk, that a marker quietly
+    widens until it swallows everything, and nothing else measured it. That risk
+    now has its own measurement in the positive-control rows below, which
+    exercise the discriminator directly instead of inferring its health from a
+    number that also moves for reasons that are nobody's defect.
+
+    Every live mention is excused since the wave that retired the known-findings
+    list, so the partition below also states that the live tree holds no
+    unexcused instruction site at all, and that the control's own synthetic
+    unexcused paragraph never leaked into the live counts."""
     rc, out = run_fragment()
     found = OK_LINE.search(out)
     assert found is not None, 'the pass line did not match its own shape:\n%s' % out
     files, mentions, excused = (int(g) for g in found.groups())
     assert rc == 0, out
-    assert excused == 6, 'expected 6 back-compat sites excused, got %d' % excused
+    assert excused >= 4, (
+        'excused sites fell to %d, at or under the fragment SE_MENTION_FLOOR of '
+        '4; the paragraph splitter or the name list stopped matching' % excused)
     assert mentions == excused, 'the mention total does not partition'
     assert files >= 100, files
+
+
+# --- 2b. the positive control -------------------------------------------------
+
+def test_the_pass_line_reports_that_the_positive_control_ran():
+    """A reader must never have to take the all-excused count on trust."""
+    rc, out = run_fragment()
+    assert rc == 0, out
+    assert ('the positive control separated an unexcused synthetic site from an '
+            'excused one') in out, out
+
+
+def test_a_carve_out_widened_to_swallow_everything_reds_on_the_control():
+    """The defect the control was written for, made concrete.
+
+    Live, this check excuses every mention it examines, so a BACKCOMPAT that had
+    widened until it matched any paragraph at all would print today's pass line
+    unchanged and validate nothing. Adding a single letter every English
+    sentence contains is that widening in its purest form."""
+    frag = tampered("BACKCOMPAT = ('Back-compat',", "BACKCOMPAT = ('e', 'Back-compat',")
+    rc, out = run_fragment(fragment=frag)
+    assert rc != 0, 'a carve-out that excuses everything printed no failure:\n%s' % out
+    assert 'the positive control did not hold' in out, out
+    assert OK_LINE.search(out) is None, 'a green printed beside the red:\n%s' % out
+
+
+def test_the_control_also_reds_when_the_unexcused_half_stops_being_reported():
+    """The other direction. judge() returning 'excused' for everything and
+    judge() returning None for everything look identical from the live counts,
+    and both make the control's pair stop separating."""
+    frag = tampered("        if any(mark in text for mark in BACKCOMPAT):\n"
+                    "            return ('excused', name, cite(rows, name))\n"
+                    "        return ('fail', name, cite(rows, name))",
+                    "        return ('excused', name, cite(rows, name))")
+    rc, out = run_fragment(fragment=frag)
+    assert rc != 0, out
+    assert 'the positive control did not hold' in out, out
 
 
 def test_a_paragraph_about_the_rename_is_excused():

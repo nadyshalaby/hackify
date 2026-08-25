@@ -74,6 +74,100 @@ def _cited(comment: str) -> dict:
             'scripts/probe.sh': f'# {comment}\n'}
 
 
+def _run_beside(files: dict, outside: dict) -> tuple:
+    """(exit code, stdout) for a fixture repo with a SIBLING tree beside it.
+
+    The containment rows need a real file the repo does not contain, reachable
+    only by climbing above the repo root. `_build` gives one directory, so this
+    builds two: the repo, and a sibling the pointers below try to reach.
+    """
+    parent = pathlib.Path(tempfile.mkdtemp(prefix='doclinks-pair-'))
+    for base, group in ((parent / 'repo', files), (parent, outside)):
+        for name, body in group.items():
+            target = base / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(body)
+    buffer = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buffer):
+            code = CDL.main(['check_doc_links.py', str(parent / 'repo')])
+    finally:
+        shutil.rmtree(parent, ignore_errors=True)
+    return code, buffer.getvalue()
+
+
+# --- pointers may not resolve outside the repo root ---------------------------
+
+
+def test_a_citation_that_escapes_the_repo_root_is_never_opened():
+    """The oracle this rule closes, measured rather than argued.
+
+    `..` is inside LINE_CITE's path class, and the repo root is one of the bases
+    a pointer is resolved against, so `../outside/x.py:99` named a real file no
+    checkout contains. The checker opened it and printed its length: the finding
+    `-> ../outside/probe-secret.py:99, ../outside/probe-secret.py has 3 lines`
+    is an existence-and-length oracle for the filesystem around the repo, plus
+    an unbounded read, both reachable by committing a citation. The pointer now
+    resolves to nothing and the file is never opened.
+    """
+    code, out = _run_beside(
+        {'scripts/probe.sh': '# see ../outside/probe-secret.py:99 for the rule\n'},
+        {'outside/probe-secret.py': 'one\ntwo\nthree\n'})
+    assert code == 0, out
+    assert 'probe-secret' not in out, 'the escaping pointer was still read:\n%s' % out
+    assert 'has 3 lines' not in out, 'the file length leaked into a finding:\n%s' % out
+
+
+def test_a_markdown_link_out_of_the_repo_does_not_resolve():
+    """Form 1 is held to the same rule. A link a reader of this repo cannot
+    follow is not a link that resolves, whatever sits at the other end."""
+    code, out = _run_beside(
+        {'docs/note.md': '[gone](../../outside/probe-secret.md)\n'},
+        {'outside/probe-secret.md': FIVE_LINES})
+    assert code == 1, 'a link out of the repository was accepted:\n%s' % out
+    assert 'probe-secret.md' in out, out
+
+
+def test_a_prose_path_out_of_the_repo_does_not_resolve():
+    """Form 2, same rule."""
+    code, out = _run_beside(
+        {'docs/note.md': 'read `../../outside/probe-secret.md` for the rule\n'},
+        {'outside/probe-secret.md': FIVE_LINES})
+    assert code == 1, 'a prose path out of the repository was accepted:\n%s' % out
+
+
+def test_a_dotdot_pointer_that_stays_inside_the_repo_still_resolves():
+    """The rule is CONTAINMENT, not a ban on `..`.
+
+    A sibling reference written from a subdirectory is ordinary correct prose
+    and has to keep resolving. That is the whole reason the check resolves the
+    path rather than inspecting its spelling: a lexical `..` test would redden
+    this file, which is a guard punishing correct text.
+    """
+    files = {'docs/sub/probe-target.md': FIVE_LINES,
+             'docs/sub/deep/note.md': 'see [it](../probe-target.md), '
+                                      'and `../probe-target.md:5` states it\n'}
+    code, out = _run(files)
+    assert code == 0, out
+
+
+def test_the_containment_predicate_is_asserted_directly():
+    """Pins the mechanism and not only its outcome, the way
+    test_the_marker_strip_is_what_makes_the_shell_case_work does for the join.
+    An outcome test would still pass if some other path happened to drop the
+    pointer, and the containment rule is the thing that must hold.
+    """
+    root = _build({'docs/probe-target.md': FIVE_LINES})
+    try:
+        resolver = CDL.build_resolver(root.resolve())
+        assert resolver.inside(root / 'docs' / 'probe-target.md')
+        assert resolver.inside(root)
+        assert not resolver.inside(root / '..' / 'probe-elsewhere.md')
+        assert resolver.inside(root / 'docs' / '..' / 'probe-target.md')
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
 # --- the two off-by-one edges -------------------------------------------------
 
 
