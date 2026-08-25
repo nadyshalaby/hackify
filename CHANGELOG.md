@@ -51,8 +51,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the file does not have, ranges judged at their last line. Where the path resolves nowhere it stays
   quiet about the line, so one broken pointer does not print as two findings.
   `scripts/test_doc_link_lines.py` is its own suite and `.github/workflows/ci.yml` runs it.
+- **`[98]` in `98-work-doc-ledger-sync.sh`, so an archived sprint cannot claim a phase that never
+  ran.** Three assertions: a work-doc's `status` must be one of the values the template declares,
+  read out of that template at run time rather than copied into the check; a doc under
+  `docs/work/done/` must have closed every row of its phase ledger; and a doc outside that folder
+  must not claim it is done. It was written against a real archived sprint whose ledger showed
+  Phase 5 still running under a `done` stamp, and the evidence said the ledger was the honest half:
+  the retrospective was never written and no report was emitted. That doc now records what actually
+  happened rather than being tidied to make the check pass.
 
 ### Changed
+
+- **Ticking a phase means writing the file, not printing a line.** Every phase-open and phase-exit
+  instruction now says the `## 0. Phase ledger` block is rewritten in the work-doc, with frontmatter
+  `status` advanced in that same edit, before anything is re-printed in chat. The old wording asked
+  for the chat re-print at every boundary and reached the durable copy through the word
+  "additionally", so a session that ended between two boundaries left the file describing a phase
+  the work had already passed. Chat scrolls away; the file is what resume and archive read.
+- **Phase 6 finishes in a different order, and the ledger closes before the file moves.** The update
+  log and the HTML report are produced first, while the work-doc is still at its live path, with the
+  report written straight to the archive path it is about to occupy. One edit then closes both of
+  the last two ledger rows and writes `status: done`, and the rename runs last as the only step
+  carrying no content change. The old order archived the doc first, which meant every finished
+  sprint spent the length of the summary sitting in `done/` with a row still open, the exact state
+  `[98]` reads as work that stopped mid-phase. What the swap gives up is the rule that the summary
+  was the reward for archiving. What it buys is the better wreckage when a session dies mid-finish:
+  a doc stranded at its live path claiming `done`, which `[98]` catches, instead of an archived doc
+  quietly claiming a phase nobody ran, which is the defect that started this.
+- **`paused` is a declared status value.** The finish menu's "keep the branch as-is" option has
+  always told the agent to write `status: paused`, and the template declared eight values without
+  it, so a paused sprint held a status nothing recognised. Nine values now, still declared in one
+  place.
 
 - **The shared repo brief has to show its working.** The block handed verbatim to every dispatched
   helper now ends each line with the command or `file:line` that established it, and a line with no

@@ -63,7 +63,7 @@ Create it with the **todo tracker** primitive when the runtime exposes one, othe
 9. **Phase 6c. Archive work-doc to `done/` (Step D)**
 10. Phase 6d. Update log + HTML report (Step F)
 
-Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as items only when they apply, between 6c and 6d. Phase 3b (Debug) is conditional, insert it only when a wave gets stuck.
+Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as items only when they apply, and they no longer share a slot. Neither one can sit between 6c and 6d any more, because those two tick in a single edit (**Closing the ledger** below) and leave no gap between them. **Codewalk goes between 6b and 6c**, where it runs and ticks on its own trace before 6c opens. **Worktree cleanup goes after 6d**, because `git worktree remove` has to follow the archive move: when the sprint used a worktree the live work-doc sits inside it, and removing it first takes away the path the move needs. Its row is ticked by the closing edit along with 6c and 6d, for the same reason the move itself is not separately tickable. Phase 3b (Debug) is conditional, insert it only when a wave gets stuck.
 
 **quick** (6 items), no work-doc, so no archive item:
 
@@ -105,10 +105,25 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |
 | 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
 | 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick/yolo), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
-| **6c Archive** | **Work-doc physically moved to `docs/work/done/<slug>.md` with `status: done`** |
-| 6d Update log | Five-field update log printed (blocks separated by `----`) **and** `<slug>.report.html` emitted beside the archived doc |
+| **6c Archive** | **Frontmatter `status: done` and a fully closed ledger written into the work-doc, with `git mv docs/work/<slug>.md docs/work/done/<slug>.md` as the mechanical step that immediately follows** |
+| 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log`, **and** `<slug>.report.html` already written to `docs/work/done/<slug>.report.html` |
 
-The archive row is the fix for the "forgot to archive" bug. The summary (6d) is the **reward** for finishing, and it is unreachable while the archive (6c) is open, so the doc lands in `done/` before you ever print the recap.
+The archive row is still the fix for the "forgot to archive" bug, but it does its work from the other end now: the edit that closes the ledger is the same edit that writes `status: done`, so a doc cannot be marked finished with a phase left open.
+
+## Closing the ledger (the one place two rows tick together)
+
+Phase 6 ends in a fixed order, and it is the only point in the workflow where two rows tick in the same edit.
+
+1. **6b closes, 6c opens** as `- [>]`. The doc is still at its live path, `docs/work/<slug>.md`.
+2. **Step F's work runs at that live path.** Print the five-field update log and render the HTML report straight to its final `docs/work/done/<slug>.report.html` path. Both of 6d's artifacts now exist.
+3. **One edit closes both rows.** Append the update log to the doc under `## Update log`, tick 6c AND 6d `- [x]` (plus a conditional worktree row, when the sprint has one), and write frontmatter `status: done`. This is the last content change the doc ever receives.
+4. **`git mv docs/work/<slug>.md docs/work/done/<slug>.md`** is the last mechanical step on the doc, and it is a rename rather than a content change. A worktree removal, where one applies, runs after that move and not before it.
+
+Because the closing edit comes before the move, the doc never exists under `done/` carrying an open row. Under the previous order it always did, for the length of Step F, and check `[98]` reads that state as a sprint that stopped mid-phase.
+
+**This is not a licence to tick ahead of an artifact.** 6c and 6d BOTH tick AFTER BOTH their artifacts exist: the log and the report are written in step 2, and the doc's own final content is written by the tick itself in step 3. What the ledger cannot record is the tail that follows it, the rename and any worktree removal, because a tick is a content change and the move has to be last. A check covers that gap instead of prose: assertion (c) of `[98]` reds on any doc carrying `status: done` outside `docs/work/done/`.
+
+**The tradeoff, stated rather than hidden.** The old order put the archive first on purpose, so that the summary was the reward for archiving. Step 2 above gives that up, by the few seconds Step F takes. The new order is still the better one, and the reason is which wreckage each order leaves when a session dies mid-finish. Die between the report and the move, and the doc sits at its live path with `status: done`, which `[98]` assertion (c) reds on at the next validator run. Die between the move and the report under the old order, and you get an archived doc silently claiming a phase that never ran, with nothing to catch it. That is not hypothetical: `docs/work/done/2026-08-23-phase-ledger-substrate.md` is exactly that doc, and this sprint found it by hand. A red you can see beats a false record you cannot.
 
 ## Reflect after each step
 
@@ -119,6 +134,8 @@ When you complete a ledger item, do three things in order:
 3. Set the next item to `in_progress` in that same edit, save, then re-print the block.
 
 Steps 2 and 3 are ONE edit to the work-doc's `## 0. Phase ledger` block in full hackify, and the re-print follows that saved edit. quick and yolo have no file, so there the print is the whole tick.
+
+**The final pair is the one exception.** 6c and 6d close together, in one edit, with no next item to open, because 6d's artifacts are produced before either row is ticked and the move that finishes 6c has to be the last thing that happens to the file (**Closing the ledger** above). Every other tick in the workflow closes one row and opens the next. Read this as the single named exception it is, never as permission to close two rows at once elsewhere, and never as permission to tick a row whose artifact does not exist yet.
 
 The reflection is the checkpoint. A tick with no reflection is an untrusted tick, you skipped the "did it pass?" question.
 
@@ -132,7 +149,7 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 
 | Thought | Reality |
 |---|---|
-| "I'll archive right after I show the summary" | The ledger blocks it. The summary item is unreachable while the archive item is open. Archive first. |
+| "I'll archive right after I show the summary" | There is no "after". The same edit that ticks the summary row writes `status: done`, and the `git mv` follows it immediately as the last mechanical step. Stop after that edit and skip the move, and `[98]` assertion (c) reds on the doc for sitting outside `done/` while claiming it is finished. |
 | "Groom already created the work-doc, so Phase 2 step 1 has nothing to do" | It confirms section 0 is present and in sync. Confirming IS the step, and skipping it is how a groomed task runs with no durable ledger. Nobody writes the block twice, nobody writes it zero times. |
 | "The code is done. I can skip the ledger now" | The ledger opens at task start, before any code. It is the order-enforcer, not a trophy for the end. |
 | "The printed block is right, I'll write the file at the end" | There is no end that reads chat back. Tick the work-doc's section 0 and advance `status` in the same edit, then print. A ledger that is only ever printed dies with the session and archives at the wrong phase. |

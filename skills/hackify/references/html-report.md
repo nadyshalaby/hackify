@@ -10,7 +10,7 @@ At Phase 6 Step F, after the update log is generated and the work is verified. O
 
 ## Where
 
-- **Full hackify**, write beside the archived work-doc: `<project>/docs/work/done/<slug>.report.html`.
+- **Full hackify**, write it to the archive path the work-doc is about to take: `<project>/docs/work/done/<slug>.report.html`. Step F renders it before the doc itself is moved there, so the path exists first and the doc follows.
 - **quick / yolo** (no archived work-doc), write `<project>/docs/work/reports/<YYYY-MM-DD>-<slug>.report.html` (create the `reports/` dir if absent).
 
 After writing, tell the user the path and offer to open it.

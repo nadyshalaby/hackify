@@ -115,6 +115,19 @@ def _template_without_the_status_row():
   return '\n'.join(kept)
 
 
+def _declared_status_count():
+  """How many values the template's status row declares, counted from the template
+  every run rather than written down here. A count typed into a test is a claim
+  with a shelf life, and it goes stale the first time the vocabulary grows, which
+  is the exact defect this suite exists to catch elsewhere."""
+  for line in (REPO_ROOT / TEMPLATE).read_text(encoding='utf-8').split('\n'):
+    if line.startswith(STATUS_ROW_HEAD):
+      cell = line.strip().strip('|').split('|')[1]
+      return len([part for part in cell.split('/') if part.strip()])
+  raise AssertionError('the template declares no status row, so there is nothing '
+                       'to count and every row below would assert against a guess')
+
+
 # --- the baseline, and the counts it has to name -------------------------------
 
 def test_98_a_clean_tree_greens_and_names_what_it_examined():
@@ -137,8 +150,9 @@ def test_98_a_status_the_template_does_not_declare_reds_and_names_the_row():
   root = _tree({'docs/work/planted.md': _doc(BAD_STATUS)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'docs/work/planted.md:3 sets status: %s%s%s, which is none of '
-             'the 8 value(s) the row at %s declares' % (QUOTE, BAD_STATUS, QUOTE,
-                                                        TEMPLATE))
+             'the %d value(s) the row at %s declares' % (QUOTE, BAD_STATUS, QUOTE,
+                                                         _declared_status_count(),
+                                                         TEMPLATE))
 
 
 def test_98_a_doc_with_no_status_field_reds_rather_than_being_skipped():
@@ -218,8 +232,9 @@ def test_98_a_tree_with_no_work_docs_reds_on_the_doc_floor():
 def test_98_the_vocabulary_floor_reds_on_its_own_message():
   with tampered('98', ('WL_VOCAB_FLOOR=4', 'WL_VOCAB_FLOOR=9999')) as frag:
     rc, out = run_fragment(frag, cwd=_tree())
-  expect_red(rc, out, 'the template parse read 8 status value(s) against a floor of '
-             '9999', 'would resolve against an empty vocabulary')
+  expect_red(rc, out, 'the template parse read %d status value(s) against a floor '
+             'of 9999' % _declared_status_count(),
+             'would resolve against an empty vocabulary')
 
 
 def test_98_a_template_that_loses_its_status_row_reds_without_accusing_every_doc():

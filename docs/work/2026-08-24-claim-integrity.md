@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: verifying
+status: reviewing
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 4 re-verify over T14-T17, then Phase 5 re-review, then finish
+current_task: Phase 5 fix wave over the three reviewers' findings (T18-T27), then Phase 6
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -18,8 +18,8 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
 - [x] Phase 3. Implement (T14-T17 landed, the ledger-persistence fix)
-- [>] Phase 4. Verify (re-running over the T14-T17 surface)
-- [x] Phase 5. Review (panel + refuter done, fix waves 1a and 1b landed)
+- [x] Phase 4. Verify (re-ran over T14-T17: validator rc 0, tamper 89, ship gate green)
+- [>] Phase 5. Review (panel round 2 returned, adjudicating A + B + F)
 - [ ] Phase 6a. Re-verify + land
 - [ ] Phase 6b. Cleanup sweep
 - [ ] Phase 6c. Archive to done/
@@ -390,9 +390,18 @@ new tasks carry decision #9-B's widened classes.
       disposition each.
 - [x] **T13** CHANGELOG bullet, version bump, dist regeneration.
 - [x] **T14**, ledger persistence in the skill: every phase-open and phase-exit instruction must say the block is WRITTEN to the work-doc and frontmatter `status`/`current_task` advanced in the same edit, before the chat re-print. Model the wording on `phase-3-implement.md:103`, which already does this for waves. Fix `phase-ledger.md:24`'s "additionally" so the durable copy is the obligation, not an aside. Files: `skills/hackify/references/phase-ledger.md`, `skills/hackify/references/phases/phase-1-clarify.md`, `phase-2.5-spec-review.md`, `phase-3-implement.md`, `phase-4-verify.md`, `phase-5-review.md`, `phase-6-finish.md`, `skills/hackify/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and every phase file names the disk write.
-- [x] **T15**, the two live defects, done by hand by the parent: this doc's invalid `status:` value, and the archived `2026-08-23-phase-ledger-substrate.md` whose ledger reads Phase 5 in progress under `status: done`. → verify: the new check greens on both.
-- [x] **T16**, new fragment `98-work-doc-ledger-sync.sh` plus its `source` line and header row in `validate-dod.sh`. Three assertions: (a) every work-doc's `status:` is one of the values READ OUT of `work-doc-template.md:223`, never a hardcoded list; (b) a doc under `done/` has zero `- [ ]` and zero `- [>]` inside its `## 0. Phase ledger` block; (c) a doc outside `done/` does not say `status: done`. Floors on both subject counts, 20 docs and 1 archived ledger block today (2 docs carry a section 0, but only one of them is under `done/`, and the archived subset is what assertion (b) judges), and a positive control built from source literals the way `[95]:232` does. Terminate the block at the next `^## ` of any name, never `^## 1.`, because the groom path inserts `## Groom Provenance` there. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, `scripts/validate-dod.sh`. → verify: fragment reds on both live defects before T15 fixes them.
+- [x] **T15**, the two live defects, done by hand by the parent: this doc's stale ledger marks, and the archived `2026-08-23-phase-ledger-substrate.md` whose ledger reads Phase 5 in progress under `status: done`. → verify: the new check greens on both.
+- [x] **T16**, new fragment `98-work-doc-ledger-sync.sh` plus its `source` line and header row in `validate-dod.sh`. Three assertions: (a) every work-doc's `status:` is one of the values READ OUT of `work-doc-template.md:223`, never a hardcoded list; (b) a doc under `done/` has zero `- [ ]` and zero `- [>]` inside its `## 0. Phase ledger` block; (c) a doc outside `done/` does not say `status: done`. Floors on all three subject counts, 20 docs, 8 vocabulary values and 1 archived ledger block today (2 docs carry a section 0, but only one of them is under `done/`, and the archived subset is what assertion (b) judges), and a positive control built from source literals the way `[95]:232` does. Terminate the block at the next `^## ` of any name, never `^## 1.`, because the groom path inserts `## Groom Provenance` there. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, `scripts/validate-dod.sh`. → verify: fragment reds on both live defects before T15 fixes them.
 - [x] **T17**, tamper rows for `[98]` in the shipped suites, proving each assertion and the control can go red. Files: `scripts/test_tamper_fragments.py` or a new per-check suite, wired so `test_tamper_battery.py` reaches it. → verify: the suite reds when the fragment is blinded.
+- [ ] **T18**, close the archive window (wizard 3-A). Step F (update log + `<slug>.report.html` written straight to its `done/` path) runs BEFORE the move; one final edit closes Phase 6c and 6d together and sets `status: done`; the `git mv` is the last mechanical step, so the doc never exists under `done/` carrying an open row. Files: `skills/hackify/references/phase-ledger.md`, `skills/hackify/references/phases/phase-6-finish.md`, `skills/hackify/references/finish.md`, `skills/hackify/references/work-doc-template.md`, `skills/hackify/SKILL.md`. → verify: `grep -n 'Step F' skills/hackify/references/phases/phase-6-finish.md` shows the move last, and `bash scripts/validate-dod.sh` rc 0.
+- [ ] **T19**, declare `paused` (Reviewer F, Critical 1). `finish.md:100` is the only writer of a ninth status value and the template declares eight, so `[98]` reds on any doc that took Option 3. Add `paused` to `work-doc-template.md:223` and to the frontmatter reference prose. Files: `skills/hackify/references/work-doc-template.md`. → verify: `[98]` parses 9 values and a `status: paused` doc outside `done/` passes.
+- [ ] **T20**, discovery and read hardening (Reviewer A, Critical 1 + Important 2 + Minor 1). `git ls-files` without `-z` C-quotes any path with a non-ASCII byte, a quote or a backslash, so `.endswith('.md')` drops it and the doc leaves the corpus unseen; switch to `-z` and split on NUL. Confine every read to the repo root by real path and refuse a symlink rather than following it. Parse `status:` only at column 0 inside the frontmatter fence, so an indented line inside a `sprint_goal: |` block scalar cannot supply the value. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: a doc named with a non-ASCII byte is judged, and a symlinked work-doc is reported rather than read.
+- [ ] **T21**, ledger-block boundary (Reviewer A, Critical 2). `ledger_start` takes the first literal match anywhere, so a fenced code block quoting the heading shadows the real ledger, and a `## ` inside a fenced block ends the block early. Track fence state so both the heading search and the terminator ignore fenced content, and count a doc toward `WL_ARCHIVED` only when its judged block is the real one, so the floor cannot be satisfied by a doc that was never judged. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: a doc with a fenced decoy above its real ledger is still judged on the real one.
+- [ ] **T22**, control coverage (Reviewer A, Important 1). `control_docs` exercises `OPEN_ROWS[1]` only, so the `- [ ]` half of assertion (b) has no control at all. Add the missing case and a fenced-decoy case. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: blinding either open-row marker fails the control.
+- [ ] **T23**, the two false claims in the check's own header (Reviewer B, both Criticals; Reviewer F, Important). `:43` cites `phase-ledger.md:43` for the groom insertion; that file never mentions `## Groom Provenance` at any line, so the citation supports nothing and `[57]` stayed green because it only proves the line exists. Cite `skills/groom/SKILL.md:59` and `work-doc-template.md:42`, the two sites that do declare it. `:108` claims "every doc created since 2026-08-23 carries a ledger" as the reason the ledger floor needs no headroom; `2026-08-23-wave-implementer-migration.md` disproves it, and the true count is 1 of 19. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: every citation in the header resolves to text that supports the clause citing it.
+- [ ] **T24**, close the delete-to-green path (Reviewer B, Important 1a). An archived doc with no section 0 is a non-subject, so deleting the block is a valid way to turn a red green, which `phase-ledger.md:140` bans outright. Require a ledger in any doc whose frontmatter `created:` is on or after the date the ledger shipped, and record the half that stays out of reach (a `- [x]` cannot be told apart from a phase that was dropped) as a written limitation instead of an implied guarantee. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: deleting section 0 from a doc created after the pin date reds.
+- [ ] **T25**, tamper rows for everything T20-T24 adds, plus the over-width line at `test_tamper_battery.py:69`. Files: `scripts/test_tamper_ledger_sync.py`, `scripts/test_tamper_battery.py`. → verify: `python3 scripts/test_tamper_battery.py` passes and the new rows red when their guard is blinded.
+- [ ] **T26**, CHANGELOG (Reviewer B, Important 3). `0.15.1` is unreleased and its `### Added` names six checks but not `[98]`, and nothing records T14's mandatory ledger-persistence rule. Both are user-visible. Files: `CHANGELOG.md`. → verify: `[98]` and the ledger-persistence rule both appear under the unreleased version.
 
 ### Execution waves (revised)
 
@@ -1326,6 +1335,53 @@ not two. Two docs carry a section 0 block, only one of them is archived.
 **Every measurable Critical verified by the parent before acting.** Where my measurement differs from
 the reviewer's I record both rather than adopting either, because the difference is a regex choice
 and neither of us is authoritative.
+
+
+### 2026-08-25, review round 2, and the check that could not survive its own workflow
+
+Three reviewers ran over `e11fa92..HEAD`, the T14-T17 surface. Between them they returned six
+Criticals. I verified every one by hand before spending a fix on it, and all six held.
+
+The one that matters most is a design conflict, not a bug. Reviewer F noticed that `[98]` reds on
+any archived doc with an open phase-ledger row, and that hackify's own finish sequence cannot avoid
+producing exactly that. `phase-ledger.md:118-125` makes "close this phase, open the next" a single
+edit; `phase-6-finish.md:56` lands the doc in `done/` in that same edit; and 6d's artifact, the
+update log plus `<slug>.report.html`, is written beside the already-archived file. So the moment 6c
+closes, the doc sits under `done/` with 6d showing `- [>]`. Every archive hits it. This sprint's own
+doc would have hit it at its 6c.
+
+Three ways out were put to the user. Weakening the check to allow one open row would have made the
+single real defect in the corpus invisible, since `2026-08-23-phase-ledger-substrate.md` is exactly
+a doc whose last row never ran. Judging committed state instead of the working tree would have hidden
+every other uncommitted defect too, not just this one. The user chose the third: change the order so
+the window never opens. Step F runs first, writing the report straight to its `done/` path; one edit
+then closes 6c and 6d together and sets `status: done`; the rename is the last mechanical step. The
+doc is never under `done/` with an open row because the closing edit precedes the move.
+
+That costs something real and it is worth naming. The old order deliberately put the archive before
+the summary so a recap could not print over unfiled work. The new order gives up a few seconds of
+that. What it buys is the better failure mode: a session that dies mid-finish now leaves a doc at its
+live path claiming `done`, which assertion (c) catches, instead of an archived doc quietly claiming a
+phase that never ran, which is the defect this sprint found in the last sprint's archive.
+
+Reviewer A found three ways to get past the check. `git ls-files` without `-z` C-quotes any path
+carrying a non-ASCII byte, so the filename filter drops it and the doc leaves the corpus unseen. The
+ledger block is fence-blind at both ends, so a fenced code block quoting the heading shadows the real
+ledger and a `## ` inside a fence ends it early. Worse, a shadowed doc still counts toward the floor
+whose whole job is to prove assertion (b) judged something, so the floor was satisfiable by a doc
+nobody looked at. A also walked a symlinked work-doc out of the tree and got 70 characters of
+someone else's file quoted back in a finding.
+
+Reviewer B found the check lying twice in its own header, which is the sprint's own rule turned on
+its author. It cites `phase-ledger.md:43` for where the groom section is documented; that file never
+mentions it at any line. And it justifies its ledger floor with "every doc created since 2026-08-23
+carries a ledger", which one archived doc from that exact date disproves. Both citations passed `[57]`
+green, because `[57]` proves a cited line exists and never that it says what the citing sentence
+claims. That gap is now the most useful thing this round produced, and it is worth a follow-up of its
+own.
+
+B also caught this doc's ledger sitting out of order, Phase 4 open underneath a closed Phase 5, in the
+same commit that rewrote the rule forbidding it.
 
 ### The sprint indicted itself in its own plan
 

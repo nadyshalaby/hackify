@@ -214,9 +214,9 @@ Substitute with the actual paths this sprint changed. Evidence record example: *
 
 ## Step D, archive the work-doc (Options 1 + 2 only)
 
-**This is phase-ledger item `6c`, and it gates the Step F summary.** The move below is the exit artifact: the work-doc physically in `done/` with `status: done`. **Do not print the update log or emit the HTML report (Step F) until this move is complete**, the summary is the reward for archiving, not a substitute. This ordering is why "finished the work, forgot to archive" cannot happen: the summary item stays unreachable while the archive item is open.
+**This is phase-ledger item `6c`, and it runs LAST, after Step F.** Step F's two artifacts, the printed update log and `docs/work/done/<slug>.report.html`, are produced first, while the doc is still at its live path. Then one edit closes the ledger, and only then does the file move. **Do not move the doc before that closing edit**: a doc sitting in `done/` with a row still open is the state check `[98]` reads as a sprint that stopped mid-phase, and under the old order every archive passed through it. Why this order and what it costs: [phase-ledger.md](phase-ledger.md), "Closing the ledger".
 
-Move the work-doc from `<project>/docs/work/<slug>.md` to `<project>/docs/work/done/<slug>.md`. Update frontmatter:
+Write the Retrospective (below) first. Then make ONE edit to `<project>/docs/work/<slug>.md` that appends the update log under `## Update log`, ticks ledger rows `6c` and `6d` `- [x]` together, and sets the frontmatter:
 
 ```yaml
 status: done
@@ -225,7 +225,15 @@ shipped_via: pr                # 'merge' | 'pr'
 pr_url: https://github.com/...  # if PR
 ```
 
-The Retrospective section is **mandatory** at this point. 3-8 bullets covering:
+That edit is the last content change the doc ever receives. The move is the last mechanical step:
+
+```
+git mv <project>/docs/work/<slug>.md <project>/docs/work/done/<slug>.md
+```
+
+A rename changes no content, so the ledger cannot record its own move. Assertion (c) of `[98]` is what catches a session that died in between: a doc carrying `status: done` outside `done/` reds on the next validator run.
+
+The Retrospective section is **mandatory**, and it is written before that closing edit. 3-8 bullets covering:
 
 - What surprised during implementation
 - What you learned about the codebase
@@ -265,7 +273,9 @@ Otherwise, ask the user via the `AskUserQuestion` tool (one question, wizard-sty
 
 To detect the slug, derive it from the touched controller's primary route (`<method-lowercase>-<path-sanitized>` per `skills/codewalk/references/data-schema.md` "Slug convention"). If the catalog `.codewalk/_catalog.json` exists, prefer the slug from there.
 
-On "Update" or "Create", invoke `/codewalk <entry-point>` immediately. On "Skip", continue to Step E. Do not loop, this is a single ask per Finish.
+On "Update" or "Create", invoke `/codewalk <entry-point>` immediately. On "Skip", continue to Step F. Do not loop, this is a single ask per Finish.
+
+This step runs after the cleanup sweep and **before** Step F, and its ledger row sits between `6b` and `6c`.
 
 ---
 
@@ -282,6 +292,8 @@ git worktree list
 ```
 
 **Worktree cleanup applies to options 1, 2, and 4. NEVER for option 3.**
+
+**It runs after Step D's `git mv`, never before it.** When the sprint used a worktree the live work-doc sits inside it, so a removal that jumps the queue takes away the path the move reads from. Its ledger row sits after `6d` and is ticked by the closing edit, since nothing can tick after the doc's last content change.
 
 If worktree removal fails because of uncommitted changes, **stop and ask**, don't `--force` it. Uncommitted state is the user's potentially-valuable work.
 
@@ -360,16 +372,16 @@ The follow-up `/schedule` offer applies only when there's a real signal (feature
 | Worktree removal with uncommitted changes (`--force`) | User's work could vanish. Stop, ask. |
 | Picking the option for the user | They pick. Always present 4. |
 | Open-ended "what next?" question | Drift. Stick to the 4-options structure. |
-| Printing the update log while the work-doc still sits in `docs/work/` | Archive first (Step D). The log (Step F) is gated on the doc being in `done/`. |
+| Moving the work-doc to `done/` before the closing edit ticks its ledger | Backwards. The closing edit comes first, the `git mv` last, so the doc never sits in `done/` with an open row. |
 | Ticking a phase-ledger item with no exit artifact | Untrusted tick. The item stays open until its exit artifact exists (`phase-ledger.md`). |
 
 ---
 
 ## Step F (Update log + HTML report)
 
-Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **update log**: one short block per thing that changed, written the way you would explain it to a colleague who was not in the room. This is the artifact the user actually reads, so it is the one place in the whole workflow where the writing matters more than the precision. It is gated on the archive (Step D runs first). The one exception is a mid-flight `/hackify:summary`, which prints to chat and archives nothing.
+Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **update log**: one short block per thing that changed, written the way you would explain it to a colleague who was not in the room. This is the artifact the user actually reads, so it is the one place in the whole workflow where the writing matters more than the precision. It runs **before** the archive move: Step D closes the ledger and moves the file only once this step's artifacts exist. The one exception is a mid-flight `/hackify:summary`, which prints to chat and archives nothing.
 
-**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` beside the archived work-doc. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). **You do not write that HTML by hand**, you emit a JSON payload and `skills/hackify/scripts/render-report.py` renders the page, charts and all. Payload shape and the command: [html-report.md](html-report.md).
+**Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` written straight to `docs/work/done/<slug>.report.html`, the path it will sit at once Step D's move lands. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). **You do not write that HTML by hand**, you emit a JSON payload and `skills/hackify/scripts/render-report.py` renders the page, charts and all. Payload shape and the command: [html-report.md](html-report.md).
 
 ### The shape (one block per update, `----` between them)
 

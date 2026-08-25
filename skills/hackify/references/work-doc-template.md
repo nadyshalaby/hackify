@@ -220,7 +220,7 @@ the decision table and the scope ledger above; do not restate it here.
 |---|---|---|
 | `slug` | `kebab-case`, ≤6 words | Stable id for resume |
 | `title` | free text | Human-readable |
-| `status` | `clarifying` / `planning` / `implementing` / `debugging` / `verifying` / `reviewing` / `finishing` / `done` | Phase the doc is currently in |
+| `status` | `clarifying` / `planning` / `implementing` / `debugging` / `verifying` / `reviewing` / `finishing` / `paused` / `done` | Phase the doc is currently in. `paused` is the one value that names no phase: it says the work stopped at whichever phase it had reached |
 | `type` | `feature` / `fix` / `refactor` / `revamp` / `redesign` / `debug` / `research` | Drives clarify questionnaire |
 | `created` | ISO date `YYYY-MM-DD` | When work-doc was opened |
 | `project` | repo folder name (e.g. `my-backend`) | Anchors paths |

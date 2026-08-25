@@ -88,7 +88,7 @@ All three skills auto-trigger from natural-language prompts, no need to invoke t
 
 The **only** mandatory user gate is between Plan and Spec review. After sign-off, Phases 2.5 through 6 run continuously with progress reports, not gates, at each transition. Interrupt any time; the work-doc holds state.
 
-A **phase ledger** (one checklist item per phase) enforces the order: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. It lives in the runtime's to-do tool when the session exposes one, and otherwise in a chat block re-printed at every phase boundary plus section 0 of the work-doc in full hackify; on Claude Code that fallback is the normal path, not an exotic edge case. Phase 6 splits into sub-items so archiving the work-doc is its own tracked step that gates the summary, see `references/phase-ledger.md`.
+A **phase ledger** (one checklist item per phase) enforces the order: one item in progress at a time, and no later phase starts until the current phase's exit artifact exists. It lives in the runtime's to-do tool when the session exposes one, and otherwise in a chat block re-printed at every phase boundary plus section 0 of the work-doc in full hackify; on Claude Code that fallback is the normal path, not an exotic edge case. Phase 6 splits into sub-items so archiving the work-doc is its own tracked step, and the last two rows close in one edit before the file moves, so a doc never lands in `done/` with a phase left open, see `references/phase-ledger.md`.
 
 ### Phase notes
 
