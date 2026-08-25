@@ -179,7 +179,7 @@ Cross-reference each branch against the work-doc's `branch:` frontmatter and any
 Final scope-creep audit. Cross-checks the full diff against the work-doc's Sprint Backlog file allowlists.
 
 ```
-git diff main..HEAD --name-only | sort -u
+git diff main..HEAD --name-only -- . ':(exclude)docs/work/*' | sort -u
 ```
 
 Compare the list against the union of every task's declared file allowlist in the Sprint Backlog. Any path in the diff but not in any allowlist → scope creep. Evidence record example: *"Class (f) scope creep: 0 unrelated paths in diff (27 paths, all in Sprint Backlog allowlists)"*. If findings appear → either justify the path inline (it served a load-bearing task discovered mid-sprint and should be added to the Sprint Backlog retroactively), or revert the path-specific changes before archiving.

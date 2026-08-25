@@ -134,6 +134,9 @@ jobs:
       - name: Tamper battery (fail-closed branches + hostile arguments)
         run: python3 scripts/test_tamper_battery.py
 
+      - name: Renderer suite (escaping, output modes, symlink refusal)
+        run: python3 scripts/test_render_report.py
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 

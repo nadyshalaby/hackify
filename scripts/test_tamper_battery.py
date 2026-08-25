@@ -30,7 +30,7 @@ battery does not fit one file under it, so splitting was the instruction rather
 than trimming coverage to fit. NO FILE COUNT IS STATED IN THIS SENTENCE, because
 the number moves every time a fragment gains a suite: the rows for check [98] took
 a part of their own once scripts/test_tamper_fragments.py was 465 lines against
-that cap, and check [99] took a third part when [98] itself was split at that cap
+that cap, and check [99] took its own part when [98] itself was split at that cap
 and its suite went with it. The row count is printed on the
 last line of every run rather than restated here, for the reason check [93] gives
 in its own header: a stale count inside the machinery built to catch stale counts
