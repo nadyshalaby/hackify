@@ -2,7 +2,7 @@
 
 ## Why this file exists
 
-hackify is authored against 12 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver, completion sentinel, always-on injection) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. `scripts/sync-runtimes.sh` reads this table to emit per-runtime skill bundles under `dist/<runtime>/` that reference the correct native names. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
+hackify is authored against 12 abstract primitives (wizard, subagent, file-read, file-write, file-edit, search, shell, todo tracker, orchestration tier, iteration driver, completion sentinel, always-on injection) rather than any single runtime's tool names. Each target runtime ships its own tool surface. Claude Code calls a file read `Read`, Gemini CLI calls it `read_file`, Codex CLI exposes it through MCP, so hackify decouples the workflow language from the tool language. This file is the single source of truth for how every primitive maps onto every supported runtime's native tools. The per-runtime emitters under `scripts/sync-runtimes.d/` write the skill bundles in `dist/<runtime>/` that carry the correct native names. Nothing machine-reads the table below, so the table and those emitters are kept in agreement by hand. When a runtime lacks a direct equivalent, the cell is marked `n/a, <reason>` honestly rather than papered over.
 
 ## The 12 primitives
 
@@ -119,4 +119,4 @@ interpreter here so the multi-runtime story stays honest.
 
 ## When to update this file
 
-Update this file whenever a target runtime adds, renames, or removes a tool that maps to one of the 8 primitives, whenever a new runtime is added to the support set, or whenever a runtime's plugin model crosses a tier boundary (best-effort gains native subagent dispatch, for example). The `scripts/sync-runtimes.sh` script reads this table directly, drifting it from the script's expectations will break the per-runtime bundles in `dist/`.
+Update this file whenever a target runtime adds, renames, or removes a tool that maps to one of the 8 primitives, whenever a new runtime is added to the support set, or whenever a runtime's plugin model crosses a tier boundary (best-effort gains native subagent dispatch, for example). No script reads this table, so drift here is silent rather than loud: a cell that stops matching its emitter under `scripts/sync-runtimes.d/` breaks nothing and reports nothing. Change both in the same commit.

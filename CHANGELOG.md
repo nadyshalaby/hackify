@@ -78,6 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was the reward for archiving. What it buys is the better wreckage when a session dies mid-finish:
   a doc stranded at its live path claiming `done`, which `[98]` catches, instead of an archived doc
   quietly claiming a phase nobody ran, which is the defect that started this.
+- **The sprint report can be published as a shareable link.** The finish step still renders the
+  same self-contained page to disk, and on runtimes that can publish one it also hands you a link
+  instead of a file path to open by hand. The renderer gained a second output mode for it, because
+  the publisher supplies its own page wrapper and the existing output is a complete document. This
+  is an optional upgrade with a written fallback, not a replacement: on the six runtimes where
+  publishing is unverified the file on disk is still the deliverable, and no phase can be blocked by
+  the absence of a publisher. The report template is now readable in dark mode as well as light.
 - **`paused` is a declared status value.** The finish menu's "keep the branch as-is" option has
   always told the agent to write `status: paused`, and the template declared eight values without
   it, so a paused sprint held a status nothing recognised. Nine values now, still declared in one
@@ -113,6 +120,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A comment claimed the shared brief is required on 14 prompts when the tree holds 12.** The
   number is gone rather than corrected, and the comment carries the command to recount it, because
   a number in a comment only rots again.
+- **The link checker called a runtime tree's own subsetting a dead pointer.** The built bundles
+  ship skills but no `docs/`, so a sentence pointing at an archived work-doc could never resolve
+  there. The checker's own notes already argued why that is not a defect, and applied the argument
+  only to which files get scanned, never to which files get pointed at. It now judges that
+  structurally, by whether the directory is present at all, so the source tree stays strict.
+- **Two sentences said the sync script reads the runtime mapping table.** It does not reference that
+  file at all. The per-runtime writers carry the mapping in code, which means drift between the two
+  is silent, and the note now says that instead of promising a breakage that would never come.
 - **Six sentences said the hook injects four rules files.** Adding the fifth made all of them false
   at once, which is the new rule's own sixth law landing on the change that introduced it.
 
