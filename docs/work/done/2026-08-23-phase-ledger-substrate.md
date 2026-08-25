@@ -22,11 +22,31 @@ sprint_goal: The phase ledger never silently vanishes again, on any runtime, in 
 - [x] Phase 2.5. Spec review (1 reviewer, patch the doc)
 - [x] Phase 3. Implement (all waves committed)
 - [x] Phase 4. Verify (Evidence Ledger + triad green)
-- [>] Phase 5. Review (decision table empty)
-- [ ] Phase 6a. Re-verify + land choice (Steps A, B, C)
-- [ ] Phase 6b. Cleanup sweep (Step C.5)
-- [ ] Phase 6c. Archive work-doc to `done/` (Step D)
-- [ ] Phase 6d. Update log + HTML report (Step F)
+- [x] Phase 5. Review (panel ran, settle rounds recorded at T32-T40)
+- [x] Phase 6a. Re-verify + land choice (Steps A, B, C) (v0.14.1 landed on main)
+- [x] Phase 6b. Cleanup sweep (Step C.5)
+- [x] Phase 6c. Archive work-doc to `done/` (Step D) (this file is in `done/`)
+- [x] Phase 6d. Update log + HTML report (Step F) **never ran**, see the note below
+
+<!-- LEDGER RECONCILED RETROACTIVELY, 2026-08-25, during the claim-integrity sprint. -->
+
+**This block was left mid-flight and is being closed after the fact, honestly rather than
+tidily.** It read `- [>] Phase 5` with all four Phase 6 rows open while the frontmatter two
+dozen lines above said `status: done`. The two disagreed for two days and nothing noticed,
+because no check compared them. Check `[98]` now does, and this doc is the live defect it was
+built against.
+
+The rows above are ticked from evidence, not from assumption. Phase 5 ran: the settle-round
+findings S1 to S5 are recorded in this file. Phase 6a landed: v0.14.1 shipped and its tag was
+cut. Phase 6c ran: this file is in `done/`. **Phase 6d did not run.** The Retrospective at the
+end of this doc is still the placeholder `_(filled at Phase 6)_`, no `## Update log` section
+was ever written, and no `<slug>.report.html` sits beside this file, while four other archived
+sprints have one. It is ticked here because the ledger contract closes a row with a written
+reason rather than deleting it, and the reason is that the step was dropped, not that it did
+not apply. That is the record, and the missing retrospective stays missing rather than being
+reconstructed two days later by someone who was not there.
+
+The irony is the point: this is the sprint that BUILT the phase ledger.
 
 ## 1. Original ask
 

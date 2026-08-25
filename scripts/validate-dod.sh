@@ -92,6 +92,12 @@
 #                   cannot sit green-on-demand and absent from every automated
 #                   run. Same shape as [0] one layer up: [0] catches a fragment
 #                   nothing sources, this catches a suite nothing runs
+#   98-work-doc-ledger-sync.sh, check [98], every tracked work-doc's frontmatter
+#                   status is one the template's own row declares, an archived
+#                   doc closes every row of its section 0 phase ledger, and a doc
+#                   outside done/ does not claim it was finished. ONE ID AND NOT
+#                   A RANGE, because this fragment declares exactly one check and
+#                   a range endpoint would assert a maximum it does not have
 #
 # HOW THE 71 AND 72 ROWS ABOVE WENT WRONG AT ONCE, recorded here rather than in
 # either row because it is a property of the row FORMAT and not of those two
@@ -225,6 +231,7 @@ source "$DOD_MODULES_DIR/94-section-exists.sh"
 source "$DOD_MODULES_DIR/95-literal-absent-claims.sh"
 source "$DOD_MODULES_DIR/96-review-scope-sites.sh"
 source "$DOD_MODULES_DIR/97-test-suites-reachable.sh"
+source "$DOD_MODULES_DIR/98-work-doc-ledger-sync.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being

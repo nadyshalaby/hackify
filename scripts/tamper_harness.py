@@ -40,13 +40,17 @@ FRAGMENT_DIR = REPO_ROOT / 'scripts' / 'validate-dod.d'
 TEMPLATE = 'skills/hackify/references/work-doc-template.md'
 CI_YML = '.github/workflows/ci.yml'
 
-# The five fragments this sprint built, keyed by the check id they declare.
+# The fragments this sprint built, keyed by the check id they declare. NO COUNT IS
+# WRITTEN IN THIS SENTENCE ANY MORE: it read "the five fragments" while six were
+# listed below it for as long as it took to add one, which is the stale claim the
+# whole sprint is about, committed inside the sprint's own machinery.
 FRAGMENTS = {
   '91': FRAGMENT_DIR / '91-claim-resolvers.sh',
   '93': FRAGMENT_DIR / '93-token-declarations.sh',
   '94': FRAGMENT_DIR / '94-section-exists.sh',
   '95': FRAGMENT_DIR / '95-literal-absent-claims.sh',
   '97': FRAGMENT_DIR / '97-test-suites-reachable.sh',
+  '98': FRAGMENT_DIR / '98-work-doc-ledger-sync.sh',
 }
 
 # Every fragment routes its reds through a two-line helper: a `red` call that

@@ -25,15 +25,18 @@ they are about what the replay runner does with a fragment's OUTPUT, and the mos
 interesting result this sprint produced is a run it refuses to score in either
 direction.
 
-WHY THE SUITE IS SPLIT ACROSS FOUR FILES. The hard cap is 500 lines and the
-battery does not fit one file under it. Splitting was the instruction rather than
-trimming coverage to fit. The row count is printed on the last line of every run
-rather than restated here, for the reason check [93] gives in its own header: a
-stale count inside the machinery built to catch stale counts is the defect wearing
-the uniform. The parts are imported rather than sourced out of a numbered directory, which
-is the shape check [97] recognises as reachable: a suite reached by import from a
-file CI names is wired, and skills/lawkeeper/scripts/test_scoping.py is the
-existing precedent. scripts/tamper_harness.py holds the shared runners and carries
+WHY THE SUITE IS SPLIT ACROSS SEVERAL FILES. The hard cap is 500 lines and the
+battery does not fit one file under it, so splitting was the instruction rather
+than trimming coverage to fit. NO FILE COUNT IS STATED IN THIS SENTENCE, because
+the number moves every time a fragment gains a suite: the rows for check [98] took
+a part of their own once scripts/test_tamper_fragments.py was 465 lines against
+that cap, and the next fragment will do the same. The row count is printed on the
+last line of every run rather than restated here, for the reason check [93] gives
+in its own header: a stale count inside the machinery built to catch stale counts
+is the defect wearing the uniform. The parts are imported rather than sourced out
+of a numbered directory, which is the shape check [97] recognises as reachable: a
+suite reached by import from a file CI names is wired, and
+skills/lawkeeper/scripts/test_scoping.py is the existing precedent. scripts/tamper_harness.py holds the shared runners and carries
 no test of its own, so it is not an entrypoint and needs no wiring.
 
 Standalone, exits non-zero on any failure. Reads the repository and writes only
@@ -51,6 +54,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import test_tamper_fragments
 import test_tamper_hostile
+import test_tamper_ledger_sync
 from claim_fixture_manifest import load_manifest
 from claim_fixtures import replay_scope
 from replay_claim_checks import (ClassCheck, MissingFixtureError, UnscorableRunError,
@@ -58,7 +62,7 @@ from replay_claim_checks import (ClassCheck, MissingFixtureError, UnscorableRunE
 from tamper_harness import (COUNT_BUMP, RED_CALL, REPO_ROOT, TEMPLATE, apply_edits,
                             clean_scratch, expect, temp_dir)
 
-PARTS = (test_tamper_fragments, test_tamper_hostile)
+PARTS = (test_tamper_fragments, test_tamper_hostile, test_tamper_ledger_sync)
 
 HELPERS_REL = 'scripts/validate-dod.d/00-helpers.sh'
 SECTION_FRAGMENT = 'scripts/validate-dod.d/94-section-exists.sh'
