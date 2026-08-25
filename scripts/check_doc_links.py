@@ -83,6 +83,14 @@ USER_REPO_POINTERS = frozenset({
     'CHANGELOG.md',
 })
 
+# Directories a built runtime tree may legitimately not ship. The module
+# docstring already argues both halves of this: docs/work is a frozen record, and
+# a dist tree is a deliberate subset rather than a copy. Both arguments were
+# applied to what gets SCANNED and never to what gets pointed AT, so a prose path
+# into docs/work resolved on the source tree and failed on the built one for a
+# reason that IS the subsetting. Adding a directory here is a deliberate call.
+SUBSET_DIRS = ('docs/work/',)
+
 # Filenames invented for worked examples inside prompt templates. They describe
 # a hypothetical finding, so they name no real file by design.
 EXAMPLE_POINTERS = frozenset({'parallel-agents.md'})
@@ -220,6 +228,18 @@ class Resolver(NamedTuple):
             return hits
         return [hit for hit in self.by_name.get(pointer, ()) if self.inside(hit)]
 
+    def subset_target(self, pointer: str) -> bool:
+        """True when a pointer names a directory THIS checkout does not ship.
+
+        Judged structurally, by whether the directory is here at all, rather than
+        by which pass is running. That keeps the source tree strict: docs/work
+        exists there, so this returns False and a genuinely dead pointer is still
+        a finding. It only ever fires on a tree that never carried the directory,
+        where the absence proves nothing about the pointer.
+        """
+        return any(pointer.startswith(name) and not (self.repo / name).is_dir()
+                   for name in SUBSET_DIRS)
+
     def resolves(self, pointer: str, source: pathlib.Path) -> bool:
         """Prose rule: any accepted base, or any file of that name anywhere."""
         return bool(self.locate(pointer, source))
@@ -258,7 +278,7 @@ def scan_file(path: pathlib.Path, resolver: Resolver) -> list:
     findings = []
     for number, line in enumerate(path.read_text().splitlines(), start=1):
         for pointer, form in pointers_in_line(line):
-            if is_exempt(pointer):
+            if is_exempt(pointer) or resolver.subset_target(pointer):
                 continue
             ok = (resolver.resolves_link(pointer, path) if form == 'link'
                   else resolver.resolves(pointer, path))

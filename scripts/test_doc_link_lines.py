@@ -385,6 +385,48 @@ def test_exactly_one_ok_line_is_printed_per_run():
 
 
 
+
+# --- subset targets, the exemption and the strictness it must not cost -------
+
+DEAD_WORK_POINTER = ('skills/hackify/references/note.md',
+                     'see `docs/work/done/2026-08-23-nothing-here.md` for the case\n')
+
+
+def test_a_dead_docs_work_pointer_is_still_a_finding_where_that_tree_exists():
+    """The half the exemption must NOT cost.
+
+    A tree that ships docs/work can prove a pointer into it dead, so it still
+    has to. If this ever goes green the exemption stopped being structural and
+    became a silencer for the whole directory.
+    """
+    code, out = _run({DEAD_WORK_POINTER[0]: DEAD_WORK_POINTER[1],
+                      'docs/work/done/something-else.md': 'body\n'})
+    assert code == 1, 'a dead docs/work pointer passed on a tree that has it:\n%s' % out
+    assert '2026-08-23-nothing-here.md' in out, out
+
+
+def test_the_same_pointer_is_exempt_where_the_tree_ships_no_docs_work():
+    """The half the exemption buys, which is the built runtime trees.
+
+    dist/claude-code ships skills but no docs, so a prose path into docs/work
+    can never resolve there. That absence is the subsetting, not a dead pointer,
+    and the source pass above is where the pointer is really judged.
+    """
+    code, out = _run({DEAD_WORK_POINTER[0]: DEAD_WORK_POINTER[1]})
+    assert code == 0, 'the subset tree reported a pointer it cannot judge:\n%s' % out
+    assert '2026-08-23-nothing-here.md' not in out, out
+
+
+def test_the_subset_predicate_is_asserted_directly():
+    """Structural, not pass-keyed. Same pointer, two trees, opposite verdicts."""
+    with_docs = CDL.build_resolver(_build({'docs/work/done/x.md': 'body\n'}))
+    without = CDL.build_resolver(_build({'skills/a.md': 'body\n'}))
+    pointer = 'docs/work/done/2026-08-23-nothing-here.md'
+    assert not with_docs.subset_target(pointer), 'exempted a tree that ships docs/work'
+    assert without.subset_target(pointer), 'judged a tree that ships no docs/work'
+    assert not without.subset_target('skills/a.md'), 'exempted a path outside SUBSET_DIRS'
+
+
 def _all_tests() -> list:
     """Every test_ function in this module, in source order."""
     return [value for name, value in sorted(globals().items())
