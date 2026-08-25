@@ -49,7 +49,7 @@ Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-
 
 | Gate | Full hackify behavior | YOLO behavior |
 |---|---|---|
-| **Phase 2. Plan sign-off** | Hard gate; waits for explicit `go` / `approved` / `yes` | No gate; the in-chat plan block is posted and Phase 2.5 begins immediately. The block still carries the **repo brief** (`../hackify/references/repo-brief.md`), ≤200 words of stack, verbatim commands, layout, layering rule, rules source, test convention and landmines, passed as `{{repo_brief}}` to every implementer and reviewer. No doc means no place to look it up later, so it goes in the plan block or nowhere |
+| **Phase 2. Plan sign-off** | Hard gate; waits for explicit `go` / `approved` / `yes` | No gate; the in-chat plan block is posted and Phase 2.5 begins immediately. The block still carries the **repo brief** (`../hackify/references/repo-brief.md`), ≤350 words of stack, verbatim commands, layout, layering rule, rules source, test convention and landmines, each line ending in the command or `file:line` that proved it, passed as `{{repo_brief}}` to every implementer and reviewer. No doc means no place to look it up later, so it goes in the plan block or nowhere |
 | **Phase 6, 4-options finish menu** | User picks 1 / 2 / 3 / 4 | Auto-picks Option 1: commit to current branch locally, no push. User inspects with `git log -1` / `git diff HEAD~1` afterward. |
 
 *Naming note. YOLO redefines Option 1. In full hackify's Phase 6 menu, Option 1 means "Merge to base branch locally"; YOLO's auto-picked Option 1 means commit to current branch locally, no push, no merge, no branch switch.*

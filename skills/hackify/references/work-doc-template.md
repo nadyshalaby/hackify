@@ -89,15 +89,15 @@ A short, verifiable checklist. Each item must be testable or observable.
 
 ### Repo Brief
 
-Built at the end of Phase 2, before the gate. ≤200 words. Passed verbatim as `{{repo_brief}}` to every implementer and every reviewer so no agent re-derives it. Every fact here must be one you verified this session. See [repo-brief.md](repo-brief.md).
+Built at the end of Phase 2, before the gate. ≤350 words. Passed verbatim as `{{repo_brief}}` to every implementer and every reviewer so no agent re-derives it. **Every line ends with the command or `file:line` that proved it**, after the arrow; a line with nothing after the arrow is a guess and does not go in. See [repo-brief.md](repo-brief.md).
 
-- **Stack:** [language / runtime / framework / package manager]
-- **Commands:** test `[verbatim]`, lint `[verbatim]`, typecheck `[verbatim]`
-- **Layout:** [where each layer lives, one line]
-- **Layering rule:** [the one boundary that matters here]
-- **Rules source:** [which rule file governs, and who wins on conflict]
-- **Test convention:** [where tests live, what they are named]
-- **Landmines:** [facts an agent would get wrong on its own]
+- **Stack:** [language / runtime / framework / package manager] ← [command]
+- **Commands:** test `[verbatim]`, lint `[verbatim]`, typecheck `[verbatim]` ← [ran this session, the result line]
+- **Layout:** [where each layer lives, one line] ← [command]
+- **Layering rule:** [the one boundary that matters here] ← [file:line]
+- **Rules source:** [which rule file governs, and who wins on conflict] ← [command]
+- **Test convention:** [where tests live, what they are named] ← [command]
+- **Landmines:** [facts an agent would get wrong on its own] ← [file:line]
 
 ## 5. Sprint Backlog
 
