@@ -225,8 +225,21 @@
           "bucket": "must_catch",
           "reaching_class": "C7_literal_absent_claim",
           "reason": "decision #13-A widened C7 to both polarities; the check moved first and the bucket followed. The banned direction is the reverse."
+        },
+        {
+          "at": "this commit",
+          "bucket": "must_catch, UNCHANGED",
+          "reason": "Decision #15-A dropped the build target from 4 to 3. The parent declined to move the bucket with it: see build_refusal.bucket_unchanged_deliberately. The refusal is recorded on the finding, not applied to the label."
         }
-      ]
+      ],
+      "build_refusal": {
+        "decision": "#15-A, the user accepted the refusal rather than forcing a check",
+        "refused_by": "W4 T5d, and independently verified by the parent before it was relayed",
+        "reason_1": "The bullet names no file path. It says \"the two mode skills\" in English, so any check must hold a hand-written map from that phrase to skills/quick/SKILL.md and skills/yolo/SKILL.md. That map is itself an unverified claim about the tree, which is the shape this sprint exists to ban.",
+        "reason_2": "C7 is a repo-wide literal test and this defect is file-scoped. The phrase task_file_index IS present at the replay commit, in 12 files, so a repo-wide look for it returns present and decides nothing. Only a check that already knows which two files to look in can see the absence, and that knowledge exists only in the prose.",
+        "measured": "git grep -l task_file_index 1249914f gives 12 files; skills/quick/SKILL.md and skills/yolo/SKILL.md each give 0. The agent reported 9 files rather than 12; the parent re-measured and the count is 12. The conclusion does not turn on the count, only on the fact that the phrase is widely present while the defect is two specific absences.",
+        "bucket_unchanged_deliberately": "The bucket stays must_catch. Moving it to out_of_class would take the score from 3 of 4 to 3 of 3 by editing the answer key, which is the exact direction AC1b names as banned. The target drops to 3 through counts.must_catch_buildable, which is visible, rather than by making the fourth finding disappear."
+      }
     },
     {
       "id": "M5",
@@ -309,7 +322,10 @@
       "class_live_via_siblings": 1,
       "requires_fixture": 5,
       "live_at_head": 3
-    }
+    },
+    "must_catch_buildable": 3,
+    "must_catch_refused": 1,
+    "must_catch_refused_note": "must_catch stays 4 and is what the scorer validates against the findings. buildable is the target after decision #15-A, and refused names the gap so a 3 of 3 headline can never be mistaken for a clean sweep of the reachable set."
   },
   "counts_note": "Every total here is a clean partition, each finding counted exactly once. I6 is filed under refuted_on_fact only, even though no_class_reaches is also true of it, because refuted_on_fact is the stronger statement: no class may claim it. The runner cross-checks these totals against the per-finding data, so a later bucket edit that does not update this block turns the runner red. That is deliberate, and it is what AC1b is asking for.",
   "notes": [

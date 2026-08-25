@@ -89,9 +89,15 @@ rationale drift, which no script reaches.
 small fixed vocabulary, not shell. Every hard cap binds. The check must itself be tamper-tested
 fail-closed, because a check that greens when broken is worse than no check.
 
-**Success Signals.** Run against the previous sprint's round-5 corpus, the check flags the eight
-mechanically checkable findings, stays silent on the four code defects, and does not pretend to catch
-the one semantic-drift finding.
+**Success Signals.** Run against the previous sprint's round-5 corpus, the checks catch every finding
+in the reachable set and stay silent on the rest. **Corrected 2026-08-25.** This paragraph read "the
+eight mechanically checkable findings ... the four code defects ... the one semantic-drift finding"
+until now, an 8/4/1 split that Phase 2.5 replaced with the frozen answer key's 4 reachable and 9 out
+of class, and that nobody updated here. **The goal statement was carrying numbers its own answer key
+contradicted, which is precisely the defect this sprint exists to catch, sitting in the sprint's own
+goal.** Found while recording decision #15-A. The live figures are not restated here on purpose:
+`scripts/claim_corpus.json` holds them and `scripts/score_claim_corpus.py` reds when it drifts from
+its own totals, so a number copied into this paragraph could go stale again exactly as that one did.
 
 ## 3. Acceptance Criteria
 
@@ -115,6 +121,16 @@ The superseded text is preserved in the spec-review section below rather than de
       #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
       is the allowed direction.** The banned direction is moving a bucket so an unchanged check
       scores better, and this entry exists so the two can be told apart later.
+- [ ] **AC1b, entry 2 of 2. Decision #15-A, a bucket change considered and REFUSED.** The user
+      accepted W4's refusal to build a check for M4 and dropped the build target from 4 to 3.
+      **The bucket was NOT moved.** Moving M4 to `out_of_class` would turn a 3 of 4 into a 3 of 3
+      by editing the answer key, which is the direction AC1b exists to forbid, and the fact that a
+      user authorised the target change does not convert an unchanged check into a better one. The
+      target drop is recorded instead as `counts.must_catch_buildable = 3` and
+      `counts.must_catch_refused = 1`, with the refusal and its measurements on the M4 finding
+      itself. `counts.must_catch` stays 4, which is the number the scorer validates against the
+      findings, so the headline can never read as a clean sweep. **Raised with the user as a
+      conflict between #15-A and AC1b rather than resolved silently.**
 - [ ] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
       runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The plan's
       original "23" was measured with a `^`-anchored command, and the "88" that replaced it counted
@@ -141,8 +157,11 @@ The superseded text is preserved in the spec-review section below rather than de
       caught, missed, or out of class. No count is asserted. Scope is stated: a one-shot scan with
       the `docs/work/` exclusion lifted, results recorded, **never wired into the validator**, since
       that tree holds 619 citations against 30 live ones and is a frozen record.
-- [ ] **AC9** The shipped rule answers the **speed half** of the ask (#3-A, #3-B, #3-C), not only the
-      claim-integrity half. It carries the paired mechanism this sprint demonstrated: the dispatch
+- [ ] **AC9** The shipped rule answers the **speed half** of the ask, not only the claim-integrity
+      half. Scoped to **#3-A only**: the anchor above defers #3-B (wider waves) and #3-C (cutting
+      agent reading) to a follow-up sprint, and an AC that quietly re-scoped them back in would be
+      drift. **This AC was written naming all three and is corrected here**, which is the same class
+      of error as the Success Signals above and was found in the same pass. It carries the paired mechanism this sprint demonstrated: the dispatch
       brief hands every wave agent pre-derived file:line facts so none of them pays for orientation,
       **and** carries standing permission, in words, to contradict any of those facts with the
       command that disproves it. Both halves ship or neither does, on the evidence that three of
