@@ -86,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the publisher supplies its own page wrapper and the existing output is a complete document. This
   is an optional upgrade with a written fallback, not a replacement: on the six runtimes where
   publishing is unverified the file on disk is still the deliverable, and no phase can be blocked by
-  the absence of a publisher. The report template is now readable in dark mode as well as light.
+  the absence of a publisher. The report template already followed the reader's browser setting for dark mode; it now also honours an explicit light or dark choice made by whatever page it is published inside.
 - **`paused` is a declared status value.** The finish menu's "keep the branch as-is" option has
   always told the agent to write `status: paused`, and the template declared eight values without
   it, so a paused sprint held a status nothing recognised. Nine values now, still declared in one

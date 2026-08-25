@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: implementing
+status: reviewing
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: T24b and T27, both folded in at the user's call, then verify, review, finish
+current_task: Phase 5 round 3, then finish and push with all eight tags
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -17,9 +17,9 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
-- [>] Phase 3. Implement (reopened for T24b and T27)
-- [ ] Phase 4. Verify (re-run once T24b and T27 land)
-- [ ] Phase 5. Review (round 3 over the T24b and T27 surface)
+- [x] Phase 3. Implement (T24b and T27 landed, plus the [57] fix I caused)
+- [x] Phase 4. Verify (16 of 16 CI steps rc 0, tamper battery 98 to 116)
+- [>] Phase 5. Review (round 3 panel out over a0a3284..HEAD)
 - [ ] Phase 6a. Re-verify + land
 - [ ] Phase 6b. Cleanup sweep
 - [ ] Phase 6c. Archive to done/
@@ -92,6 +92,12 @@ falsifiable or explicitly marked as unverified. When such a claim stops being tr
 **In-Scope.** The check and its tamper tests; the always-on rule written around what the check
 actually enforces; the Repo Brief becoming measured rather than asserted (#3-A, because it is what
 keeps the rule cheap).
+
+**Anchor amendment, 2026-08-25 (user call 7-A).** Publishing the Phase 6 report as a shareable
+artifact (T27) serves none of the three bullets above and was not implied by any of them. It was
+added by an explicit user decision after the sprint had reached a fully ticked ledger. It is recorded
+here as a widening rather than read backwards into the original scope, because a goal anchor that
+quietly grows to fit whatever shipped stops being able to catch drift, which is the one job it has.
 
 **Out-of-Scope and Non-Goals.** #3-B (wider waves) and #3-C (cutting agent reading) are real and
 selected, but they are a separate optimisation with their own risk profile and they do not share a
@@ -401,7 +407,7 @@ new tasks carry decision #9-B's widened classes.
 - [x] **T23**, the two false claims in the check's own header (Reviewer B, both Criticals; Reviewer F, Important). `:43` cites `phase-ledger.md:43` for the groom insertion; that file never mentions `## Groom Provenance` at any line, so the citation supports nothing and `[57]` stayed green because it only proves the line exists. Cite `skills/groom/SKILL.md:59` and `work-doc-template.md:42`, the two sites that do declare it. `:108` claims "every doc created since 2026-08-23 carries a ledger" as the reason the ledger floor needs no headroom; `2026-08-23-wave-implementer-migration.md` disproves it, and the true count is 1 of 19. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: every citation in the header resolves to text that supports the clause citing it. **Landed `306c0ee`.**
 - [x] **T24 (first half)**, close the delete-to-green path (Reviewer B, Important 1a). An archived doc with no section 0 is a non-subject, so deleting the block is a valid way to turn a red green, which `phase-ledger.md:91` bans outright. Require a ledger in any doc whose frontmatter `created:` is on or after the date the ledger shipped, and record the half that stays out of reach (a `- [x]` cannot be told apart from a phase that was dropped) as a written limitation instead of an implied guarantee. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`. → verify: deleting section 0 from a doc created after the pin date reds.
 - [x] **T24b**, **Landed `c783027`.** close the delete-to-green path for real (Reviewer B, Important 1a; user call 6-A). Four parts, one wave. (i) Reconcile `docs/work/done/2026-08-23-wave-implementer-migration.md` with a section 0 ledger built from the evidence already inside that file, never invented: it carries a filled `## 8. Retrospective`, a `## Phase 6, close-out` record and a second `## Retrospective`, but no `## Update log` and no emitted report, so its last row is the same shape as the other archived sprint's. (ii) Apply the created-date subject rule, so an archived doc created on or after the day the ledger shipped must carry a section 0, which closes the path where deleting the block turns a red green. (iii) Split `[98]`, because the rule takes the fragment to about 518 lines against the 500 cap; the split follows the precedent set when three other near-cap fragments were split, and needs both a `source` line and a header row in `scripts/validate-dod.sh`. (iv) Tamper rows for the new rule, which also forces a split of `scripts/test_tamper_ledger_sync.py` at 499 lines. Files: `docs/work/done/2026-08-23-wave-implementer-migration.md`, `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, a new fragment, `scripts/validate-dod.sh`, `scripts/test_tamper_ledger_sync.py`, a new suite, `scripts/test_tamper_battery.py`, `scripts/tamper_harness.py`. → verify: deleting section 0 from a doc created after the pin date reds, every file under 500 lines, battery total rises.
-- [x] **T27**, **Landed `17945b2`.** publish the Phase 6 report as a shareable artifact (user call 7-A). The rendered HTML stays exactly as it is and becomes the artifact's source; publishing it hands the user a link instead of a path they have to open by hand. This is a native-tier enhancement in the sense `runtime-adapters.md` already defines, so it gets a row in both enhancement tables with an honest per-runtime column and a written degrade path: where a runtime cannot publish, the file on disk is the deliverable and Step F is unchanged. No phase may hard-require it. Files: `skills/hackify/references/runtime-adapters.md`, `skills/hackify/references/html-report.md`, `skills/hackify/references/phases/phase-6-finish.md`, `skills/hackify/references/finish.md`, `skills/hackify/references/phase-ledger.md`, `skills/hackify/SKILL.md`, `skills/quick/SKILL.md`, `skills/yolo/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and no phase file states the report step as impossible without the artifact primitive.
+- [x] **T27**, **Landed `17945b2`.** publish the Phase 6 report as a shareable artifact (user call 7-A). The rendered standalone HTML stays the deliverable and a second output mode supplies the page the publisher takes, which needed the renderer and the template to change too, so both are in scope beyond the eight files listed below; publishing it hands the user a link instead of a path they have to open by hand. This is a native-tier enhancement in the sense `runtime-adapters.md` already defines, so it gets a row in both enhancement tables with an honest per-runtime column and a written degrade path: where a runtime cannot publish, the file on disk is the deliverable and Step F is unchanged. No phase may hard-require it. Files: `skills/hackify/references/runtime-adapters.md`, `skills/hackify/references/html-report.md`, `skills/hackify/references/phases/phase-6-finish.md`, `skills/hackify/references/finish.md`, `skills/hackify/references/phase-ledger.md`, `skills/hackify/SKILL.md`, `skills/quick/SKILL.md`, `skills/yolo/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and no phase file states the report step as impossible without the artifact primitive.
 - [x] **T25**, tamper rows for everything T20-T24 adds, plus the over-width line at `test_tamper_battery.py:69`. Files: `scripts/test_tamper_ledger_sync.py`, `scripts/test_tamper_battery.py`. → verify: `python3 scripts/test_tamper_battery.py` passes and the new rows red when their guard is blinded. **Landed `27e5e51`**: battery 89 to 98, and each of the five guards fails its rows when reverted.
 - [x] **T26**, CHANGELOG (Reviewer B, Important 3). `0.15.1` is unreleased and its `### Added` names six checks but not `[98]`, and nothing records T14's mandatory ledger-persistence rule. Both are user-visible. Files: `CHANGELOG.md`. → verify: `[98]` and the ledger-persistence rule both appear under the unreleased version. **Landed `fda44f1`.**
 
@@ -1505,6 +1511,49 @@ re-verified by hand against the file before a fix was spent on it, and all six h
 
 One finding was refused rather than fixed, and that is recorded rather than quietly dropped: T24b
 above. Nothing else was carried.
+
+
+### 2026-08-25, T24b and T27, and a red I caused myself
+
+Two items folded in at the user's call after the sprint had already reached a fully ticked ledger.
+That close was rolled back rather than left standing, because a ledger showing a close that did not
+happen is the exact defect the sprint exists to stop, and it would have been mine.
+
+**T24b closed the delete-to-green path.** An archived doc with no `## 0. Phase ledger` was a
+non-subject, so deleting the block turned a red green, which `phase-ledger.md:91` bans outright. A
+doc created on or after the day the ledger shipped must now carry one. That rule reds on a real
+archived doc, and the honest fix was to give that doc the ledger it was always owed rather than to
+move the pin date until the red went away. The reconciled block cites its evidence row by row, five
+commit SHAs among them, and I verified every one. Phase 6d there is closed with a written reason
+saying it never ran, not ticked clean: the doc has no update log and no report while four other
+archived sprints have one.
+
+The rule pushed the fragment past the 500-line cap, so `[98]` split. The seam is which part of a
+document each assertion reads: the ledger assertions share the section 0 walker and the fence mask,
+the status assertions share the template vocabulary parse. Cutting anywhere else would have copied a
+judging function into both halves. What it does cost is four plumbing readers duplicated across the
+two files, because a sourced shell fragment has nowhere to import from, and that is written into the
+headers rather than left for a reviewer to notice.
+
+**The split immediately produced four stale claims of its own.** Prose cites these checks by number
+and by letter, the letters were deliberately not renumbered, and four sentences went on citing
+assertion (c) under `[98]` after it moved to `[99]`. Shipping four fresh stale cross-file claims in
+the sprint about stale cross-file claims is the sharpest thing that happened this round.
+
+**T27 makes the report shareable.** The renderer keeps writing the same self-contained page to disk
+and gained a second mode that emits the page without a document shell, because the publisher supplies
+its own. Only one of seven runtimes is confirmed able to publish, and the other six are marked
+`unknown` rather than `n/a`, since nobody actually checked their tool lists. The file on disk stays
+the deliverable everywhere, and publishing can never gate a phase, or six runtimes could not finish
+a sprint.
+
+**I caused a build failure and then nearly took the easy way out of it.** Running the sync during the
+cleanup sweep rebuilt `dist/` from the new `phase-ledger.md`, and a prose path pointing at an
+archived work-doc cannot resolve in a tree that ships no `docs/`. The one-line fix was in reach:
+reword the sentence. That sentence is live evidence for why the finish order changed. The agent that
+found it refused to touch it and said why, which was right, and the fix went into the checker
+instead. It now judges a pointer by whether the checkout ships the directory at all, so the source
+tree stays strict, and a row was added that fails if that strictness is ever lost.
 
 ### The sprint indicted itself in its own plan
 

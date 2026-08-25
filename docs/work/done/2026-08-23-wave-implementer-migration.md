@@ -19,7 +19,7 @@ block belongs at the top of the body, per the section-order law in
 skills/hackify/references/work-doc-template.md. -->
 
 - [x] Phase 1. Clarify (lock the goal anchor) (the goal anchor at §Primary Goal & Guardrails, and §2's five wizard answers recorded verbatim)
-- [x] Phase 2. Plan + Gate (work-doc + user "go") (§3, §4 and §5 written before any edit, and wave 1 ran off that backlog)
+- [x] Phase 2. Plan + Gate (work-doc + user "go") (§3, §4 and §5 written before any edit, wave 1 ran off that backlog, and §2's "### Phase 2 gate" records the sign-off itself)
 - [x] Phase 2.5. Spec review (1 reviewer, patch the doc) (§5a carries the reviewer's wave plan, and `a172922` applied its corrections)
 - [x] Phase 3. Implement (all waves committed) (all 23 backlog tasks ticked, and §6 names the commit behind each wave)
 - [x] Phase 4. Verify (Evidence Ledger + triad green) (§7's Evidence Ledger, one row per acceptance criterion with fresh output)
