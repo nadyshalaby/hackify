@@ -110,7 +110,7 @@ its own totals, so a number copied into this paragraph could go stale again exac
 **Revised after Phase 2.5. The original AC1 was unreachable and AC2, AC3, AC6 and AC7 were unsound.
 The superseded text is preserved in the spec-review section below rather than deleted.**
 
-- [ ] **AC1** T1a freezes a per-finding label table for the 13 round-5 findings BEFORE any check is
+- [x] **AC1** T1a freezes a per-finding label table for the 13 round-5 findings BEFORE any check is
       built: bucket, citation into the archived work-doc, the class that reaches it, and the scan
       scope required. **Frozen and committed alone at `803ef51`. The derived reachable set is 4 of
       13**, 3 at freeze plus M4 under #13-A, **not the 5-6 the parent quoted.** Grading runs three
@@ -122,7 +122,7 @@ The superseded text is preserved in the spec-review section below rather than de
       nothing about it rewards the check for firing; (c) tamper proves every branch reds on its own
       message. **Legs (a) and (c) both have to pass. Leg (b) passing alone proves only that the
       check is quiet, which an empty file also achieves.**
-- [ ] **AC1b** The label table is committed alone, before W2 opens, and any later change to a bucket
+- [x] **AC1b** The label table is committed alone, before W2 opens, and any later change to a bucket
       needs a work-doc entry naming which finding moved and why. **No tuning the answer key to fit
       the check.** Committed alone at `803ef51`, before any check existed.
       **AC1 leg (a) restated on 2026-08-25, and this is not a bucket change.** Two clauses in it
@@ -173,7 +173,7 @@ The superseded text is preserved in the spec-review section below rather than de
       #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
       is the allowed direction.** The banned direction is moving a bucket so an unchanged check
       scores better, and this entry exists so the two can be told apart later.
-- [ ] **AC1b, entry 2 of 2. Decision #15-A, a bucket change considered and REFUSED.** The user
+- [x] **AC1b, entry 2 of 2. Decision #15-A, a bucket change considered and REFUSED.** The user
       accepted W4's refusal to build a check for M4 and dropped the build target from 4 to 3.
       **The bucket was NOT moved.** Moving M4 to `out_of_class` would turn a 3 of 4 into a 3 of 3
       by editing the answer key, which is the direction AC1b exists to forbid, and the fact that a
@@ -183,24 +183,24 @@ The superseded text is preserved in the spec-review section below rather than de
       itself. `counts.must_catch` stays 4, which is the number the scorer validates against the
       findings, so the headline can never read as a clean sweep. **Raised with the user as a
       conflict between #15-A and AC1b rather than resolved silently.**
-- [ ] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
+- [x] **AC2** Every live `check [NN]` reference resolves against an id universe **derived at
       runtime** from the ok/fail label form. No literal count appears in the check or this AC. (The plan's
       original "23" was measured with a `^`-anchored command, and the "88" that replaced it counted
       every `[NN]` token rather than the declared ones. The declared universe is 82, which check
       `[91]` derives at runtime and this AC deliberately does not hardcode. Corrected here because
       an AC asserting a wrong count in a sprint about wrong counts is the defect on display.)
-- [ ] **AC3** The check never executes anything sourced from a repo file, proven on **both** halves:
+- [x] **AC3, ticked against the RE-POINTED criterion, not the one as written.** Clause (a) named a verb vocabulary that does not exist, because it was written for the annotation design #14-A declined; T7 refused to invent one and re-pointed the battery at the data paths that do exist, writing up what is therefore NOT proven under its dated heading. Original text: The check never executes anything sourced from a repo file, proven on **both** halves:
       (a) the verb vocabulary is a fixed enum, shown in code; (b) every argument is constrained, a
       path must resolve inside the repo and be git-tracked, a pattern is matched literally with `-F`
       and never `-E`, and no argument ever becomes a shell word. T7 feeds hostile annotations
       (traversal, glob, `$(...)`, backtick, a ReDoS pattern) and proves each is **rejected**, not run.
-- [ ] **AC4** Every check branch is tamper-tested fail-closed, and each row asserts the expected
+- [x] **AC4** Every check branch is tamper-tested fail-closed, and each row asserts the expected
       **failure message**, not merely a non-zero exit, so a branch's own red cannot be confused with
       a wiring red.
-- [ ] **AC5** An always-on rule ships, wired into `hooks/hooks.json`, with every load-bearing law in
+- [x] **AC5** An always-on rule ships, wired into `hooks/hooks.json`, with every load-bearing law in
       a bold lead. It carries **#2-A (re-derive before you write)** as well as #4-A to #4-D, plus the
       written procedure for the semantic class no check reaches.
-- [ ] **AC6** The Repo Brief template carries the command behind every fact, **as a convention that
+- [x] **AC6** The Repo Brief template carries the command behind every fact, **as a convention that
       aids a reader in re-deriving it. It is explicitly NOT a correctness guarantee**: this sprint's
       own brief attached a command to the "23 check ids" fact and the command was the thing that was
       wrong. The same edit amends `references/repo-brief.md:13`'s ~200-word cap, which this brief
@@ -209,7 +209,7 @@ The superseded text is preserved in the spec-review section below rather than de
       caught, missed, or out of class. No count is asserted. Scope is stated: a one-shot scan with
       the `docs/work/` exclusion lifted, results recorded, **never wired into the validator**, since
       that tree holds 619 citations against 30 live ones and is a frozen record.
-- [ ] **AC9** The shipped rule answers the **speed half** of the ask, not only the claim-integrity
+- [x] **AC9** The shipped rule answers the **speed half** of the ask, not only the claim-integrity
       half. Scoped to **#3-A only**: the anchor above defers #3-B (wider waves) and #3-C (cutting
       agent reading) to a follow-up sprint, and an AC that quietly re-scoped them back in would be
       drift. **This AC was written naming all three and is corrected here**, which is the same class
@@ -221,7 +221,7 @@ The superseded text is preserved in the spec-review section below rather than de
       asserted**: there is no counterfactual wave, so the rule claims a changed division of agent
       effort, which the wave reports show, and not a measured time saving, which nothing here
       measures.
-- [ ] **AC8** Full triad green, `dist/` current by two-sync checksum, no file over 500 lines. Note
+- [x] **AC8** Full triad green, `dist/` current by two-sync checksum, no file over 500 lines. Note
       `71-release-mechanism-pins.sh` and `test_ban_tokens.d/15-wi-absent-cases.sh` are both at
       **497/500**.
 
@@ -348,16 +348,16 @@ new tasks carry decision #9-B's widened classes.
 - [x] **T6** Score **once** against the frozen table. Record the score and every miss. **No tuning
       until it passes**; a bucket may move only with a work-doc entry saying which and why.
       **Closed at `6f8be4c`. Scored 3 of 4, measured. No bucket moved and no tuning was done.**
-- [ ] **T7** Tamper: delete each branch, prove each reds **with its own expected message**. Plus the
+- [x] **T7** Tamper: delete each branch, prove each reds **with its own expected message**. Plus the
       hostile-argument battery from AC3.
-- [ ] **T9** Write `rules/claim-integrity.md`: laws in bold leads, **#2-A** plus #4-A to #4-D, and
+- [x] **T9** Write `rules/claim-integrity.md`: laws in bold leads, **#2-A** plus #4-A to #4-D, and
       the procedure for semantic rationale drift that no check reaches.
-- [ ] **T10** Wire it as the 5th `UserPromptSubmit` hook; extend `hooks/test_inject_context.sh`.
-- [ ] **T11** `references/repo-brief.md`: a command per fact, and amend the ~200-word cap in the same
+- [x] **T10** Wire it as the 5th `UserPromptSubmit` hook; extend `hooks/test_inject_context.sh`.
+- [x] **T11** `references/repo-brief.md`: a command per fact, and amend the ~200-word cap in the same
       edit so the template stops contradicting itself.
-- [ ] **T12** Run the widened check over every item in the previous sprint's backlog section; one
+- [x] **T12** Run the widened check over every item in the previous sprint's backlog section; one
       disposition each.
-- [ ] **T13** CHANGELOG bullet, version bump, dist regeneration.
+- [x] **T13** CHANGELOG bullet, version bump, dist regeneration.
 
 ### Execution waves (revised)
 
@@ -1034,6 +1034,46 @@ comes back clean, but tree-wide silence is not per-site evidence, which is the s
 `debug-when-stuck.md` carries the retired name zero times, and `README.md`'s only surviving mention
 is `:192`, which reads `**Daily Updates** (was Implementation Log)` and is one of the six excused
 back-compat sites `[94]` counts on purpose.
+
+### 2026-08-25, Phase 4, the evidence ledger
+
+Every row below is fresh output from this session, not a memory of an earlier run.
+
+| Item | Evidence |
+|---|---|
+| All 16 CI steps | run locally by reading `run:` out of `ci.yml` and executing each; **every one rc 0** |
+| lawkeeper audit | `56/56 passed` |
+| lawkeeper recall corpus | `PASS: scanner findings match the corpus oracle exactly` |
+| question clarity | `7 banks checked, 0 defect(s)` |
+| banned-token hook | `41/41 passed` |
+| injector | `45 passed, 0 failed`, up from 29 |
+| ban-token tamper | `ALL BAN-TOKEN TAMPER TESTS PASSED` |
+| doc link lines | `23/23 passed` |
+| claim fixtures | `38 passed, 0 failed` |
+| `[93]` suite | `15 passed, 0 failed` |
+| `[94]` suite | `15 passed, 0 failed` |
+| `[95]` suite | `14 passed, 0 failed` |
+| replay runner suite | `22 passed, 0 failed` |
+| `[97]` suite | `20 passed, 0 failed` |
+| tamper battery | `68 passed, 0 failed` |
+| validator | rc 0, **1455 ok lines, 0 FAIL**, `ALL CHECKS PASSED` |
+| sprint score | **3 of 4 must_catch, measured**, M4 the miss #15-A accepted; the `0 of 9` row prints under its own `NOT MEASURED` caveat |
+
+**Ship gate, all three legs blocking and all three green.**
+
+| Leg | Evidence |
+|---|---|
+| `ship.build` | `bash scripts/sync-runtimes.sh` rc 0, `OK, synced 798 files across 7 runtimes`, and `dist/claude-code/rules/claim-integrity.md` is on disk at 11839 bytes |
+| `ship.boot` | `hooks/inject-context.sh` invoked the way `hooks.json` invokes it, on a real `UserPromptSubmit` payload: rc 0, 12015 bytes, a well-formed envelope whose `hookEventName` is `UserPromptSubmit` |
+| `ship.smoke` | turn 1 of a fresh session injects 11839 chars and all three probed laws are present, including the last one; turn 3 of the same session injects the 1074-char digest instead, and `Say what the checks do not reach` still survives the compression |
+
+**The first ship.smoke run reported zero bytes and it was the parent's error, not a defect.** The
+hook takes its rules file as `$1` and it was invoked with none, so it took the documented no-arg
+exit and returned nothing, correctly. Recording it because the sprint's own rule says a clean result
+is only as good as the method's ability to have returned a dirty one, and the mirror case is just as
+real: **a dirty result is only as good as the method's ability to have returned a clean one.** Ten
+minutes were nearly spent hunting a bug in a hook that was behaving exactly as documented. The fix
+was to read the thing being tested before believing the test.
 
 ## 7. Sprint Review
 
