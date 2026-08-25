@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: reviewing
+status: done
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 5 round 3, then finish and push with all eight tags
+current_task: done, shipped as v0.15.1
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -19,11 +19,11 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
 - [x] Phase 3. Implement (T24b and T27 landed, plus the [57] fix I caused)
 - [x] Phase 4. Verify (16 of 16 CI steps rc 0, tamper battery 98 to 116)
-- [>] Phase 5. Review (round 3 panel out over a0a3284..HEAD)
-- [ ] Phase 6a. Re-verify + land
-- [ ] Phase 6b. Cleanup sweep
-- [ ] Phase 6c. Archive to done/
-- [ ] Phase 6d. Summary + report
+- [x] Phase 5. Review (round 3 adjudicated, 24 findings, table below)
+- [x] Phase 6a. Re-verify + land (17 of 17 CI steps rc 0, all on main)
+- [x] Phase 6b. Cleanup sweep (8 classes, the one dash found is in the stale report Step F replaces)
+- [x] Phase 6c. Archive to done/ (this edit, the move follows it)
+- [x] Phase 6d. Summary + report (update log below, report already at the archive path)
 
 This runtime exposes no todo-tracker tool, so this section is the durable ledger and it is re-printed
 in chat at every phase boundary.
@@ -1373,61 +1373,76 @@ not two. Two docs carry a section 0 block, only one of them is archived.
 
 ## Update log
 
+Written at Step F, before the move, and appended by this closing edit.
+
 ### Notes about the code are now checked against the code
 
 **Problem.** A written note is a claim about a repository, not the repository. Ours drifted quietly. A release note pointed at a safety check that had never existed, several sentences counted things that had since changed, and nobody found out until someone leaned on one of them.
 
-**Root cause.** Nothing compared a document to the thing it described. A sentence could stop being true and stay on the page, because the only reader who would have noticed was a person, and only if they happened to look.
+**Root cause.** Nothing compared a document to the thing it described. A sentence could stop being true and stay on the page, because the only reader who would notice was a person, and only if they happened to look.
 
-**Solution.** Five automated checks now read the documents and resolve their claims against the code. If a note cites a safety check, that check has to exist. If it names a section of a template, the section has to be there. If it says a phrase appears nowhere, the phrase has to be absent. A new standing rule tells every future piece of work to re-derive facts from the code rather than reading them off a page, and to prove a claim with fresh output or not make it.
+**Solution.** Seven automated checks now read the documents and resolve their claims against the code. A cited safety check has to exist. A named section of a template has to be there. A phrase claimed to appear nowhere has to be absent. A new standing rule tells every future piece of work to re-derive facts from the code rather than reading them off a page.
 
-**Verification evidence.** All 16 automated build steps pass. The main checker reports 1454 passing checks and zero failures. A separate suite of 98 tests deliberately breaks each safety check one at a time and confirms each one goes red, so no check can quietly stop working and still look green.
+**Verification evidence.** All 17 automated build steps pass, with 1454 passing checks and zero failures. A separate suite of 123 tests deliberately breaks each safety check one at a time and confirms each goes red, so no check can quietly stop working and still look green.
 
-**Deployment status.** Merged into the main line and included in the released version. Nothing to configure.
+**Deployment status.** Merged and released as 0.15.1. Nothing to configure.
 
 ----
 
-### A project record can no longer claim a step that never ran
+### A filed record can no longer claim a step that never ran
 
-**Problem.** Finished project records are filed away with a progress list at the top. One filed record showed a step still running underneath a stamp saying the whole thing was complete. The stamp was the part that was wrong, and there was nothing to catch it.
+**Problem.** Finished records are filed with a progress list at the top. One showed a step still running underneath a stamp saying the whole thing was complete. The stamp was the wrong half, and nothing caught it.
 
-**Root cause.** The progress list was printed into the chat at each step but never written back to the file. Chat scrolls away. The file is what anyone reads later, so it recorded whatever step the work happened to be at the last time somebody wrote it down by hand.
+**Root cause.** The list was printed into the chat at each step but never written back to the file. Chat scrolls away. The file is what anyone reads later, so it recorded whatever step somebody last wrote down by hand.
 
-**Solution.** Ticking a step now means editing the file, not printing a line, and a new check reads every filed record to confirm nothing was left open and the status matches where the file actually sits. The one record that was genuinely wrong now says what really happened rather than being tidied up to make the check pass.
+**Solution.** Ticking a step now means editing the file, not printing a line. Two checks read every filed record to confirm nothing was left open, the status matches the folder it sits in, and a record written since the list existed carries one at all, so deleting the list no longer turns a failure into a pass. The date is taken from the filename rather than from a field the document writes about itself, because a self-declared date can simply be changed.
 
-**Verification evidence.** The check catches all three failure shapes on planted test cases, and each of its guards was deliberately broken to confirm it goes red rather than passing silently.
+**Verification evidence.** A planted record with a backdated date and no list is now reported twice, once for the date disagreeing with its own filename and once for the missing list. Each guard was deliberately broken to confirm it fails rather than passing silently.
 
-**Deployment status.** Live. Applies to every project record from here on.
+**Deployment status.** Live. Applies to every record from here on.
 
 ----
 
 ### Filing a finished project no longer passes through a broken state
 
-**Problem.** The new check flagged a state that the normal way of finishing work produced every single time. Filing a record moved it into the finished folder while its last step was still marked as running, so every completed project briefly looked broken.
+**Problem.** The new check flagged a state the normal way of finishing work produced every time. Filing a record moved it into the finished folder while its last step was still marked as running, so every completed project briefly looked broken.
 
-**Root cause.** The last step writes a summary that has to sit next to the filed record, so the record had to be filed first. That put the file in its final home with a step still open, for as long as writing the summary took.
+**Root cause.** The last step writes a summary that has to sit next to the filed record, so the record had to be filed first. That put it in its final home with a step still open for as long as writing the summary took.
 
-**Solution.** The order changed. The summary and its report are written first, to the address the record is about to occupy. One edit then closes the last two steps and marks it done, and moving the file is the very last action, carrying no change to its contents. The broken window never opens.
+**Solution.** The order changed. The summary and its report are written first, to the address the record is about to occupy. One edit then closes the last two steps and marks it done, and moving the file is the very last action, carrying no change to its contents.
 
-**Verification evidence.** This project was finished using the new order, and the check passed on its own record.
+**Verification evidence.** This project was finished using the new order and the check passed on its own record.
 
 **Deployment status.** Live. Applies to the next project filed.
 
 ----
 
-### The check built to catch false claims was making two of its own
+### The summary report can be shared as a link
 
-**Problem.** An independent review found that the new check's own explanatory notes pointed at a file that never mentioned the thing being cited, and justified one of its safety limits with a statement that a single real example disproved.
+**Problem.** The end-of-project report was written to a file you had to find and open yourself, which makes sharing it with someone awkward.
 
-**Root cause.** Both were written from memory rather than by opening the files. The existing link checker confirms a cited line exists, and never that the line says what the citing sentence claims, so both slipped through as passing.
+**Root cause.** The report was only ever designed as a local file.
 
-**Solution.** Both were corrected against the real sources, and every other reference and count in that file was opened and rechecked. The gap in the link checker is written down as the next piece of work rather than left unsaid.
+**Solution.** The same self-contained page is still written to disk, and where the tool supports it the report is also published so you get a link to send. The page builder gained a second output mode, because a publisher supplies its own page wrapper and the existing output is a complete document. Only one of the seven supported tools is confirmed able to publish, so the file on disk stays the deliverable everywhere else, and publishing can never block a project from being finished.
 
-**Verification evidence.** Each corrected reference was opened and read. The full build passes.
+**Verification evidence.** Both outputs were rendered and checked: the standalone file still opens on its own, the published version carries no duplicate page wrapper, and neither reaches out to any other site.
 
-**Deployment status.** Live.
+**Deployment status.** Live. No setup needed.
 
----
+----
+
+### Two security holes in the report page, found by review
+
+**Problem.** The report inserted its number values, such as files changed and lines added, without escaping them. While the page only sat on a local disk that was untidy. Once it could be published to a shared link, someone able to influence those values could get code running on that page. Separately, the report writer followed a shortcut file at a predictable temporary location, letting it overwrite a file it should not touch.
+
+**Root cause.** Both predate this work. Making the page shareable is what turned the first from a local annoyance into a real risk, and the second had simply never been considered because the destination was assumed to be a plain file.
+
+**Solution.** Every value is escaped before it reaches the page, and the writer refuses to write through a shortcut file rather than following it. The documented temporary location is no longer a predictable shared one.
+
+**Verification evidence.** Both were reproduced as working attacks by the reviewer, then reproduced again after the fix and confirmed to fail. A new suite of 14 tests covers both, and it runs in the build.
+
+**Deployment status.** Live in 0.15.1. Nothing to do.
+
 
 ## Phase 2.5 spec review: seven Criticals, and the plan does not survive as written
 
@@ -1554,6 +1569,51 @@ reword the sentence. That sentence is live evidence for why the finish order cha
 found it refused to touch it and said why, which was right, and the fix went into the checker
 instead. It now judges a pointer by whether the checkout ships the directory at all, so the source
 tree stays strict, and a row was added that fails if that strictness is ever lost.
+
+
+### Decision table, review round 3 (Phase 5 exit artifact, second pass)
+
+Reviewers A (security), B (quality and plan) and F (coherence) over `a0a3284..HEAD`. Twenty-four
+findings, six Critical. A and B reached four of the same conclusions independently, which is the
+panel working. Every Critical was reproduced by hand before a fix was spent on it.
+
+| # | From | Sev | Finding | Disposition |
+|---|---|---|---|---|
+| 1 | A | Critical | Payload stat values reach the report unescaped, and T27 made that page publishable, so a local untidiness became stored XSS on a hosted origin | Fixed, `b2a48dd`. Verified by hand: the payload comes out escaped in both outputs |
+| 2 | A | Critical | A doc opts itself out of the created-date rule by backdating its own `created:` field | Fixed, `b2a48dd`. Date now resolves off the filename, and a disagreement between the two is itself a finding. Verified by hand: reds twice |
+| 3 | F, B | Critical | `CHANGELOG.md:81` credits `[98]` with an assertion the split moved to `[99]`, contradicting the same entry eight lines up | Fixed, `2dba465` |
+| 4 | F, B | Critical | Three citations of `CHANGELOG.md:54`, broken by my own rewrite of that entry one commit later. One of them was FALSE when written and became true by accident | Fixed, `2dba465` and `b2a48dd`. Re-anchored by name, not renumbered, and the accident is recorded |
+| 5 | F, B | Critical | `99:31-36` describes a CHANGELOG state that no longer exists and routes a reader to redo settled work | Fixed, `b2a48dd` |
+| 6 | F, B | Critical | `98:35-38` says assertions (a) and (c) are both cited by letter; (a) is cited nowhere in `skills/` at all | Fixed, `b2a48dd` |
+| 7 | A | Important | `[99]`'s template read bypasses the symlink guard the same file claims to apply to every read | Fixed, `b2a48dd`. A symlinked template had supplied the whole status vocabulary |
+| 8 | A | Important | The report writer follows a symlink at a documented, predictable temp path | Fixed, `b2a48dd`. Verified by hand: refused, planted file intact |
+| 9 | A | Important | `[99]`'s control reads the vocabulary it exists to check, the exact shape `[98]` names as a failure mode in the same split | Fixed, `b2a48dd`. Both halves now state one doctrine, and what it still cannot catch is written down |
+| 10 | F | Important | `html-report.md:105` justifies a rule with a cleanup sweep that has already finished by then | Fixed, `b2a48dd` |
+| 11 | F | Important | `finish.md` and `phase-6-finish.md` give the same audit two different commands | Fixed, `36c208e`, with the two hand-written pins that move with it |
+| 12 | F, B | Important | `runtime-adapters.md:122` says 8 primitives where the table it governs has 12 | Fixed, `2dba465` |
+| 13 | B | Important | The CHANGELOG claims dark mode is new; the template already followed the browser setting | Fixed, `9bf6534`. What is new is honouring an explicit theme choice |
+| 14 | B | Important | `test_tamper_battery.py:33` states a count inside the sentence declaring it states none | Fixed, `36c208e` |
+| 15 | B | Important | `99:44-47` gives a false reason for the duplication, that a sourced fragment cannot import | Fixed, `b2a48dd`. Two fragments in this repo already do |
+| 16 | B | Important | T27's ticked task says its output "stays exactly as it is"; the renderer and template both changed | Fixed, `9bf6534` |
+| 17 | B | Important | T27 serves none of the goal anchor's In-Scope bullets | Fixed, `9bf6534`, recorded as an amendment rather than read backwards into the original scope |
+| 18 | B | Important | `render-report.py` ships untested while every other new path this sprint got coverage | Fixed, `b2a48dd` and `36c208e`. New suite, 14 rows, wired into CI |
+| 19 | F | Minor | `html-report.md:38` promises a chart the renderer has no token for | Fixed, `b2a48dd` |
+| 20 | F | Minor | Update-log placement stated two ways across four files | Fixed, `b2a48dd` and `36c208e`. The template declared no such heading at all, which nobody had flagged |
+| 21 | A | Minor | A path containing a newline splits one finding across physical lines and drops the reason | Fixed, `b2a48dd` |
+| 22 | A | Minor | `content_only`'s docstring promises a refusal the code only makes on absence | Fixed, `b2a48dd` |
+| 23 | B | Minor | The retroactive ledger's Phase 2 row cites the plan sections and skips the gate | Fixed, `9bf6534` |
+| 24 | B | Minor | `check_doc_links.py` sits at 491 of 500 lines after this diff | Noted, no action. The next touch forces a split |
+
+Nothing carried. One item, T24b's second lever (renaming a work-doc file moves its date with it), is
+recorded inside the fragment header as a stated limitation rather than a fix, which is the honest
+form for something no check in this repo currently catches.
+
+**What the round says about the sprint.** Six Criticals, and four of them are stale or false claims
+in the very files written to stop stale and false claims. The split that closed one hole opened four
+citation defects within minutes. My own CHANGELOG rewrite, made to fix stale claims, broke three
+citations pointing into it, and `[57]` stayed green through all of it because it proves a cited line
+exists and never that the line still says what cites it. That is the sprint's central finding and it
+outlived the sprint: it is the first follow-up in the retrospective.
 
 ### The sprint indicted itself in its own plan
 
