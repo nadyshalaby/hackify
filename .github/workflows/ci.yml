@@ -125,6 +125,15 @@ jobs:
       - name: CI suite-coverage tests (check [97] every suite reachable from CI)
         run: python3 scripts/test_ci_suite_coverage.py
 
+      # The tamper battery for checks [91], [93], [94], [95], [97] and the replay
+      # runner. It breaks one branch at a time in a COPY of each fragment and
+      # asserts the expected failure message, so it reaches the fail-closed
+      # branches a healthy tree can never trip. Two suites are imported into this
+      # entrypoint rather than named here, which is the reachability clause [97]
+      # resolves by import.
+      - name: Tamper battery (fail-closed branches + hostile arguments)
+        run: python3 scripts/test_tamper_battery.py
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 

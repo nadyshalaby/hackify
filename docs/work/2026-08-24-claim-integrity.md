@@ -850,7 +850,7 @@ updating it, since the live totals print on every run. That is the right instinc
 ### 2026-08-25, T7, the tamper battery, and an AC that had nothing left to point at
 
 `scripts/test_tamper_battery.py` lands as an entrypoint over two imported parts and one shared
-harness, 65 rows, green in under three seconds, wired as a CI step. **No shipped check fragment was
+harness, 68 rows, green in under three seconds, wired as a CI step. **No shipped check fragment was
 edited to make it fit and nothing tracked was mutated to tamper anything.** A fragment is tampered by
 copying its text into a temp file, editing the copy, and sourcing that, so there is no restore step
 and no checksum to verify afterwards.
@@ -903,7 +903,7 @@ every argument resolves inside the repository, because two routes do not check i
 annotation class is safe, because it does not exist. And nothing here says anything about the classes
 no check reaches at all; the score is still 3 of 4 and T7 moved no part of it.
 
-**AC4 is answered by 34 fragment rows plus 12 on the replay runner and this suite's own wiring, with
+**AC4 is answered by 37 fragment rows plus 12 on the replay runner and this suite's own wiring, with
 19 more from the AC3 half, each asserting the expected failure MESSAGE.** The rows go after the branches the six existing suites cannot reach: every
 floor on the LIVE path, the missing-interpreter branch, the failed-capture branch, `[94]`'s
 premise guard, and `[97]`'s grep-cannot-read branch, which the readability guard above it hides
@@ -929,6 +929,23 @@ suites. Re-covering them would have cost lines the 500-line cap does not have an
 reaches `claim_fixtures.py`'s hash-mismatch and size-mismatch raises through a hostile input, because
 producing a blob whose content hashes to a pinned SHA is the one thing the mechanism is designed to
 make impossible. `scripts/test_claim_fixtures.py` reaches both by constructing the mismatch directly.
+
+**Two more check headers promise something their code does not keep.** `[94]` and `[95]` both join a
+paragraph's physical lines with a space before matching, then pick a line number by hunting the whole
+matched phrase on each physical line. When the policed section name or the claim phrase wraps at its
+own internal space, that hunt finds it on no single line and both fall back to the paragraph's first
+line. The site is still reported, which is what fail-closed asks for, but the number sends a reader
+to a line the phrase is not on. Both headers promise the opposite, and `[94]`'s names this exact case
+as its motivation: "an instruction can arrive with its verb on one line and its section name on the
+next ... the paragraph decides, and the physical line carrying the name is what gets printed", with a
+citation that does not resolve called "corpus class C2 committed by the check built to catch its
+neighbours". `[95]` adopts that promise by reference, its citation "stays a physical line, for the
+reason `[94]` gives".
+Separately, `[95]` walks its claim vocabulary one entry at a time and the short spelling of the
+pinning claim is a substring of the long one, so a single stale sentence forms two pairs, prints two
+reds and bumps the status twice, the second line reading "is is". That over-reports rather than
+under-reports, so nothing goes green that should not, but one defect is counted as two. Three rows
+now pin all of it. **Not fixed here, both fragments are outside T7's allowlist.**
 
 **A stale count found inside `[91]` while writing its rows, and it is the sprint's own defect class.**
 The fragment's header says its second declaration source, the orchestrator's comment block, "is two
