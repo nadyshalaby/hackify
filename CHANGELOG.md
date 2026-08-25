@@ -51,11 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the file does not have, ranges judged at their last line. Where the path resolves nowhere it stays
   quiet about the line, so one broken pointer does not print as two findings.
   `scripts/test_doc_link_lines.py` is its own suite and `.github/workflows/ci.yml` runs it.
-- **`[98]` in `98-work-doc-ledger-sync.sh`, so an archived sprint cannot claim a phase that never
-  ran.** Three assertions: a work-doc's `status` must be one of the values the template declares,
-  read out of that template at run time rather than copied into the check; a doc under
-  `docs/work/done/` must have closed every row of its phase ledger; and a doc outside that folder
-  must not claim it is done. It was written against a real archived sprint whose ledger showed
+- **`[98]` and `[99]`, so an archived sprint cannot claim a phase that never ran.** Four assertions
+  across two checks. `98-work-doc-ledger-sync.sh` reads the progress list: a record filed as finished
+  must have closed every row of it, and a record written since the list became a section must carry
+  one at all, which closes the path where deleting the list turns a failure into a pass.
+  `99-work-doc-status-claims.sh` reads the status line: it must be one of the values the template
+  declares, read out of that template at run time rather than copied into the check, and it must
+  agree with the folder the record sits in. They were written against a real archived sprint whose ledger showed
   Phase 5 still running under a `done` stamp, and the evidence said the ledger was the honest half:
   the retrospective was never written and no report was emitted. That doc now records what actually
   happened rather than being tidied to make the check pass.

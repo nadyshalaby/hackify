@@ -231,7 +231,7 @@ That edit is the last content change the doc ever receives. The move is the last
 git mv <project>/docs/work/<slug>.md <project>/docs/work/done/<slug>.md
 ```
 
-A rename changes no content, so the ledger cannot record its own move. Assertion (c) of `[98]` is what catches a session that died in between: a doc carrying `status: done` outside `done/` reds on the next validator run.
+A rename changes no content, so the ledger cannot record its own move. Assertion (c) of `[99]` is what catches a session that died in between: a doc carrying `status: done` outside `done/` reds on the next validator run.
 
 The Retrospective section is **mandatory**, and it is written before that closing edit. 3-8 bullets covering:
 
