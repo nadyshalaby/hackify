@@ -272,44 +272,55 @@ that nothing sources is a `[0]` FAIL, so creating and wiring must land together)
 labeller cannot see the check design. T2 extends existing machinery instead of duplicating it. Four
 new tasks carry decision #9-B's widened classes.
 
-- [ ] **T1a** Freeze the label table: 13 findings, bucket, archived-doc citation, reaching class,
+- [x] **T1a** Freeze the label table: 13 findings, bucket, archived-doc citation, reaching class,
       required scan scope. Note that four were REFUTED (I4, I6, M5, M6), three on scope and one on
       fact, so "verified" is the wrong word for the corpus as a whole. Commit alone.
-- [~] **T1b** Fixtures plus the scoring runner, built from T1a's frozen table. **Runner built
+      **Closed at `803ef51`.**
+- [x] **T1b** Fixtures plus the scoring runner, built from T1a's frozen table. **Runner built
       (`scripts/score_claim_corpus.py`). Fixtures NOT built: the dispatch brief omitted that half.
       Parent error, recorded here rather than folded quietly into a later task.** Under #11-A the
-      fixtures are what make leg (a) gradeable at `03e7a12`, so they land in W1b, before T6.
-- [ ] **T2** C2 citations: **extend `scripts/check_doc_links.py` (198 lines) and check `[57]`**,
+      fixtures are what make leg (a) gradeable, so they land in W1b, before T6.
+      **Both halves closed: runner at `47e3a01`, fixtures at `6c9a4d4`.** The parent error above is
+      kept rather than deleted; a task record that erases how it went wrong teaches nothing. The
+      `03e7a12` wording is dropped for the reason under AC1: no commit has all four sites live.
+- [x] **T2** C2 citations: **extend `scripts/check_doc_links.py` (198 lines) and check `[57]`**,
       which already resolve cited paths and already handle fenced blocks, inline code and the
       `docs/work/` exclusion. C2 adds only the `:N` line-count half. Handle the hard-wrapped-path
-      case (M2's shape) that a naive regex splits.
-- [ ] **T3** C4 check-exists, in new `scripts/validate-dod.d/91-claim-resolvers.sh`, **wired into the
+      case (M2's shape) that a naive regex splits. **Closed at `559a446`.**
+- [x] **T3** C4 check-exists, in new `scripts/validate-dod.d/91-claim-resolvers.sh`, **wired into the
       sourced list in the same commit**. Name the reference grammar and its exclusions first: bare
       `[NN]` yields 136 hits in live markdown and collides with markdown reference-link syntax.
+      **Closed at `789451d`.**
 - [x] **T4** C1 annotated counts. **DECLINED, nothing built. Superseded by T4b under #14-A.**
       The class cannot be built under this sprint's own guardrail: an annotation may carry a command
       (banned), a pattern that becomes a regex (banned), a literal counted with `grep -F` (safe but
       near-empty, since real count claims count files, rows and line spans rather than occurrences of
       one string), or a name selecting a measurement hardcoded in the fragment (safe, but then the
       fragment already holds the measurement and the annotation is a second place to keep in sync).
-- [ ] **T4b** **Floors in the checking code** for the quantities that matter, the working form of
+- [x] **T4b** **Floors in the checking code** for the quantities that matter, the working form of
       the same idea. The repo already does this at `20-templates.sh:4` (`check_line_range`) and in
       the `_FLOOR=` idiom in `[76]`, `[91]` and `[93]`. Pick the quantities other things actually
-      depend on; a floor on a number nobody reads is ceremony.
-- [ ] **T5** C3 declared vs used: every `{{token}}` in an agent prompt appears in its INPUTS list.
-- [ ] **T5b** **C5 retired vocabulary** (#9-B). Machinery already exists as `WI_DEAD_WORDS` in
+      depend on; a floor on a number nobody reads is ceremony. **Closed at `a8b376b` and
+      `21ccc8d`.** The floor that mattered most was invisible to the parent's candidate list.
+- [x] **T5** C3 declared vs used: every `{{token}}` in an agent prompt appears in its INPUTS list.
+      **Closed at `e9c461a` as check `[93]`.**
+- [x] **T5b** **C5 retired vocabulary** (#9-B). Machinery already exists as `WI_DEAD_WORDS` in
       `70-invariants-and-new.sh`; it is unfed for this class. Feed it, with an allowlist, because six
-      sites keep `Implementation Log` deliberately as back-compat.
-- [ ] **T5c** **C6 section-name exists** (#9-B): a doc instructing a writer to use a named work-doc
-      section must name one the template actually has.
-- [ ] **T5d** **C7 literal-absent claims** (#9-B), **both polarities per #13-A**: a sentence
+      sites keep `Implementation Log` deliberately as back-compat. **Closed at `21ccc8d`** as
+      `WI_DEAD_INPUTS` beside `WI_DEAD_WORDS`, both in `73-implementer-rename.sh` after the split,
+      each sized by `check_list_size` so a silently emptied list reds instead of passing over nothing.
+- [x] **T5c** **C6 section-name exists** (#9-B): a doc instructing a writer to use a named work-doc
+      section must name one the template actually has. **Closed at `21ccc8d` as check `[94]`.**
+- [x] **T5d** **C7 literal-absent claims** (#9-B), **both polarities per #13-A**: a sentence
       claiming a phrase is absent, unpinned or not present where it is in fact present, AND one
       claiming a phrase is present where it is in fact absent. Reaches I4 and M4. **I4's claim and
       its quoted literal sit on one physical line at `803ef51`, and M2 in this same corpus is the
       finding proving line-based matching goes blind the moment text wraps. Match a normalised
       paragraph, not a raw line.**
-- [ ] **T6** Score **once** against the frozen table. Record the score and every miss. **No tuning
+      **Closed at `21ccc8d` as check `[95]`, I4 re-pinned at `8ad1e0f`.**
+- [x] **T6** Score **once** against the frozen table. Record the score and every miss. **No tuning
       until it passes**; a bucket may move only with a work-doc entry saying which and why.
+      **Closed at `6f8be4c`. Scored 3 of 4, measured. No bucket moved and no tuning was done.**
 - [ ] **T7** Tamper: delete each branch, prove each reds **with its own expected message**. Plus the
       hostile-argument battery from AC3.
 - [ ] **T9** Write `rules/claim-integrity.md`: laws in bold leads, **#2-A** plus #4-A to #4-D, and
@@ -728,6 +739,22 @@ just faster wrongness.
 counterfactual wave that ran without a brief. The claim defended above is about what agents spent
 their turns on, which is observable in their reports. A speed *number* is not, and inventing one
 would break this sprint's own rule.
+
+### 2026-08-25, T6, the score stops being something anybody types
+
+**The grader was reading its own answer.** `score_claim_corpus.py` took the results as a hand-written JSON file or on stdin, so "3 of 4 caught" graded a transcription rather than the checks. Run with no argument it printed the whole score off an empty set and exited 0, which is a grader that read nothing printing a clean number, the same shape as the census that compared two empty sets and reported IDENTICAL.
+
+The results are now a by-product of running the shipped checks. `scripts/replay_claim_checks.py` drives each fragment against its own pinned fixture and derives the verdict from what came back. `caught` needs three things together: a non-zero exit, one of the fixture's pinned paths in the output, and one of its witness literals. All three are fixture data. None is an expectation written next to the answer.
+
+**The guardrail is where it has to be.** The fragment path and the replay variable come from a table of Python literals in the runner. A class string read from JSON is only ever a dict key, and a class with no entry raises instead of scoring `false`. `claim_fixtures.json` does name `validate-dod.d/*.sh` paths, because I4's evidence IS two validator fragments, and the distinction that matters is that those paths are materialised as evidence and can never be selected as the thing to execute.
+
+**Measured: 3 of 4.** I2 at three sites, M3, I4 caught. M4 not, which is the buildable target from #15-A. M4's clean pass line is captured verbatim, so the accepted refusal is now demonstrated rather than asserted, and a test fails if any of M4's witness literals ever appear in that output.
+
+**Proved live, not cached.** Blinding `[94]`, both its `red` call and its `FAILED` increment, dropped the score to 2 of 4 with I2 marked MISS; restoring gave 3 of 4, byte-identical by checksum both ways. A first attempt neutered only the `red` call, which left the exit code saying red while the output named nothing, and the runner **refused to score it at all**: "exited 3 without naming any file it pinned, so the run cannot be read as a catch or as a miss." An ambiguous run is not a miss, and it is not a catch.
+
+**And the agent found a fail-open the brief never named.** The replay runs the four `must_catch` fixtures and nothing else, so the nine `out_of_class` rows are not examined. They were printing `ok, stayed silent` under a provenance line reading `measured replay`. Same unearned claim, moved to the other half of the table. They now read `not measured by this run`, with a `NOT MEASURED` caveat between the numbers and the provenance.
+
+It also mutation-tested its own rules instead of trusting a green run, and **one mutation survived**: dropping the witness-literal requirement changed nothing, because all four live findings happen to red and quote their literal together. The rule the brief called central had no test that bit on it. There is one now, driving a synthetic red that names a pinned path and no witness literal.
 
 ### 2026-08-25, the parent proved an absence with a method that could not have found the presence
 
