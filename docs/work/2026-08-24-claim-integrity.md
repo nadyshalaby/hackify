@@ -678,6 +678,19 @@ checks make claim drift impossible would itself be the defect it bans.** AC6 alr
 command-per-fact convention from a guarantee to an aid, on the evidence that this sprint's own brief
 attached a command to a fact and the command was the thing that was wrong.
 
+### The shape T9 has to be written in, measured from the injector rather than guessed
+
+The rule ships as the fifth `UserPromptSubmit` injection, so it is subject to the same digest every other always-on rule is. Read out of `hooks/inject_context.py` rather than assumed:
+
+- `BULLET_LEAD` at :47 is `^\s*(?:[-*]|\d+\.)\s+\*\*(.+?)\*\*(.*)$`. **After the first prompt of a session, only bolded bullet leads survive.** A law written as body prose is still in the file, still greps clean on its own words, and reaches nothing from prompt two onward. `[76e]` already pins three phase laws in exactly this bullet form, and its comment says why: matching the bullet form is what makes a pin guard reach rather than presence.
+- `qualifier()` at :52 carries the clause after the bold lead only up to the first comma, semicolon or period, and drops it entirely past `QUALIFIER_MAX_CHARS = 34`. It drops rather than truncates, so a qualifier that grows by one character disappears rather than shortening.
+- `DIGEST_MAX_CHARS` is **900 and per-file**, not shared. `digest_of` is called on one body and `pointer_text` on one path, so a fifth rules file gets its own budget and cannot crowd out the four already wired. Measured today: expert-mindset 201, hard-caps 521, perf-guardrails 315, phase-discipline 251. Past the cap the digest ends in `; ...`, so an overrun silently drops the tail rather than failing.
+- Leads are de-duplicated (`if lead and lead not in leads`), so two laws that share a bold lead ship as one.
+
+**What this means for the writing.** Every load-bearing sentence has to live **inside the asterisks**, self-contained, under roughly 100 characters, and distinct from every other lead. The material this sprint gathered is mostly mechanics, and a mechanic is the thing that dies in this compression: "prove a zero by planting an instance the search must find" is a procedure, not a bullet lead. Each one has to be compressed to a lead that still carries its obligation, with the procedure below it in the body for the first prompt and for anyone who re-reads the file.
+
+**And T10 has to prove the reach, not the presence.** A test that greps `rules/claim-integrity.md` for its own sentences passes on a file that reaches nobody after turn 1. The assertion that matters is that the intended laws come back out of `digest_of()`, which is the same distinction `[76e]` was built on.
+
 ### Evidence base for the speed half of the ask, which the ACs had dropped
 
 The original ask has four parts and the eight ACs covered three. "the skill should focus of the
