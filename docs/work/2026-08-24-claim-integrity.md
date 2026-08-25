@@ -512,6 +512,41 @@ plus `|| echo clean` on a verification is the exact anti-pattern.
   Parent re-measured and gets 3, all placeholders. The disagreement is a resolution-rule difference
   (suffix-tolerant against exact), not a defect. Recorded, not chased.
 
+### 2026-08-25, waves 4 to 6, the classes land and four decisions come back
+
+**W4 built the last three classes.** `[94]` section-exists catches I2, `[95]` literal-absent catches
+I4, and `[40]` gained a retired-input list. M4 was refused rather than built, and the refusal held up:
+the release note names no path, only "the two mode skills", so any check needs a hand-written
+English-to-path map, and the literal it would look for is present in 12 files at the replay commit
+while the defect is two specific absences. Recorded under decision #15-A.
+
+**T4b added three floors** under decision #14-A, and the one that matters was not on the candidate
+list the parent supplied. `55-mirror-completeness.sh` prints a pass line carrying no number, so a
+sweep for "greens interpolating a count" could not see it, and it held the worse fail-open of the
+two: two `git ls-files` calls whose stderr goes to `/dev/null` and whose status nothing reads, feeding
+a `comm -23` that reports every file mirrored when the left side is empty. Six candidates were
+rejected in writing for counting fixed enumerated sets.
+
+**Decisions #16-C and #18-C fixed what #7-A had frozen.** Four instruction sites now use the live
+vocabulary and both known-findings lists retire with them. `[94]`'s retirement was forced rather than
+chosen: with the sites fixed and the list still present it reddened three times saying its own entries
+matched nowhere, which is the self-retirement the list was designed to force.
+
+**Decision #17-B split three fragments off the cap.** 500, 497 and 480 became a largest-fragment 404.
+The proof kept is the check-id census, 84 before and 84 after with both sets non-empty, because a
+split that silently drops a check is the failure mode and no size table shows it.
+
+**Five wrong parent facts caught by agents in one day**, which is the mechanism from AC9 working
+rather than a run of bad luck: a line number that had drifted 65 to 77 inside the session; `README.md`
+at 449 not 450, traced to a stale saved note; three block-opening line numbers off by one; an ok-line
+baseline of 1445 quoted as 1440; and the safety premise recorded in full above. Every one came back
+with the command that proved it, because the brief asked for one.
+
+**And one the parent caught on itself.** Verifying the census, the first attempt anchored on `^\[` and
+returned 0 ids before and 0 after, then printed IDENTICAL. The validator colours its headers, so the
+anchor never matched past the escape sequence. **Two empty sets comparing equal is the same green as
+a scan that read nothing**, and it was one line away from being reported as proof.
+
 ### Evidence base for T9, gathered as the sprint ran
 
 T9 writes the rule. Decision #8-A said the rule text comes last, shaped around what the checks
