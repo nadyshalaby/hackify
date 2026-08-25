@@ -47,6 +47,12 @@ in chat at every phase boundary.
 - **#4-A, #4-B, #4-C, #4-D.** Name all four failures explicitly: claiming without proving, reusing a
   stale number, citations that do not check out, fixing one site of a family.
 - **#7-A.** The previous sprint's backlog is NOT hand-fixed. It is this sprint's test corpus.
+  **Partly superseded 2026-08-25 by #16-C and #18-C**, which fixed I2 (three instruction sites naming
+  a retired work-doc section), the fourth site of that same family found by W4, and I4 (a validator
+  comment describing an `orchestration.md` row that does not exist). The rest of the backlog is still
+  carried unfixed under #7-A. **Fixing them costs no proof**: every check is graded against blobs
+  pinned by SHA in `scripts/claim_fixtures.json`, and replay ignores the live tree, which is the
+  reason the fixtures were built per-finding in W1b rather than as one snapshot.
 - **#8-A.** Start by prototyping the check, scored against the previous sprint's thirteen verified
   round-5 findings. Rule text is written afterwards, around what the check actually does.
 - **#5-A.** A refuted Critical still needs adjudication and user sign-off. **#6-A.** In yolo there is

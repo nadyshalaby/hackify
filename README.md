@@ -413,7 +413,7 @@ Two mechanisms. Each agent's prompt carries a strict file allowlist, the agent i
 No. Hackify is intentionally self-contained. All design law, TDD discipline, debugging method, verification rigor, and review checklists are inlined in `SKILL.md` or one of the bundled reference files.
 
 **What happens if I interrupt mid-implementation?**
-The work-doc holds state. Implementation Log entries are written per task, so the following session reads the latest entry and picks up at the following unchecked checkbox. Interrupting during a wave is safe, the parent waits for that wave's single dispatched agent to return before writing log entries.
+The work-doc holds state. A Daily Updates entry is written per task, so the following session reads the latest entry and picks up at the following unchecked checkbox. Interrupting during a wave is safe, the parent waits for that wave's single dispatched agent to return before writing log entries.
 
 **Does the workflow support monorepos?**
 Yes. Each sub-project (e.g., backend and frontend repos) is its own git repo with its own `docs/work/` directory. When a task spans multiple projects, create one work-doc per project and link them via the `related` frontmatter field. Phase 4 verification fans out across packages by default, one agent per package.

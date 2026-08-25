@@ -47,7 +47,7 @@ I2_PATH = 'skills/hackify/references/implement-and-test.md'
 # it names.
 OK_LINE = re.compile(r'ok\s+all instruction site\(s\).*?across (\d+) live file\(s\).*?'
                      r'\((\d+) mention\(s\) examined, (\d+) excused as back-compat '
-                     r'prose, (\d+) carried')
+                     r'prose\)')
 
 
 def run_fragment(replay_root=None):
@@ -130,15 +130,18 @@ def test_the_six_back_compat_sites_are_excused_and_counted():
     """The boundary the whole check turns on. Six live sites name the retired
     label on purpose. The count is asserted exactly, not as a floor, because
     this is the number that must not quietly drift: a seventh excused site means
-    a new marker started swallowing something."""
+    a new marker started swallowing something.
+
+    Every live mention is one of those six since the wave that retired the
+    known-findings list, so the partition below also states that the live tree
+    holds no unexcused instruction site at all."""
     rc, out = run_fragment()
     found = OK_LINE.search(out)
     assert found is not None, 'the pass line did not match its own shape:\n%s' % out
-    files, mentions, excused, known = (int(g) for g in found.groups())
+    files, mentions, excused = (int(g) for g in found.groups())
     assert rc == 0, out
     assert excused == 6, 'expected 6 back-compat sites excused, got %d' % excused
-    assert known == 3, 'expected 3 known live findings, got %d' % known
-    assert mentions == excused + known, 'the mention total does not partition'
+    assert mentions == excused, 'the mention total does not partition'
     assert files >= 100, files
 
 
@@ -205,12 +208,14 @@ def test_a_root_that_is_not_a_directory_is_refused():
     _refused(Path(handle.name), 'is not a directory')
 
 
-# --- 5. the known-findings list cannot become a silent licence ----------------
+# --- 5. the sentence the live tree used to carry is still caught --------------
 
-def test_replay_mode_ignores_the_known_list_so_the_raw_catch_is_measurable():
-    """The known list suppresses three real live findings. This proves the
-    suppression is a live-mode reporting choice and not a hole in the scanner:
-    the same sentence, replayed, FAILS."""
+def test_the_readme_sentence_that_was_fixed_this_wave_still_reds_when_replayed():
+    """README.md carried this shape until the wave that retired the
+    known-findings list rewrote it to Daily Updates. The scanner never stopped
+    being able to see it, and this replays the old wording to prove that what
+    changed is the TREE and not the check. Without this the live green could
+    mean either one."""
     body = ('# faq\n\nThe work-doc holds state. Implementation Log entries are '
             'written per task.\n')
     root = scratch(body, 'README.md')

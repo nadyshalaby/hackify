@@ -16,7 +16,7 @@ Switch into debug mode when ANY of the following:
 - Reproducing the bug requires steps that are not deterministic (intermittent)
 - A user reports the feature doesn't work after you marked it done (post-Phase 6 regression)
 
-When you enter debug mode, **update work-doc frontmatter**: `status: debugging`. Open a new section in the Implementation Log titled `### T<n>, debugging`.
+When you enter debug mode, **update work-doc frontmatter**: `status: debugging`. Open a new section in Daily Updates titled `### T<n>, debugging`.
 
 ---
 
@@ -186,8 +186,8 @@ If you patched at the symptom site during D3 to confirm the hypothesis, **revert
 Update work-doc:
 
 - `status: implementing` (continue with remaining tasks) or `status: verifying` (if this was the last task).
-- Tick the task's Tasks checkbox.
-- Implementation Log entry includes the hypothesis chain (compressed) and the regression test.
+- Tick the task's Sprint Backlog checkbox.
+- The Daily Updates entry includes the hypothesis chain (compressed) and the regression test.
 
 ---
 

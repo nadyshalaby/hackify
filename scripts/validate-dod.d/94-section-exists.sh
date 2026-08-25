@@ -57,17 +57,19 @@
 # on. Six live sites name the retired label ON PURPOSE, because resume mode has
 # to keep reading archived work-docs that still use it. Every one of them sits
 # in a paragraph that is ABOUT the rename: it says back-compat, or legacy, or
-# quotes the arrow from the old name to the new. None of the three instruction
-# sites does. So the discriminator is a marker in the surrounding paragraph, and
-# it is prose that tells a reader to READ either label versus prose that tells a
-# writer to WRITE into one.
+# quotes the arrow from the old name to the new. The instruction sites this
+# check was written for did not, and the I2 blob replayed out of
+# scripts/claim_fixtures.json still does not. So the discriminator is a marker
+# in the surrounding paragraph, and it is prose that tells a reader to READ
+# either label versus prose that tells a writer to WRITE into one.
 #
 # 'was ' IS NOT A MARKER, AND LEAVING IT OUT IS MEASURED RATHER THAN TIDY. It
-# was in the first draft and it excused debug-when-stuck.md:190, because three
-# lines above it an unrelated bullet reads 'if this was the last task' and the
-# paragraph is shared. One over-wide marker took a real finding off the board
-# silently. The narrower '(was ' survives, since that parenthetical only ever
-# introduces a rename.
+# was in the first draft and it excused a debug-when-stuck.md bullet, because
+# three lines above that bullet an unrelated one reads 'if this was the last
+# task' and the paragraph is shared. One over-wide marker took a real finding
+# off the board silently. That bullet has since been rewritten to name the live
+# section, so the site is no longer live; the narrower '(was ' stays, since that
+# parenthetical only ever introduces a rename.
 #
 # NOTHING SOURCED FROM A REPO FILE IS EXECUTED OR COMPILED INTO A PATTERN. Every
 # pattern below is a literal in this file. Headings parsed out of the template
@@ -90,11 +92,13 @@ yellow "[94] every instruction naming a work-doc section names one the template 
 #
 # THIS FRAGMENT AND ITS OWN TEST FILE COME OUT TOO, and that exclusion is
 # load-bearing rather than convenient. Neither can document the rule without
-# quoting the thing the rule bans: the KNOWN tuple below carries the live
-# findings verbatim in instruction grammar, and scripts/test_section_exists.py
-# asserts the caught text byte for byte. Without this, committing these two
-# files reddens the check on itself the first time it runs, which is a defect
-# that hides until the wave lands rather than while it is being built.
+# quoting the thing the rule bans: the I2 paragraph at the top of this file
+# retells the instruction that finding IS, and scripts/test_section_exists.py
+# asserts the caught text byte for byte in its own fixtures. That is measured
+# and not argued, both files were replayed under SE_REPLAY_ROOT against a copy
+# of themselves and both red. Without this, committing these two files reddens
+# the check on itself the first time it runs, which is a defect that hides
+# until the wave lands rather than while it is being built.
 #
 # THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 70-invariants-and-new.sh:218
 # takes the identical way out for the identical cause, a banned-wording scanner
@@ -121,7 +125,6 @@ SE_FILES=0
 SE_HEADINGS=0
 SE_MENTIONS=0
 SE_EXCUSED=0
-SE_KNOWN=0
 SE_MODE=none
 
 se_fail() {
@@ -133,7 +136,7 @@ se_read_size() {
   local line
   while IFS= read -r line; do
     case "$line" in
-      'SIZE '*) read -r SE_FILES SE_HEADINGS SE_MENTIONS SE_EXCUSED SE_KNOWN SE_MODE \
+      'SIZE '*) read -r SE_FILES SE_HEADINGS SE_MENTIONS SE_EXCUSED SE_MODE \
         <<<"${line#SIZE }" ;;
     esac
   done <<<"$1"
@@ -175,18 +178,10 @@ se_floors_hold() {
 
 # AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim. A summary that
 # contradicts the failure above it is the fail-open shape this fragment exists
-# to refuse, so the pass line is reached only when nothing failed. KNOWN lines
-# are printed BEFORE the verdict either way, because they are the check's
-# report on live findings and suppressing them would be the silence the whole
-# mechanism refuses.
+# to refuse, so the pass line is reached only when nothing failed.
 se_verdict() {
   local line bad=0
   se_read_size "$1"
-  while IFS= read -r line; do
-    case "$line" in
-      'KNOWN '*) yellow "  note ${line#KNOWN }" ;;
-    esac
-  done <<<"$1"
   se_floors_hold || return
   while IFS= read -r line; do
     case "$line" in
@@ -194,7 +189,7 @@ se_verdict() {
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all instruction site(s) naming a work-doc section across $SE_FILES live file(s) name one of the template's $SE_HEADINGS heading(s) ($SE_MENTIONS mention(s) examined, $SE_EXCUSED excused as back-compat prose, $SE_KNOWN carried on the known-findings list)"
+  green "  ok   all instruction site(s) naming a work-doc section across $SE_FILES live file(s) name one of the template's $SE_HEADINGS heading(s) ($SE_MENTIONS mention(s) examined, $SE_EXCUSED excused as back-compat prose)"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -226,37 +221,6 @@ EXCLUDE = ('scripts/claim_corpus.json', 'scripts/claim_fixtures.json',
            'scripts/test_claim_fixtures.py',
            'scripts/validate-dod.d/94-section-exists.sh',
            'scripts/test_section_exists.py')
-
-# THE KNOWN-FINDINGS LIST, AND IT NEEDS RATIFICATION BEFORE IT SHIPS.
-#
-# Every entry here is a REAL defect that this check correctly finds on the live
-# tree. They are reported as notes rather than failures for one reason: sprint
-# decision #7-A rules that the previous sprint's backlog is this sprint's test
-# corpus and is NOT hand-fixed. Fixing them would destroy the corpus the check
-# is graded against; failing on them would leave the validator permanently red.
-# So they are named, printed on every run, and carried.
-#
-# THIS IS A SUPPRESSION LIST INSIDE A SPRINT ABOUT CHECKS THAT GO QUIET WHEN
-# THEY SHOULD NOT, so it is built to be the opposite of quiet:
-#   - every entry prints on every run, with its counter-evidence;
-#   - the count prints on the pass line, so the list cannot grow unseen;
-#   - an entry that stops matching REDS, so a fixed site forces its own removal
-#     rather than rotting here as a licence nothing needs;
-#   - replay mode ignores the list entirely, so the test suite measures the raw
-#     catch, and emptying this tuple is a one-line change.
-#
-# Entries are pinned by a distinctive phrase from the sentence, never by a line
-# NUMBER. scripts/claim_fixtures.json refuses line numbers on worktree content
-# for the reason that applies here too: freezing a number against content free
-# to move rebuilds the drift this check hunts. A phrase changes when the claim
-# changes, which is exactly when the entry should stop matching.
-KNOWN = (
-    ('README.md', 'Implementation Log entries are written per task'),
-    ('skills/hackify/references/debug-when-stuck.md',
-     'Open a new section in the Implementation Log'),
-    ('skills/hackify/references/debug-when-stuck.md',
-     'Implementation Log entry includes the hypothesis chain'),
-)
 
 
 def read(path):
@@ -311,19 +275,15 @@ def cite(rows, name):
     return rows[0][0]
 
 
-def judge(path, para, use_known):
+def judge(para):
     """Classify one paragraph that mentions a policed name. Returns a tag."""
     _start, text, rows = para
     for name in POLICED:
         if name not in text:
             continue
         if any(mark in text for mark in BACKCOMPAT):
-            return ('excused', name, cite(rows, name), None)
-        if use_known:
-            for kpath, phrase in KNOWN:
-                if kpath == path and phrase in text:
-                    return ('known', name, cite(rows, name), phrase)
-        return ('fail', name, cite(rows, name), None)
+            return ('excused', name, cite(rows, name))
+        return ('fail', name, cite(rows, name))
     return None
 
 
@@ -386,18 +346,6 @@ def guard_premise(names):
     return alive
 
 
-def stale(seen):
-    """A known entry matching nothing is a licence nothing needs, so it reds.
-
-    Split out of scan() only to keep that function inside the 40-line cap, the
-    same reason [93] splits _report_uses off its own reporter."""
-    for kpath, phrase in KNOWN:
-        if (kpath, phrase) not in seen:
-            print('FAIL the known-findings list carries %s %r, and this run matched '
-                  'it nowhere; the site was fixed or reworded, so the entry is a '
-                  'licence nothing needs and must be deleted' % (kpath, phrase))
-
-
 def scan(paths, root, setup):
     """Walk every candidate path, report, then print the one SIZE line.
 
@@ -414,37 +362,25 @@ def scan(paths, root, setup):
     name coming back. A wrong reason for a red is the defect this fragment
     exists to catch, so the counts stay real and the premise FAIL stands alone."""
     mode, names, alive = setup
-    use_known = mode != 'replay'
-    files = mentions = excused = known = 0
-    seen = set()
+    files = mentions = excused = 0
     for path in paths:
         full = os.path.join(root, path)
         if not os.path.isfile(full):
             continue
         files += 1
         for para in paragraphs(read(full)):
-            got = judge(path, para, use_known)
+            got = judge(para)
             if got is None:
                 continue
-            tag, name, line, phrase = got
+            tag, name, line = got
             mentions += 1
             if tag == 'excused':
                 excused += 1
-            elif tag == 'known':
-                known += 1
-                seen.add((path, phrase))
-                if alive:
-                    print('KNOWN [94] %s:%d instructs a writer to use %r, which is not '
-                          'one of the template headings; carried unfixed under sprint '
-                          'decision #7-A, which makes the previous sprint backlog this '
-                          'sprint test corpus' % (path, line, name))
             elif alive:
                 print('FAIL %s:%d instructs a writer to use a work-doc section named '
                       '%r, and %s declares no such heading (searched every ## heading, '
                       '%d found)' % (path, line, name, TEMPLATE, len(names)))
-    if use_known and alive:
-        stale(seen)
-    print('SIZE %d %d %d %d %d %s' % (files, len(names), mentions, excused, known, mode))
+    print('SIZE %d %d %d %d %s' % (files, len(names), mentions, excused, mode))
 
 
 NAMES = headings()
