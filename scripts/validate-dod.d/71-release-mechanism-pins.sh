@@ -176,11 +176,11 @@ done
 # into B when the diff gives their lens nothing to look at, E joins on UI-bearing
 # diffs, cap 5. These pins used to assert four reviewers always run, false since
 # 17c4a24 and the v0.13.0 C-into-B merge. Pin the GATING RULE, never the arithmetic:
-# a fixed count fails on correct text and passes on a reverted panel. And
-# orchestration.md's "4-5 reviewers" row is deliberately NOT pinned, it sizes a
-# fan-out for the orchestration tier (flat batch vs Workflow tool), an answer
-# identical at 1 reviewer and at 5, so it estimates cost rather than stating a
-# contract; with B alone standing the true floor is 1, which that range denies.
+# a fixed count fails on correct text and passes on a reverted panel. The range
+# spellings are caught by ban lists rather than pins: RR_BANS in [77] carries
+# '4-5 reviewers', P5_BANS below carries '5-6 reviewers' over a set that includes
+# ORCH_G, and orchestration.md states no count to pin in the first place. With B
+# alone standing the true floor is 1, so any range denies it.
 P5_PHASE_G="skills/hackify/references/phases/phase-5-review.md"
 RAV_G="skills/hackify/references/review-and-verify.md"
 ORCH_G="skills/hackify/references/orchestration.md"

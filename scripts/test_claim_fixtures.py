@@ -47,6 +47,8 @@ from claim_fixtures import (check_provenance, check_witnesses, count_literal,
 I2_BLOB = 'a4b2960d294290c037ce8bc29261690398cc5843'
 M3_BLOB = '16a167089b89773632ae96700c40c05420be7eb1'
 FIX_COMMIT = '6495b2b23450d5257e999716d15a00565888f44f'
+CLAIM_SITE = 'scripts/validate-dod.d/71-release-mechanism-pins.sh'
+BAN_SITE = 'scripts/validate-dod.d/77-reviewer-roster.sh'
 RENAMED_AWAY = 'agents/wave-task-implementer.md'
 STILL_THERE = 'agents/wave-implementer.md'
 ABSENT_BLOB = '0' * 40
@@ -97,6 +99,35 @@ def _blob_fixture(**overrides):
   return [entry]
 
 
+def _worktree_fixture(**overrides):
+  """A minimal valid worktree fixture, parsed the same way the real manifest is.
+
+  Every must_catch finding is fixed now, so no manifest entry is kind worktree any
+  more. The kind is still supported, and the scope path it drives is the one that
+  hands back the repository root itself, so it is covered from here rather than
+  left to whichever finding happened to be unfixed. The witness names a real repo
+  file because a worktree scope materialises nothing."""
+  entry = {
+      'id': 'W1', 'kind': 'worktree',
+      'scored_as': 'a site on disk, named as the corpus requires',
+      'witnesses': [{'path': 'scripts/claim_fixtures.py', 'polarity': 'present',
+                     'literal': 'def check_witnesses'}],
+  }
+  entry.update(overrides)
+  return [entry]
+
+
+def _load_one(fixtures):
+  """Parse a throwaway manifest through the real loader and hand back its one spec."""
+  path = _write_manifest(fixtures)
+  try:
+    specs = load_manifest(path)
+  finally:
+    path.unlink()
+  assert len(specs) == 1, 'wanted exactly one spec, got %d' % len(specs)
+  return specs[0]
+
+
 # --- 1. the real manifest actually replays ------------------------------------
 
 def test_every_fixture_materialises_and_holds_its_defect():
@@ -104,9 +135,12 @@ def test_every_fixture_materialises_and_holds_its_defect():
   assert failures == [], 'fixtures do not hold their defects: %s' % failures
 
 
-def test_the_three_fixed_findings_are_pinned_and_the_live_one_is_not():
+def test_every_must_catch_finding_is_fixed_and_pinned_by_blob():
+  """I4 was the last one scored against the worktree. Sprint decision #16-C fixed
+  the comment it was filed against, and the field guide's own rule then makes it a
+  blob pin: worktree is for a defect still on disk."""
   kinds = {spec.ident: spec.kind for spec in _specs()}
-  assert kinds == {'I2': 'blobs', 'M3': 'blobs', 'M4': 'blobs', 'I4': 'worktree'}
+  assert kinds == {'I2': 'blobs', 'M3': 'blobs', 'M4': 'blobs', 'I4': 'blobs'}
 
 
 def test_i2_replays_the_filed_site_at_line_34():
@@ -147,8 +181,21 @@ def test_provenance_still_resolves_from_the_commits_the_manifest_claims():
 
 # --- 2. the no-fixture-needed path is first class -----------------------------
 
-def test_i4_scores_against_the_worktree_with_no_temp_dir():
+def test_i4_replays_the_filed_claim_beside_the_ban_that_falsifies_it():
+  """Both halves in one scope, which is the only arrangement in which C7 is a
+  defect at all: a claim that a phrase is unpinned is only wrong if something
+  else pins it."""
   spec = _by_id('I4')
+  with replay_scope(spec) as scope:
+    claim = (scope.root / CLAIM_SITE).read_bytes()
+    bans = (scope.root / BAN_SITE).read_bytes()
+  assert literal_lines(claim, '"4-5 reviewers" row is deliberately NOT pinned') == [180]
+  assert literal_lines(bans, '4-5 reviewers') == [216]
+  assert len(claim) == 31791 and len(bans) == 17091, 'a zero here would be the false zero'
+
+
+def test_a_worktree_fixture_scores_on_disk_with_no_temp_dir():
+  spec = _load_one(_worktree_fixture())
   with replay_scope(spec) as scope:
     assert scope.kind == 'worktree'
     assert scope.root == REPO_ROOT
@@ -158,7 +205,7 @@ def test_i4_scores_against_the_worktree_with_no_temp_dir():
 def test_the_worktree_scope_survives_its_own_cleanup():
   """The highest-severity bug available here: cleanup gated on anything other than
   'I made this temp dir myself' deletes the repository on the worktree path."""
-  spec = _by_id('I4')
+  spec = _load_one(_worktree_fixture())
   with replay_scope(spec) as scope:
     root = scope.root
   assert root.is_dir(), 'the worktree scope deleted the repository root'

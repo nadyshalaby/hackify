@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "what_this_is": "Replay sources for the claim-integrity check, one entry per must_catch finding in claim_corpus.json. Three of the four must_catch findings were fixed before this sprint opened, so they cannot be scored against the tree as it stands. Each of those pins the historical file content by git BLOB SHA, which is a content hash, so a pinned source can never drift. The fourth is still live and is scored against the worktree instead, which is a first-class kind here rather than a special case.",
+  "what_this_is": "Replay sources for the claim-integrity check, one entry per must_catch finding in claim_corpus.json. All four must_catch findings are now fixed: three before this sprint opened, and I4 by sprint decision #16-C. None of them can be scored against the tree as it stands, so each pins the historical file content by git BLOB SHA, which is a content hash, so a pinned source can never drift. Kind 'worktree' stays a first-class kind for a finding that is still on disk. No entry needs it today, so the validator's worktree rules are held up by the suite's own synthetic fixtures instead.",
   "why_blob_shas": "A blob SHA is derived from the bytes themselves, so 'this content was live at that commit' is verifiable rather than asserted. Copying a snapshot into the repo would have made the fixture an unverifiable claim about history, which is the defect class this sprint exists to catch. Commits are recorded as full 40-char SHAs for the same reason: an abbreviated or relative commit-ish (ab5cb74~1) is an expression, not a pin.",
   "worktree_means_the_worktree": "kind 'worktree' means the files on disk right now, NOT the corpus term 'live_at_head' and NOT the corpus derived_at commit 2ccb728. Those are different things and conflating them is easy, so it is said here once: a worktree fixture scores what a check would see if it ran today.",
   "field_guide": {
@@ -140,20 +140,40 @@
     },
     {
       "id": "I4",
-      "kind": "worktree",
+      "kind": "blobs",
       "class": "C7_literal_absent_claim",
-      "scored_as": "The filed site on disk now, 71-release-mechanism-pins.sh, against the ban list in 77-reviewer-roster.sh. The round 5 refuter re-routed this one to Phase 6 rather than fixing it, so it needs no fixture and is scored where it lives.",
+      "scored_as": "The filed site, 71-release-mechanism-pins.sh:180, as it stood at 21ccc8d, the last commit before sprint decision #16-C corrected it, against the ban list in 77-reviewer-roster.sh:216. This entry was kind worktree while the defect was still on disk; #16-C fixed the comment, and the field guide's own rule makes a fixed defect a blob pin. Corpus note n5 requires this call to be written down, so here it is: the fixture scores the filed site, and the ban list is pinned beside it because the claim and its counter-evidence are only a defect when one scope holds both.",
+      "files": [
+        {
+          "path": "scripts/validate-dod.d/71-release-mechanism-pins.sh",
+          "blob": "1391f019ef02ee2a06a1c1bca53bbbb993eda01e",
+          "size": 31791,
+          "commit": "21ccc8d957203e720c3615c083620eafb37c8231",
+          "origin_note": "21ccc8d, the last commit carrying the defective comment"
+        },
+        {
+          "path": "scripts/validate-dod.d/77-reviewer-roster.sh",
+          "blob": "d40b70ada4e184758358df7d21d192f4272c18b2",
+          "size": 17091,
+          "commit": "21ccc8d957203e720c3615c083620eafb37c8231",
+          "origin_note": "21ccc8d, the same commit; #16-C left the ban list untouched"
+        }
+      ],
       "witnesses": [
         {
           "path": "scripts/validate-dod.d/71-release-mechanism-pins.sh",
           "polarity": "present",
           "literal": "\"4-5 reviewers\" row is deliberately NOT pinned",
-          "note": "The claim and its quoted literal on ONE physical line, which is what makes it reachable by a line-based check. Corpus note n8 flags that this reachability rests on the line wrap holding. No line number is frozen here on purpose: worktree content is free to move, and pinning a number against it would rebuild the drift this check hunts."
+          "count": 1,
+          "lines": [180],
+          "note": "The filed site. The claim and its quoted literal sit on ONE physical line, which is what made it reachable by a line-based check, and corpus note n8 flagged that the reachability rested on that wrap holding. The blob freezes the bytes, so the line number is asserted here rather than refused as it was under kind worktree."
         },
         {
           "path": "scripts/validate-dod.d/77-reviewer-roster.sh",
           "polarity": "present",
           "literal": "4-5 reviewers",
+          "count": 1,
+          "lines": [216],
           "note": "The counter-evidence. The phrase the comment calls unpinned is sitting in RR_BANS."
         }
       ]

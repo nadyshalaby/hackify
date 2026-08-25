@@ -8,11 +8,11 @@
 # in another fragment's pin or ban list.
 #
 # THE DEFECT IT WAS WRITTEN FOR IS THIS REPO'S OWN, and it is finding I4 in
-# scripts/claim_corpus.json. 71-release-mechanism-pins.sh:180 says orchestration
-# .md's "4-5 reviewers" row is deliberately NOT pinned, while 77-reviewer-roster
-# .sh:216 has that exact phrase in RR_BANS. The round 5 refuter re-routed I4 to
-# Phase 6 rather than fixing it, so unlike its two sibling findings it is still
-# live and needs no fixture.
+# scripts/claim_corpus.json. 71-release-mechanism-pins.sh used to say orchestration
+# .md's "4-5 reviewers" row was deliberately NOT pinned, while 77-reviewer-roster
+# .sh:216 has that exact phrase in RR_BANS. Sprint decision #16-C fixed that
+# sentence, so I4 is no longer on the live tree: it replays from the blob
+# scripts/claim_fixtures.json pins for it.
 #
 # THE MATCH UNIT IS A NORMALISED PARAGRAPH, NEVER A RAW LINE. Corpus note n8
 # says I4's reachability rests on the claim and its quoted literal sharing one
@@ -76,10 +76,9 @@ yellow "[95] every claim that a quoted phrase is not pinned is true when the phr
 # THIS FRAGMENT AND ITS OWN TEST FILE COME OUT ON THE SAME PRINCIPLE. Both state
 # I4 in the exact grammar this check hunts, because neither can document the
 # finding without putting the claim and its quoted phrase in one paragraph: the
-# header above does it, the KNOWN tuple does it, and
-# scripts/test_literal_absent_claims.py builds the wrapped claim as fixture text
-# so the paragraph unit can be tested at all. Left in, they turn this check red
-# against itself the moment the wave is committed.
+# header above does it, and scripts/test_literal_absent_claims.py builds the
+# wrapped claim as fixture text so the paragraph unit can be tested at all. Left
+# in, they turn this check red against itself.
 #
 # BOTH PRECEDENTS SIT IN THIS DIRECTORY. 70-invariants-and-new.sh:218
 # self-excludes for the identical cause. 91-claim-resolvers.sh does not, and the
@@ -89,7 +88,7 @@ yellow "[95] every claim that a quoted phrase is not pinned is true when the phr
 # into either file is invisible here. The test file drives the REAL fragment
 # through a replay root for exactly that reason.
 #
-# THE FLOORS ARE WHAT STOP A VACUOUS PASS. Measured when this was written: 232
+# THE FLOORS ARE WHAT STOP A VACUOUS PASS. Measured after #16-C fixed I4: 234
 # live files, 10 paragraphs carrying a pinning claim phrase. Floors sit near
 # half of each, so ordinary prose churn never reddens this and a collapse still
 # does. If the claim vocabulary stops matching, this check goes silent, and a
@@ -100,7 +99,6 @@ LA_CLAIM_FLOOR=5
 LA_FILES=0
 LA_CLAIMS=0
 LA_PAIRS=0
-LA_KNOWN=0
 LA_MODE=none
 
 la_fail() {
@@ -112,7 +110,7 @@ la_read_size() {
   local line
   while IFS= read -r line; do
     case "$line" in
-      'SIZE '*) read -r LA_FILES LA_CLAIMS LA_PAIRS LA_KNOWN LA_MODE <<<"${line#SIZE }" ;;
+      'SIZE '*) read -r LA_FILES LA_CLAIMS LA_PAIRS LA_MODE <<<"${line#SIZE }" ;;
     esac
   done <<<"$1"
 }
@@ -143,17 +141,10 @@ la_floors_hold() {
   return 0
 }
 
-# AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim. KNOWN lines print
-# first either way, because they are this check's report on a live finding and
-# suppressing them would be the silence the mechanism refuses.
+# AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim.
 la_verdict() {
   local line bad=0
   la_read_size "$1"
-  while IFS= read -r line; do
-    case "$line" in
-      'KNOWN '*) yellow "  note ${line#KNOWN }" ;;
-    esac
-  done <<<"$1"
   la_floors_hold || return
   while IFS= read -r line; do
     case "$line" in
@@ -161,7 +152,7 @@ la_verdict() {
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all $LA_PAIRS quoted phrase(s) called unpinned across $LA_FILES live file(s) are genuinely unpinned ($LA_CLAIMS pinning claim(s) examined, $LA_KNOWN carried on the known-findings list)"
+  green "  ok   all $LA_PAIRS quoted phrase(s) called unpinned across $LA_FILES live file(s) are genuinely unpinned ($LA_CLAIMS pinning claim(s) examined)"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -199,18 +190,6 @@ EXCLUDE = ('scripts/claim_corpus.json', 'scripts/claim_fixtures.json',
            'scripts/test_claim_fixtures.py',
            'scripts/validate-dod.d/95-literal-absent-claims.sh',
            'scripts/test_literal_absent_claims.py')
-
-# THE KNOWN-FINDINGS LIST, AND IT NEEDS RATIFICATION BEFORE IT SHIPS. Same
-# contract [94] states in full: every entry is a REAL defect this check finds on
-# the live tree, carried rather than fixed because sprint decision #7-A makes
-# the previous sprint backlog this sprint's test corpus. Every entry prints on
-# every run with its counter-evidence, the count prints on the pass line, an
-# entry that stops matching REDS so a fixed site forces its own removal, replay
-# mode ignores the list entirely, and emptying this tuple is a one-line change.
-KNOWN = (
-    ('scripts/validate-dod.d/71-release-mechanism-pins.sh',
-     '"4-5 reviewers" row is deliberately NOT pinned'),
-)
 
 
 def read(path):
@@ -316,31 +295,20 @@ def load(paths, root):
 
 
 def report(path, rows, hit):
-    """One judged pair. Returns 'known' when the known list carries it.
+    """One judged pair, failed with the files that carry the phrase named.
 
-    `hit` groups (phrase, claim, where, use_known) rather than taking four more
+    `hit` groups (phrase, claim, where) rather than taking three more
     parameters, the same tuple-grouping [93]'s _report_uses uses to stay inside
     the three-parameter cap."""
-    phrase, claim, where, use_known = hit
+    phrase, claim, where = hit
     line = cite(rows, claim)
-    if use_known:
-        for kpath, marker in KNOWN:
-            if kpath == path and any(marker in body for _, body in rows):
-                print('KNOWN [95] %s:%d calls %r unpinned while it is present in %s; '
-                      'carried unfixed under sprint decision #7-A, which makes the '
-                      'previous sprint backlog this sprint test corpus'
-                      % (path, line, phrase, ', '.join(where)))
-                return 'known'
     print('FAIL %s:%d says %r is %s, and that phrase is present in %d other live '
           'file(s): %s' % (path, line, phrase, claim, len(where), ', '.join(where)))
-    return 'fail'
 
 
 def scan(corpus, mode):
     """Judge every claim/subject pair, then print the one SIZE line."""
-    use_known = mode != 'replay'
-    claims = pairs = known = 0
-    seen = set()
+    claims = pairs = 0
     for path in sorted(corpus):
         for para, rows in paragraphs(corpus[path]):
             if not any(c in para for c in CLAIMS):
@@ -351,16 +319,8 @@ def scan(corpus, mode):
                 where = elsewhere(corpus, path, phrase)
                 if not where:
                     continue
-                if report(path, rows, (phrase, claim, where, use_known)) == 'known':
-                    known += 1
-                    seen.add(path)
-    if use_known:
-        for kpath, marker in KNOWN:
-            if kpath not in seen:
-                print('FAIL the known-findings list carries %s %r, and this run matched '
-                      'it nowhere; the site was fixed or reworded, so the entry is a '
-                      'licence nothing needs and must be deleted' % (kpath, marker))
-    print('SIZE %d %d %d %d %s' % (len(corpus), claims, pairs, known, mode))
+                report(path, rows, (phrase, claim, where))
+    print('SIZE %d %d %d %s' % (len(corpus), claims, pairs, mode))
 
 
 ROOT = replay_root()

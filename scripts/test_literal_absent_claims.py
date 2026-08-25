@@ -10,8 +10,9 @@ the defect class this whole sprint is about.
 The suite is organised around the four ways this check could be worse than
 useless rather than merely broken:
 
-  1. IT MISSES THE FINDING IT WAS WRITTEN FOR. Corpus finding I4 is still live,
-     so it is scored against real file content rather than a historical blob.
+  1. IT MISSES THE FINDING IT WAS WRITTEN FOR. Sprint decision #16-C fixed the
+     comment corpus finding I4 was filed against, so I4 is scored against the
+     blob scripts/claim_fixtures.json pins for it, never against the live tree.
   2. IT FABRICATES. The first draft of this check formed 352 claim pairs over
      the live tree and 8 of its 9 tightened pairs were still wrong, every one of
      them a RUNTIME absence rather than a text absence. Those shapes are pinned
@@ -25,21 +26,27 @@ useless rather than merely broken:
 
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# The replay comes from the fixture machinery rather than from a second copy of
+# the blob shas. One source of truth for what I4 is: if the manifest entry ever
+# stops carrying the defect, its own suite reds and this one does too.
+from claim_fixture_manifest import load_manifest
+from claim_fixtures import replay_scope
+
 FRAGMENT = 'scripts/validate-dod.d/95-literal-absent-claims.sh'
 ORCHESTRATOR = REPO_ROOT / 'scripts' / 'validate-dod.sh'
 I4_CLAIM = 'scripts/validate-dod.d/71-release-mechanism-pins.sh'
 I4_EVIDENCE = 'scripts/validate-dod.d/77-reviewer-roster.sh'
 
 OK_LINE = re.compile(r'ok\s+all (\d+) quoted phrase\(s\) called unpinned across '
-                     r'(\d+) live file\(s\).*?\((\d+) pinning claim\(s\) examined, '
-                     r'(\d+) carried')
+                     r'(\d+) live file\(s\).*?\((\d+) pinning claim\(s\) examined\)')
 
 
 def run_fragment(replay_root=None):
@@ -65,19 +72,17 @@ def scratch(files):
     return root
 
 
-def i4_scope():
-    """The two live files I4 lives across, copied byte for byte into a scope.
+def i4_spec():
+    """The pinned I4 fixture, read out of the manifest that owns it.
 
-    I4 is pinned in claim_fixtures.json as kind 'worktree', which yields the
-    repository root, and the replay hook REFUSES that root by design. So the
-    scope is built here from the same bytes instead. Nothing is rewritten: this
-    is the real claim and the real counter-evidence, read off disk."""
-    root = Path(tempfile.mkdtemp(prefix='la-i4-'))
-    for name in (I4_CLAIM, I4_EVIDENCE):
-        target = root / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(REPO_ROOT / name, target)
-    return root
+    I4 was kind 'worktree' until #16-C fixed the comment it was filed against.
+    It is kind 'blobs' now, so replay_scope materialises both halves into a temp
+    dir from content hashes, which is a scope the replay hook accepts and content
+    that cannot drift. Nothing here is read off the live tree."""
+    for spec in load_manifest():
+        if spec.ident == 'I4':
+            return spec
+    raise AssertionError('the fixture manifest carries no I4')
 
 
 # --- 1. the finding it was written for ----------------------------------------
@@ -86,21 +91,21 @@ def test_i4_is_caught_with_its_counter_evidence_named():
     """The deliverable. The claim and the phrase it calls unpinned live in two
     different files, so a check that only reported the claim would not have
     proved anything. The counter-evidence file must be named."""
-    root = i4_scope()
-    rc, out = run_fragment(root)
+    with replay_scope(i4_spec()) as scope:
+        rc, out = run_fragment(scope.root)
     assert rc != 0, 'the replay printed no failure:\n%s' % out
     assert "says '4-5 reviewers' is NOT pinned" in out, out
     assert I4_CLAIM in out and I4_EVIDENCE in out, out
 
 
-def test_i4_is_reported_on_the_live_tree_as_a_known_finding():
-    """Sprint decision #7-A carries this one unfixed, so on the live tree it is
-    reported rather than failed. Reported is the load-bearing word: silence
-    would not satisfy 'caught on the live tree'."""
+def test_the_live_tree_no_longer_carries_the_i4_claim():
+    """The other half of the deliverable. #16-C fixed the filed site, so the scan
+    that used to report it must now find nothing there. If the sentence ever comes
+    back, this reds before the pass line absorbs it as ordinary prose."""
     rc, out = run_fragment()
     assert rc == 0, out
-    assert '%s:180 calls ' % I4_CLAIM in out, out
-    assert "'4-5 reviewers' unpinned while it is present in %s" % I4_EVIDENCE in out, out
+    assert I4_CLAIM not in out, out
+    assert '4-5 reviewers' not in out, out
 
 
 def test_the_claim_is_matched_after_the_line_wrap_moves():
@@ -125,14 +130,19 @@ def test_the_live_tree_comes_back_clean():
     assert '  ok   all ' in out and 'genuinely unpinned' in out, out
 
 
-def test_the_live_scan_forms_exactly_one_pair_and_carries_it():
+def test_the_live_scan_forms_no_pair_at_all():
+    """Before #16-C this formed exactly one pair, I4, and carried it on a
+    known-findings list. The fix removed the claim, so the honest number is zero
+    and the list retired with it. The floors still have to hold underneath, or a
+    scan that read nothing would report the same zero."""
     rc, out = run_fragment()
     found = OK_LINE.search(out)
     assert found is not None, 'the pass line did not match its own shape:\n%s' % out
-    pairs, files, claims, known = (int(g) for g in found.groups())
+    pairs, files, claims = (int(g) for g in found.groups())
     assert rc == 0, out
-    assert pairs == 1 and known == 1, 'pairs=%d known=%d' % (pairs, known)
+    assert pairs == 0, 'pairs=%d' % pairs
     assert files >= 100 and claims >= 5, (files, claims)
+    assert 'known-findings list' not in out, out
 
 
 def test_a_runtime_absence_sentence_does_not_fire():
