@@ -114,8 +114,10 @@ The superseded text is preserved in the spec-review section below rather than de
       built: bucket, citation into the archived work-doc, the class that reaches it, and the scan
       scope required. **Frozen and committed alone at `803ef51`. The derived reachable set is 4 of
       13**, 3 at freeze plus M4 under #13-A, **not the 5-6 the parent quoted.** Grading runs three
-      legs per #11-A: (a) the check hits **100% of the reachable set** replayed at `03e7a12`, the
-      sprint base where all four sites were live, each verified by reading the file at that commit;
+      legs per #11-A: (a) the check hits **100% of the buildable set, 3 of 3**, each replayed
+      against **its own pinned fixture** in `scripts/claim_fixtures.json`, **and M4's miss is
+      measured rather than assumed**, the C7 check runs on M4's pinned evidence and its clean pass
+      line is recorded as the evidence that it looked;
       (b) it claims **none** of the 9 out-of-class findings, the leg that cannot be tuned because
       nothing about it rewards the check for firing; (c) tamper proves every branch reds on its own
       message. **Legs (a) and (c) both have to pass. Leg (b) passing alone proves only that the
@@ -123,6 +125,23 @@ The superseded text is preserved in the spec-review section below rather than de
 - [ ] **AC1b** The label table is committed alone, before W2 opens, and any later change to a bucket
       needs a work-doc entry naming which finding moved and why. **No tuning the answer key to fit
       the check.** Committed alone at `803ef51`, before any check existed.
+      **AC1 leg (a) restated on 2026-08-25, and this is not a bucket change.** Two clauses in it
+      had become false. It said the reachable set replays at `03e7a12` "where all four sites were
+      live", which the answer key itself contradicts: M4's own `replay_note` says it is not live at
+      `03e7a12` and replays from `7b641e0~1`, M3 needs a historical blob, and I4 is pinned at
+      `21ccc8d`. The key already concluded "fixtures are therefore per-finding, not one global
+      base", so the AC was quoting a base its own data had ruled out. It also said **100% of the
+      reachable set**, which after #15-A accepted the build refusal for M4 could not be met, since
+      `must_catch` stays 4 while `must_catch_buildable` is 3.
+      **Why this is a different act from moving a bucket.** AC1b bans editing the answer key so an
+      unchanged check scores better. Nothing in `scripts/claim_corpus.json` moved: M4 is still
+      `must_catch`, `counts.must_catch` is still 4, and the scorer still validates against 4. What
+      changed is a sentence in the plan that had gone factually wrong, brought into line with a
+      decision **the user had already taken** in #15-A. To keep the restatement from being a plain
+      relaxation it carries a clause the original did not have: M4's miss must be **measured**, the
+      check actually run against M4's pinned evidence and its clean output recorded. Asserting the
+      miss is no longer allowed to count.
+
       **Bucket change 1 of 1, M4, `out_of_class`/`scope_blocked` to `must_catch` under C7.** Cause:
       #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
       is the allowed direction.** The banned direction is moving a bucket so an unchanged check
