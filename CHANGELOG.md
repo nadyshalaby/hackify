@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Check `[77]`, `scripts/validate-dod.d/77-reviewer-roster.sh`, bans stale reviewer-count grammar over six files, two of which no other check in the validator reaches.** It also pins the invariant sitting underneath the count: the Phase 5 panel has exactly one standing member and that member is B. The pin locates each claim's SUBJECT instead of matching known phrasings, so it reddens on wordings nobody has written yet, and it discovers its own file set rather than carrying a path list, because a hand-kept list is the next thing to go stale. The list was not what failed this sprint, though: both roster defects sat in files check `[70]`'s ban loop already named, and both named the wrong letter rather than the wrong number, so no count ban could ever have reached them. The list is not the unit of coverage, the claim is. Ten phrase-order tokens close the gap where a wording removed from `review-and-verify.md` this sprint could have walked straight back in at any count through the other word order.
+- **Check `[77]`, `scripts/validate-dod.d/77-reviewer-roster.sh`, bans stale reviewer-count grammar over six files, two of which no other check in the validator reaches.** It also pins the invariant sitting underneath the count: the Phase 5 panel has exactly one standing member and that member is B. The pin locates each claim's SUBJECT instead of matching known phrasings, so it reddens on wordings nobody has written yet, and it discovers its own file set rather than carrying a path list, because a hand-kept list is the next thing to go stale. The list was not what failed this sprint, though: both roster defects sat in files check `[38g]`'s ban loop already named, and both named the wrong letter rather than the wrong number, so no count ban could ever have reached them. The list is not the unit of coverage, the claim is. Ten phrase-order tokens close the gap where a wording removed from `review-and-verify.md` this sprint could have walked straight back in at any count through the other word order.
 - **`scripts/test_ban_tokens.sh` plants all 89 tokens in the validator's three batched ban lists one at a time and requires each to redden and be named.** A ban loop that greps for a token it has never proven it can find is a check that measures nothing, and this repo has already shipped two of those. Each sweep asserts its own plant count rather than only a grand total, so pointing one sweep at another's list reddens even when the three still sum to 89. It runs in CI rather than inside the validator, because it costs roughly twice what the whole validator does, and the validator is the thing that runs before every commit.
 
 ### Fixed
@@ -479,7 +479,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.4] - 2026-06-10
 
-> **Patch-level: measure the auditor, fix the flaky gate.** Adds the lawkeeper recall corpus, a known-oracle fixture set that converts the rulebook from *asserted* to *measured* (deterministic tier: 9/10 rules at 100% recall / 0 false positives, CI-gated; semantic tier scored on demand), and fixes a SIGPIPE flake in DoD check `[50]` that had silently failed the first-ever CI run. Dev/CI internals only: nothing a plugin user loads or runs changes.
+> **Patch-level: measure the auditor, fix the flaky gate.** Adds the lawkeeper recall corpus, a known-oracle fixture set that converts the rulebook from *asserted* to *measured* (deterministic tier: 9/10 rules at 100% recall / 0 false positives, CI-gated; semantic tier scored on demand), and fixes a SIGPIPE flake in DoD check `[24]` that had silently failed the first-ever CI run. Dev/CI internals only: nothing a plugin user loads or runs changes.
 
 ### Added
 
@@ -491,7 +491,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Flaky DoD gate `[50]`** (`scripts/validate-dod.d/50-runtimes-and-companions.sh`), the runtime-target check piped a ~40KB `$DRY_OUT` into `grep -q`, which short-circuits on first match and closes the pipe; the upstream `printf` then took SIGPIPE and, under `set -o pipefail`, the pipeline reported non-zero even though `grep` matched, a spurious "missing dist/<runtime>/" failure. It silently failed the **first-ever CI run** (0.4.2 `a5a8972`) and surfaced locally as an intermittent "N CHECK(S) FAILED." Replaced the pipe with a here-string (no upstream producer to receive SIGPIPE). A flaky gate is itself an evaluation-integrity defect, the same class this release set out to close.
+- **Flaky DoD gate `[24]`** (`scripts/validate-dod.d/50-runtimes-and-companions.sh`), the runtime-target check piped a ~40KB `$DRY_OUT` into `grep -q`, which short-circuits on first match and closes the pipe; the upstream `printf` then took SIGPIPE and, under `set -o pipefail`, the pipeline reported non-zero even though `grep` matched, a spurious "missing dist/<runtime>/" failure. It silently failed the **first-ever CI run** (0.4.2 `a5a8972`) and surfaced locally as an intermittent "N CHECK(S) FAILED." Replaced the pipe with a here-string (no upstream producer to receive SIGPIPE). A flaky gate is itself an evaluation-integrity defect, the same class this release set out to close.
 
 ## [0.4.3] - 2026-06-10
 

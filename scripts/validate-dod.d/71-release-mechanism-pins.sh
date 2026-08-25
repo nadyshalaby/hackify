@@ -52,7 +52,13 @@ check_token_present '{{folded_lenses}}' "$P5_REVIEW"
 # hand back a "settled diff" that no full panel ever saw.
 check_token_present 'The loop may only end on a FULL round' "$P5_REVIEW"
 
-# (3) {{repo_brief}} is a required input on 14 prompts, so it needs a PRODUCER.
+# (3) {{repo_brief}} is a required input on every dispatched prompt, so it needs
+# a PRODUCER. NO COUNT IS WRITTEN HERE, deliberately, the same way
+# 57-doc-links.sh refuses to write one: this line read "14 prompts" while the
+# tree held 12, and an unpinned number in a comment is exactly the rotting claim
+# the claim-integrity work exists to catch. Re-derive the population with
+#   ls agents/*.md skills/hackify/references/parallel-agents/*.md \
+#     | xargs grep -ln '{{repo_brief}}' | wc -l
 # Phase 2 builds it and the work-doc template holds it; without both, every
 # dispatched agent receives an unfilled placeholder and refuses.
 check_token_present '### Repo Brief' "$WORK_DOC_TPL"
