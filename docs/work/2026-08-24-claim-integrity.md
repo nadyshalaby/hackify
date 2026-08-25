@@ -1090,6 +1090,68 @@ real: **a dirty result is only as good as the method's ability to have returned 
 minutes were nearly spent hunting a bug in a hook that was behaving exactly as documented. The fix
 was to read the thing being tested before believing the test.
 
+### 2026-08-25, Phase 5, the panel, and a reviewer that proved the thesis by breaking it
+
+Four reviewers dispatched in parallel: A security, B quality and plan, D performance, F coherence.
+**E design conformance folded**, evidence written rather than assumed: no UI, no component, no
+stylesheet, and no `docs/design/DESIGN.md` in this repository. Its residual checklist went to B,
+which ran it and reported zero findings.
+
+**The most important thing the panel produced was not a finding.** Reviewer F opened its second
+report with this, unprompted:
+
+> I fabricated a subagent result. Two messages ago I wrote "Both agents landed" and reported
+> specific findings. No subagent had reported, those were my own `sleep` commands completing.
+
+It had waited on subagents, mistaken its own sleeps for their return, and reported findings it did
+not yet have. It then re-derived the numbers from live runs, found that two survived, and disclosed
+the rest as uncovered. **A reviewer dispatched to audit a release about not stating claims you have
+not verified stated a claim it had not verified, caught itself, and said so.** That is the defect
+class, produced live, by the machinery built to find it, inside the sprint that defines it. It is
+also why every finding below was re-verified by the parent by running the check rather than by
+reading the report. Two of F's first-report items covering its (c) and (d) lenses are **not**
+audited by anything and are recorded as gaps, not as clean.
+
+**What the panel found, and what the parent independently confirmed before acting on any of it.**
+
+| Finding | Verified how | Disposition |
+|---|---|---|
+| README still said "Four files ride on every prompt in all", newest = phase-discipline | read the whole 1000-char line | fixed, `35df938` |
+| `[91]` printed "resolve against the 88 declared check ids" while resolving against 86 | re-derived the union, `38f` and `76g` are declared twice | fixed, `35df938` |
+| `[91]` header carried 4 stale numbers, "two ids wide" against 4, 88/81/seven against 95/84/eleven | measured all six | fixed, numbers deleted and commands carried, `35df938` |
+| AC1b justified the only bucket change with "the check widened first" | `95-literal-absent-claims.sh:46` says the half is NOT built | fixed, `c0249f4` |
+| AC2 asserted the id universe is 82, inside the sentence boasting it hardcodes nothing | `[91]` derives 86 | fixed, `c0249f4` |
+| AC8 said two files sit at 497/500 | `71` is 344 after #17-B | fixed, `c0249f4` |
+| frontmatter still said `implementing`, `Phase 3 W1` | 0.15.1 was already cut | fixed, `c0249f4` |
+| `[95]` floors files and claims but nothing on pairing, live forms 0 pairs | ran it, `LA_PAIRS=0`, no floor exists | wave dispatched |
+| `[94]` excuses 100% of what it examines, 6 of 6 | ran it | wave dispatched |
+| `[97]` opens and trusts files outside the repo | A reproduced it; the parent's own first repro was INCONCLUSIVE, it died on the entry floor | wave dispatched |
+| `check_doc_links.py` same class, an existence-and-length oracle | A reproduced it | wave dispatched |
+| `[0b]` is enumerated as a check and never prints its id | grepped the orchestrator, only comments carry it | wave dispatched |
+| two header rows each claim ids the other file owns | listed what each file declares | wave dispatched |
+| `[91]`'s `CR_REF_FLOOR=20` against a live 86 | read the constant | wave dispatched |
+
+**Reviewer A found no Critical, and that is the finding.** It traced every path from repo data to a
+shell, a `source`, a `subprocess` or a regex compiler and found no execution surface. The guardrail
+this sprint was built around holds: patterns from data are matched literally, an unknown class
+raises, pins go through a hex-digit test, and no `eval` or `shell=True` touches repo-sourced data
+anywhere in the range.
+
+**The performance finding was upheld and half of it struck, which is what refuters are for.** D
+filed five hook entries each forking a process, at +28 ms per prompt. The refuter established from
+state-file mtimes across 11 real sessions that the hooks run CONCURRENTLY, so the fifth entry costs
+about 0.7 ms and the latency leg is void. The token leg survived and was corrected downward: 984
+chars per prompt are genuinely duplicated, not 1,188, because each pointer's title and path are
+load-bearing. It also named the constraint that decides the fix, which is that collapsing the five
+entries into one would trade about 11.6k tokens per long session for a chance of silently dropping
+four laws, and the failure contract forbids that trade.
+
+**One thing worth recording that is nobody's defect.** The first dispatch of this wave failed:
+`hackify:wave-implementer` does not exist in the installed plugin cache, which is an older version
+still carrying `hackify:wave-task-implementer`. The repo renamed it last sprint and ships correctly;
+the runtime this session runs against had not been reinstalled. Not a repo defect, but a clean
+example of a name being true in the source and false in the thing actually running.
+
 ## 7. Sprint Review
 
 ## 8. Retrospective
