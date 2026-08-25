@@ -5,6 +5,61 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.1] - 2026-08-25
+
+> **The code is the only source of truth, and the workflow now says so in every prompt.** A document
+> is a claim about a repository, not the repository. This release adds a fifth always-on rule built
+> from fourteen laws, each one traced to a mistake this project actually made, plus the checks that
+> enforce the parts a machine can enforce. Dev-facing and user-facing both: the rule reaches every
+> prompt, the checks run in CI.
+
+### Added
+
+- **`rules/claim-integrity.md`, injected into every prompt as the fifth always-on rule.** Fourteen
+  laws: re-derive facts from the code rather than reading them off a page, prove a claim with fresh
+  output or do not make it, open every citation you write and every one you trust, treat a number
+  you did not just count as already wrong, and never read a clean result as evidence without first
+  showing the method could have come back dirty. Wired in `hooks/hooks.json`, in the sync manifest,
+  and in check `[38]`, whose pass line and comment both said "four" and now say five. The digest
+  that survives compression after the first prompt is 777 characters against a 900 cap, verified by
+  running the injector rather than by reading the file, and `hooks/test_inject_context.sh` grew from
+  29 tests to 45 with every new guard tamper-proved.
+- **Three checks that catch a claim a document cannot keep**, each with its own unit suite and each
+  wired into CI. `[93]` in `93-token-declarations.sh` resolves every `{{token}}` used in a prompt
+  against that prompt's declared INPUTS. `[94]` in `94-section-exists.sh` catches an instruction to
+  use a work-doc section the template no longer has. `[95]` in `95-literal-absent-claims.sh` catches
+  a sentence claiming a phrase is unpinned when the phrase is present elsewhere in the tree.
+- **`[97]` in `97-test-suites-reachable.sh`, so a test suite on disk that nothing runs is a
+  failure.** A suite must be named in `ci.yml` or be reachable by import from a file that is. A
+  suite nobody runs is the same defect as a check fragment nobody sources.
+- **A frozen answer key and a replay runner, so the sprint's own score stops being something
+  anybody types.** `scripts/claim_corpus.json` labels thirteen real findings before any check
+  existed, `scripts/claim_fixtures.json` pins each one's evidence by git blob SHA, and
+  `scripts/replay_claim_checks.py` runs each shipped check against its own pinned fixture. A catch
+  requires a non-zero exit, a pinned path in the output and a witness literal, all three read from
+  fixture data rather than from an authored expectation.
+
+### Changed
+
+- **The shared repo brief has to show its working.** The block handed verbatim to every dispatched
+  helper now ends each line with the command or `file:line` that established it, and a line with no
+  evidence behind it does not go in. A wrong fact in that block used to reach a whole round of work
+  at once with no cheap way for anyone to notice. The cap moved from 200 to 350 words to pay for
+  that and nothing else.
+- **Three validator files that had run out of room were split**, each keeping its check IDs so an
+  existing citation still lands on a live block.
+
+### Fixed
+
+- **Three release notes cited checks that have never existed.** Two said `[50]` and one said `[70]`;
+  both took a file number for a check ID. They now say `[24]` and `[38g]`, each confirmed from the
+  code rather than guessed.
+- **A comment claimed the shared brief is required on 14 prompts when the tree holds 12.** The
+  number is gone rather than corrected, and the comment carries the command to recount it, because
+  a number in a comment only rots again.
+- **Six sentences said the hook injects four rules files.** Adding the fifth made all of them false
+  at once, which is the new rule's own sixth law landing on the change that introduced it.
+
 ## [0.15.0] - 2026-08-24
 
 > **Phase 3 dispatched one agent per same-module task batch, capped at three tasks; it now dispatches exactly one agent per execution wave, in every mode, with no cap and no module split.** The saving is tokens and coherence, not wall-clock, and this release does not pretend otherwise: several agents running a wave in parallel finish sooner than one agent working through it in order. Decision **#9-B** took that trade with the cost stated, and decision **#11-A** is what pays for the wider blast radius, an agent that cannot finish a task stops there, keeps everything already on disk, and reports which task IDs landed. The Phase 5 refuters collapsed the same way, one agent per round carrying both lenses. Underneath all of it sat a gap worth more than the saving: nothing in this repo grepped an agent-type string, so `hackify:wave-task-implementer` could be renamed on disk while every dispatch site kept asking for a type that no longer resolved, with the validator fully green. Check `[40]` closes that from both ends. The sweep that followed the rename found four documents describing dispatch shapes that did not exist, three of them already wrong before this release began.
