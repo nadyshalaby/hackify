@@ -697,15 +697,19 @@ counterfactual wave that ran without a brief. The claim defended above is about 
 their turns on, which is observable in their reports. A speed *number* is not, and inventing one
 would break this sprint's own rule.
 
-### 2026-08-25, a test suite that has never run, found by asking a question nobody asked
+### 2026-08-25, the parent proved an absence with a method that could not have found the presence
 
-Checking whether the two new suites reached CI turned up a third file that never had: `skills/lawkeeper/scripts/test_scoping.py`, 432 lines, 22 test functions, tracked since long before this sprint opened. It is not named in `.github/workflows/ci.yml`, and nothing else reaches it.
+**The entry that stood here was wrong, and how it went wrong is this sprint's thesis turned on its author.** It claimed `skills/lawkeeper/scripts/test_scoping.py` had never run: 432 lines, 22 test functions, named nowhere in `.github/workflows/ci.yml`, and invoking it directly prints zero bytes and exits 0 because it carries no `__main__` block.
 
-It is worse than an ordinary orphan. Running the file directly does nothing at all. It has no `__main__` block, so `python3 skills/lawkeeper/scripts/test_scoping.py` defines twenty-two functions, calls none of them, prints zero bytes and exits 0. Its sibling `test_audit.py` ends with the runner this repo uses everywhere else, a loop over `_all_tests()` that prints `N/M passed` and returns 1 on failure. `test_scoping.py` never got one, and pytest is not part of this toolchain, it appears in one docs table and nowhere in CI. So wiring the file into CI as it stands would have bought a green that measured nothing, which is the same defect one layer further on.
+Every one of those observations is true. The conclusion drawn from them is false. `test_audit.py:20` does `import test_scoping`, and its `_all_tests()` at :289 collects `test_*` callables from `vars(test_scoping)` as well as its own globals. CI runs `python3 skills/lawkeeper/scripts/test_audit.py`, that prints `56/56 passed`, and 34 of those are `test_audit.py`'s own while 22 are `test_scoping.py`'s. The file's absent `__main__` is deliberate and documented in the sibling's header: the suite was split at the 500-line cap the scanner it tests exists to enforce, and was kept as two files behind one entry point.
 
-Run through an ad-hoc harness that imports the module and calls each `test_*`, all 22 pass. So there is no hidden defect in the scoping code. What was hidden is that the repository believed itself covered by a suite that had never executed a single assertion.
+**The method could not have returned the true answer.** Running a file and reading its silence as never-runs tests one way a file can be reached and no other. Nothing in that procedure inspects imports, so the import path was invisible to it, and an invisible path came back as an absent one. The ad-hoc harness that returned 22/22 was the clue: it passed because it drove the tests exactly the way the real runner already does.
 
-**This is the sprint's thesis stated by the repository against itself.** Check `[0]` already holds that a validator fragment on disk which nothing sources is a FAIL, because its checks cannot fail the run. A test file on disk that nothing runs is exactly the same shape, one layer up, at a layer where no check was looking. The find also settles how to close it: not by adding three `run:` lines, but by a check that reds when a tracked test entrypoint is neither invoked by CI nor able to report a count when invoked. Two orphans appeared during this sprint and a third had been sitting there the whole time, which is the recurrence that argues for the guard over the patch.
+It is also the inverse of the check that was about to be built on it. A guard using the rule as first stated would have failed a correctly wired file, and the argument for the guard would have been carried by a case that was never a defect.
+
+**What survives.** Two real orphans, not three: `scripts/test_section_exists.py` and `scripts/test_literal_absent_claims.py`, both created this sprint, both named nowhere in CI and imported by nothing. The guard is still the right answer to those, and it now has a written third clause it did not have before: **reachable by import from an entry point CI runs counts as run**, and a runner that reaches its pool by introspection rather than a hand-kept list is what makes that clause safe. `_all_tests()` is introspective, so a 23rd test added to `test_scoping.py` is picked up with no edit anywhere.
+
+**The rule this pays for.** A clean result is only as good as the method's ability to have returned a dirty one, which the sprint already had. This adds its mirror: **an absence is only as good as the method's ability to have found the thing present.** Naming the one path a search covers is what makes it checkable that other paths exist.
 
 ### 2026-08-24, Wave 3, the first catch and a declined task
 
