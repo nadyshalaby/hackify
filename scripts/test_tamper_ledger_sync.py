@@ -78,6 +78,14 @@ CONTROL_LINE = ('print(' + QUOTE + 'CONTROL %s' + QUOTE + ' % (' + QUOTE + 'ok'
 # every subject count where it was, so no floor moves and only the control notices.
 LEDGER_BRANCH = 'if has_ledger:'
 
+# The line that reads the date off the filename. Blind it and the frontmatter value
+# is the only resolver again, which is the hole Critical 2 of this sprint closed.
+FILENAME_RESOLVER = 'stamp = filename_date(path)'
+
+# An archived doc filed under a post-pin name. Every row below that plants one uses
+# this path, so the filename half of the resolver has one spelling in this file.
+DATED_DOC = 'docs/work/done/2026-08-24-planted.md'
+
 
 # --- the baseline, and the counts it has to name -------------------------------
 
@@ -136,9 +144,9 @@ def test_98_an_archived_doc_created_after_the_pin_with_no_section_0_reds():
   root = work_doc_tree({'docs/work/done/planted.md':
                         work_doc('done', AFTER_LEDGER, NO_LEDGER)})
   rc, out = run_check('98', cwd=root)
-  expect_red(rc, out, 'docs/work/done/planted.md is archived and its frontmatter says '
-             'created %s, on or after the day section 0 became a work-doc section, '
-             'yet it carries no ## 0. Phase ledger block' % AFTER_LEDGER,
+  expect_red(rc, out, 'docs/work/done/planted.md is archived and '
+             'resolves to %s, on or after the day section 0 became a work-doc '
+             'section, yet it carries no ## 0. Phase ledger block' % AFTER_LEDGER,
              'never deleted, per skills/hackify/references/phase-ledger.md:91')
 
 
@@ -181,7 +189,7 @@ def test_98_blinding_the_created_rule_hides_the_defect_and_only_the_control_noti
   with tampered('98', (LEDGER_BRANCH, 'if True:')) as frag:
     rc, out = run_fragment(frag, cwd=root)
   expect_red(rc, out, 'the positive control did not hold (control verdict: fail)',
-             'one created after the ledger shipped with no section 0 at all')
+             'one dated after the ledger shipped with no section 0 at all')
   refute(out, 'carries no ## 0. Phase ledger block')
 
 
@@ -192,6 +200,63 @@ def test_98_a_created_rule_that_reports_every_archive_is_caught_by_the_same_cont
   with tampered('98', (LEDGER_BRANCH, 'if False:')) as frag:
     rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
+
+
+# --- assertion (d), the date the doc does not get to choose ---------------------
+
+def test_98_a_backdated_created_field_no_longer_removes_a_doc_from_the_rule():
+  """THE HOLE THIS CLOSES, and it was one digit wide. The same archived doc with no
+  section 0, differing only in the created value it writes about itself: the honest
+  date reds and the backdated one used to green, so editing that field was a way out
+  of assertion (d) altogether. It reds twice now, once for the missing block and once
+  because the frontmatter date disagrees with the name the doc is filed under."""
+  root = work_doc_tree({DATED_DOC: work_doc('done', BEFORE_LEDGER, NO_LEDGER)})
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out,
+             '%s:4 says created %s while the filename it is filed under says '
+             '2026-08-24' % (DATED_DOC, BEFORE_LEDGER),
+             '%s is archived and resolves to 2026-08-24' % DATED_DOC)
+
+
+def test_98_a_doc_filed_under_a_pre_pin_filename_still_needs_no_section_0():
+  """The exemption, reached through the filename rather than the frontmatter. Most
+  archived docs predate the day section 0 became a work-doc section, and a rule that
+  reddened on them would demand a ledger for sprints that ran before the mechanism
+  existed. The count is asserted too, so a row passing because the doc never reached
+  the corpus cannot look the same as one passing because the date was read."""
+  root = work_doc_tree({'docs/work/done/2026-05-11-planted.md':
+                        work_doc('done', BEFORE_LEDGER, NO_LEDGER)})
+  rc, out = run_check('98', cwd=root)
+  assert rc == 0, out
+  refute(out, 'carries no ## 0. Phase ledger block')
+  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
+
+
+def test_98_a_frontmatter_date_disagreeing_with_the_filename_is_reported_alone():
+  """The disagreement isolated. This doc carries its section 0, so the missing-block
+  half has nothing to say and the only red left is the one about two spellings of the
+  same fact. Without this row the disagreement would only ever be observed riding
+  alongside a second finding, and a reader could not tell which one fired."""
+  root = work_doc_tree({DATED_DOC: work_doc('done', '2026-08-25', CLEAN_ARCHIVED)})
+  rc, out = run_check('98', cwd=root)
+  expect_red(rc, out, '%s:4 says created 2026-08-25 while the filename it is filed '
+             'under says 2026-08-24' % DATED_DOC)
+  refute(out, 'carries no ## 0. Phase ledger block')
+
+
+def test_98_blinding_the_filename_resolver_reopens_the_hole_for_the_control_alone():
+  """Take the filename back out of the resolution and the backdated doc goes quiet
+  again: it resolves to the value it wrote about itself, falls under the pin, and
+  stops being a subject. No floor moves, because a non-subject was never counted, and
+  the per-doc walk has nothing left to say. The control is the one thing that
+  notices, because its own backdated doc stops coming back reported."""
+  root = work_doc_tree({DATED_DOC: work_doc('done', BEFORE_LEDGER, NO_LEDGER)})
+  with tampered('98', (FILENAME_RESOLVER, 'stamp = None')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)',
+             'one filed under a post-pin filename while its frontmatter backdates '
+             'itself under the pin')
+  refute(out, 'carries no ## 0. Phase ledger block')
 
 
 # --- the floors, and the collapses they exist to catch -------------------------

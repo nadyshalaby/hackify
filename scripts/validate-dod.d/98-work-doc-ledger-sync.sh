@@ -12,22 +12,36 @@
 #       phase nobody closed, behind a filename saying the sprint is over.
 #
 #   (d) AN ARCHIVED DOC WRITTEN SINCE THE LEDGER SHIPPED HAS ONE. Assertion (b)
-#       judges the rows of a block; it says nothing about a doc that carries no
-#       block at all, which made DELETING section 0 a way to turn a red green. So a
-#       doc under docs/work/done/ whose frontmatter created date is on or after the
-#       day section 0 became a work-doc section MUST carry the heading. Older docs
-#       predate the mechanism and are not subjects. A doc whose created field is
-#       missing or unreadable is REPORTED, never dropped, since deleting that field
-#       would otherwise be the same escape one level up.
+#       judges the rows of a block and says nothing about a doc carrying no block at
+#       all, which made DELETING section 0 a way to turn a red green. So a doc under
+#       docs/work/done/ that resolves to the day section 0 became a work-doc section,
+#       or later, MUST carry the heading. Older docs predate the mechanism and are
+#       not subjects.
+#
+# WHAT RESOLVES A DOC TO A DATE, AND THE TWO LEVERS THAT STAY OPEN. The date is read
+# off the FILENAME first, the YYYY-MM-DD prefix every work-doc is opened under per
+# skills/hackify/SKILL.md:106, and off the frontmatter created field only when the
+# name carries no prefix. It was the created field alone until a reviewer changed one
+# digit and watched an archived doc with no section 0 go green: a value a document
+# writes about itself is a value it can choose, and letting it decide whether the
+# document is a subject at all is CWE-807. Where both exist and disagree, the
+# disagreement is itself reported. NEITHER LEVER BELOW IS CLOSED, and saying so is
+# the point of this paragraph. RENAMING the file to a pre-pin prefix moves the date.
+# DROPPING the prefix falls back to the frontmatter value. No other fragment reads
+# the work-doc naming convention, so nothing else catches either one. What the change
+# buys is that both levers surface in a diff as a rename or a new path, which an edit
+# inside a file does not. A doc whose created field is missing or unreadable is
+# REPORTED, never dropped, since deleting that field would be the same escape one
+# level up.
 #
 # THE LETTERS ARE (b) AND (d), WITH NO (a) OR (c) IN THIS FILE, and that is a
 # reference and not a gap. This fragment reached 498 of a 500-LOC cap and could not
 # take assertion (d), so the two assertions that read FRONTMATTER moved to
 # 99-work-doc-status-claims.sh and kept their letters, the way [76g] and [76h] kept
 # theirs when 96-review-scope-sites.sh was carved out of 76. (a) is the status
-# vocabulary, (c) is a live doc claiming it was archived, and both are cited BY
-# LETTER from skills/hackify/references/phase-ledger.md and finish.md, so relettering
-# them would have broken live prose a split has no business touching.
+# vocabulary, (c) is a live doc claiming it was archived, and ONLY (c) is cited by
+# letter, from skills/hackify/references/phase-ledger.md and finish.md. A sweep of
+# skills/ finds no citation of (a) at all, which this header used to claim there was.
 #
 # WHY THE SEAM IS HERE, AND WHAT IT COSTS, is written once at the top of
 # 99-work-doc-status-claims.sh and not repeated here. Two copies of a rationale are
@@ -35,51 +49,50 @@
 # for making the same choice.
 #
 # [98] KEEPS THIS ID AND THIS FILENAME. The name still describes what stayed, since
-# (b) and (d) are the two ledger assertions, and CHANGELOG.md:54 names the pair for
-# the archived-sprint behaviour (b) carries. The full reasoning, and the one sentence
-# this split leaves stale in that CHANGELOG entry, is at the top of
-# 99-work-doc-status-claims.sh.
+# (b) and (d) are the two ledger assertions, and the CHANGELOG bullet that opens
+# "[98] and [99]" names this filename for the archived-sprint behaviour (b) carries.
+# IT IS ANCHORED ON THAT NAME AND NOT ON A LINE NUMBER: the line this header used to
+# cite was wrong the day it was written and turned right by accident when that entry
+# was rewritten one commit later, which is worse than plain rot because nothing about
+# it looks broken.
 #
 # WHAT ASSERTION (b) DOES NOT REACH, because silence gets read as a guarantee. A
-# closed `- [x]` row cannot be told apart from a phase
-# that was dropped and ticked anyway; nothing in the file separates them.
+# closed `- [x]` row cannot be told apart from a phase dropped and ticked anyway.
 # docs/work/done/2026-08-23-phase-ledger-substrate.md:29 is a live example, a closed
 # Phase 6d row with the words "never ran" beside it. A GREEN HERE MEANS NO ROW IS
 # OPEN, never that an archived sprint ran the phases it ticked.
 #
 # NOTHING SOURCED FROM A REPO FILE IS EXECUTED OR COMPILED INTO A PATTERN. Every
-# pattern below is a literal in this file, a created date is shape-gated against one
-# of those literals and then compared with `<` against a literal date, never
-# anything else. A validator building its matcher out of a document's
-# contents would be arbitrary code execution by editing that document, the guardrail
-# this whole sprint is written around. Reading obeys the same rule: no path is opened
-# until it resolves to itself under the repository root, so a tracked symlink is
-# refused and REPORTED rather than followed out of the tree.
+# pattern below is a literal in this file; a date is shape-gated against one of those
+# literals and then compared with `<` against a literal date, never anything else. A
+# validator building its matcher out of a document's contents would be arbitrary code
+# execution by editing that document, the guardrail this whole sprint is written
+# around. Reading obeys the same rule: no path is opened until it resolves to itself
+# under the repository root, so a tracked symlink is refused and REPORTED rather than
+# followed out of the tree.
 #
 # THE LEDGER BLOCK IS FOUND AND ENDED OUTSIDE FENCED CODE, and it ends at the next
-# `## ` heading of any name, never at `## 1.`. Both halves are measured rather than
-# tidy. The groom path inserts a `## Groom Provenance` section between section 0 and
-# section 1, instructed at skills/groom/SKILL.md:59 and pinned by the section-order
-# law at skills/hackify/references/work-doc-template.md:42, so a terminator keyed to
-# the section-1 heading would swallow it on every groomed doc; a doc quoting the
-# ledger heading in a code block would shadow its own real ledger; a heading quoted
-# inside the block would end it early and hide every row
-# below. ROWS OUTSIDE THE BLOCK ARE NOT SUBJECTS either: the Sprint Backlog writes
-# its tasks in the identical `- [ ]` grammar and every archived doc carries one.
+# `## ` heading of any name, never at `## 1.`. Both halves are measured. The groom
+# path inserts a `## Groom Provenance` section between section 0 and section 1,
+# instructed at skills/groom/SKILL.md:59 and pinned by the section-order law at
+# skills/hackify/references/work-doc-template.md:42, so a terminator keyed to the
+# section-1 heading would swallow it on every groomed doc, a fenced heading above the
+# real one would shadow it, and one inside the block would end it early. ROWS OUTSIDE
+# THE BLOCK ARE NOT SUBJECTS: the Sprint Backlog writes its tasks in the identical
+# `- [ ]` grammar and every archived doc carries one.
 #
 # WHY A POSITIVE CONTROL. On a truthful tree both assertions report nothing, and that
 # silence is the SAME OUTPUT this check would print if its judging had quietly
-# stopped. So it is earned first: a synthetic eight-doc corpus, built from source
+# stopped. So it is earned first: a synthetic ten-doc corpus, built from source
 # literals here and never read off disk, goes through the SAME judge the live scan
-# uses, in BOTH directions. Five docs MUST be reported and three MUST NOT; [94] and
+# uses, in BOTH directions. Six docs MUST be reported and four MUST NOT; [94] and
 # [95] each state this at their own control.
 yellow "[98] an archived work-doc closes every phase-ledger row, and one written since the ledger shipped has a section 0 at all"
 # WHY docs/work/ AND NOT THE LIVE PATHSPEC THE NEIGHBOURS USE. [91], [93], [94] and
 # [95] all scan with a three-part pathspec that EXCLUDES docs/work/, because for them
-# the sprint record has to be able to quote a broken doc. This check is the one whose
-# subjects ARE the work-docs, so copying that pathspec would collapse the subject set
-# to zero and print a confident green over nothing. Tracked files only, so a
-# half-written doc open in an editor is never judged.
+# the sprint record has to be able to quote a broken doc. This check's subjects ARE
+# the work-docs, so copying that pathspec would collapse the subject set to zero and
+# print a confident green over nothing. Tracked files only.
 #
 # THE FLOORS ARE WHAT STOP A VACUOUS PASS, judged before any per-doc red prints, the
 # order [91], [93], [94] and [95] all argue for. HOW EACH WAS DERIVED, and the
@@ -91,21 +104,20 @@ yellow "[98] an archived work-doc closes every phase-ledger row, and one written
 #     git ls-files -- 'docs/work/*.md' | wc -l
 #
 #   WL_LEDGER_FLOOR, the exact count of assertion (b)'s subjects today. THE FLOOR IS
-#   ON THE ARCHIVED SUBSET AND NOT ON THE TOTAL, deliberately: a floor over the total
-#   would sit under a grammar break that lost only the archived doc, the half (b)
-#   actually judges. NO HEADROOM, because docs enter done/ and never leave, so the
-#   count can only rise. THE REASON IS NOT that every archived doc carries one:
-#   section 0 became a work-doc section on 2026-08-23 and the archives written before
-#   that do not have it, so this floor sits close under a small count and any wave
-#   archiving another ledger-bearing doc must raise it.
+#   ON THE ARCHIVED SUBSET AND NOT ON THE TOTAL: a floor over the total would sit
+#   under a grammar break that lost only the archived doc, the half (b) judges. NO
+#   HEADROOM, because docs enter done/ and never leave. THE REASON IS NOT that every
+#   archived doc carries one: section 0 became a work-doc section on 2026-08-23 and
+#   the archives written before that do not have it, so any wave archiving another
+#   ledger-bearing doc must raise this floor.
 #     git grep -l '^## 0\. Phase ledger' -- 'docs/work/done/*.md' | wc -l
 #
 #   WL_CREATED_FLOOR, the exact count of assertion (d)'s subjects today, a DIFFERENT
-#   SET from the line above and needing its own floor for that reason: (b) counts
-#   archived docs that HAVE a block, (d) counts archived docs that OWE one, and the
-#   point of (d) is the doc in the second set and not the first.
-#     git ls-files -- 'docs/work/done/*.md' | xargs grep -h '^created: ' \
-#       | awk '$2 >= "2026-08-23"' | wc -l
+#   SET from the line above: (b) counts archived docs that HAVE a block, (d) counts
+#   archived docs that OWE one, and the point of (d) is the second set. Counted off
+#   the filename, which is what the judge resolves against.
+#     git ls-files -- 'docs/work/done/*.md' \
+#       | awk -F/ '$NF >= "2026-08-23"' | wc -l
 #
 # NO COUNT IS WRITTEN INTO A COMMENT HERE. The live totals print on the pass line and
 # every floor carries the command that re-derives it, the convention
@@ -134,8 +146,7 @@ wl_read_size() {
   done <<<"$1"
 }
 
-# The corpus floor is judged FIRST: when the doc scan collapses, both subject floors
-# collapse with it, and reporting those two describes a symptom, not the cause.
+# The corpus floor is judged FIRST: both subject floors collapse with the doc scan.
 wl_floors_hold() {
   if [ "$WL_DOCS" -lt "$WL_DOC_FLOOR" ]; then
     wl_fail "[98] the work-doc scan read $WL_DOCS tracked doc(s) under docs/work/ against a floor of $WL_DOC_FLOOR; the pathspec stopped matching, and a scan over nothing measures nothing"
@@ -153,20 +164,17 @@ wl_floors_hold() {
 }
 
 # THE CONTROL IS JUDGED AFTER THE FLOORS AND BEFORE THE GREEN, never instead of the
-# per-doc walk, the order [94] and [95] both take. A real finding must still be
-# reported on a run whose control has broken, so a failed control counts as a finding
-# like any other: it prints, it bumps the status, and it takes the pass line with it.
-# WL_CONTROL starts at `none`, so a control that never ran cannot look like one that
-# held.
+# per-doc walk, the order [94] and [95] both take. A failed control counts as a
+# finding like any other: it prints, it bumps the status, it takes the pass line with
+# it. WL_CONTROL starts at `none`, so one that never ran cannot look like one that held.
 wl_control_holds() {
   [ "$WL_CONTROL" = ok ] && return 0
-  wl_fail "[98] the positive control did not hold (control verdict: $WL_CONTROL). A synthetic eight-doc corpus built from literals in this fragment must report exactly the five docs that break something, an archived doc holding each of the two open ledger markers, one hiding its open row behind a fenced heading, one created after the ledger shipped with no section 0 at all, and one whose created date cannot be read; and it must report none of the three beside them, a closed ledger, a doc created before the ledger shipped, and a live doc whose ledger is still open. Until that separates, this run's silence is not evidence of anything: a judge that had stopped discriminating would print the same nothing"
+  wl_fail "[98] the positive control did not hold (control verdict: $WL_CONTROL). A synthetic ten-doc corpus built from literals in this fragment must report exactly the six docs that break something, an archived doc holding each of the two open ledger markers, one hiding its open row behind a fenced heading, one dated after the ledger shipped with no section 0 at all, one whose created date cannot be read, and one filed under a post-pin filename while its frontmatter backdates itself under the pin; and it must report none of the four beside them, a closed ledger, a doc dated before the ledger shipped, one filed under a pre-pin filename that agrees with its frontmatter, and a live doc whose ledger is still open. Until that separates, this run's silence is not evidence of anything: a judge that had stopped discriminating would print the same nothing"
   return 1
 }
 
-# AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim: a summary contradicting the
-# failure above it is the fail-open shape this fragment refuses, so the pass line is
-# reached only when nothing failed.
+# AND NO GREEN PRINTS BESIDE A RED, [91]'s rule verbatim: the pass line is reached
+# only when nothing failed.
 wl_verdict() {
   local line bad=0
   wl_read_size "$1"
@@ -185,11 +193,9 @@ if ! command -v python3 > /dev/null 2>&1; then
   wl_fail "[98] needs python3 to parse work-doc frontmatter, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and writes to
-  # stderr, and a bare $(...) capture swallows both, leaving this block to read an
-  # empty result as "no work-doc is out of step". A FAIL-CLOSED BRANCH OUTRANKS A HIT
-  # REPORT: a scan that could not finish says nothing trustworthy about what it did
-  # print.
+  # 73-implementer-rename.sh:174-195. A bare $(...) capture swallows a traceback and
+  # leaves this block reading an empty result as "no work-doc is out of step". A
+  # FAIL-CLOSED BRANCH OUTRANKS A HIT REPORT.
   wl_err=$(mktemp 2>/dev/null) || wl_err=''
   if [ -z "$wl_err" ]; then
     wl_fail "[98] could not create the stderr capture file, so the work-doc scan never ran"
@@ -199,12 +205,11 @@ import io, os, re, subprocess, sys
 
 # Every pattern here is a literal in this file. See the header.
 #
-# THE BACKTICK IS SPELLED chr(96) AND THE APOSTROPHE chr(39), NEITHER OF THEM AN
-# AFFECTATION. This block is a heredoc inside a $(...) substitution, and bash
-# parses a backtick in there as a legacy command substitution even when the heredoc
-# is quoted, while a lone apostrophe inside a double-quoted python string is one more
-# quote for the shell to count. [93] and [95] both record the trap and the same fix:
-# a literal one here is a parse error, a check that cannot run at all.
+# THE BACKTICK IS SPELLED chr(96) AND THE APOSTROPHE chr(39). This block is a
+# heredoc inside a $(...) substitution, and bash parses a backtick in there as a
+# legacy command substitution even when the heredoc is quoted, while a lone
+# apostrophe is one more quote for the shell to count. [93] and [95] record the same
+# trap: a literal one here is a parse error, a check that cannot run at all.
 TICK = chr(96)
 QUOTE = chr(39)
 WORKDOCS = 'docs/work/*.md'
@@ -217,20 +222,16 @@ OPEN_ROWS = ('- [ ]', '- [>]')
 CODE_FENCE = TICK * 3
 FENCES = (CODE_FENCE, '~~~')
 # The repository root, resolved once, so every work-doc path can be required to
-# resolve back to itself underneath it. Taken from the working directory rather than
-# a second git call: this fragment already runs from the repo root.
+# resolve back to itself underneath it. This fragment already runs from that root.
 ROOT = os.path.realpath(os.getcwd())
-# THE DAY SECTION 0 BECAME A WORK-DOC SECTION, and how it was established: commit
-# b96d2db of 2026-08-23 11:13 put the LEDGER_HEAD heading into
-# skills/hackify/references/work-doc-template.md for the first time, and 8fa8d58 of
-# 13:02 the same day gave the contract its first validator coverage. Both fall on one
-# date, so no doc created that day can claim the heading did not exist yet.
+# THE DAY SECTION 0 BECAME A WORK-DOC SECTION: commit b96d2db of 2026-08-23 11:13
+# put LEDGER_HEAD into skills/hackify/references/work-doc-template.md, and 8fa8d58 of
+# 13:02 that day gave it validator coverage. One date, so no doc can straddle it.
 LEDGER_EPOCH = '2026-08-23'
-# The shape gate on a created value. An ISO date compares correctly with `<` once it
-# has this exact shape, and a value that fails the gate is REPORTED, never dropped.
+# The shape gate on a date. An ISO date compares correctly with `<` once it has this
+# exact shape, and a created value that fails the gate is REPORTED, never dropped.
 DATE = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-# The rule assertion (d) enforces, quoted where a reader can go and read it. Verified
-# by opening that line: it is the "No silent skip" bullet of the ordering law.
+# The rule assertion (d) enforces: the "No silent skip" bullet of the ordering law.
 LEDGER_LAW = 'skills/hackify/references/phase-ledger.md:91'
 
 
@@ -241,10 +242,9 @@ def read(path):
 
 def refuse_read(path):
     """The finding saying why this path was not opened, or None. os.path.isfile
-    FOLLOWS a symlink, so a tracked symlink under docs/work/ would be opened and
-    whatever it points at quoted into a finding. Resolve first, read only what
-    resolves to itself under ROOT, and REPORT the refusal rather than skip it: a doc
-    this check declines to read is not a doc that passed."""
+    FOLLOWS a symlink, so a tracked symlink would be opened and whatever it points at
+    quoted into a finding. Resolve first, then REPORT the refusal rather than skip
+    it: a doc this check declines to read is not a doc that passed."""
     full = os.path.join(ROOT, path)
     real = os.path.realpath(full)
     if real == full and real.startswith(ROOT + os.sep) and not os.path.islink(full):
@@ -256,8 +256,7 @@ def refuse_read(path):
 
 def first_prefix(line, options):
     """The first entry of `options` this line opens with, or None. One helper for
-    the fence tracker and the open-row walk, so neither grows a nesting level and
-    neither carries a second copy of the same scan."""
+    the fence tracker and the open-row walk, so neither grows a nesting level."""
     for option in options:
         if line.startswith(option):
             return option
@@ -268,13 +267,10 @@ def unfenced(lines):
     """A copy of `lines` with every line inside a fenced code block blanked, so a
     quoted heading cannot shadow the real ledger or end its block early.
 
-    COVERED: a fence opening on a line starting with three backtick characters or
-    three tildes, closing on the next line starting with the SAME marker. NOT COVERED:
-    fence length, a fence indented into a list, a marker inside an info string; a doc
-    written those ways is judged as if the fence were not there. BLANKED AND NOT
-    DROPPED, so every index still equals its line number and a finding cites the line
-    the reader opens. The frontmatter is untouched: its opening fence marker is
-    not a code fence."""
+    COVERED: a fence opening on three backticks or three tildes, closing on the next
+    line starting with the SAME marker. NOT COVERED: fence length, a fence indented
+    into a list, a marker inside an info string. BLANKED AND NOT DROPPED, so every
+    index still equals its line number. The frontmatter fence is not a code fence."""
     out = []
     marker = None
     for line in lines:
@@ -290,11 +286,9 @@ def unfenced(lines):
 def frontmatter_field(lines, key):
     """(value, line number) for one frontmatter key, or (None, 0).
 
-    The block is the text between the first two fences at the top of the file; a key
-    written below that is body prose and declares nothing. THE KEY IS REQUIRED AT
-    COLUMN 0 OF THE RAW LINE, because indentation carries meaning in YAML: a created
-    line indented inside a sprint_goal block scalar is a line of that scalar, not the
-    document date, and stripping before the test would read it as the date."""
+    The block is the text between the first two fences at the top of the file. THE KEY
+    IS REQUIRED AT COLUMN 0 OF THE RAW LINE: a created line indented inside a
+    sprint_goal block scalar is a line of that scalar, not the document date."""
     if not lines or lines[0].strip() != FENCE:
         return (None, 0)
     for num in range(1, len(lines)):
@@ -307,10 +301,16 @@ def frontmatter_field(lines, key):
     return (None, 0)
 
 
+def filename_date(path):
+    """The YYYY-MM-DD prefix of a work-doc's basename, or None when it has none.
+    Sliced off the name and shape-gated against the DATE literal above."""
+    stamp = path.rsplit('/', 1)[-1][:10]
+    return stamp if DATE.match(stamp) else None
+
+
 def ledger_start(lines):
-    """The index of the section 0 heading, or None when the doc carries none. Reads
-    the fence-masked copy, so a heading quoted in a code block above the real ledger
-    cannot become the block that gets judged."""
+    """The index of the section 0 heading, or None. Reads the fence-masked copy, so a
+    heading quoted in a code block above the real one cannot become what is judged."""
     for num, line in enumerate(lines):
         if line.startswith(LEDGER_HEAD):
             return num
@@ -320,10 +320,8 @@ def ledger_start(lines):
 def judge_ledger(path, lines, low):
     """Assertion (b) for one doc. Returns (findings, whether it was a subject).
 
-    A doc outside the archive is not a subject, and neither is an archived doc with
-    no section 0, which is the hole assertion (d) below was written to close. The
-    block runs from that heading to the NEXT heading of any name, for the reason the
-    header gives about the groom path."""
+    A doc outside the archive is not a subject, and neither is an archived doc with no
+    section 0, the hole assertion (d) closes. The block ends at the next heading."""
     if not path.startswith(ARCHIVE) or low is None:
         return ([], False)
     out = []
@@ -344,9 +342,9 @@ def judge_created(path, found, has_ledger):
     """Assertion (d) for one doc. `found` is (value, line number) for the created
     key, the tuple grouping that keeps this inside the three-parameter cap.
 
-    Returns (findings, whether it was a subject). An unreadable date is a finding but
-    NOT a subject, since counting it would let a tree of undated archives satisfy the
-    floor while nothing was resolved."""
+    THE FILENAME DATE OUTRANKS THE FRONTMATTER ONE, for the reason the header gives.
+    An unreadable date is a finding but NOT a subject, since counting it would let a
+    tree of undated archives satisfy the floor while nothing was resolved."""
     if not path.startswith(ARCHIVE):
         return ([], False)
     value = found[0]
@@ -356,24 +354,30 @@ def judge_created(path, found, has_ledger):
                  '%s, the day section 0 became a work-doc section; removing that '
                  'field is not a way out of the section 0 rule'
                  % (path, ARCHIVE, CREATED_KEY.rstrip(':'), LEDGER_EPOCH)], False)
-    if value < LEDGER_EPOCH:
-        return ([], False)
+    stamp = filename_date(path)
+    out = [] if stamp is None or stamp == value else [
+        '%s:%d says %s %s while the filename it is filed under says %s, and the '
+        'filename is what this doc is resolved against; a frontmatter date '
+        'disagreeing with the name is the shape a backdated doc takes'
+        % (path, found[1], CREATED_KEY.rstrip(':'), value, stamp)]
+    resolved = stamp or value
+    if resolved < LEDGER_EPOCH:
+        return (out, False)
     if has_ledger:
-        return ([], True)
-    return (['%s is archived and its frontmatter says created %s, on or after the '
-             'day section 0 became a work-doc section, yet it carries no %s block; '
-             'a phase that does not apply is marked completed with a skipped '
-             'reason, never deleted, per %s'
-             % (path, value, LEDGER_HEAD, LEDGER_LAW)], True)
+        return (out, True)
+    out.append('%s is archived and resolves to %s, on or after the day section 0 '
+               'became a work-doc section, yet it carries no %s block; a phase that '
+               'does not apply is marked completed with a skipped reason, never '
+               'deleted, per %s' % (path, resolved, LEDGER_HEAD, LEDGER_LAW))
+    return (out, True)
 
 
 def judge(path, lines):
     """Every finding for one doc, through both assertions. Returns
     (findings, is an assertion (b) subject, is an assertion (d) subject).
 
-    THE FENCE MASK IS APPLIED ONCE, HERE, and both readers below judge that same
-    copy, so a doc counts toward either subject total only when the block actually
-    judged is its real one."""
+    THE FENCE MASK IS APPLIED ONCE, HERE, so a doc counts toward either subject total
+    only when the block actually judged is its real one."""
     body = unfenced(lines)
     low = ledger_start(body)
     out, subject_b = judge_ledger(path, body, low)
@@ -383,10 +387,9 @@ def judge(path, lines):
     return (out, subject_b, subject_d)
 
 
-# The four control shapes, as source literals. THE OPEN MARKERS AND THE DATES ARE
-# WRITTEN OUT rather than read from OPEN_ROWS or from LEDGER_EPOCH: a control built
-# from the constant it tests moves with a tamper on that constant and stays green
-# while the judge goes blind, so a marker added there owes a case here.
+# The control shapes, as source literals. THE OPEN MARKERS AND THE DATES ARE WRITTEN
+# OUT rather than read from OPEN_ROWS or LEDGER_EPOCH: a control built from the
+# constant it tests moves with a tamper on it and stays green while the judge blinds.
 CTL_HEAD = FENCE + '\nslug: zzq-control\ncreated: %s\n' + FENCE + '\n\n'
 # A ledger doc, with the groom section the block terminator has to survive.
 CTL_LEDGER = (CTL_HEAD + LEDGER_HEAD + '\n\n%s Phase 1. Clarify\n\n'
@@ -396,24 +399,21 @@ CTL_PLAIN = CTL_HEAD + '## 1. Original ask\n\nbody\n'
 # A closed ledger under frontmatter carrying no created key whatsoever.
 CTL_UNDATED = (FENCE + '\nslug: zzq-control\n' + FENCE + '\n\n' + LEDGER_HEAD
                + '\n\n- [x] Phase 1. Clarify\n\n## 1. Original ask\n\nbody\n')
-# The decoy separates only while the fence mask works: shadow the heading search and
-# the walk breaks at once, blind the terminator and its fenced heading ends the block
-# above the row.
+# The decoy separates only while both halves of the fence mask work.
 CTL_DECOY = (CTL_HEAD + CODE_FENCE + '\n' + LEDGER_HEAD + '\n' + CODE_FENCE + '\n\n'
              + LEDGER_HEAD + '\n\n' + CODE_FENCE + '\n' + HEADING + 'fenced\n'
              + CODE_FENCE + '\n\n%s Phase 1. Clarify\n\n## 1. Original ask\n\nbody\n')
-# Written out for the same reason the markers are. AFTER is any date past the pin,
-# BEFORE any date under it.
+# Written out for the same reason the markers are: AFTER is past the pin, BEFORE under.
 CTL_AFTER = '2026-08-24'
 CTL_BEFORE = '2026-05-11'
 
 
 def control_docs():
-    """The eight synthetic work-docs the control judges, as (path, body, reported).
+    """The ten synthetic work-docs the control judges, as (path, body, reported).
 
-    Source literals only, none read off disk, so no document can change what this
-    proves. BOTH OPEN MARKERS GET A CASE, and so does each direction of the created
-    rule; exercising one side of either left the other with no control at all."""
+    Source literals only, so no document can change what this proves. BOTH OPEN
+    MARKERS GET A CASE, and so does each direction of the date rule, filename half
+    included: exercising one side of either left the other with no control at all."""
     return (('docs/work/done/zzq-open-ledger.md', CTL_LEDGER % (CTL_AFTER, '- [>]'), True),
             ('docs/work/done/zzq-todo-ledger.md', CTL_LEDGER % (CTL_AFTER, '- [ ]'), True),
             ('docs/work/done/zzq-fenced-decoy.md', CTL_DECOY % (CTL_AFTER, '- [ ]'), True),
@@ -421,16 +421,16 @@ def control_docs():
             ('docs/work/done/zzq-undated.md', CTL_UNDATED, True),
             ('docs/work/done/zzq-closed-ledger.md', CTL_LEDGER % (CTL_AFTER, '- [x]'), False),
             ('docs/work/done/zzq-predates.md', CTL_PLAIN % CTL_BEFORE, False),
+            ('docs/work/done/2026-08-24-zzq-backdated.md', CTL_PLAIN % CTL_BEFORE, True),
+            ('docs/work/done/2026-05-11-zzq-early.md', CTL_PLAIN % CTL_BEFORE, False),
             ('docs/work/zzq-live-open.md', CTL_LEDGER % (CTL_AFTER, '- [>]'), False))
 
 
 def control():
     """True when a corpus whose verdicts are known is judged exactly that way.
 
-    BOTH DIRECTIONS, for the reason the header gives: five docs MUST be reported and
-    three MUST NOT, so a judge degraded to always-pass and one degraded to always-fail
-    both show up. Every case runs the SAME judge() the live scan uses; a control
-    exercising a copy would stay green while the shipped path rotted."""
+    BOTH DIRECTIONS: six docs MUST be reported and four MUST NOT, so always-pass and
+    always-fail both show up. Every case runs the SAME judge() the live scan uses."""
     for path, body, reported in control_docs():
         found = judge(path, body.split('\n'))[0]
         if bool(found) != reported:
@@ -441,11 +441,10 @@ def control():
 def work_docs():
     """Tracked work-docs, by argv list and never through a shell.
 
-    docs/work/ is deliberately IN scope; see the header. -z AND SPLIT ON NUL, never
-    newline: under git's default core.quotePath a path holding a non-ASCII byte, a double
-    quote or a backslash comes back C-quoted and wrapped in quote marks, so it no
-    longer ends in .md, the filter below drops it, and the doc leaves the corpus with
-    nothing said about it. A NUL record is never quoted and never escaped."""
+    docs/work/ is deliberately IN scope; see the header. -z AND SPLIT ON NUL: under
+    git's default core.quotePath a path holding a non-ASCII byte, a double quote or a
+    backslash comes back C-quoted, stops ending in .md and drops out of the corpus
+    unseen. A NUL record is never quoted and never escaped."""
     proc = subprocess.run(['git', 'ls-files', '-z', '--', WORKDOCS],
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:
@@ -453,6 +452,13 @@ def work_docs():
         raise SystemExit('git ls-files failed with rc %d' % proc.returncode)
     names = proc.stdout.decode('utf-8', 'replace').split('\0')
     return [p for p in names if p.endswith('.md')]
+
+
+def one_line(text):
+    """A finding, flattened to one physical line. git ls-files can legitimately
+    return a path holding a newline, and the shell above reads this output line by
+    line, so an unescaped one would split a finding and drop its reason."""
+    return text.replace(chr(10), '\\n').replace(chr(13), '\\r')
 
 
 def scan(paths):
@@ -472,7 +478,7 @@ def scan(paths):
         archived += 1 if subject_b else 0
         dated += 1 if subject_d else 0
     for line in findings:
-        print('FAIL %s' % line)
+        print('FAIL %s' % one_line(line))
     print('CONTROL %s' % ('ok' if control() else 'fail'))
     print('SIZE %d %d %d' % (docs, archived, dated))
 

@@ -32,11 +32,12 @@ Compute each from git + the work-doc. Show `0` / "none" honestly when a value is
 
 ## Charts (inline SVG only)
 
-Charts are hand-emitted **inline SVG** so the file stays self-contained. No charting library, no JS required:
+Charts are emitted as **inline SVG** by the renderer so the file stays self-contained. No charting library, no JS required. The template carries exactly two chart tokens, and this list matches them:
 
-- **Severity chart**, a small donut or horizontal bar of Critical / Important / Minor (fixed vs open).
-- **Files + LOC bar**, added (green) vs removed (red) magnitude.
-- **Phase timeline strip**, six pills (Clarify → Finish), each marked done / skipped.
+- **Severity chart** (`{{SEVERITY_CHART_SVG}}`), horizontal found-vs-fixed bars for Critical / Important / Minor.
+- **Phase timeline strip** (`{{PHASE_TIMELINE}}`), one pill per phase, each marked done / skipped.
+
+Files changed and LOC added / removed are **stat cards, not a chart**. There is no token for a LOC bar and the renderer draws none; this page used to promise one.
 
 ## Plain-language summary + evidence appendix
 
@@ -97,12 +98,13 @@ A file path is something the user has to open by hand, and it is not something t
 python3 <skill-dir>/scripts/render-report.py \
   --data /tmp/report.json \
   --out <project>/docs/work/done/<slug>.report.html \
-  --artifact-out /tmp/<slug>.report.body.html \
+  --artifact-out "$(mktemp -d)/<slug>.report.body.html" \
   --repo <project> --base <base-sha>
 ```
 
 - **`--out` is unchanged.** It still writes the complete, self-contained document that opens in a browser with no network. That file is the deliverable and the thing every non-publishing runtime gets.
-- **`--artifact-out` is scratch, not a second deliverable.** One render, two writes, so the two files cannot drift. Write it to a temp path, never beside the report: `docs/work/done/` holds exactly one HTML file per sprint, and a second one there is clutter the Step C.5 cleanup sweep would flag as an unrelated change.
+- **`--artifact-out` is scratch, not a second deliverable.** One render, two writes, so the two files cannot drift. Keep it out of `docs/work/done/`, which holds exactly one HTML file per sprint; a second one there is clutter in the shipped tree. (Step C.5 has nothing to say about it either way: that sweep runs before Step F and already excludes `docs/work/*`.)
+- **Give it a fresh directory per run, never a fixed name in the shared temp directory.** `$(mktemp -d)` makes a private directory nobody can guess. A predictable path in a world-writable directory is one another user can pre-fill with a symlink, and a writer that followed it would overwrite whatever it points at (CWE-59, CWE-377). The renderer refuses to write through a symlink at either output path, so the worst case is a refusal rather than a clobber, and an unguessable directory means it never comes up.
 - **The content-only copy keeps its `<title>`.** A publisher reads the head of the file for one and uses it to name the page, so the title stays first, ahead of the stylesheet and the page content.
 - **The page must stay self-contained either way.** Publishers block requests to other hosts, so the no-CDN, no-web-font, no-remote-image rule below is load-bearing twice over now: once for the offline file, once for the published page.
 - **Publish, then say the link out loud.** The user asked for something they can send someone, so the link belongs in the chat message, not only in a tool result.

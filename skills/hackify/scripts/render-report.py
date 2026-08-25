@@ -14,11 +14,12 @@ Two output modes, one render. --out writes the deliverable: a complete,
 self-contained document that opens in a browser with no network. --artifact-out
 is optional and writes the SAME page with no document shell of its own, no
 <!doctype>, no <html>, <head> or <body>, because a page publisher supplies that
-shell itself and expects page content only. The <title> and the <style> block
+shell itself and expects page content only. The <title> and every <style> block
 move into the content, which is valid HTML and renders identically; the title
 stays first so a publisher that reads the head of the file for one still finds
 it. Nothing about --out changes when --artifact-out is passed, and the file on
-disk stays the deliverable on any runtime that cannot publish a page.
+disk stays the deliverable on any runtime that cannot publish a page. Neither
+output path is written through a symlink, whichever one is planted there.
 
 Git-derived stats (files changed, LOC added/removed, commits) are computed
 here when --base is given; anything the payload supplies explicitly wins, so a
@@ -48,6 +49,7 @@ an empty-state row, never as fabricated content):
 import argparse
 import html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -200,14 +202,23 @@ def evidence_rows(rows):
 
 
 def stat_tokens(stats):
-    done = stats.get("tasks_done", 0)
-    total = stats.get("tasks_total", 0)
+    """The five stat cards, every one of them escaped.
+
+    THESE ARE NOT GIT-ONLY VALUES. main() lets the payload win over anything git
+    derived, which html-report.md documents for quick and yolo runs, so each of
+    these five is untrusted prose exactly like the rest of the payload. They were
+    built with a bare str() until a reviewer put a script tag through
+    stats.files and watched it land in the page, and the page is published to a
+    shareable link now, so that was stored XSS rather than a local file.
+    """
+    done = esc(stats.get("tasks_done", 0))
+    total = esc(stats.get("tasks_total", 0))
     return {
         "STAT_TASKS": f"{done} / {total}",
-        "STAT_FILES": str(stats.get("files", 0)),
-        "STAT_LOC_ADD": str(stats.get("loc_add", 0)),
-        "STAT_LOC_DEL": str(stats.get("loc_del", 0)),
-        "STAT_COMMITS": str(stats.get("commits", 0)),
+        "STAT_FILES": esc(stats.get("files", 0)),
+        "STAT_LOC_ADD": esc(stats.get("loc_add", 0)),
+        "STAT_LOC_DEL": esc(stats.get("loc_del", 0)),
+        "STAT_COMMITS": esc(stats.get("commits", 0)),
     }
 
 
@@ -260,25 +271,43 @@ def content_only(page):
     """Same page, no document shell, for a publisher that supplies its own.
 
     Title first so a publisher scanning the head of the file for one finds it,
-    then the stylesheet, then what was inside <body>. Refuses rather than
-    emitting a half page: a template that lost any of the three would otherwise
-    publish silently broken.
+    then EVERY stylesheet in document order, then what was inside <body>. It
+    refuses on absence and only on absence: a page with no title, no style block
+    at all or no body would otherwise publish as a silently broken half page.
+    A page carrying two style blocks is not broken, so it is carried whole rather
+    than refused. DOC_STYLE is non-greedy and one search() took only the first,
+    which dropped the second without a word.
     """
     title = DOC_TITLE.search(page)
-    style = DOC_STYLE.search(page)
+    styles = [found.group(0) for found in DOC_STYLE.finditer(page)]
     body = DOC_BODY.search(page)
-    if not (title and style and body):
+    if not (title and styles and body):
         raise SystemExit("render-report: the rendered page has no <title>, no <style> "
                          "or no <body> to lift into a content-only page")
-    return "\n".join([title.group(0), style.group(0), body.group(1).strip(), ""])
+    return "\n".join([title.group(0)] + styles + [body.group(1).strip(), ""])
 
 
-def write_artifact(path, page):
-    """Write the content-only copy. Scratch output, never the deliverable."""
-    artifact = Path(path)
-    artifact.parent.mkdir(parents=True, exist_ok=True)
-    artifact.write_text(content_only(page))
-    print(f"  ok   wrote {artifact} ({len(artifact.read_text())} bytes), content only")
+def write_page(path, text, note=""):
+    """Write one output file, refusing to follow a symlink at the destination.
+
+    O_NOFOLLOW IS THE ENFORCEMENT, not a stat() first. Both output paths are
+    predictable by design, so a stat-then-write would be a race an attacker on a
+    shared host can win. write_text() follows a pre-existing symlink, which made
+    a planted link an arbitrary file overwrite as whoever ran the render, and the
+    link survived to be used again (CWE-59, CWE-377). The parent directory is
+    still created when missing, and only the final component is protected.
+    """
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW
+    try:
+        handle = os.open(str(out), flags, 0o600)
+    except OSError as err:
+        raise SystemExit(f"render-report: refused to write {out} ({err.strerror}); a "
+                         f"symlink at the destination is never followed")
+    with os.fdopen(handle, "w", encoding="utf-8") as stream:
+        stream.write(text)
+    print(f"  ok   wrote {out} ({len(text)} bytes){note}")
 
 
 def parse_args(argv):
@@ -304,12 +333,9 @@ def main(argv=None):
         stats.setdefault(key, value)
     text = Path(args.template).read_text()
     page = render(text, build_tokens(data, stats))
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page)
-    print(f"  ok   wrote {out} ({len(out.read_text())} bytes)")
+    write_page(args.out, page)
     if args.artifact_out:
-        write_artifact(args.artifact_out, page)
+        write_page(args.artifact_out, content_only(page), ", content only")
     return 0
 
 

@@ -61,6 +61,15 @@ CONTROL_LINE = ('print(' + QUOTE + 'CONTROL %s' + QUOTE + ' % (' + QUOTE + 'ok'
 # doc unreported, which is the tamper only the positive control can see.
 VOCAB_TEST = 'if allowed and value not in allowed:'
 
+# A status vocabulary the repository never declared, in the shape a template row
+# takes. FOUR VALUES, deliberately: WS_VOCAB_FLOOR is 4, so a substituted list of
+# this size clears the floor and every doc claiming one of its values reads clean.
+EVIL_VALUES = ('pwned', 'owned', 'zzq1', 'done')
+EVIL_TEMPLATE = ('# not the work-doc template\n\n| Field | Values | Meaning |\n'
+                 '|---|---|---|\n%s %s | a file this repository does not own |\n'
+                 % (STATUS_ROW_HEAD,
+                    ' / '.join('%s%s%s' % (TICK, v, TICK) for v in EVIL_VALUES)))
+
 
 def _template_without_the_status_row():
   """The real template with its status row deleted, and nothing else changed."""
@@ -288,6 +297,55 @@ def _tree_with_symlinked_doc():
   os.symlink(str(outside), str(root / 'docs/work/zzq-link.md'))
   git(root, 'add', '-A')
   return root
+
+
+def _tree_with_symlinked_template():
+  """A tree whose tracked template is a symlink to a file outside the repository."""
+  root = work_doc_tree({'docs/work/planted.md': work_doc('pwned')})
+  outside = write(temp_dir('status-template-'), 'zzq-evil-template.md', EVIL_TEMPLATE)
+  (root / TEMPLATE).unlink()
+  os.symlink(str(outside), str(root / TEMPLATE))
+  git(root, 'add', '-A')
+  return root
+
+
+def test_99_a_symlinked_template_is_refused_rather_than_read():
+  """THE READ THAT LACKED THE GUARD. The declaring site is the one path this check
+  trusts most and it was the one path opened without resolving first. Point it out of
+  the tree and [99] took the outside file's four values as the status vocabulary,
+  cleared the floor on them, passed a doc claiming one, and reported the honest doc
+  instead. The refusal is a finding, and no per-doc sentence prints beside it."""
+  rc, out = run_check('99', cwd=_tree_with_symlinked_template())
+  expect_red(rc, out, 'the declaring site was never opened',
+             '%s does not resolve to a plain file under the repository root' % TEMPLATE)
+  refute(out, 'which is none of the', 'pwned')
+
+
+def test_99_blinding_the_template_guard_reads_the_outside_file():
+  """The discriminator for the row above, and what the guard is actually worth. With
+  the resolve gate blinded the vocabulary comes out of a file the repository does not
+  own: the planted doc claiming one of its values passes, and the honest doc beside
+  it is the one reported. The control fails too, which is the second half of the
+  fix, but the doc-side sentence is what proves the outside file was read."""
+  with tampered('99', (RESOLVE_GATE, 'True')) as frag:
+    rc, out = run_fragment(frag, cwd=_tree_with_symlinked_template())
+  expect_red(rc, out, 'docs/work/live.md:3 sets status: %simplementing%s, which is '
+             'none of the 4 value(s)' % (QUOTE, QUOTE),
+             'the positive control did not hold (control verdict: fail)')
+  refute(out, 'docs/work/planted.md:3 sets status')
+
+
+def test_99_a_substituted_vocabulary_is_caught_by_the_control():
+  """THE ROW IMPORTANT 3 EXISTS FOR, and it needs no symlink. A vocabulary read from
+  a row the template did not declare clears every floor: four values is above
+  WS_VOCAB_FLOOR and every doc claiming one of them reads clean. The control used to
+  take its own good status out of that same parsed list, so it moved with the
+  substitution and reported ok right through it. It carries a literal now, so a list
+  that has stopped containing what the template declares fails here."""
+  root = work_doc_tree({'docs/work/planted.md': work_doc('pwned')},
+                       template=EVIL_TEMPLATE)
+  rc, out = run_check('99', cwd=root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
 
 
 def test_99_a_doc_named_with_a_non_ascii_byte_is_still_judged():

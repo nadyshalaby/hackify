@@ -13,7 +13,8 @@
 #       DECLARING site and each work-doc a CLAIMING site, the shape [93] resolves
 #       for prompt inputs. The list is READ OUT of that template at runtime, from the
 #       one frontmatter-reference row whose first cell names the status field, so
-#       retiring a value there retires it here with no second copy to keep.
+#       retiring a value there retires it here with no second copy of the LIST to
+#       keep anywhere in this file.
 #
 #   (c) A LIVE DOC IS NOT ARCHIVED. A doc that is NOT under docs/work/done/ must
 #       not carry the archived status value. Directory and frontmatter have to
@@ -23,27 +24,38 @@
 # usually does, for a reason worth reading before renaming either. Assertion (c) is
 # cited BY LETTER from skills/hackify/references/phase-ledger.md and from
 # skills/hackify/references/finish.md, so the letters had to survive. The id could
-# not: [98] is a single check, and CHANGELOG.md:54 binds it to the filename
-# 98-work-doc-ledger-sync.sh and to the archived-sprint behaviour that stayed there,
-# so moving either would leave that line pointing at nothing. The ledger half kept
-# [98] and this half took a new id.
+# not: [98] is a single check, and the CHANGELOG bullet that opens "[98] and [99]"
+# binds it to the filename 98-work-doc-ledger-sync.sh and to the archived-sprint
+# behaviour that stayed there, so moving either would leave that bullet pointing at
+# nothing. The ledger half kept [98] and this half took a new id.
 #
-# THAT CHANGELOG ENTRY IS NOW STALE IN ONE SENTENCE, written down here because
-# nobody else is going to find it. It calls [98] three assertions; after this split
-# it has two, and the third is (a) in this file. The entry sits under 0.15.1, which
-# is written up but carries no git tag while every earlier version has one, so it is
-# still editable rather than frozen. CHANGELOG.md is outside this task's file
-# allowlist, so the correction is reported as a follow-up instead of made here.
+# THAT BULLET IS ANCHORED BY ITS OPENING WORDS AND NOT BY A LINE NUMBER, which is a
+# correction rather than a preference. This header cited a line, the entry was
+# rewritten one commit later, and the citation was stale immediately while the
+# citation checker stayed green because the line it named still existed and said
+# something else. A line number has a shelf life; a heading or a name does not.
 #
 # THE SEAM IS WHICH PART OF A DOC IS READ. Everything here resolves a FRONTMATTER
 # VALUE against something outside the doc, the template's declared list for (a) and
 # the doc's own directory for (c), and both share the template vocabulary parse.
 # Everything in 98 reads the SECTION 0 BLOCK and shares ledger_start() and the fence
 # mask under it. Nothing crosses: this file has no fence mask and no ledger reader,
-# 98 has no vocabulary parse, and no floor or control is shared. WHAT IT COSTS,
-# stated rather than hidden: four plumbing readers appear in both fragments, the file
-# read, the symlink refusal, the tracked-doc list and the column-0 frontmatter
-# reader. A sourced shell fragment has nowhere to import a shared module from.
+# 98 has no vocabulary parse, and no floor or control is shared.
+#
+# WHAT THE SEAM COSTS, AND THE REASON THAT IS ACTUALLY TRUE. Three readers are
+# genuinely duplicated across the two fragments, refuse_read(), frontmatter_field()
+# and work_docs(), about 45 lines. read() does not count, it was already the same
+# four lines in [91], [93], [94] and [95] before either of these existed. This header
+# used to say the duplication was forced, that a sourced shell fragment has nowhere
+# to import a shared module from, and that was simply false:
+# 80-file-size-caps.sh:148-152 imports a module from inside its own heredoc and
+# 57-doc-links.sh:54 runs an entire check out of scripts/check_doc_links.py. THE REAL
+# REASON IS THE TAMPER BATTERY. It proves these fragments by copying one into a temp
+# directory, editing the copy, and sourcing THAT against a throwaway git tree, so the
+# copy sees a cwd and a sibling directory holding nothing but fixtures. A shared
+# module found by either route would not exist under test, and a row aiming a tamper
+# at shared plumbing would need a second tamper path to reach it. The duplication is
+# a choice with a price, not a constraint.
 #
 # WHAT ASSERTION (a) DOES NOT REACH. A status that is spelled correctly says nothing
 # about whether it is TRUE. A doc stalled for a week still reads implementing, and
@@ -58,16 +70,38 @@
 # contents would be arbitrary code execution by editing that document, the guardrail
 # this whole sprint is written around. Reading obeys the same rule: no path is opened
 # until it resolves to itself under the repository root, so a tracked symlink is
-# refused and REPORTED rather than followed out of the tree.
+# refused and REPORTED rather than followed out of the tree. THAT NOW COVERS THE
+# TEMPLATE, and it did not when this fragment shipped: the vocabulary read went
+# straight to isfile() and read(), around the very guard this paragraph claimed. A
+# reviewer made the template a tracked symlink to a file outside the repository,
+# watched this check take four values out of that file as the status vocabulary, and
+# passed a document claiming one of them (CWE-59).
 #
 # WHY A POSITIVE CONTROL. On a truthful tree both assertions report nothing, and that
 # silence is the SAME OUTPUT this check would print if its judging had quietly
 # stopped. So it is earned before it is trusted: a synthetic five-doc corpus, built
 # from source literals here and never read off disk, goes through the SAME judge the
 # live scan uses, in BOTH directions. Three docs MUST be reported and two MUST NOT;
-# [94] and [95] each state this at their own control. THE CONTROL TAKES ITS GOOD
-# STATUS OUT OF THE PARSED VOCABULARY rather than writing one here, so it cannot
-# become the second copy of the values (a) exists to avoid.
+# [94] and [95] each state this at their own control.
+#
+# THE CONTROL TAKES ITS GOOD STATUS FROM A LITERAL, AND THAT IS A REVERSAL. It used
+# to read that value out of the PARSED vocabulary, on the reasoning that a literal
+# would become the second copy (a) exists to avoid. That reasoning contradicted
+# 98-work-doc-ledger-sync.sh, which says at its own control that a control built from
+# the constant it tests moves with a tamper on that constant and stays green while
+# the judge goes blind. This one did exactly that: through the symlink compromise
+# above it took its good status out of the ATTACKER'S list, judged its own clean doc
+# clean, and reported ok. One literal value is not a copy of the list, and the judge
+# still keeps none.
+#
+# WHAT THE LITERAL CATCHES AND WHAT IT COSTS. It catches a vocabulary that stops
+# containing what the template declares: a substituted declaring site, the wrong row,
+# a parse that drops values. It does NOT catch a parse that admits EXTRA values on
+# top of the declared ones, because from the document side an extra allowed value
+# reads exactly like a declared one, and no control built here can tell them apart.
+# THE COST is a coupling, stated rather than hidden: retiring CONTROL_GOOD from the
+# template row reds this check until the literal here is changed too, the same
+# bargain 98 takes for its own open-row markers.
 yellow "[99] every work-doc's status is one the template declares, and it agrees with the directory the doc sits in"
 # WHY docs/work/ AND NOT THE LIVE PATHSPEC THE NEIGHBOURS USE. [91], [93], [94] and
 # [95] all scan with a three-part pathspec that EXCLUDES docs/work/, because for them
@@ -103,6 +137,8 @@ WS_VOCAB_FLOOR=4
 WS_DOCS=0
 WS_VOCAB=0
 WS_CONTROL=none
+WS_REFUSED=""
+
 
 ws_fail() {
   red "  FAIL $*"
@@ -115,6 +151,7 @@ ws_read_size() {
     case "$line" in
       'SIZE '*) read -r WS_DOCS WS_VOCAB <<<"${line#SIZE }" ;;
       'CONTROL '*) WS_CONTROL=${line#CONTROL } ;;
+      'REFUSED '*) WS_REFUSED=${line#REFUSED } ;;
     esac
   done <<<"$1"
 }
@@ -122,6 +159,10 @@ ws_read_size() {
 # The vocabulary floor is judged FIRST, being reference data and not corpus: when it
 # collapses every status resolves to nothing and a docs-side diagnosis misleads.
 ws_floors_hold() {
+  if [ -n "$WS_REFUSED" ]; then
+    ws_fail "[99] the declaring site was never opened: $WS_REFUSED"
+    return 1
+  fi
   if [ "$WS_VOCAB" -lt "$WS_VOCAB_FLOOR" ]; then
     ws_fail "[99] the template parse read $WS_VOCAB status value(s) against a floor of $WS_VOCAB_FLOOR; the frontmatter-reference row or the template path stopped matching, and every work-doc's status would resolve against an empty vocabulary"
     return 1
@@ -141,7 +182,7 @@ ws_floors_hold() {
 # held.
 ws_control_holds() {
   [ "$WS_CONTROL" = ok ] && return 0
-  ws_fail "[99] the positive control did not hold (control verdict: $WS_CONTROL). A synthetic five-doc corpus built from literals in this fragment must report exactly the three docs that break something, one carrying a status value no template row declares, one sitting outside the archive while claiming it was archived, and one carrying no status field at all, and must report neither of the two clean docs beside them, a live doc with a declared status and an archived doc that says so. Until that separates, this run's silence is not evidence of anything: a judge that had stopped discriminating would print the same nothing"
+  ws_fail "[99] the positive control did not hold (control verdict: $WS_CONTROL). A synthetic five-doc corpus built from literals in this fragment must report exactly the three docs that break something, one carrying a status value no template row declares, one sitting outside the archive while claiming it was archived, and one carrying no status field at all, and must report neither of the two clean docs beside them, a live doc carrying the literal good status this fragment writes out and an archived doc that says it is done. Until that separates, this run's silence is not evidence of anything: a judge that had stopped discriminating would print the same nothing"
   return 1
 }
 
@@ -204,9 +245,14 @@ ROOT = os.path.realpath(os.getcwd())
 # entry is dropped rather than admitted, so a reformatted table collapses the
 # count into the floor instead of widening what any document may claim.
 VALUE = re.compile(r'^[a-z][a-z0-9_-]*$')
-# The control's bad status. Deliberately a string no template row could carry, so
-# the synthetic corpus and the live tree can never reach into one another.
+# The control's two statuses, BOTH LITERALS HERE, for the reason the header gives at
+# length. CONTROL_BAD is deliberately a string no template row could carry, so the
+# synthetic corpus and the live tree can never reach into one another. CONTROL_GOOD
+# is a value the template row does declare, and it is written out rather than picked
+# out of the parse so that a vocabulary which stops containing the declared values
+# fails the control instead of moving with it.
 CONTROL_BAD = 'zzq-control-not-a-status'
+CONTROL_GOOD = 'implementing'
 
 
 def read(path):
@@ -241,7 +287,12 @@ def vocabulary():
     status field, the values are its SECOND cell split on the slash, each stripped of
     backticks, shape-gated, then only ever compared with `==`. A value in prose
     declares nothing, the reading [94] applies to its headings. An empty set is
-    returned rather than raised, so the shell floor names the collapse, not python."""
+    returned rather than raised, so the shell floor names the collapse, not python.
+
+    THE TEMPLATE READ GOES THROUGH refuse_read() LIKE EVERY OTHER READ. It did not
+    when this fragment shipped, which left the one path this check trusts most as the
+    one path it opened blind; the caller refuses first and this function is never
+    reached on a path that does not resolve to itself under the root."""
     found = set()
     if not os.path.isfile(TEMPLATE):
         return found
@@ -310,18 +361,19 @@ def judge(path, lines, allowed):
     return judge_status(path, frontmatter_field(lines, STATUS_KEY), allowed)
 
 
-def control_docs(good):
+def control_docs():
     """The five synthetic work-docs the control judges, as (path, body, reported).
 
     Source literals only, none read off disk, so no document can change what this
-    proves. `good` comes from the PARSED vocabulary rather than being written here,
-    which keeps this from becoming the second copy of the values (a) reads out."""
+    proves. THE CLEAN DOC CARRIES CONTROL_GOOD, a literal, which is what makes a
+    vocabulary that stopped containing the declared values fail here instead of
+    quietly supplying this corpus with its own idea of a good status."""
     head = FENCE + '\nslug: zzq-control\nstatus: %s\n' + FENCE + '\n\nbody\n'
     bare = '# zzq-control\n\nbody with no frontmatter at all\n'
     return (('docs/work/zzq-bad-status.md', head % CONTROL_BAD, True),
             ('docs/work/zzq-live-archived.md', head % ARCHIVED_STATUS, True),
             ('docs/work/zzq-no-status.md', bare, True),
-            ('docs/work/zzq-clean.md', head % good, False),
+            ('docs/work/zzq-clean.md', head % CONTROL_GOOD, False),
             ('docs/work/done/zzq-archived.md', head % ARCHIVED_STATUS, False))
 
 
@@ -332,14 +384,7 @@ def control(allowed):
     two MUST NOT, so a judge degraded to always-pass and one degraded to always-fail
     both show up. Every case runs the SAME judge() the live scan uses; a control
     exercising a copy would stay green while the shipped path rotted."""
-    good = None
-    for value in sorted(allowed):
-        if value != ARCHIVED_STATUS:
-            good = value
-            break
-    if good is None:
-        return False
-    for path, body, reported in control_docs(good):
+    for path, body, reported in control_docs():
         if bool(judge(path, body.split('\n'), allowed)) != reported:
             return False
     return True
@@ -362,6 +407,13 @@ def work_docs():
     return [p for p in names if p.endswith('.md')]
 
 
+def one_line(text):
+    """A finding, flattened to one physical line. git ls-files can legitimately
+    return a path holding a newline, and the shell above reads this output line by
+    line, so an unescaped one would split a finding and drop its reason."""
+    return text.replace(chr(10), '\\n').replace(chr(13), '\\r')
+
+
 def scan(paths, allowed):
     """Judge every doc, report what it found, then print CONTROL and SIZE."""
     docs = 0
@@ -376,12 +428,19 @@ def scan(paths, allowed):
         docs += 1
         findings.extend(judge(path, read(path).split('\n'), allowed))
     for line in findings:
-        print('FAIL %s' % line)
+        print('FAIL %s' % one_line(line))
     print('CONTROL %s' % ('ok' if control(allowed) else 'fail'))
     print('SIZE %d %d' % (docs, len(allowed)))
 
 
-ALLOWED = vocabulary()
+# THE TEMPLATE IS REFUSED BEFORE IT IS READ, and the refusal is printed on its own
+# line rather than folded into a finding: the shell judges its floors before it
+# replays findings, so a refusal buried among them would never reach the transcript
+# on the run where the vocabulary collapsed to nothing.
+REFUSAL = refuse_read(TEMPLATE)
+if REFUSAL:
+    print('REFUSED %s' % one_line(REFUSAL))
+ALLOWED = set() if REFUSAL else vocabulary()
 scan(work_docs(), ALLOWED)
 WS_PY
 )
