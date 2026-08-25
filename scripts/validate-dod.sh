@@ -79,6 +79,12 @@
 #                   round marker, both over a file set the check DISCOVERS
 #                   rather than lists. Split out of 76 at the 500-LOC cap, IDs
 #                   and all
+#   97-test-suites-reachable.sh, check [97], every tracked test suite is
+#                   reachable from .github/workflows/ci.yml, either named by a
+#                   step directly or imported by a file that is, so a suite
+#                   cannot sit green-on-demand and absent from every automated
+#                   run. Same shape as [0] one layer up: [0] catches a fragment
+#                   nothing sources, this catches a suite nothing runs
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -198,6 +204,7 @@ source "$DOD_MODULES_DIR/93-token-declarations.sh"
 source "$DOD_MODULES_DIR/94-section-exists.sh"
 source "$DOD_MODULES_DIR/95-literal-absent-claims.sh"
 source "$DOD_MODULES_DIR/96-review-scope-sites.sh"
+source "$DOD_MODULES_DIR/97-test-suites-reachable.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being

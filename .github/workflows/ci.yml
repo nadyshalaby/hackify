@@ -113,6 +113,15 @@ jobs:
       - name: Token-declaration tests (check [93] declared-vs-used)
         run: python3 scripts/test_token_declarations.py
 
+      - name: Section-exists tests (check [94] work-doc section resolver)
+        run: python3 scripts/test_section_exists.py
+
+      - name: Literal-absent-claim tests (check [95] quoted-phrase resolver)
+        run: python3 scripts/test_literal_absent_claims.py
+
+      - name: CI suite-coverage tests (check [97] every suite reachable from CI)
+        run: python3 scripts/test_ci_suite_coverage.py
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
 
