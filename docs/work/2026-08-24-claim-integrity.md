@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: review
+status: implementing
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 5 fix waves, 1b landed, 1a verified and pending commit, 4 tasks blocked
+current_task: Phase 3 reopened, W7 = T14 (skill text) + T16/T17 (the check), T15 by hand
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -17,9 +17,9 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
-- [x] Phase 3. Implement (all backlog tasks landed, 0.15.1 cut)
-- [x] Phase 4. Verify (Evidence Ledger + triad + ship gate, all green)
-- [>] Phase 5. Review (panel + refuter done, fix waves in flight)
+- [>] Phase 3. Implement (reopened for T14-T17, the ledger-persistence fix)
+- [x] Phase 4. Verify (Evidence Ledger + triad + ship gate, all green; re-runs after T14-T17)
+- [x] Phase 5. Review (panel + refuter done, fix waves 1a and 1b landed)
 - [ ] Phase 6a. Re-verify + land
 - [ ] Phase 6b. Cleanup sweep
 - [ ] Phase 6c. Archive to done/
@@ -260,22 +260,30 @@ what the check does, so the doctrine and the enforcement cannot drift apart.
 
 ### Repo Brief
 
-**Every fact below carries the command that produced it, measured at `28d53d2`, version 0.15.0. This
-block is the sprint's own first demonstration of AC6.**
+**Every fact below carries the command that produced it. Re-measured at `4329335`, version 0.15.1,
+when Phase 3 reopened for T14-T17; the counts below moved during this sprint and the stale copy was
+refreshed rather than left for four agents to inherit. This block is the sprint's own first
+demonstration of AC6.**
 
 - **Stack.** Claude Code plugin. Markdown skills, Python 3 helpers, Bash validators. No package
   manager, no build step. `ls .claude-plugin/`
 - **Triad.** `bash scripts/validate-dod.sh`. Unit suites: `bash scripts/test_ban_tokens.sh` (157
   passed), `python3 skills/lawkeeper/scripts/test_audit.py` (56/56), `bash
   hooks/test_inject_context.sh` (29 passed), `bash hooks/test_block_banned_tokens.sh` (41/41).
-- **Validator fragments: 20**, sourced in order from a hand-maintained list.
+- **Validator fragments: 28**, sourced in order from a hand-maintained list.
   `ls scripts/validate-dod.d/ | wc -l`. The validator runs `set -uo pipefail`, NOT `set -e`.
-  Next free numbers are `91-` and up (`90-collisions.sh` is the last).
-- **Always-on rules: 4 wired**, of 7 files in `rules/`.
+  Next free number is `98-` (`97-test-suites-reachable.sh` is the last). A new fragment needs BOTH
+  its `source` line and a header row in `validate-dod.sh`; `[76f]` guards that header enumeration.
+- **Always-on rules: 5 wired**, of 8 files in `rules/`.
+- **Work-docs: 20 tracked, only 2 carry a `## 0. Phase ledger` block**, because the ledger shipped
+  2026-08-23. `git ls-files 'docs/work/*.md' 'docs/work/done/*.md' | xargs grep -l '^## 0\. Phase ledger' | wc -l`
+- **Status vocabulary is declared once**, at `skills/hackify/references/work-doc-template.md:223`,
+  eight values on one table row. Nothing pins it today, so 19 docs say `done` and one said `review`,
+  which is not on the list. ← `grep -h '^status:' $(git ls-files 'docs/work/*.md' 'docs/work/done/*.md') | sort | uniq -c`
   `python3 -c "import json;print(len(json.load(open('hooks/hooks.json'))['hooks']['UserPromptSubmit'][0]['hooks']))"`
   After turn 1 only each bullet's **bold lead plus a short following clause** survives into the
   digest, so every load-bearing law must live in its lead (`rules/phase-discipline.md`).
-- **Markdown surface: 119 live files, 21,134 lines** (excluding `docs/work/`).
+- **Markdown surface: 120 live files** (excluding `docs/work/`).
   `git ls-files '*.md' | grep -v '^docs/work/' | wc -l`
 - **Line-number citations: 30 live**, 5 in markdown and 25 in scripts. Measured, and it corrected my
   assumption: markdown here cites files by NAME, the line numbers live in script comments.
@@ -381,6 +389,10 @@ new tasks carry decision #9-B's widened classes.
 - [x] **T12** Run the widened check over every item in the previous sprint's backlog section; one
       disposition each.
 - [x] **T13** CHANGELOG bullet, version bump, dist regeneration.
+- [ ] **T14**, ledger persistence in the skill: every phase-open and phase-exit instruction must say the block is WRITTEN to the work-doc and frontmatter `status`/`current_task` advanced in the same edit, before the chat re-print. Model the wording on `phase-3-implement.md:103`, which already does this for waves. Fix `phase-ledger.md:24`'s "additionally" so the durable copy is the obligation, not an aside. Files: `skills/hackify/references/phase-ledger.md`, `skills/hackify/references/phases/phase-1-clarify.md`, `phase-2.5-spec-review.md`, `phase-3-implement.md`, `phase-4-verify.md`, `phase-5-review.md`, `phase-6-finish.md`, `skills/hackify/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and every phase file names the disk write.
+- [ ] **T15**, the two live defects, done by hand by the parent: this doc's invalid `status:` value, and the archived `2026-08-23-phase-ledger-substrate.md` whose ledger reads Phase 5 in progress under `status: done`. → verify: the new check greens on both.
+- [ ] **T16**, new fragment `98-work-doc-ledger-sync.sh` plus its `source` line and header row in `validate-dod.sh`. Three assertions: (a) every work-doc's `status:` is one of the values READ OUT of `work-doc-template.md:223`, never a hardcoded list; (b) a doc under `done/` has zero `- [ ]` and zero `- [>]` inside its `## 0. Phase ledger` block; (c) a doc outside `done/` does not say `status: done`. Floors on both subject counts, 20 docs and 2 ledger blocks today, and a positive control built from source literals the way `[95]:232` does. Terminate the block at the next `^## ` of any name, never `^## 1.`, because the groom path inserts `## Groom Provenance` there. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, `scripts/validate-dod.sh`. → verify: fragment reds on both live defects before T15 fixes them.
+- [ ] **T17**, tamper rows for `[98]` in the shipped suites, proving each assertion and the control can go red. Files: `scripts/test_tamper_fragments.py` or a new per-check suite, wired so `test_tamper_battery.py` reaches it. → verify: the suite reds when the fragment is blinded.
 
 ### Execution waves (revised)
 
@@ -1216,6 +1228,53 @@ a worktree had a `dist/` tree, I ran `/usr/bin/ls dist/` with stderr suppressed.
 as "zero entries" and built an explanation on it. The real count was 114 markdown files. A
 non-zero exit with a silenced error is not a measurement, which is the fail-closed rule this
 sprint spent three checks enforcing, and I broke it by hand within an hour of verifying them.
+
+### 2026-08-25, the user reopens Phase 3: the skill lets the work-doc rot
+
+The user's words: *"always keep the document updated otherwise this is one weakness we
+should flag and solve"*, then, when I corrected only this file, *"iam talking about the skill
+itself not just the current session"*. Wizard decision **#19-A**, fold the fix into this sprint
+rather than defer it.
+
+**The defect in the skill, located.** Every phase file carries a "Ledger, at phase open" or
+"at phase exit" instruction, and all six say *re-print the whole block*, which means print it
+in chat. `phase-ledger.md:24` calls the work-doc copy "the durable copy" but reaches it with
+the word **additionally**, and no phase-open or phase-exit instruction anywhere tells the
+agent to write the block to the file. The pattern exists elsewhere and is explicit:
+`phase-3-implement.md:103` says the parent MUST update the work-doc at wave-end and names the
+frontmatter field to advance. Phases never got that sentence. So an agent following hackify
+exactly prints a correct ledger in chat at every boundary and lets the file rot, which is what
+I did for two phases.
+
+**Two live defects prove it is not hypothetical.**
+
+1. `docs/work/done/2026-08-23-phase-ledger-substrate.md` is archived with `status: done` and
+   its own ledger still reads `- [>] Phase 5` with all four Phase 6 items open, five open rows
+   in total. That is the sprint that BUILT the phase ledger, and it never ticked its own.
+2. This doc carried `status: review`, which is not one of the eight values
+   `work-doc-template.md:223` declares. Nineteen docs say `done`, one said `review`, and no
+   validator fragment pins the vocabulary at all, so the template's list is unenforced prose.
+
+**Corpus size, measured before designing anything.** 20 work-docs tracked, only 2 carry a
+`## 0. Phase ledger` block, because the ledger shipped 2026-08-23. The status assertion has 20
+subjects; the open-items assertion has 2. Both floors have to say so rather than imply a
+larger scan.
+
+**Block-range terminator, settled.** My first sweep used `/^## 1\./` as the end of section 0,
+which is wrong in general: the groom path puts `## Groom Provenance` between section 0 and
+section 1 (`phase-ledger.md:43`). The terminator has to be the next `^## ` of any name. Both
+docs that have the block are followed by `## 1. Original ask`, so the bug would not have shown
+up here, which is exactly why it needed checking rather than observing.
+
+### The DRY finding on the three helper pairs is void, not deferred
+
+Reviewer B asked for `td_read_size`/`td_verdict`, `se_*` and `la_*` to be extracted into
+`00-helpers.sh` as one shared pair. The fix waves made them genuinely different, so the
+extraction would now be forcing one abstraction over three behaviours, which
+`~/.claude/CLAUDE.md` §2.8 bans outright ("never abstract speculatively"). The evidence:
+`95-literal-absent-claims.sh:144` and `94-section-exists.sh:182` each carry a `CONTROL` case
+arm that `93-token-declarations.sh:139-147` does not have, and the three read lists were
+already different widths at 7, 5 and 4 variables. No wave 2 was dispatched for it.
 
 ## 7. Sprint Review
 
