@@ -99,15 +99,30 @@ def digest_of(body):
 
 
 def pointer_text(body, path):
-    """The cheap per-prompt reminder that replaces a full re-injection."""
+    """The cheap per-prompt reminder that replaces a full re-injection.
+
+    Every always-on file emits its own pointer, so the wording AROUND the
+    digest is paid for once per file per prompt while saying the same thing
+    each time. That is why this sentence is kept to the four things a pointer
+    cannot do without: which file, that it binds verbatim, its core, and where
+    to re-read it.
+
+    IT IS DELIBERATELY NOT HOISTED INTO ONE SHARED PREAMBLE. Emitting it from a
+    single designated entry would delete the repetition outright, and it would
+    also make that one entry's failure strip the binding statement and the
+    recovery path from every other file's pointer. hooks.json lists each rules
+    file as its OWN UserPromptSubmit entry, in its own process, precisely so one
+    failure cannot reach the others; a sentence shared across them hands that
+    property back for a saving that shortening the sentence already gets most
+    of. Each pointer therefore stands alone, carrying its own title, its own
+    digest and its own path, and borrowing nothing from a sibling entry.
+    """
     title = rules_title(body, path)
     digest = digest_of(body)
     core = f" Core, still binding in full: {digest}." if digest else ""
     return (
-        f"[hackify always-on] {title} was injected in full earlier in this "
-        f"session and remains binding verbatim.{core} Re-read the full text "
-        f"before relying on any detail not in that list; if it is no longer "
-        f"in your context, read it from {path}."
+        f"[hackify always-on] {title} is binding verbatim.{core} Re-read "
+        f"{path} for any detail not in that list."
     )
 
 

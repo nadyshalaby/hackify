@@ -46,7 +46,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 | Constraint | Wording |
 |---|---|
 | File allowlist | "Modify only these files: `<list>`. If another file is needed, STOP and report, do not edit." |
-| Repo brief | The `### Repo Brief` block from the work-doc, verbatim, as `{{repo_brief}}`. "Treat it as given, do NOT re-derive it, spend your reads on your own files." Unfilled means the agent refuses. |
+| Repo brief | The `### Repo Brief` block from the work-doc, verbatim, as `{{repo_brief}}`. "Treat it as given, do NOT re-derive it, spend your reads on the diff instead." Unfilled means the agent refuses. |
 | Command allowlist | "Run only these commands: `<list scoped to your files>`. The parent runs repo-wide checks." |
 | TDD | "If test mode is test-first, watch the test fail before writing impl. Refuse to ship without a watched RED." |
 | Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |

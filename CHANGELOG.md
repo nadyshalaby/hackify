@@ -38,6 +38,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `scripts/replay_claim_checks.py` runs each shipped check against its own pinned fixture. A catch
   requires a non-zero exit, a pinned path in the output and a witness literal, all three read from
   fixture data rather than from an authored expectation.
+- **Check `[91]` in `scripts/validate-dod.d/91-claim-resolvers.sh`, so a release note cannot cite a
+  check that is not there.** Every live `check [NN]` sentence in the tree is resolved against the
+  ids the validator really declares, and one that resolves to nothing turns the run red. The defect
+  it was written for is this repo's own: a sprint recorded that breaking a `CHANGELOG.md` line
+  pointer would redden `[71]`, and no fragment declares `[71]` at all. Sourced from
+  `scripts/validate-dod.sh`, so it runs in CI with every other check.
+- **`[57]` now opens the `:N` half of a citation instead of only the path.** A pointer like
+  `some/file.md:123` makes two claims, that the file is there and that the line is, and only the
+  first was ever read. The second rots faster, because a file survives a refactor that moves every
+  line in it. `scripts/check_doc_links.py` counts the cited file for real and fails a line number
+  the file does not have, ranges judged at their last line. Where the path resolves nowhere it stays
+  quiet about the line, so one broken pointer does not print as two findings.
+  `scripts/test_doc_link_lines.py` is its own suite and `.github/workflows/ci.yml` runs it.
 
 ### Changed
 
@@ -48,6 +61,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that and nothing else.
 - **Three validator files that had run out of room were split**, each keeping its check IDs so an
   existing citation still lands on a live block.
+- **The always-on pointer says the same thing in 114 characters instead of 246.** Five rules files
+  means five pointers on every prompt that is not a refresh turn, so each word of wording around the
+  digest is paid for five times. The pointer now names its file, says it binds verbatim, carries that
+  file's own core and says to re-read the path for any detail outside it, and nothing else. Across the
+  five that is 3,557 characters per prompt down to 2,897, measured by running the injector rather than
+  by reading the source. The shared wording was deliberately NOT hoisted into one entry emitting it on
+  behalf of all five, which would have saved more: `hooks/hooks.json` gives each rules file its own
+  UserPromptSubmit entry, in its own process, so one file going unreadable costs that file and nothing
+  else, and wording borrowed from a sibling entry would hand that property back. The saving is a
+  shorter sentence, not a de-duplicated one, and the difference is the whole point.
+  `hooks/test_inject_context.sh` gained a row that reds the day someone tries it, driving four files
+  to their pointer turn beside a dead entry and requiring each to carry its own title, path, digest
+  and binding sentence with nothing borrowed. It went from 45 tests to 66, and the new row was proved
+  by tamper: hoisting the sentence to a single carrier turns twelve of them red.
 
 ### Fixed
 

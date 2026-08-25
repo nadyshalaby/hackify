@@ -68,7 +68,13 @@ expect "pointer states the caps" "$DIGEST" "Core, still binding in full:"
 expect "pointer carries the function-size cap" "$DIGEST" "40 lines"
 expect "pointer carries the file-size cap" "$DIGEST" "500 lines"
 expect "pointer carries the suppression ban" "$DIGEST" "0 lint suppressions"
-expect "pointer survives losing the original" "$DIGEST" "no longer"
+# The recovery instruction is UNCONDITIONAL, and the whole clause is asserted
+# rather than the bare path. A pointer that only mentions its file has told the
+# model nothing to do with it; the imperative plus the scope ("any detail not in
+# that list") is what keeps the digest from being read as the whole law. Both
+# halves are load-bearing, so neither is worth asserting on its own.
+expect "pointer says to re-read, and for what" "$DIGEST" \
+  "Re-read $RULES for any detail not in that list"
 
 echo "[3c] the digest keeps each cap's subject and covers numbered rule files"
 # A digest of bare bold leads reads "40 lines; 500 lines", which cannot tell a
@@ -181,6 +187,54 @@ expect_not "the digest is not truncated at DIGEST_MAX_CHARS" "$CI_PTR" "; ..."
 # Deliberately the LAST law in the file. If the digest ever overruns, this is the
 # first assertion to fail, which is what turns a silent tail-drop into a red.
 expect "the last law still reaches turn 2" "$CI_PTR" "Say what the checks do not reach"
+
+echo "[12] one dead entry cannot reach the other four"
+# hooks.json lists each always-on file as its OWN UserPromptSubmit entry, in its
+# own process. That split IS the safety property: one file going unreadable
+# costs that file and nothing else. Two halves here, and the second is the one
+# worth having.
+#
+# The turn-1 half is the failure contract as inject-context.sh's header states
+# it: a dead path exits 0, injects nothing, and never blocks the prompt, while
+# every other entry still delivers its FULL text.
+#
+# The turn-2 half is the one nobody would think to write, and it is the reason
+# this block is not just the turn-1 check. Hoisting the pointer's shared wording
+# into a single designated "preamble" entry is a real token saving that changes
+# NOTHING on turn 1, so a full-text assertion passes identically before and
+# after it. The loss shows up only in POINTER mode, where the four survivors
+# would quietly start arriving with no binding statement and no re-read path,
+# having borrowed both from an entry that is gone. So each survivor is driven to
+# turn 2 and required to carry its own title, its own path, its own digest and
+# its own binding sentence, with nothing borrowed from a sibling. Do not fold
+# this back into a turn-1 check.
+DEAD_ENTRY="$ROOT/rules/hard-caps.md.gone"
+DEAD_OUT=$(prompt sess-iso | "$HOOK" "$DEAD_ENTRY" 2>/dev/null)
+DEAD_RC=$?
+if [ "$DEAD_RC" -eq 0 ] && [ -z "$DEAD_OUT" ]; then
+  printf '  ok   the dead entry exits 0 and injects nothing\n'; PASS=$((PASS + 1))
+else
+  printf '  FAIL dead entry rc=%s output=%s (must exit 0 and emit nothing)\n' \
+    "$DEAD_RC" "${DEAD_OUT:-<empty>}"; FAIL=$((FAIL + 1))
+fi
+
+# name:full-text anchor:literal from that file's own digest
+for row in \
+  "expert-mindset:## The stakes:Prove, do not claim" \
+  "perf-guardrails:## The twelve guardrails:Never query or call per loop item" \
+  "phase-discipline:## The five laws:Every question goes through the wizard tool" \
+  "claim-integrity:## The golden rule:Code is the only source of truth"; do
+  NAME="${row%%:*}"; REST="${row#*:}"
+  ANCHOR="${REST%%:*}"; OWN_LAW="${REST#*:}"
+  RF="$ROOT/rules/$NAME.md"
+  ISO_FULL=$(prompt sess-iso | "$HOOK" "$RF" | ctx) # turn 1, full text
+  ISO_PTR=$(prompt sess-iso | "$HOOK" "$RF" | ctx)  # turn 2, pointer
+  expect "$NAME still delivers its full text beside a dead entry" "$ISO_FULL" "$ANCHOR"
+  expect "$NAME's pointer names its own file" "$ISO_PTR" "rules/$NAME.md"
+  expect "$NAME's pointer carries its own binding sentence" "$ISO_PTR" "is binding verbatim"
+  expect "$NAME's pointer carries its own re-read path" "$ISO_PTR" "Re-read $RF"
+  expect "$NAME's pointer carries its own core" "$ISO_PTR" "$OWN_LAW"
+done
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
