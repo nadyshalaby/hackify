@@ -100,7 +100,7 @@ yellow "[94] every instruction naming a work-doc section names one the template 
 # the check on itself the first time it runs, which is a defect that hides
 # until the wave lands rather than while it is being built.
 #
-# THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 70-invariants-and-new.sh:218
+# THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 73-implementer-rename.sh:102
 # takes the identical way out for the identical cause, a banned-wording scanner
 # that must hold the banned wording. 91-claim-resolvers.sh deliberately does NOT
 # self-exclude, and the difference is the whole test: every `check [NN]` it
@@ -196,7 +196,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   se_fail "[94] needs python3 to parse the template's headings, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 70-invariants-and-new.sh:290-311. A python traceback exits non-zero and
+  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this
   # block to read an empty result as "no unresolved instructions". A FAIL-CLOSED
   # BRANCH OUTRANKS A HIT REPORT: a scan that could not finish tells the reader
@@ -288,7 +288,7 @@ def judge(para):
 
 
 def live_files():
-    """Tracked paths under the same pathspec 70-invariants-and-new.sh:216 scans."""
+    """Tracked paths under the same pathspec 73-implementer-rename.sh:100 scans."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

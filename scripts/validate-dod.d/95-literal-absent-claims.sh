@@ -80,7 +80,7 @@ yellow "[95] every claim that a quoted phrase is not pinned is true when the phr
 # wrapped claim as fixture text so the paragraph unit can be tested at all. Left
 # in, they turn this check red against itself.
 #
-# BOTH PRECEDENTS SIT IN THIS DIRECTORY. 70-invariants-and-new.sh:218
+# BOTH PRECEDENTS SIT IN THIS DIRECTORY. 73-implementer-rename.sh:102
 # self-excludes for the identical cause. 91-claim-resolvers.sh does not, and the
 # difference is that it holds no fabricated id, only ids that resolve.
 #
@@ -159,7 +159,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   la_fail "[95] needs python3 to normalise paragraphs, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 70-invariants-and-new.sh:290-311. A FAIL-CLOSED BRANCH OUTRANKS A HIT
+  # 73-implementer-rename.sh:174-195. A FAIL-CLOSED BRANCH OUTRANKS A HIT
   # REPORT: a scan that could not finish tells the reader nothing trustworthy
   # about what it did manage to print.
   la_err=$(mktemp 2>/dev/null) || la_err=''
@@ -247,7 +247,7 @@ def elsewhere(corpus, path, phrase):
 
 
 def live_files():
-    """Tracked paths under the same pathspec 70-invariants-and-new.sh:216 scans."""
+    """Tracked paths under the same pathspec 73-implementer-rename.sh:100 scans."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

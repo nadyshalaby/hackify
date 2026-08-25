@@ -92,7 +92,7 @@
 yellow "[93] every {{token}} used in a sub-agent prompt is declared in that prompt's INPUTS list"
 
 # WHY LIVE PATHS AND NOT THE WHOLE TREE. The same three-part pathspec [91] and
-# 70-invariants-and-new.sh:216 use, for their stated reasons: dist/ is generated,
+# 73-implementer-rename.sh:100 use, for their stated reasons: dist/ is generated,
 # and docs/work/ is the sprint record, which has to be able to quote the broken
 # prompt it was written to describe.
 #
@@ -183,7 +183,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   td_fail "[93] needs python3 to parse prompt regions, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 70-invariants-and-new.sh:290-311. A python traceback exits non-zero and
+  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this block
   # to read an empty result as "no undeclared tokens". A FAIL-CLOSED BRANCH
   # OUTRANKS A HIT REPORT: a scan that could not finish tells the reader nothing
@@ -340,7 +340,7 @@ def scan(paths, root, mode):
 
 
 def live_files():
-    """Tracked markdown under the same pathspec 70-invariants-and-new.sh:216 scans."""
+    """Tracked markdown under the same pathspec 73-implementer-rename.sh:100 scans."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

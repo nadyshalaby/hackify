@@ -10,7 +10,7 @@
 # follows the names on disk, and the section below keeps the 3 it carried
 # before the move. Section numbers belong to the suite rather than to whichever
 # file they land in, which is why 20-corruption-and-wiring-cases.sh opens at a 3
-# of its own, and why scripts/validate-dod.d/70-invariants-and-new.sh can cite
+# of its own, and why scripts/validate-dod.d/73-implementer-rename.sh can cite
 # this block by number as long as it names the file alongside it.
 #
 # DEFINITIONS ONLY, the same contract every sibling fragment keeps: nothing here
@@ -24,7 +24,7 @@
 # 3. THE [40] ABSENCE SCAN'S FAIL-CLOSED BRANCHES, and why they live in this
 # suite rather than beside the check they cover.
 #
-# wi_absent() in scripts/validate-dod.d/70-invariants-and-new.sh asks the same
+# wi_absent() in scripts/validate-dod.d/73-implementer-rename.sh asks the same
 # question section 2b of 10-ban-list-cases.sh asks of the batched ban: did the
 # scan actually run. It is the harsher shape of it. An absence check has no hit
 # to print when it fails open, so a scan that never ran and a tree that is
@@ -123,7 +123,7 @@ TB_WI_FAILCLOSED=0
 TB_EXPECT_WI_FAILCLOSED=5
 
 # The shipped source, read fresh on every run.
-TB_WI_SRC="scripts/validate-dod.d/70-invariants-and-new.sh"
+TB_WI_SRC="scripts/validate-dod.d/73-implementer-rename.sh"
 
 # The literal every case below scans for REALLY occurs in a tracked file that no
 # WI_LIVE_PATHS exclusion covers: it is the live implementer type [40] pins as
@@ -231,7 +231,7 @@ tb_run_wi_absent_cases() {
 # 000 after any interrupt.
 tb_wi_fixture_ready() {
   # THIS FRAGMENT EXCLUDES ITSELF, for the reason WI_LIVE_PATHS excludes
-  # 70-invariants-and-new.sh: the TB_WI_LIT assignment above is itself a tracked
+  # 73-implementer-rename.sh: the TB_WI_LIT assignment above is itself a tracked
   # occurrence, so a scan that counted it would report the literal present no
   # matter what became of the rest of the tree, and the guard could never fire.
   # MEASURED, not feared: without this exclusion, pointing TB_WI_LIT at a string

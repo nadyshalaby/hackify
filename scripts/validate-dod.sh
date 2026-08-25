@@ -15,26 +15,36 @@
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
 #   57-doc-links.sh, check [57], every cited .md link and prose path resolves to a real file
 #   60-primitives.sh, checks [29]-[32]
-#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], [40], the
+#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the
 #                   structural invariants (excised files stay excised, skill
 #                   frontmatter, hook command targets, always-on injection,
 #                   perf surfaces)
-#   71-release-mechanism-pins.sh, checks [38c]-[38h], one block per shipped
+#   71-release-mechanism-pins.sh, checks [38c]-[38g], one block per shipped
 #                   saving, each pinning the guard rail that keeps the saving
 #                   from becoming a silent loss of rigor. Split out of 70 at
-#                   the 500-LOC cap; the check IDs moved with the blocks. [38h]
-#                   pins the settle-echo contract's file set beside [38e], the
-#                   diff-slicing block it guards
+#                   the 500-LOC cap; the check IDs moved with the blocks
+#   72-diff-slicing-pins.sh, checks [38e]-[38h], the v0.11.0 diff-slicing and
+#                   carry-over mechanism, plus the settle-echo contract's own
+#                   FILE SET ([38h]), which sits beside [38e] because [38e] is
+#                   the block it guards. Split out of 71 at the same 500-LOC
+#                   cap, IDs and all; the cut was taken here rather than at
+#                   [38f] so that every line 71 keeps stays at the number a
+#                   live citation already names
+#   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned
+#                   from both ends, the live agent type present at every
+#                   dispatch site and the dead one absent from the whole
+#                   tracked tree. Split out of 70 at the 500-LOC cap, where it
+#                   was two thirds of the file on its own
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
-#   76-phase-ledger-substrate.sh, checks [76]-[76i], where the phase ledger
-#                   lives, the per-phase tick lines, the always-on phase laws,
-#                   this orchestrator's own fragment enumeration ([76f]), and
-#                   the docs/work/ exclusion on the reviewed diff ([76g]), and
-#                   the FULL-round gate wording, stated identically at every
-#                   site that states it, plus Reviewer B's round marker ([76h]),
+#   76-phase-ledger-substrate.sh, checks [76]-[76f], [76i], where the phase
+#                   ledger lives, the per-phase tick lines, the always-on phase
+#                   laws, this orchestrator's own fragment enumeration ([76f]),
 #                   and this row's own range endpoints checked against the
-#                   fragments they describe ([76i])
+#                   fragments they describe ([76i]). The row is written as a
+#                   range plus a single id rather than [76]-[76i], because
+#                   [76g] and [76h] are no longer here and a closing range
+#                   endpoint would claim they were
 #   77-reviewer-roster.sh, check [77], reviewer-roster drift in COUNT grammar,
 #                   count bans over six files (two no other check reaches, a
 #                   wider token set on the four shared with [38g]) plus the
@@ -63,6 +73,12 @@
 #   95-literal-absent-claims.sh, check [95], every claim that a quoted phrase is
 #                   not pinned is checked by looking the phrase up, so a comment
 #                   cannot call a literal unpinned while another fragment bans it
+#   96-review-scope-sites.sh, checks [76g]-[76h], the docs/work/ exclusion on
+#                   the reviewed diff, and the FULL-round gate wording stated
+#                   identically at every site that states it plus Reviewer B's
+#                   round marker, both over a file set the check DISCOVERS
+#                   rather than lists. Split out of 76 at the 500-LOC cap, IDs
+#                   and all
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -167,6 +183,8 @@ source "$DOD_MODULES_DIR/57-doc-links.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/71-release-mechanism-pins.sh"
+source "$DOD_MODULES_DIR/72-diff-slicing-pins.sh"
+source "$DOD_MODULES_DIR/73-implementer-rename.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
 source "$DOD_MODULES_DIR/76-phase-ledger-substrate.sh"
 source "$DOD_MODULES_DIR/77-reviewer-roster.sh"
@@ -179,6 +197,7 @@ source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
 source "$DOD_MODULES_DIR/93-token-declarations.sh"
 source "$DOD_MODULES_DIR/94-section-exists.sh"
 source "$DOD_MODULES_DIR/95-literal-absent-claims.sh"
+source "$DOD_MODULES_DIR/96-review-scope-sites.sh"
 
 # ---------------------------------------------------------------------------
 # [0b] FLOOR ON THE RUN'S OWN SIZE. [0] above catches a fragment that stops being

@@ -11,7 +11,7 @@
 # CHANGELOG.md line pointer, called that verified green state, and told a
 # downstream agent that breaking it would redden the id `[71]`. Lines 283 to 293
 # of that file are a comment block, no fragment declares an id `[71]` at all
-# (71-release-mechanism-pins.sh declares [38c] through [38h]), and no fragment
+# (71-release-mechanism-pins.sh declares [38c] through [38g]), and no fragment
 # reads CHANGELOG.md by line number anywhere. The agent caught it by reading the
 # code instead of the claim. This block is the reader that does not have to.
 #
@@ -45,7 +45,7 @@
 # sentences that really do assert a check exists.
 #
 # THE RANGE-ENDPOINT CARVE-OUT CANNOT TRIP THIS, BY CONSTRUCTION.
-# 76-phase-ledger-substrate.sh:379 argues that `check [75]` claims nothing about
+# 76-phase-ledger-substrate.sh:201 argues that `check [75]` claims nothing about
 # how many checks 75 holds, and it is right. This block resolves EXISTENCE and
 # nothing else: never how many checks an id covers, never where a range ends,
 # never which fragment holds it. A sentence about range endpoints is therefore
@@ -60,7 +60,7 @@
 # sprint targets, pointed the other way. Its sharp form, "X is pinned by check
 # [NN]", is already inside the grammar above.
 #
-# NO SELF-EXCLUSION, DELIBERATELY. 70-invariants-and-new.sh has to exclude
+# NO SELF-EXCLUSION, DELIBERATELY. 73-implementer-rename.sh has to exclude
 # itself because it holds the literals it bans. This file holds no fabricated
 # ids, so it is scanned like every other, and a future edit that invents one
 # here reddens here.
@@ -73,7 +73,7 @@
 yellow "[91] every 'check [NN]' claim in a live file names a check id the validator declares"
 
 # WHY LIVE PATHS AND NOT THE WHOLE TREE. Same three-part pathspec
-# 70-invariants-and-new.sh:216 uses, and for its stated reasons. dist/ is
+# 73-implementer-rename.sh:100 uses, and for its stated reasons. dist/ is
 # generated. docs/work/ is the sprint record, and a record has to be able to
 # quote the wrong claim it was written to describe; this sprint's own
 # retrospective has to name the id that did not exist, and a check that reddens
@@ -101,7 +101,7 @@ cr_fail() {
 # one line that explains them under 32 false accusations. Measured, not feared:
 # the first draft printed the whole wall. A scan that cannot be trusted names
 # itself and says nothing about the claims it read, which is the same tie-break
-# 70-invariants-and-new.sh:290-311 makes between a broken scan and its hits.
+# 73-implementer-rename.sh:174-195 makes between a broken scan and its hits.
 #
 # AND NO GREEN PRINTS BESIDE A RED. The first tamper run reported one unresolved
 # claim and then said all 33 resolved, on adjacent lines. A summary that
@@ -135,7 +135,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   cr_fail "[91] needs python3 to resolve check-id claims, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 70-invariants-and-new.sh:290-311. A python traceback exits non-zero and
+  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this block
   # to read an empty result as "no unresolved claims". A FAIL-CLOSED BRANCH
   # OUTRANKS A HIT REPORT: a scan that could not finish tells the reader nothing
@@ -175,7 +175,7 @@ def declared_ids():
 
 
 def live_files():
-    """Tracked paths under the same pathspec 70-invariants-and-new.sh:216 scans."""
+    """Tracked paths under the same pathspec 73-implementer-rename.sh:100 scans."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

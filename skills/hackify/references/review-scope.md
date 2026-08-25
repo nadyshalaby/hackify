@@ -125,7 +125,7 @@ The parent may only declare a round FULL when every dispatched lens that takes a
 **Reviewer B is exempt from the SCOPE echo, and that exemption is structural rather than a
 courtesy.** B takes no `{{review_scope}}` at all: B is never sliced, so there is no scope for it to
 echo. Requiring a scope echo from B made this gate unsatisfiable, because
-`71-release-mechanism-pins.sh` fails the build the moment B's prompt gains a `{{review_scope}}`
+`72-diff-slicing-pins.sh` fails the build the moment B's prompt gains a `{{review_scope}}`
 placeholder. One rule required exactly what another forbade, and a settle round genuinely could not
 be declared FULL by any dispatch.
 

@@ -14,7 +14,7 @@ TWO RULES GOVERN EVERY FUNCTION IN THIS FILE.
      execution, and this file is where that would begin if it began anywhere.
 
   2. A FAILED READ RAISES. It never returns empty bytes. This is the same shape as
-     scripts/validate-dod.d/70-invariants-and-new.sh:290-311, where rc 1 with
+     scripts/validate-dod.d/73-implementer-rename.sh:174-195, where rc 1 with
      anything on stderr means the scan never ran and is therefore never a green.
      The reasoning carries over exactly: a scan that could not finish tells you
      nothing trustworthy, and three of the witnesses in claim_fixtures.json assert
@@ -97,7 +97,7 @@ def read_blob(sha, repo_root=REPO_ROOT):
       stderr means the read never happened.
 
   That last one is the load-bearing gate and the least obvious. It is lifted from
-  70-invariants-and-new.sh, where the same reasoning is spelled out at length: a
+  73-implementer-rename.sh, where the same reasoning is spelled out at length: a
   file git could not read must never be counted as a file with nothing in it."""
   if not is_sha(sha):
     raise BlobPinError('blob pin %r is not a 40-char lowercase hex sha' % (sha,))
