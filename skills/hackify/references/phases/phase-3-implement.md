@@ -4,7 +4,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Ship the Sprint Backlog wave by wave, dispatching each wave to ONE foreground subagent that carries the whole wave. The saving is tokens and coherence, not wall-clock.
 
-**Ledger, at phase open.** Set `Phase 3. Implement (all waves committed)` to in-progress and re-print the whole ledger block. Never open it while `Phase 2.5. Spec review` is still open. Waves run INSIDE this phase; they never advance the ledger past it. Contract: [../phase-ledger.md](../phase-ledger.md).
+**Ledger, at phase open.** Set `Phase 3. Implement (all waves committed)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: implementing` in the same edit, and re-print the whole block after that edit is saved. Never open it while `Phase 2.5. Spec review` is still open. Waves run INSIDE this phase; they never advance the ledger past it. Contract: [../phase-ledger.md](../phase-ledger.md).
 
 **Pre-flight, build the wave plan.**
 
@@ -102,4 +102,4 @@ whole wave in one agent.
 
 **Wave-end persistence (mandatory).** Before dispatching wave N+1, the parent MUST update the work-doc: read the landed and not-landed task IDs out of the `## Wave status` section the agent's report opens with, tick the completed checkboxes in the Sprint Backlog and ONLY those, leave every not-landed ID unticked for the next dispatch or for Phase 3b, append a Daily Updates entry summarizing what the wave agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming wave's task IDs. Skipping this step is an abandoned-state bug, interrupting between waves loses no progress; interrupting mid-wave-update loses the wave.
 
-**Ledger, at phase exit.** Every Sprint Backlog checkbox ticked, every wave committed, both scouts dispositioned, then one line of reflection (what changed, did it pass, what is next), then tick `Phase 3. Implement` and open `Phase 4. Verify (Evidence Ledger + triad green)`. A task that turned out not to apply is ticked with a one-line reason, never deleted. Phase 3b is inserted as its own ledger item when a wave gets stuck, it is never a silent detour.
+**Ledger, at phase exit.** Every Sprint Backlog checkbox ticked, every wave committed, both scouts dispositioned, then one line of reflection (what changed, did it pass, what is next), then tick `Phase 3. Implement` and open `Phase 4. Verify (Evidence Ledger + triad green)` in the work-doc's section 0, saved before the re-print, on the same rule Wave-end persistence states above. A task that turned out not to apply is ticked with a one-line reason, never deleted. Phase 3b is inserted as its own ledger item when a wave gets stuck, it is never a silent detour.

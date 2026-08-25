@@ -4,7 +4,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Land the work cleanly and archive the doc.
 
-**Ledger, at phase open.** Phase 6 is **four** ledger items, not one, so the archive cannot hide inside a finished-looking phase. Set `Phase 6a. Re-verify + land choice (Steps A, B, C)` to in-progress and re-print the whole block, never while `Phase 5. Review` is still open, then work the items in order.
+**Ledger, at phase open.** Phase 6 is **four** ledger items, not one, so the archive cannot hide inside a finished-looking phase. Set `Phase 6a. Re-verify + land choice (Steps A, B, C)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: finishing` in the same edit, and re-print the whole block after that edit is saved, never while `Phase 5. Review` is still open, then work the items in order.
 
 | Ledger item | Steps below |
 |---|---|
@@ -53,4 +53,4 @@ If any class finds defects, **dispatch a cleanup agent per file-disjoint group, 
 
 **Invoking the summary on demand.** The update log runs any time via `/hackify:summary` or phrase trigger ("show summary", "summarize", "summary table", "show me what changed"). Mid-flight invocation prints to chat; Step F also appends to the work-doc.
 
-**Ledger, at phase exit.** Each of 6a to 6d ticks on its own exit artifact, one line of reflection first (what changed, did it pass, what is next), then the tick, then the next item opens and the block is re-printed. 6d stays unreachable while 6c is open; Steps D and F state that precondition and the ledger is what enforces it. An item that does not apply (no worktree, no entry point) is ticked with a one-line reason, never deleted. The task is done when the last item is ticked, not when the summary is printed.
+**Ledger, at phase exit.** Each of 6a to 6d ticks on its own exit artifact, one line of reflection first (what changed, did it pass, what is next), then the tick and the next item opening as one edit to the work-doc's section 0, then the re-print. 6c writes `status: done` in the same edit that lands the doc in `done/`. 6d stays unreachable while 6c is open; Steps D and F state that precondition and the ledger is what enforces it. An item that does not apply (no worktree, no entry point) is ticked with a one-line reason, never deleted. The task is done when the last item is ticked, not when the summary is printed.

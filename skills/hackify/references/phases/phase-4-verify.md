@@ -4,7 +4,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Goal.** Prove every task and requirement landed AND that the app actually runs. Evidence before claims. Three parts, full spec in `references/review-and-verify.md`.
 
-**Ledger, at phase open.** Set the phase ledger's `Phase 4. Verify (Evidence Ledger + triad green)` to in-progress and re-print the whole block. Never open it while `Phase 3. Implement` is still open. That is the **phase** ledger, a different artifact from the Evidence Ledger this phase builds. Contract: [../phase-ledger.md](../phase-ledger.md).
+**Ledger, at phase open.** Set the phase ledger's `Phase 4. Verify (Evidence Ledger + triad green)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: verifying` in the same edit, and re-print the whole block after that edit is saved. Never open it while `Phase 3. Implement` is still open. That is the **phase** ledger, a different artifact from the Evidence Ledger this phase builds. Contract: [../phase-ledger.md](../phase-ledger.md).
 
 **Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
 
@@ -36,4 +36,4 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **On any red, do NOT advance to Phase 5.** Loop back to Phase 3 (or 3b if stuck).
 
-**Ledger, at phase exit.** A proof row per task and per acceptance bullet, a green fresh triad, and all three ship-gate rows present first, then one line of reflection (what changed, did it pass, what is next), then tick the phase ledger's `Phase 4. Verify` and open `Phase 5. Review (decision table empty)`. A ship-gate leg that does not apply is a written `⏭ skipped` row carrying its reason, never a missing row.
+**Ledger, at phase exit.** A proof row per task and per acceptance bullet, a green fresh triad, and all three ship-gate rows present first, then one line of reflection (what changed, did it pass, what is next), then tick the phase ledger's `Phase 4. Verify` and open `Phase 5. Review (decision table empty)` in the work-doc's section 0, saved before the re-print. A ship-gate leg that does not apply is a written `⏭ skipped` row carrying its reason, never a missing row.
