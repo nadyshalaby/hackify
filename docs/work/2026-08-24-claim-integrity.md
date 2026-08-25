@@ -5,7 +5,7 @@ status: review
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 5 review panel, all backlog tasks landed and 0.15.1 cut
+current_task: Phase 5 fix waves, 1b landed, 1a verified and pending commit, 4 tasks blocked
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -17,9 +17,9 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
-- [ ] Phase 3. Implement  <- in progress
-- [ ] Phase 4. Verify (Evidence Ledger + triad + ship gate)
-- [ ] Phase 5. Review (parallel panel + refuter)
+- [x] Phase 3. Implement (all backlog tasks landed, 0.15.1 cut)
+- [x] Phase 4. Verify (Evidence Ledger + triad + ship gate, all green)
+- [>] Phase 5. Review (panel + refuter done, fix waves in flight)
 - [ ] Phase 6a. Re-verify + land
 - [ ] Phase 6b. Cleanup sweep
 - [ ] Phase 6c. Archive to done/
@@ -27,6 +27,14 @@ related: 2026-08-23-wave-implementer-migration.md
 
 This runtime exposes no todo-tracker tool, so this section is the durable ledger and it is re-printed
 in chat at every phase boundary.
+
+**This block went stale and the user caught it, not a check.** It read `Phase 3 <- in progress` while
+the work had already been through Verify and the full review panel. Nothing in the repo noticed,
+because no check compares this block against the frontmatter `status:` two dozen lines above it, and
+the two disagreed for the length of two phases. A sprint whose whole subject is a document claiming
+something the code does not back shipped exactly that defect in its own work-doc. Recorded here
+rather than quietly corrected, and carried into the Retrospective as a hackify gap with a proposed
+check, since the same block exists in every work-doc the workflow has ever produced.
 
 ## 1. Original Ask (verbatim)
 
@@ -1151,6 +1159,63 @@ four laws, and the failure contract forbids that trade.
 still carrying `hackify:wave-task-implementer`. The repo renamed it last sprint and ships correctly;
 the runtime this session runs against had not been reinstalled. Not a repo defect, but a clean
 example of a name being true in the source and false in the thing actually running.
+
+### 2026-08-25, Phase 5 fix waves, and an allowlist I scoped too narrowly
+
+Wave 1b landed first as `3176860`, shortening the per-prompt pointer sentence from 246 to
+114 characters rather than merging the five rule entries into one carrier. The agent refused
+the merge on blast-radius grounds and reported the honest residual of 456 duplicated
+characters instead of claiming the problem solved. Pointer cost per turn went 3557 to 2897.
+`hooks/test_inject_context.sh` went 45 rows to 66.
+
+Wave 1a landed eight of eleven. **Four are blocked, and the cause is mine.** T3, T4, T5 and
+T9(b) each need a test rewritten, and every one of those tests lives in a file I left out of
+the allowlist. Each of them pins the exact defective behaviour the task was meant to change,
+so the agent could not touch the code without redding a suite it was forbidden to edit. It
+stopped and wrote them up rather than working around the boundary, which is the right call.
+Two of those tests document their own defect in their docstrings, one calling itself "the only
+branch in this file that is a defect rather than a guard" and another saying it "is recorded
+here because the acceptance criterion asserts a guard that is not written". The allowlist was
+under-scoped, not the tasks.
+
+**The agent caught itself making this sprint's own defect.** A comment it wrote in this very
+diff cited `validate-dod.sh:114` for a line that lives at 119. It passed `[57]` green, because
+`[57]` asks only whether the cited line exists, never whether it says what the citing prose
+claims. Fixed by T10's rule: drop the number, carry the command that re-derives it. The
+citation count moved 54 to 53, which is itself the evidence `[57]` had been greening it.
+
+**Verification I ran myself, not inherited from the report.**
+
+| What | Result |
+|---|---|
+| `bash scripts/validate-dod.sh` | rc 0, 0 FAIL, 1453 ok |
+| ok-line drop, like for like | 1453 to 1451 with the dist row excluded from both, a drop of exactly 2 |
+| cause of the drop | `[76i]` compares only first and last id per header row; T8 turned a fake range into two singles, so two endpoints stopped existing. Endpoint count 17 to 15. |
+| all 10 python suites | rc 0. Counts 20, 38, 28, 18, 24, 18, 68, 15, and the two part-files that carry no runner |
+| `test_tamper_fragments.py` / `test_tamper_hostile.py` run nothing alone | Correct by design, not a vacuous pass. `test_tamper_battery.py:61` imports both as `PARTS` and runs their functions; 12 + 37 + 19 = the 68 it reports, and `[97]` asserts that import spelling at `:247-254` |
+| `score_claim_corpus.py` after T11's `set -uo pipefail` | still `must_catch caught 3 of 4`, rc 0, so the headline number survives the shell-mode change |
+| every touched file against the 500-line cap | highest is `94-section-exists.sh` at 479 |
+| nothing committed by the agent | confirmed, 11 modified paths, HEAD unmoved |
+
+**My own independent tamper probe, a mutation the agent did not run.** Both controls were
+tested by the agent for a *broken* control. I tested for an *absent* one: deleted the
+`print('CONTROL ...')` emit from a scratch copy of each fragment and ran it. Both red at rc 1
+with `control verdict: none`, so a control that never executes cannot green the check. No
+tracked file was mutated, the probes were written to a temp directory.
+
+**Reported, deliberately not fixed.** `[76i]` should compare id sets rather than range
+endpoints, since a header row can be wrong in the middle while both endpoints stay right,
+which is the whole reason T8 existed. And `55-mirror-completeness.sh:49` and `:83` both cite
+`91-claim-resolvers.sh` at ranges off by about seven; `:49` cites `:84-88` for a sentence that
+sits at `:91`. Both pre-date this diff and both pass `[57]` green, the same blind spot as
+above. Neither file was in the allowlist.
+
+**One error of mine worth recording, because it is the sprint's own thesis.** Checking whether
+a worktree had a `dist/` tree, I ran `/usr/bin/ls dist/` with stderr suppressed. `ls` lives at
+`/bin/ls` on this machine, so the command failed, printed nothing, and I read the empty output
+as "zero entries" and built an explanation on it. The real count was 114 markdown files. A
+non-zero exit with a silenced error is not a measurement, which is the fail-closed rule this
+sprint spent three checks enforcing, and I broke it by hand within an hour of verifying them.
 
 ## 7. Sprint Review
 
