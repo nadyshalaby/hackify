@@ -119,6 +119,9 @@ jobs:
       - name: Literal-absent-claim tests (check [95] quoted-phrase resolver)
         run: python3 scripts/test_literal_absent_claims.py
 
+      - name: Claim-check replay tests (measured scoring, not authored)
+        run: python3 scripts/test_replay_claim_checks.py
+
       - name: CI suite-coverage tests (check [97] every suite reachable from CI)
         run: python3 scripts/test_ci_suite_coverage.py
 

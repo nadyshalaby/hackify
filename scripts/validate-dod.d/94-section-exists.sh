@@ -100,6 +100,23 @@ yellow "[94] every instruction naming a work-doc section names one the template 
 # the check on itself the first time it runs, which is a defect that hides
 # until the wave lands rather than while it is being built.
 #
+# A SIXTH FILE JOINED THE LIST ON 2026-08-25, and it is worth naming how it got
+# here because the mechanism will repeat. scripts/test_replay_claim_checks.py
+# holds the measured verdict table for the replay scorer, and I2's row carries
+# the retired name as its expected matched literal. It is data in a Python dict,
+# not an instruction to anybody, but the paragraph grammar reads a code line the
+# same way it reads prose and reported it as an instruction site. The check
+# reddened on a file written hours after it shipped, by an agent that had never
+# read it.
+#
+# THAT IS A PRECISION LIMIT, NOT ONLY A MISSING CARVE-OUT. This block cannot
+# tell a quoted literal in code from an instruction in prose, so any future file
+# that legitimately quotes a retired name has to be excluded by hand, and each
+# exclusion is a real hole rather than a formality. The list is now the fifth
+# thing that has to be kept in sync by hand in a sprint about claims that drift.
+# Narrowing the grammar so code data does not read as an instruction is the
+# actual fix and it is NOT bought here.
+#
 # THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 73-implementer-rename.sh:102
 # takes the identical way out for the identical cause, a banned-wording scanner
 # that must hold the banned wording. 91-claim-resolvers.sh deliberately does NOT
@@ -220,7 +237,8 @@ LIVE = [':(top)', ':(top,exclude)dist/*', ':(top,exclude)docs/work/*']
 EXCLUDE = ('scripts/claim_corpus.json', 'scripts/claim_fixtures.json',
            'scripts/test_claim_fixtures.py',
            'scripts/validate-dod.d/94-section-exists.sh',
-           'scripts/test_section_exists.py')
+           'scripts/test_section_exists.py',
+           'scripts/test_replay_claim_checks.py')
 
 
 def read(path):
