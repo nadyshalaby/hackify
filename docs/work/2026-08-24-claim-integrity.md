@@ -1,11 +1,11 @@
 ---
 slug: claim-integrity
 title: Code is the only source of truth, and a check that enforces it
-status: implementing
+status: verifying
 type: feature
 created: 2026-08-24
 project: hackify
-current_task: Phase 3 reopened, W7 = T14 (skill text) + T16/T17 (the check), T15 by hand
+current_task: Phase 4 re-verify over T14-T17, then Phase 5 re-review, then finish
 worktree: none
 branch: main
 sprint_goal: Make a doc's claim about code mechanically falsifiable, so a claim that stops being true turns red at the next commit instead of at round five of a review loop.
@@ -17,8 +17,8 @@ related: 2026-08-23-wave-implementer-migration.md
 - [x] Phase 1. Clarify (answers locked by wizard, anchor recorded below)
 - [x] Phase 2. Plan + GATE (signed off 2026-08-24)
 - [x] Phase 2.5. Spec review (7 Criticals, plan revised)
-- [>] Phase 3. Implement (reopened for T14-T17, the ledger-persistence fix)
-- [x] Phase 4. Verify (Evidence Ledger + triad + ship gate, all green; re-runs after T14-T17)
+- [x] Phase 3. Implement (T14-T17 landed, the ledger-persistence fix)
+- [>] Phase 4. Verify (re-running over the T14-T17 surface)
 - [x] Phase 5. Review (panel + refuter done, fix waves 1a and 1b landed)
 - [ ] Phase 6a. Re-verify + land
 - [ ] Phase 6b. Cleanup sweep
@@ -389,10 +389,10 @@ new tasks carry decision #9-B's widened classes.
 - [x] **T12** Run the widened check over every item in the previous sprint's backlog section; one
       disposition each.
 - [x] **T13** CHANGELOG bullet, version bump, dist regeneration.
-- [ ] **T14**, ledger persistence in the skill: every phase-open and phase-exit instruction must say the block is WRITTEN to the work-doc and frontmatter `status`/`current_task` advanced in the same edit, before the chat re-print. Model the wording on `phase-3-implement.md:103`, which already does this for waves. Fix `phase-ledger.md:24`'s "additionally" so the durable copy is the obligation, not an aside. Files: `skills/hackify/references/phase-ledger.md`, `skills/hackify/references/phases/phase-1-clarify.md`, `phase-2.5-spec-review.md`, `phase-3-implement.md`, `phase-4-verify.md`, `phase-5-review.md`, `phase-6-finish.md`, `skills/hackify/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and every phase file names the disk write.
-- [ ] **T15**, the two live defects, done by hand by the parent: this doc's invalid `status:` value, and the archived `2026-08-23-phase-ledger-substrate.md` whose ledger reads Phase 5 in progress under `status: done`. → verify: the new check greens on both.
-- [ ] **T16**, new fragment `98-work-doc-ledger-sync.sh` plus its `source` line and header row in `validate-dod.sh`. Three assertions: (a) every work-doc's `status:` is one of the values READ OUT of `work-doc-template.md:223`, never a hardcoded list; (b) a doc under `done/` has zero `- [ ]` and zero `- [>]` inside its `## 0. Phase ledger` block; (c) a doc outside `done/` does not say `status: done`. Floors on both subject counts, 20 docs and 2 ledger blocks today, and a positive control built from source literals the way `[95]:232` does. Terminate the block at the next `^## ` of any name, never `^## 1.`, because the groom path inserts `## Groom Provenance` there. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, `scripts/validate-dod.sh`. → verify: fragment reds on both live defects before T15 fixes them.
-- [ ] **T17**, tamper rows for `[98]` in the shipped suites, proving each assertion and the control can go red. Files: `scripts/test_tamper_fragments.py` or a new per-check suite, wired so `test_tamper_battery.py` reaches it. → verify: the suite reds when the fragment is blinded.
+- [x] **T14**, ledger persistence in the skill: every phase-open and phase-exit instruction must say the block is WRITTEN to the work-doc and frontmatter `status`/`current_task` advanced in the same edit, before the chat re-print. Model the wording on `phase-3-implement.md:103`, which already does this for waves. Fix `phase-ledger.md:24`'s "additionally" so the durable copy is the obligation, not an aside. Files: `skills/hackify/references/phase-ledger.md`, `skills/hackify/references/phases/phase-1-clarify.md`, `phase-2.5-spec-review.md`, `phase-3-implement.md`, `phase-4-verify.md`, `phase-5-review.md`, `phase-6-finish.md`, `skills/hackify/SKILL.md`. → verify: `bash scripts/validate-dod.sh` rc 0, and every phase file names the disk write.
+- [x] **T15**, the two live defects, done by hand by the parent: this doc's invalid `status:` value, and the archived `2026-08-23-phase-ledger-substrate.md` whose ledger reads Phase 5 in progress under `status: done`. → verify: the new check greens on both.
+- [x] **T16**, new fragment `98-work-doc-ledger-sync.sh` plus its `source` line and header row in `validate-dod.sh`. Three assertions: (a) every work-doc's `status:` is one of the values READ OUT of `work-doc-template.md:223`, never a hardcoded list; (b) a doc under `done/` has zero `- [ ]` and zero `- [>]` inside its `## 0. Phase ledger` block; (c) a doc outside `done/` does not say `status: done`. Floors on both subject counts, 20 docs and 1 archived ledger block today (2 docs carry a section 0, but only one of them is under `done/`, and the archived subset is what assertion (b) judges), and a positive control built from source literals the way `[95]:232` does. Terminate the block at the next `^## ` of any name, never `^## 1.`, because the groom path inserts `## Groom Provenance` there. Files: `scripts/validate-dod.d/98-work-doc-ledger-sync.sh`, `scripts/validate-dod.sh`. → verify: fragment reds on both live defects before T15 fixes them.
+- [x] **T17**, tamper rows for `[98]` in the shipped suites, proving each assertion and the control can go red. Files: `scripts/test_tamper_fragments.py` or a new per-check suite, wired so `test_tamper_battery.py` reaches it. → verify: the suite reds when the fragment is blinded.
 
 ### Execution waves (revised)
 
@@ -1275,6 +1275,45 @@ extraction would now be forcing one abstraction over three behaviours, which
 `95-literal-absent-claims.sh:144` and `94-section-exists.sh:182` each carry a `CONTROL` case
 arm that `93-token-declarations.sh:139-147` does not have, and the three read lists were
 already different widths at 7, 5 and 4 variables. No wave 2 was dispatched for it.
+
+### 2026-08-25, T14-T17, and the archive defect turned out to be the other way round
+
+`[98]` ships. It reads the eight allowed `status` values out of `work-doc-template.md:223` at
+runtime rather than hardcoding them, so the template stays the single declaring site and a
+ninth value costs one edit, not two. Three assertions: a status the template declares, an
+archived doc with every phase-ledger row closed, and a live doc that does not claim `done`.
+Floors judged before any per-doc red, and a positive control from source literals that must
+separate a reported doc from a clean one before the silence is trusted.
+
+**I had the archive defect backwards, and finding out changed the fix.** I assumed the ledger
+rows were stale and `status: done` was true, so the fix was to tick five boxes. The evidence
+says the reverse: `2026-08-23-phase-ledger-substrate.md` has a Retrospective still reading
+`_(filled at Phase 6)_`, no `## Update log` section, and no `.report.html` beside it while four
+other archived sprints have one. Phase 6d never ran. The open rows were the honest artifact and
+the `done` stamp was the false claim. Ticking the boxes would have written a lie into the
+archive to make a check go green, which is the banned direction this sprint has a rule about.
+Wizard **#20-A**: record what really happened. Phase 5, 6a, 6b and 6c are ticked from evidence,
+6d is closed with a written reason saying it was dropped, and the missing retrospective stays
+missing rather than being reconstructed by someone who was not there.
+
+**Verification I ran rather than inherited.**
+
+| What | Result |
+|---|---|
+| the live red, before T15 | rc 1, five FAILs, every one `[98]` on the archived doc, no other check moved |
+| after T15 | rc 0, **1454 ok**, 0 FAIL. The +1 over 1453 is `[98]`'s own pass line |
+| my first tamper probe | **worthless, and reported as such.** I blinded the detector after T15 had already removed the defect, so green was the only possible answer |
+| plant: archived doc with an open row | RED, cites the file and line |
+| plant: status value the template never declares | RED, names the declaring row |
+| plant: open row under `## Groom Provenance` | **green**, so the block terminator stops at the next `^## ` and does not over-reach into the groom section |
+| plant: none | green, no false positive |
+| first plant attempt | floored out at 2 docs against a floor of 10, which is the floors-before-reds order working; re-run with 12 |
+| tamper battery | 68 rows to **89** |
+| caps | `98-work-doc-ledger-sync.sh` 451/500, `test_tamper_ledger_sync.py` 339/500 |
+| guardrail | no `eval`, no regex compiled from file data, equality only |
+
+The agent also caught an off-by-one in my own plan text above: assertion (b) has one subject,
+not two. Two docs carry a section 0 block, only one of them is archived.
 
 ## 7. Sprint Review
 
