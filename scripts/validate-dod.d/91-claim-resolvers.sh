@@ -24,16 +24,23 @@
 # is worth knowing where its edge is: it reads a hand-maintained comment block,
 # so an id could in principle be legitimised by adding a line there rather than
 # by writing a check. The floor below catches that block collapsing, never a
-# forged entry in it. It is two ids wide today and it stays readable by hand,
-# which is the only reason that edge is acceptable.
+# forged entry in it. NO WIDTH IS WRITTEN HERE: this comment said "two ids wide"
+# while the block held four, and an unpinned number in a comment is the rotting
+# claim [91] exists to catch. It stays readable by hand, which is the only reason
+# that edge is acceptable. Re-derive the width with
+#   grep -cE '^#[[:space:]]+\[[0-9]+[a-z]?\]' scripts/validate-dod.sh
 #
 # WHY NOT EVERY [NN] TOKEN IN THE FRAGMENTS. A bare-token sweep over
-# scripts/validate-dod.d/*.sh returns 88 ids where only 81 are declared. The
-# seven extras are `[70]`, which names a check FAMILY rather than a printed
-# check (77-reviewer-roster.sh:18 says so in as many words), and `[78a]` through
-# `[78f]`, which label comment blocks INSIDE check [78]. Building the known set
-# from the token sweep would have made a fabricated `[78c]` resolve, which is
-# the whole failure this block exists to refuse.
+# scripts/validate-dod.d/*.sh returns MORE ids than are declared, and the extras
+# are not checks: `[70]` and `[71]` name check FAMILIES rather than printed
+# checks (77-reviewer-roster.sh:18 says so in as many words), and `[78a]` through
+# `[78f]` label comment blocks INSIDE check [78]. Building the known set from the
+# token sweep would have made a fabricated `[78c]` resolve, which is the whole
+# failure this block exists to refuse. NO COUNTS ARE WRITTEN HERE: this paragraph
+# carried three (88 bare, 81 declared, seven extras) and every one of them had
+# gone stale. Re-derive both sides with
+#   grep -ohE '\[[0-9]+[a-z]?\]' scripts/validate-dod.d/*.sh | sort -u | wc -l
+#   grep -ohE 'yellow "\[[0-9]+[a-z]?\]' scripts/validate-dod.d/*.sh | sort -u | wc -l
 #
 # HOW THE MARKDOWN REFERENCE-LINK COLLISION IS EXCLUDED. Live markdown carries
 # 136 bare `[NN]` tokens, almost all of them reference-link syntax: `[label][12]`
@@ -108,10 +115,10 @@ cr_fail() {
 # contradicts the failure above it is the fail-open shape this fragment exists to
 # refuse, so the pass line is reached only when nothing failed.
 cr_verdict() {
-  local out="$1" line refs=0 frag=0 orch=0 files=0 bad=0
+  local out="$1" line refs=0 frag=0 orch=0 files=0 known=0 bad=0
   while IFS= read -r line; do
     case "$line" in
-      'SIZE '*) read -r refs frag orch files <<<"${line#SIZE }" ;;
+      'SIZE '*) read -r refs frag orch files known <<<"${line#SIZE }" ;;
     esac
   done <<<"$out"
   if [ "$refs" -lt "$CR_REF_FLOOR" ]; then
@@ -128,7 +135,7 @@ cr_verdict() {
     esac
   done <<<"$out"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all $refs 'check [NN]' claim(s) across $files live file(s) resolve against the $((frag + orch)) declared check ids"
+  green "  ok   all $refs 'check [NN]' claim(s) across $files live file(s) resolve against the $known declared check id(s), the union of $frag fragment and $orch orchestrator declaration(s)"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -207,7 +214,11 @@ for path, num, ident in found:
         continue
     print('FAIL %s:%d asserts a check [%s] that no fragment declares, %s'
           % (path, num, ident, searched))
-print('SIZE %d %d %d %d' % (len(found), len(frag_ids), len(orch_ids), len(paths)))
+# `known` is the UNION and is emitted separately, because frag + orch double-counts
+# any id declared in a fragment header AND matched in the orchestrator's comment
+# block. Two are today (38f, 76g), so the sum overstated the universe by two.
+print('SIZE %d %d %d %d %d'
+      % (len(found), len(frag_ids), len(orch_ids), len(paths), len(known)))
 CR_PY
 )
     cr_rc=$?

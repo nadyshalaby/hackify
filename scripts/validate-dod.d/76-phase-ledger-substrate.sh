@@ -124,7 +124,7 @@ check_token_present '| always-on injection |' "$PLS_ADAPTERS"
 # nothing was looking at this file's list.
 #
 # Matched with its LIST NEIGHBOUR, never as a bare phrase. SKILL.md also talks
-# about always-on injection in prose (the four-rules-files sentence, the file
+# about always-on injection in prose (the rules-files sentence, the file
 # map, the always-on list), and this sprint keeps adding more of it, so a bare
 # substring goes green on prose alone while the primitive list quietly drops back
 # to 11. Proven by tampering: stripping the list and leaving one prose mention
