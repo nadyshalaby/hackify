@@ -383,6 +383,8 @@ Phase 6 Step F (and the on-demand `/hackify:summary` slash command) print an **u
 
 **Step F also emits a styled HTML report**, a self-contained `<slug>.report.html` written straight to `docs/work/done/<slug>.report.html`, the path it will sit at once Step D's move lands. It opens with the same plain-language update log, then stats, inline-SVG charts, the findings table, action items and next steps, and closes with the cumulative Evidence appendix (the Phase 4 Evidence Ledger). **You do not write that HTML by hand**, you emit a JSON payload and `skills/hackify/scripts/render-report.py` renders the page, charts and all. Payload shape and the command: [html-report.md](html-report.md).
 
+**And where the runtime can publish a page, publish the report too and give the user the link.** A path is something they have to open by hand and cannot send to anyone; a link is the thing they asked for. The renderer writes the publishable copy in the same run, `--artifact-out /tmp/<slug>.report.body.html`, because a publisher supplies its own document shell and expects page content only. Hand that temp file to the runtime's publish tool, then say the link in the chat message rather than leaving it in a tool result. On a runtime with no publish tool, skip it and name the path: the file on disk is the deliverable everywhere, and this is the only half of Step F that every runtime runs. **It is never a precondition for closing the ledger.** 6d's exit artifact is the printed log plus the rendered file, never a link, so a sprint finishes on a runtime that cannot publish anything. Per-runtime support and the degrade path: [runtime-adapters.md](runtime-adapters.md), "Native-tier enhancements".
+
 ### The shape (one block per update, `----` between them)
 
 ```

@@ -106,7 +106,7 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
 | 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick/yolo), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
 | **6c Archive** | **Frontmatter `status: done` and a fully closed ledger written into the work-doc, with `git mv docs/work/<slug>.md docs/work/done/<slug>.md` as the mechanical step that immediately follows** |
-| 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log`, **and** `<slug>.report.html` already written to `docs/work/done/<slug>.report.html` |
+| 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log`, **and** `<slug>.report.html` already written to `docs/work/done/<slug>.report.html`. Where the runtime can publish a page, the report is published too and the user gets the link, but that link is an extra on top of this row and never part of it: the artifact is the printed log plus the file on disk, so a runtime with no publish tool still closes 6d ([runtime-adapters.md](runtime-adapters.md)) |
 
 The archive row is still the fix for the "forgot to archive" bug, but it does its work from the other end now: the edit that closes the ledger is the same edit that writes `status: done`, so a doc cannot be marked finished with a phase left open.
 
@@ -115,7 +115,7 @@ The archive row is still the fix for the "forgot to archive" bug, but it does it
 Phase 6 ends in a fixed order, and it is the only point in the workflow where two rows tick in the same edit.
 
 1. **6b closes, 6c opens** as `- [>]`. The doc is still at its live path, `docs/work/<slug>.md`.
-2. **Step F's work runs at that live path.** Print the five-field update log and render the HTML report straight to its final `docs/work/done/<slug>.report.html` path. Both of 6d's artifacts now exist.
+2. **Step F's work runs at that live path.** Print the five-field update log and render the HTML report straight to its final `docs/work/done/<slug>.report.html` path. Both of 6d's artifacts now exist. Publishing that report as a shareable link, where the runtime can, happens here too and is not one of them: a link that never gets made leaves the row closeable, which is what keeps a non-publishing runtime able to finish a sprint at all.
 3. **One edit closes both rows.** Append the update log to the doc under `## Update log`, tick 6c AND 6d `- [x]` (plus a conditional worktree row, when the sprint has one), and write frontmatter `status: done`. This is the last content change the doc ever receives.
 4. **`git mv docs/work/<slug>.md docs/work/done/<slug>.md`** is the last mechanical step on the doc, and it is a rename rather than a content change. A worktree removal, where one applies, runs after that move and not before it.
 

@@ -10,6 +10,16 @@ page.
 
     python3 <skill-dir>/scripts/render-report.py --data r.json --out <slug>.report.html
 
+Two output modes, one render. --out writes the deliverable: a complete,
+self-contained document that opens in a browser with no network. --artifact-out
+is optional and writes the SAME page with no document shell of its own, no
+<!doctype>, no <html>, <head> or <body>, because a page publisher supplies that
+shell itself and expects page content only. The <title> and the <style> block
+move into the content, which is valid HTML and renders identically; the title
+stays first so a publisher that reads the head of the file for one still finds
+it. Nothing about --out changes when --artifact-out is passed, and the file on
+disk stays the deliverable on any runtime that cannot publish a page.
+
 Git-derived stats (files changed, LOC added/removed, commits) are computed
 here when --base is given; anything the payload supplies explicitly wins, so a
 quick/yolo run with no base SHA can pass them directly.
@@ -238,10 +248,46 @@ def render(template_text, tokens):
     return out
 
 
+# The content-only mode lifts three pieces out of the rendered document and
+# drops the shell around them. Matched on the rendered page, not the template,
+# so the authoring comments are already gone by the time these run.
+DOC_TITLE = re.compile(r"<title>.*?</title>", re.DOTALL | re.IGNORECASE)
+DOC_STYLE = re.compile(r"<style>.*?</style>", re.DOTALL | re.IGNORECASE)
+DOC_BODY = re.compile(r"<body[^>]*>(.*)</body>", re.DOTALL | re.IGNORECASE)
+
+
+def content_only(page):
+    """Same page, no document shell, for a publisher that supplies its own.
+
+    Title first so a publisher scanning the head of the file for one finds it,
+    then the stylesheet, then what was inside <body>. Refuses rather than
+    emitting a half page: a template that lost any of the three would otherwise
+    publish silently broken.
+    """
+    title = DOC_TITLE.search(page)
+    style = DOC_STYLE.search(page)
+    body = DOC_BODY.search(page)
+    if not (title and style and body):
+        raise SystemExit("render-report: the rendered page has no <title>, no <style> "
+                         "or no <body> to lift into a content-only page")
+    return "\n".join([title.group(0), style.group(0), body.group(1).strip(), ""])
+
+
+def write_artifact(path, page):
+    """Write the content-only copy. Scratch output, never the deliverable."""
+    artifact = Path(path)
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(content_only(page))
+    print(f"  ok   wrote {artifact} ({len(artifact.read_text())} bytes), content only")
+
+
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Fill the Phase 6 HTML report template.")
     parser.add_argument("--data", required=True, help="JSON payload path, or - for stdin")
     parser.add_argument("--out", required=True, help="where to write the report")
+    parser.add_argument("--artifact-out", default="",
+                        help="optional scratch path for the same page with no document "
+                             "shell, ready for a publisher that supplies its own")
     parser.add_argument("--template", default=str(TEMPLATE))
     parser.add_argument("--repo", default=".")
     parser.add_argument("--base", default="", help="base SHA; enables git-derived stats")
@@ -257,10 +303,13 @@ def main(argv=None):
     for key, value in git_stats(args.repo, args.base, args.head).items():
         stats.setdefault(key, value)
     text = Path(args.template).read_text()
+    page = render(text, build_tokens(data, stats))
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render(text, build_tokens(data, stats)))
+    out.write_text(page)
     print(f"  ok   wrote {out} ({len(out.read_text())} bytes)")
+    if args.artifact_out:
+        write_artifact(args.artifact_out, page)
     return 0
 
 

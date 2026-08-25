@@ -13,7 +13,7 @@ At Phase 6 Step F, after the update log is generated and the work is verified. O
 - **Full hackify**, write it to the archive path the work-doc is about to take: `<project>/docs/work/done/<slug>.report.html`. Step F renders it before the doc itself is moved there, so the path exists first and the doc follows.
 - **quick / yolo** (no archived work-doc), write `<project>/docs/work/reports/<YYYY-MM-DD>-<slug>.report.html` (create the `reports/` dir if absent).
 
-After writing, tell the user the path and offer to open it.
+After writing, tell the user the path and offer to open it. Where the runtime can publish a page, also publish it and give them the link, see **Publishing it as a link** below.
 
 ## The stat set
 
@@ -87,9 +87,30 @@ Payload. Every key is optional, and a missing key renders an honest empty state 
 - **The five update-log headings are fixed wording** and the renderer emits them for you: Problem, Root cause, Solution, Verification evidence, Deployment status. They mirror the chat update log and are never paraphrased.
 - **Escaping is the script's job.** Pass raw text. A commit subject carrying `&`, a type like `Promise<User>`, a proof sample with a stray `<`, all safe.
 
+## Publishing it as a link (optional, never load-bearing)
+
+A file path is something the user has to open by hand, and it is not something they can send to anyone. Where the runtime has a way to publish a page, Step F publishes the report as well and hands them a link. Where it does not, the file on disk is the whole deliverable and Step F behaves exactly as it did before. This is a native-tier enhancement in the sense [runtime-adapters.md](runtime-adapters.md) defines, so per-runtime support and the degrade path live in that file's "Native-tier enhancements" tables, and **no phase may hard-require it**. Publishing is never a precondition for closing ledger item `6d`: its exit artifact is the printed update log plus the rendered file, and a runtime that cannot publish still finishes the sprint.
+
+**The renderer has a second output mode for it,** because a page publisher supplies its own `<!doctype>`, `<head>` and `<body>` and expects page content only, so the standalone document cannot be published as authored. Pass `--artifact-out` alongside the usual `--out`:
+
+```bash
+python3 <skill-dir>/scripts/render-report.py \
+  --data /tmp/report.json \
+  --out <project>/docs/work/done/<slug>.report.html \
+  --artifact-out /tmp/<slug>.report.body.html \
+  --repo <project> --base <base-sha>
+```
+
+- **`--out` is unchanged.** It still writes the complete, self-contained document that opens in a browser with no network. That file is the deliverable and the thing every non-publishing runtime gets.
+- **`--artifact-out` is scratch, not a second deliverable.** One render, two writes, so the two files cannot drift. Write it to a temp path, never beside the report: `docs/work/done/` holds exactly one HTML file per sprint, and a second one there is clutter the Step C.5 cleanup sweep would flag as an unrelated change.
+- **The content-only copy keeps its `<title>`.** A publisher reads the head of the file for one and uses it to name the page, so the title stays first, ahead of the stylesheet and the page content.
+- **The page must stay self-contained either way.** Publishers block requests to other hosts, so the no-CDN, no-web-font, no-remote-image rule below is load-bearing twice over now: once for the offline file, once for the published page.
+- **Publish, then say the link out loud.** The user asked for something they can send someone, so the link belongs in the chat message, not only in a tool result.
+
 ## Hard rules
 
-- **Self-contained.** Inline CSS + inline SVG only. No external `<script src>`, no `<link href>` to a CDN, no web-font fetch, no remote image. The file must render fully offline.
+- **Self-contained.** Inline CSS + inline SVG only. No external `<script src>`, no `<link href>` to a CDN, no web-font fetch, no remote image. The file must render fully offline, and a published copy must render with every request to another host blocked.
+- **Readable in both themes.** The template defines its light palette on bare `:root` and repeats the dark one under a guarded `@media (prefers-color-scheme: dark)` block and under `:root[data-theme="dark"]`, because a viewer's theme has three states and the published page inherits whichever one they are in. Add a color as a token in all three places or not at all.
 - **No leaked paths / tokens.** Never embed absolute home-directory filesystem paths or personal handles in the report, use project-relative paths.
 - **Honest empties.** Zero findings, zero follow-ups → render a clear "none" state, not a fabricated row.
 

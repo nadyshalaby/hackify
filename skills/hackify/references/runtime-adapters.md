@@ -66,6 +66,7 @@ on every tier.)
 | Per-agent model/effort tiers | Mechanical work (deterministic scout runs, registration edits) rides a fast/cheap tier while deep reviewers and implementers keep the strongest tier, cost and latency drop with no rigor loss | Phase 3 + Phase 5 dispatches | Tiering degrades to a single-model runtime where all agents run equal |
 | Task-tracker dependency ordering | Phase-ledger items carry blocked-by edges, so a tracker that has them refuses an out-of-order start instead of leaving it to the written law, extends the ordering law in `phase-ledger.md` | Every phase (ledger-wide) | Ordering degrades to the convention-enforced law `phase-ledger.md` already specifies |
 | Batched wizard rounds | Several back-to-back wizard calls land in one turn, so the Phase 1 questionnaire flows as 4-question batches | Phase 1 | Batching degrades to sequential single batches |
+| Published report artifact | Phase 6's HTML report is also published as a hosted page, so the user ends up with a link they can send someone instead of a file path they have to open by hand | Phase 6 Step F | The report stays the self-contained file at its documented path, Step F behaves exactly as it does without the enhancement, and ledger item `6d` closes on that file alone ([html-report.md](html-report.md)) |
 
 Per-runtime support, in the same column order as the mapping table, runtime-specific tool names stay
 inside the table cells, per this file's convention:
@@ -77,6 +78,16 @@ inside the table cells, per this file's convention:
 | Per-agent model/effort tiers | native, per-`Agent` `model` override; per-agent effort in agent definitions | n/a, no subagent primitive | n/a, no subagent primitive | n/a, no subagent primitive | partial, per-mode model pinning in mode files; effort control unverified | n/a, no subagent primitive | n/a, no subagent primitive |
 | Task-tracker dependency ordering | conditional, `TodoWrite` items carry blocked-by edges when the session exposes the tool; it is frequently absent, and ordering then rests on the printed ledger block plus the work-doc's `## 0. Phase ledger` section, a written law, never tool-level edges | n/a, no todo primitive | n/a, no todo primitive | n/a, no todo primitive | unknown, `todowrite` exists; dependency edges unverified | n/a, no todo primitive | n/a, no todo primitive |
 | Batched wizard rounds | native, back-to-back `AskUserQuestion` calls in one turn | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive |
+| Published report artifact | native, the `Artifact` tool publishes the renderer's `--artifact-out` page and returns a link | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime |
+
+Six `unknown` cells and not six `n/a`, on purpose. Every `n/a` in this table is grounded in
+the primitive mapping table above it, and that table carries no publish primitive for any
+runtime, Claude Code included, so it cannot ground an absence claim here. Nobody has checked
+those six runtimes' own tool lists for a way to publish a page, and the honest cell for an
+unchecked claim is `unknown`. The wording is identical in all six because it is one
+unverified claim, not six separate investigations. Publishing is optional everywhere, so an
+`unknown` costs nothing: the degrade path is the file on disk, which every runtime already
+gets.
 
 ## Sync output per runtime
 

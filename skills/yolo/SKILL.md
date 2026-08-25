@@ -56,6 +56,8 @@ Autopilot is not autopilot for thinking. Approach the task as a **senior, multi-
 
 *Phase 6 Step C.5 cleanup sweep also applies. YOLO auto-fixes pre-existing lint/type/test/dead-code in the touched files (no prompt) so they end clean. See `../hackify/references/finish.md` Step C.5.*
 
+*Phase 6 Step F is unchanged too: print the update log, render the self-contained HTML report, and where the runtime can publish a page, publish it and tell the user the link. Autopilot does not skip that, it just does not ask first. Where the runtime has no publish tool, the path is the answer and the step still completes, the link is never what closes the item. See `../hackify/references/html-report.md`.*
+
 ## Kept phases (identical to full hackify)
 
 | Phase | Action | Why kept |

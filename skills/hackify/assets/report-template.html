@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{TITLE}} — hackify report</title>
+<title>{{TITLE}}, hackify report</title>
 <style>
   :root {
     --bg: #f6f7f9;
@@ -23,11 +23,23 @@
     --radius: 14px;
     --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
   }
+  /* Two dark blocks, same tokens, because a viewer's theme has three states.
+     A published page renders inside a host that stamps data-theme="dark" or
+     data-theme="light" on the root element when the viewer picks one, and
+     stamps nothing on the default "system" setting, where only the media query
+     separates light from dark. The media block is guarded so an explicit light
+     choice wins on a dark OS; the attribute block is what makes an explicit
+     dark choice win on a light OS. The bare :root above stays the light
+     default, so every token has a value before either block runs. */
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
       --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
     }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+    --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
   }
   * { box-sizing: border-box; }
   body {
@@ -101,7 +113,7 @@
 
   <section class="summary">
     <h2>What changed &amp; why it matters</h2>
-    <!-- {{PLAIN_SUMMARY}} — 3–6 plain-language (B2) sentences for a non-technical reader; entity-encoded -->
+    <!-- {{PLAIN_SUMMARY}}, 3 to 6 plain-language (B2) sentences for a non-technical reader; entity-encoded -->
     <p>{{PLAIN_SUMMARY}}</p>
   </section>
 
@@ -116,12 +128,12 @@
   <div class="grid-2" style="margin-top:18px">
     <div class="panel">
       <h2 style="margin-top:0">Review findings</h2>
-      <!-- {{SEVERITY_CHART_SVG}} — inline <svg> donut/bar of Critical/Important/Minor (fixed vs open) -->
+      <!-- {{SEVERITY_CHART_SVG}}, inline <svg> donut/bar of Critical/Important/Minor (fixed vs open) -->
       {{SEVERITY_CHART_SVG}}
     </div>
     <div class="panel">
       <h2 style="margin-top:0">Phases</h2>
-      <!-- {{PHASE_TIMELINE}} — six <span class="pill done|skipped">N Name</span> for Clarify→Finish -->
+      <!-- {{PHASE_TIMELINE}}, six <span class="pill done|skipped">N Name</span> for Clarify→Finish -->
       <div class="timeline">{{PHASE_TIMELINE}}</div>
     </div>
   </div>
@@ -131,7 +143,7 @@
     <table>
       <thead><tr><th>Finding</th><th>Severity</th><th>Decision</th><th>Evidence</th></tr></thead>
       <tbody>
-        <!-- {{FINDINGS_TABLE}} — <tr><td>…</td><td><span class="sev critical|important|minor">…</span></td><td>…</td><td>…</td></tr>; render one empty row with class="empty" if none -->
+        <!-- {{FINDINGS_TABLE}}, <tr><td>…</td><td><span class="sev critical|important|minor">…</span></td><td>…</td><td>…</td></tr>; render one empty row with class="empty" if none -->
         {{FINDINGS_TABLE}}
       </tbody>
     </table>
@@ -140,7 +152,7 @@
   <h2>Action items &amp; follow-ups</h2>
   <div class="panel">
     <ul class="items">
-      <!-- {{ACTION_ITEMS}} — <li>…</li> per item, or <li class="empty">None — nothing outstanding.</li> -->
+      <!-- {{ACTION_ITEMS}}, <li>…</li> per item, or <li class="empty">None, nothing outstanding.</li> -->
       {{ACTION_ITEMS}}
     </ul>
   </div>
@@ -157,7 +169,7 @@
   <h2>Next steps &amp; instructions</h2>
   <div class="panel">
     <ul class="items">
-      <!-- {{NEXT_STEPS}} — <li>…</li> the developer must act on, or <li class="empty">None — ready as-is.</li> -->
+      <!-- {{NEXT_STEPS}}, <li>…</li> the developer must act on, or <li class="empty">None, ready as-is.</li> -->
       {{NEXT_STEPS}}
     </ul>
   </div>
@@ -167,7 +179,7 @@
     <table>
       <thead><tr><th>Item</th><th>Claim</th><th>What ran</th><th>Proof sample</th><th>Result</th></tr></thead>
       <tbody>
-        <!-- {{EVIDENCE_APPENDIX}} — <tr><td>…</td>×5</tr> per Phase 4 Evidence Ledger row (item / claim / what ran / proof sample / result); render one class="empty" row if none -->
+        <!-- {{EVIDENCE_APPENDIX}}, <tr><td>…</td>×5</tr> per Phase 4 Evidence Ledger row (item / claim / what ran / proof sample / result); render one class="empty" row if none -->
         {{EVIDENCE_APPENDIX}}
       </tbody>
     </table>
