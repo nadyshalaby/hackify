@@ -78,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sprint spent the length of the summary sitting in `done/` with a row still open, the exact state
   `[98]` reads as work that stopped mid-phase. What the swap gives up is the rule that the summary
   was the reward for archiving. What it buys is the better wreckage when a session dies mid-finish:
-  a doc stranded at its live path claiming `done`, which `[98]` catches, instead of an archived doc
+  a doc stranded at its live path claiming `done`, which `[99]` catches, instead of an archived doc
   quietly claiming a phase nobody ran, which is the defect that started this.
 - **The sprint report can be published as a shareable link.** The finish step still renders the
   same self-contained page to disk, and on runtimes that can publish one it also hands you a link

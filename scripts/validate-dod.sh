@@ -104,9 +104,14 @@
 #                   outside done/ does not claim it was finished. Split out of 98
 #                   at the 500-LOC cap, where the created-date rule above would not
 #                   fit. THE ASSERTION LETTERS (a) AND (c) MOVED WITH THE BLOCKS
-#                   while the id did not: [98] is a single check, CHANGELOG.md:54
-#                   binds it to the other filename, and phase-ledger.md cites
-#                   assertion (c) by letter. ONE ID AND NOT A RANGE, for 98's reason
+#                   while the id did not: [98] is a single check, its CHANGELOG
+#                   entry binds that id to 98-work-doc-ledger-sync.sh by name, and
+#                   phase-ledger.md cites assertion (c) by letter. That entry is
+#                   cited by NAME and not by line on purpose: the first version of
+#                   this comment cited a line, the entry was rewritten one commit
+#                   later, and the citation went stale while [57] stayed green,
+#                   because [57] proves a line EXISTS and never that it still says
+#                   what cites it. ONE ID AND NOT A RANGE, for 98's reason
 #
 # HOW THE 71 AND 72 ROWS ABOVE WENT WRONG AT ONCE, recorded here rather than in
 # either row because it is a property of the row FORMAT and not of those two

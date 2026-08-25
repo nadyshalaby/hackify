@@ -119,4 +119,4 @@ interpreter here so the multi-runtime story stays honest.
 
 ## When to update this file
 
-Update this file whenever a target runtime adds, renames, or removes a tool that maps to one of the 8 primitives, whenever a new runtime is added to the support set, or whenever a runtime's plugin model crosses a tier boundary (best-effort gains native subagent dispatch, for example). No script reads this table, so drift here is silent rather than loud: a cell that stops matching its emitter under `scripts/sync-runtimes.d/` breaks nothing and reports nothing. Change both in the same commit.
+Update this file whenever a target runtime adds, renames, or removes a tool that maps to any of the 12 primitives, whenever a new runtime is added to the support set, or whenever a runtime's plugin model crosses a tier boundary (best-effort gains native subagent dispatch, for example). No script reads this table, so drift here is silent rather than loud: a cell that stops matching its emitter under `scripts/sync-runtimes.d/` breaks nothing and reports nothing. Change both in the same commit.
