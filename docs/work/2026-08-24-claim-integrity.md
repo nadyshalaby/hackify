@@ -585,6 +585,38 @@ returned a dirty one.** Before trusting a zero, show the search finding a plante
 claims is absent. Both halves of this sprint's tooling already do it, and both times it was added
 after a zero had already fooled someone.
 
+**New, from T15, and the sharpest shape the sprint has produced. A reassurance that is true of the
+set and false of the member is worse than no reassurance, because it is what authorises the risky
+act.** Decisions #16-C and #18-C asked for two live defects to be fixed. The parent told the user, in
+writing, that fixing them cost no proof, "because the checks are proven against pinned snapshots of
+the old code, not against the live tree", and repeated it verbatim in both dispatch briefs as the
+sentence authorising the work. It was true of three fixtures out of four. **The fourth was I4, and I4
+was one of the two defects being fixed.** Its fixture was `kind: worktree`, scored against the files
+on disk, and its witness asserted the defective literal was PRESENT in the live `71`. Fixing the tree
+would have broken `test_claim_fixtures.py` and stopped `test_literal_absent_claims.py` catching I4 at
+all, so the DoD item demanding the fixture still catch it was unsatisfiable as written. The agent
+converted I4 to `kind: blobs` first, pinning `71` at `1391f019` and `77` at `d40b70ad`, and only then
+did the fix.
+
+Three things about that are worth keeping:
+
+1. **The claim was never measured.** One `python3` line reading the `kind` field off each fixture
+   settles it, and the parent ran it only after the agent pushed back. The generalisation came from
+   knowing the fixtures were built to be pinned, which was the design intent, not the state on disk.
+2. **It was load-bearing rather than decorative.** It is the sentence that made a destructive action
+   look free, and it was handed to the user as grounds for a decision. A wrong fact in a status line
+   costs a correction; a wrong fact in a safety argument costs the thing it was protecting.
+3. **Same wave, second correction of the same brief.** The parent also told the agent that `77`'s ban
+   list means no file may carry the phrase. `RR_BANS` screens six named files (`77:168-172`) and
+   `orchestration.md` is not among them, so the sentence's "deliberately NOT pinned" claim was TRUE
+   and only the row's existence was false. The parent's account of the defect was wrong in the
+   direction of making it look worse.
+
+For the rule: **before an argument that something is safe to change, check the specific thing you are
+about to change, not the class it belongs to.** A safety claim is a claim about this case. "All our
+fixtures are pinned" and "this fixture is pinned" are different sentences, and only the second one
+licenses the edit.
+
 **What the rule must NOT claim.** The corpus is the evidence for this. Of thirteen real findings,
 nine are reachable by no check at all: a timing property, two policy sentences disagreeing, a
 completeness gap in a release note, a scanner's own line-based blind spot. **A rule that implies the
