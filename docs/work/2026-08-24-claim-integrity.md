@@ -142,6 +142,33 @@ The superseded text is preserved in the spec-review section below rather than de
       check actually run against M4's pinned evidence and its clean output recorded. Asserting the
       miss is no longer allowed to count.
 
+      **AC1 leg (b) restated on 2026-08-25. Also not a bucket change, and this one was worse than
+      leg (a): it was never a measurement at all.** Leg (b) said the check claims **none** of the 9
+      out-of-class findings, and called that the leg that cannot be tuned. It cannot be tuned
+      because it cannot fail. Read the answer key's own `reaching_class` column: I1, I3, I5, I6, M1
+      and M2 reach `none`, and M5, M6 and M7 reach `C1_annotated_count`, which decision #14-A
+      declined to build. **No shipped check looks at any of the nine.** Their silence is a
+      structural certainty of the class mapping, not evidence about the checks, and the `0 of 9` the
+      scorer printed was the same empty-set default T6 just removed from the grader, still alive in
+      the plan text one section above it.
+
+      **Re-pointed at evidence that can actually go red.** Precision is measured by
+      `test_the_live_tree_comes_back_clean`, which exists in all three of
+      `scripts/test_token_declarations.py`, `scripts/test_section_exists.py` and
+      `scripts/test_literal_absent_claims.py`. Each runs its own shipped check over the **whole live
+      tree** and asserts rc 0 plus the pass line. Each has a floor companion so a scan that read
+      nothing cannot pass as a scan that found nothing: [93] asserts at least 350 uses over 15
+      prompts in 15 files, [95] asserts `pairs == 0` underneath its own floors. That is a
+      false-positive measurement over the entire repository rather than over nine rows, and a check
+      that fired spuriously anywhere would redden its own test.
+
+      **Why this is not tuning.** Nothing in `scripts/claim_corpus.json` moved. `counts.must_catch`
+      is still 4 and `counts.out_of_class` is still 9. No bucket changed. What changed is a sentence
+      in the plan that described a measurement nobody had taken.
+
+      **AC1 stays a three-leg criterion, with (b) re-pointed, not a two-leg one.** Legs (a) and (c)
+      still both have to pass. Leg (b) is now able to fail, which is the only reason to keep it.
+
       **Bucket change 1 of 1, M4, `out_of_class`/`scope_blocked` to `must_catch` under C7.** Cause:
       #13-A widened C7 to both polarities. **The check widened first and the bucket followed, which
       is the allowed direction.** The banned direction is moving a bucket so an unchanged check
@@ -178,7 +205,7 @@ The superseded text is preserved in the spec-review section below rather than de
       own brief attached a command to the "23 check ids" fact and the command was the thing that was
       wrong. The same edit amends `references/repo-brief.md:13`'s ~200-word cap, which this brief
       already breaks at 342 words.
-- [ ] **AC7** **Every item** in the previous sprint's backlog section gets one written disposition:
+- [x] **AC7** **Every item** in the previous sprint's backlog section gets one written disposition:
       caught, missed, or out of class. No count is asserted. Scope is stated: a one-shot scan with
       the `docs/work/` exclusion lifted, results recorded, **never wired into the validator**, since
       that tree holds 619 citations against 30 live ones and is a frozen record.
@@ -819,6 +846,177 @@ what works. Same goal, mechanism that survives the guardrail.
 
 **The agent also caught a stale count of its own** and fixed it by deleting the number rather than
 updating it, since the live totals print on every run. That is the right instinct and belongs in T9.
+
+### 2026-08-25, T7, the tamper battery, and an AC that had nothing left to point at
+
+`scripts/test_tamper_battery.py` lands as an entrypoint over two imported parts and one shared
+harness, 65 rows, green in under three seconds, wired as a CI step. **No shipped check fragment was
+edited to make it fit and nothing tracked was mutated to tamper anything.** A fragment is tampered by
+copying its text into a temp file, editing the copy, and sourcing that, so there is no restore step
+and no checksum to verify afterwards.
+
+**AC3's clause (a) is moot, and saying so is the deliverable rather than an aside.** It asks that
+"the verb vocabulary is a fixed enum, shown in code". There is no verb vocabulary in this repository.
+The design that clause was written for had checks reading *annotations* out of documents, each
+annotation carrying a verb plus arguments, and that design was task T4. **T4 was declined and nothing
+was built for it.** So the clause has no referent, and the two honest options were to invent an enum
+so the AC could pass, or to record that the clause died with the task it belonged to. Inventing one
+is the precise move this sprint exists to stop, so it is the second.
+
+**What T7 tested instead is every place a value read out of a repository file reaches a check.** The
+route list was derived from the code rather than from the AC, and each route was fed the hostile set
+AC3 names: traversal, an absolute path, three glob forms, command substitution in both spellings, and
+a pattern that is catastrophic to backtrack. Every hostile string is built around a canary path that
+only a real execution could create, so "nothing ran" is a measurement and not the absence of a
+suspicious line in a transcript.
+
+| Route | Verdict |
+|---|---|
+| `claim_fixtures.json` `files[].path` | absolute and `..` REJECTED. Every other form ACCEPTED and written as a literal filename by pathlib, never expanded, never a shell word. |
+| `claim_fixtures.json` `files[].blob` and `files[].commit` | every hostile form REJECTED by a hex-digit set membership test, before git is asked anything. |
+| `claim_fixtures.json` `witnesses[].literal` | encoded to bytes and handed to `bytes.count`. The backtracking pattern answers in linear time over four thousand characters of filler; a glob counts only itself. |
+| `claim_fixtures.json` `witnesses[].path` | a witness naming a file its fixture does not pin is REJECTED. |
+| `claim_corpus.json` `reaching_class` | a dict key into a table of source literals. An unmapped class raises and quotes the string back, which is the proof it stayed text. |
+| `ci.yml` `run:` paths, check `[97]` | every hostile spelling is filtered out by the path grammar before any file test, and the scan reads the same suites it would have read without them. |
+| file bodies scanned by `[91]`, `[93]`, `[94]`, `[95]` | inert on all four. `[93]`'s token grammar cannot express a metacharacter at all. `[91]` prints a hostile FILENAME straight into its report. `[95]` takes a quoted phrase out of a document and makes it its search term, and it stays a substring test. |
+
+**Two of AC3's own claims about the code are false, and both are now measured rather than argued.**
+Clause (b) says every argument is constrained so that "a path must resolve inside the repo and be
+git-tracked". **No path on any of these routes is checked for either property.**
+
+1. The fixture manifest refuses a pinned path only for being absolute or carrying `..`. Nothing asks
+   whether it resolves inside the repository and nothing asks whether it is tracked; the blob SHA is
+   what makes the CONTENT checkable, and the path is only ever a name joined onto a temp directory.
+   `$(...)`, a backtick command, `*` and `(a+)+$` are all accepted and all become literal filenames.
+2. Check `[97]` parses command paths out of `.github/workflows/ci.yml` with a character class that
+   admits both dots and slashes, then opens what it finds. A `run:` line naming `../somewhere/x.sh`
+   makes the check read a file outside the repository, tracked by no git anywhere, and trust its
+   contents when deciding whether a suite is wired. Demonstrated positively rather than inferred:
+   a planted outside file is what makes an orphaned suite read as reachable by import.
+
+Neither is a code-execution hole and neither is fixed here, because both fixes sit outside T7's file
+allowlist. They are recorded so the next reader does not take the AC's sentence for the code's
+behaviour.
+
+**What is therefore NOT proven by T7.** That there is a fixed verb enum, because there is none. That
+every argument resolves inside the repository, because two routes do not check it. That the
+annotation class is safe, because it does not exist. And nothing here says anything about the classes
+no check reaches at all; the score is still 3 of 4 and T7 moved no part of it.
+
+**AC4 is answered by 34 fragment rows plus 12 on the replay runner and this suite's own wiring, with
+19 more from the AC3 half, each asserting the expected failure MESSAGE.** The rows go after the branches the six existing suites cannot reach: every
+floor on the LIVE path, the missing-interpreter branch, the failed-capture branch, `[94]`'s
+premise guard, and `[97]`'s grep-cannot-read branch, which the readability guard above it hides
+unless the workflow path is a directory. A healthy tree cannot trip any of those, so a floor could
+have been off by an order of magnitude and every suite in the repo would have stayed green.
+
+**Check `[91]` shipped with no executable proof of any kind and now has twelve rows.** It was the only
+one of the five fragments with no suite at all.
+
+**The blinded-red pair is reproduced as a regression row, both halves.** Blinding `[94]`'s printed red
+while leaving its status bump alone produces a run that exits 3 and names nothing, which the replay
+runner refuses to score in either direction. Blinding both leaves a run that is silent and exits 0,
+which it scores as a measured miss. The pair is the point: an ambiguous run must raise and a clean
+run must score false, and a scorer that collapsed the two would report the same number for a broken
+check and a working one.
+
+**Branches deliberately left where they already are.** The replay-root refusals, the replay-mode
+floors, the per-site reports, `[93]`'s unclosed-fence and carved-out-name reds, and `[97]`'s git,
+missing-workflow, unreadable-workflow, floor and orphan branches are all covered by the five existing
+suites. Re-covering them would have cost lines the 500-line cap does not have and bought nothing.
+
+**One branch could not be reached and it is named rather than glossed.** Nothing in this battery
+reaches `claim_fixtures.py`'s hash-mismatch and size-mismatch raises through a hostile input, because
+producing a blob whose content hashes to a pinned SHA is the one thing the mechanism is designed to
+make impossible. `scripts/test_claim_fixtures.py` reaches both by constructing the mismatch directly.
+
+**A stale count found inside `[91]` while writing its rows, and it is the sprint's own defect class.**
+The fragment's header says its second declaration source, the orchestrator's comment block, "is two
+ids wide today". The grammar it actually uses is `^#\s+\[NN\]` over the whole of
+`scripts/validate-dod.sh`, which yields four ids: `[0]`, `[0b]`, `[38f]` and `[76g]`. The last two are
+comment lines about line-number bookkeeping rather than manifest entries. Nothing is broken today,
+because both also have a printed header behind them, and a row now asserts exactly that: the only ids
+resting on orchestrator prose alone are the two that cannot live in a fragment. A second row
+demonstrates the edge the header describes, an appended comment legitimising an id with nothing
+executable behind it. **Not fixed here, since the fragment is outside T7's allowlist.**
+
+**Three facts in T7's dispatch brief were wrong.** `set -uo pipefail` is at
+`scripts/validate-dod.sh:99`, not line 93. `[94]`'s EXCLUDE tuple already carries six files, not
+five, so the brief's offer of "a sixth" was an offer of a seventh. And the brief said the file would
+trip `[94]` and would need that entry: it does not, because the two literals that would have tripped
+`[94]` and `[91]` are assembled from pieces at runtime instead of written into the source. **The blind
+spot stays where it was and no shipped fragment was edited**, which was the better of the two
+available answers.
+
+### 2026-08-25, AC7, the scan and the dispositions are two different things
+
+AC7 asks for two things in one sentence and they grade different populations. Recording them apart,
+because presenting one as the other would be a claim that does not hold inside the document about
+claims that do not hold.
+
+**Part 1, the one-shot scan, run exactly as AC7 scopes it.** The three shipped fragments were copied
+to a scratch directory and the ONLY edit was their `LIVE` pathspec, from
+`[':(top)', ':(top,exclude)dist/*', ':(top,exclude)docs/work/*']` to
+`[':(top)', ':(top,exclude)dist/*']`. Nothing under `scripts/validate-dod.d/` was touched and none of
+this is wired into the validator.
+
+| Check | Findings with `docs/work/` lifted | Shape |
+|---|---|---|
+| `[93]` token declarations | 0 | the prompt population does not grow when the archive is added |
+| `[94]` section exists | 16 | all one class, the retired `Implementation Log` section name, across six archived docs |
+| `[95]` literal absent claims | 2 | both in `2026-08-23-phase-ledger-substrate.md`, at `:162` and `:583` |
+
+**It stays unwired, and the number is the reason.** Sixteen findings on a frozen record is precisely
+why the exclusion exists: `docs/work/` has to be able to quote a broken thing in order to record that
+it was broken. Wiring this in would redden the archive for having done its job.
+
+**A narrower scope was tried first and the checks refused it.** Pointing `LIVE` at the single
+previous-sprint doc made all three red on their own population floors, `a scan over nothing measures
+nothing`. That is the floors working, not a failure, and it is why the scan runs tree-wide and the
+results are filtered afterwards rather than the scope being narrowed up front.
+
+**The scan graded none of the backlog items.** The previous sprint's backlog section runs from
+`:2783` to `:2818`. The five hits inside that document sit at `:829`, `:2440`, `:2447`, `:2454` and
+`:2611`, every one of them outside the section. So not one of the 19 items below was dispositioned by
+the scan, and every disposition in Part 2 comes from the class mapping instead. Saying otherwise
+would be borrowing the scan's authority for a judgement it never made.
+
+**Part 2, the 19 carried items, dispositioned by which class reaches them.**
+
+| # | Item, from `2026-08-23-wave-implementer-migration.md:2783` | Class | Disposition |
+|---|---|---|---|
+| 1 | I4, `71:180`, the `4-5 reviewers` comment | C7 | **caught**, and fixed under #16-C |
+| 2 | M5, `README.md:254`, 95 IDs and 10 domains against a measured 96 and 11 | C1 | out of class, C1 declined by #14-A |
+| 3 | M6, `parallel-agents/README.md:12`, "the two rows" against a three-row table | C1 | out of class |
+| 4 | I2 sibling, `debug-when-stuck.md:19` | C6 | **caught**, and fixed |
+| 5 | I2 sibling, `debug-when-stuck.md:190` | C6 | **caught**, and fixed |
+| 6 | I2 sibling, `README.md:416` | C6 | **caught**, and fixed |
+| 7 | `phases/phase-5-review.md:99`, a second yolo stranding | none | out of class, behavioural |
+| 8 | `test_ban_tokens.d/15-wi-absent-cases.sh` at 497/500 | none | out of class, still open |
+| 9 | `71-release-mechanism-pins.sh` at 497/500 | none | out of class, resolved by #17-B, now 344 lines |
+| 10 | the screen hand-off probe wanting a `TB_WIRING` row | none | out of class |
+| 11 | FIX-H3 option C, the two flipped literals | none | out of class |
+| 12 | `CHANGELOG.md:21`, "the Phase 3 caption" against the generator's variable | C5 | out of class, C5 never built |
+| 13 | the encoder table's four remaining rows, recorded not re-derived | C1 | out of class |
+| 14 | two pre-existing `SC2015` shellcheck infos | none | out of class |
+| 15 | F5 root-cannot-pass, suite-wide, no skip primitive | none | out of class |
+| 16 | `sync_agent_mirrors.py` treating any unknown flag as WRITE | none | out of class |
+| 17 | the mirror check's blindness to frontmatter and past the first fence | none | out of class |
+| 18 | nothing checks the hero GIF against its phase table | none | out of class |
+| 19 | `marketplace.json:15` pinning `ref: v0.15.0` with no such tag | C2 | out of class, and now resolved, the tag exists |
+
+**Four caught, fifteen out of class, zero missed, and the zero is not a win.** Fifteen of nineteen
+sit outside every class that was built, which is the same fact AC7 was written to expose. A sprint
+that shipped three checks did not thereby acquire cover over its predecessor's backlog, and the
+honest headline is that most of what the last sprint carried forward is still unreachable by
+anything here.
+
+**The four catches were verified per site, not inferred from a quiet tree.** The live `[94]` scan
+comes back clean, but tree-wide silence is not per-site evidence, which is the same distinction leg
+(b) above was restated over. Items 4 to 6 were checked by opening the files:
+`debug-when-stuck.md` carries the retired name zero times, and `README.md`'s only surviving mention
+is `:192`, which reads `**Daily Updates** (was Implementation Log)` and is one of the six excused
+back-compat sites `[94]` counts on purpose.
 
 ## 7. Sprint Review
 
