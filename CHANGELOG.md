@@ -30,15 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Check `[81]`, which is why this is a rule and not a preference.** The thing it guards against is
   not a careless edit, it is a default reasserting itself, and prose alone already lost that argument
   once. It bans the trailer, the session line, the bracketed footer and the noreply address across
-  `skills`, `agents`, `rules`, `commands` and `README.md`, and it separately pins the rule sentence at
+  `skills`, `agents`, `rules`, `commands`, `hooks`, `.claude-plugin` and `README.md`, and it separately pins the rule sentence at
   each of the four sites that state it, because a ban-only check is perfectly green over a skill that
   has quietly stopped saying anything. The banned tokens are trailer-shaped rather than
   mention-shaped, carrying the part only a real trailer has, so the rule can name what it forbids
-  without reddening itself. Nine tamper rows in `scripts/test_tamper_attribution.py` plant every one
-  of those losses and show the check red, taking the battery from 148 rows to 157. What the check
-  cannot reach, stated plainly: it reads the shipped instructions that tell an agent how to write a
-  commit, never a commit message itself, and the 289 commits already carrying trailers were left
-  alone rather than rewritten.
+  without reddening itself. Eleven tamper rows in `scripts/test_tamper_attribution.py` plant every
+  one of those losses and show the check red, taking the battery from 148 rows to 159. Two of those
+  eleven exist because the first cut of this check scanned five paths while its own header claimed
+  the only exclusions were `scripts/`, `dist/` and `docs/work/`: `hooks/` was in neither list, so the
+  one tree that injects rule text into every prompt was silently unscanned. It is scanned now, and a
+  row pins the scan list against `CAP_SEARCH_PATHS` so the two cannot drift apart again. What the
+  check cannot reach, stated plainly: it reads the shipped instructions that tell an agent how to
+  write a commit, never a commit message itself, and the 289 commits already carrying trailers were
+  not rewritten.
 
 ## [0.16.0] - 2026-08-26
 

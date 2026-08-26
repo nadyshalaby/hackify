@@ -14,13 +14,21 @@
 # deleting the rule sentence: with the rule gone and no banned token yet written,
 # a ban-only check is perfectly green over a skill that no longer says anything.
 #
-# NOT SCANNED, deliberately: scripts/ (this file names the tokens it bans, so
-# scanning itself would be an instant false red), dist/ (generated copies of
-# skills/, so a clean source is a clean dist and [56] already proves they match),
-# and docs/work/ (archived work-docs are historical records of what happened,
-# including commits that really did carry trailers; rewriting history to satisfy
-# a rule adopted later is exactly the falsification rules/claim-integrity.md
-# bans).
+# THE SCAN LIST IS EXHAUSTIVE OVER WHAT SHIPS, and the exclusions below are the
+# whole of the difference. Everything a user installs is walked: the six trees of
+# CAP_SEARCH_PATHS in 80-file-size-caps.sh minus scripts/, plus .claude-plugin/
+# and README.md. hooks/ is in that list on purpose rather than by accident, it is
+# the tree that injects rule text into every prompt through UserPromptSubmit, so
+# it is the likeliest place for commit guidance to come back and the worst place
+# for this check to have been green over.
+#
+# NOT SCANNED, deliberately, and this is the complete list: scripts/ (this file
+# names the tokens it bans, so scanning itself would be an instant false red),
+# dist/ (generated copies of the shipped trees, so a clean source is a clean dist
+# and [56] already proves they match), and docs/work/ (archived work-docs are
+# historical records of what happened, including commits that really did carry
+# trailers; rewriting history to satisfy a rule adopted later is exactly the
+# falsification rules/claim-integrity.md bans).
 
 yellow "[81] commits and PR bodies carry no Claude attribution"
 
@@ -39,7 +47,7 @@ check_list_size "${#CA_BANS[@]}" 4 "the [81] attribution ban list"
 
 # Directories, not files: grep -r walks them, so a NEW skill or agent file that
 # reintroduces the trailer is caught without this list being edited to name it.
-for ca_path in skills agents rules commands README.md; do
+for ca_path in skills agents rules commands hooks .claude-plugin README.md; do
   check_no_tokens_in "$ca_path" "${CA_BANS[@]}"
 done
 

@@ -48,7 +48,7 @@ tb_check_call_sites() {
   fi
   tb_ok "call-site pin: the definition, its comment mentions and its red-message string in 00-helpers.sh count as 0 call sites"
   if [ "$total" -ne "$TB_EXPECT_CALLS" ]; then
-    tb_bad "call-site pin: $total batched ban calls ship in scripts/validate-dod.d/, expected $TB_EXPECT_CALLS (one was added or removed and CHANGELOG.md still claims three)"
+    tb_bad "call-site pin: $total batched ban calls ship in scripts/validate-dod.d/, expected $TB_EXPECT_CALLS (a ban list was added or removed; bump TB_EXPECT_CALLS in test_ban_tokens.sh to match, and leave old CHANGELOG entries alone)"
     return
   fi
   tb_ok "call-site pin: $total batched ban calls ship, matching the expected $TB_EXPECT_CALLS"

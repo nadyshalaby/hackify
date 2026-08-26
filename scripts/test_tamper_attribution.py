@@ -61,7 +61,8 @@ PINNED = {
 # screened" rather than as clean. Every directory it walks therefore has to be
 # present in the tree even when this file plants nothing into it.
 ALSO_SCANNED = ('agents/placeholder.md', 'rules/placeholder.md',
-                'commands/placeholder.md', 'README.md')
+                'commands/placeholder.md', 'hooks/placeholder.sh',
+                '.claude-plugin/placeholder.json', 'README.md')
 
 
 def _tree():
@@ -153,6 +154,38 @@ def test_the_yolo_eval_reverting_to_assert_the_trailer_reds():
   write(root, EVALS, '{"text": "the commit ends with the Co-Authored-By trailer"}\n')
   rc, out = run_check('81', cwd=root)
   _red(rc, out, "'carries no Claude attribution' missing")
+
+
+def test_a_trailer_planted_in_hooks_reds_because_that_tree_is_scanned_too():
+  """THE ROW THAT PROVES THE SCAN LIST MATCHES ITS OWN HEADER. [81] shipped for
+  one commit scanning skills, agents, rules, commands and README.md while its
+  header claimed the only exclusions were scripts/, dist/ and docs/work/. hooks/
+  was in neither list, so it was silently unscanned, and it is the tree that
+  injects rule text into every prompt through UserPromptSubmit: the one place a
+  reinstated trailer instruction would reach an agent at the moment it writes the
+  commit. A control described in a header and absent from the code is the same
+  defect this repo filed against [56] a day earlier."""
+  root = _tree()
+  write(root, 'hooks/placeholder.sh',
+        '# inject this into every prompt\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n')
+  rc, out = run_check('81', cwd=root)
+  _red(rc, out, "'Co-Authored-By: Claude' has 1 occurrences in hooks")
+
+
+def test_the_scan_list_covers_every_shipped_tree_the_size_caps_walk():
+  """Pins the two lists against each other so they cannot drift apart again.
+  80-file-size-caps.sh already enumerates what ships; [81] must walk all of it
+  except the one tree it documents as excluded. Asserted against the shipped
+  files rather than against a copy, because the drift being caught is between
+  two real fragments."""
+  caps = (FRAGMENT.parent / '80-file-size-caps.sh').read_text()
+  line = [l for l in caps.splitlines() if l.startswith('CAP_SEARCH_PATHS=')]
+  assert len(line) == 1, 'CAP_SEARCH_PATHS moved or multiplied in 80-file-size-caps.sh'
+  shipped = set(line[0].split('"')[1].split())
+  scanned = set(FRAGMENT.read_text().split('for ca_path in ')[1].split(';')[0].split())
+  # scripts/ is the documented exclusion: the fragment names the banned tokens.
+  missing = shipped - scanned - {'scripts'}
+  assert not missing, '[81] does not scan shipped tree(s): %s' % sorted(missing)
 
 
 def test_shrinking_the_ban_list_reds_before_a_single_token_is_screened():
