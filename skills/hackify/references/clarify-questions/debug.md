@@ -14,6 +14,10 @@ Use when the user has a mystery to solve rather than a clear ask, weird behavior
 - Always ask Q4 (Instrumentation boundary), gates whether Phase 3b can add logs/telemetry.
 - Always ask Q5 (Outcome), determines Phase 6's exit shape.
 - Always ask Q6 (Time-box), debug tasks have the highest risk of unbounded exploration.
+- Ask Q7 (Cost now) FIRST, before Q1. If something is being lost or corrupted while the problem runs, containment comes before diagnosis and every other answer in this bank is given under a different priority.
+- Ask Q8 (Usual causes) when the symptom's shape matches a domain in [domain-mechanisms.md](domain-mechanisms.md): messages arriving sometimes, a duplicate that appears under load, a total that is off by a day, an occasional permission surprise. Skip it when nothing there matches, and say so in the preamble. An invented cause sends the investigation somewhere real evidence never would.
+- This bank carries two of the four domain questions rather than four, and both omissions are deliberate. There is no necessity challenge because a debug builds nothing to cut, and no correctness-rule question because what "correct" means here is the thing the investigation is trying to establish; that question belongs to the `fix` bank once the cause is known.
+- If the batch runs past the ~16 target, drop Q3 before either of Q7 and Q8, see [picking-and-combining.md](picking-and-combining.md).
 
 **QUESTIONS**
 
@@ -91,6 +95,34 @@ Q6. When I should check back
     - What happens: No interruptions. Be aware a genuinely hard bug can absorb a lot of time this way.
 - Why-this-matters: Phase 3b inserts a hard checkpoint at the named duration; without it, debug tasks run unbounded past the 3-hypothesis circuit breaker.
 
+Q7. What it's costing you while it stays unsolved
+- Text: While this is unsolved, `<state the effect as you understand it, e.g. "some invitation emails never arrive, and those people can't join">`. Who does that hit, and is anything being lost that you couldn't get back?
+- Header: Cost now
+- Options:
+  - A. It's annoying, but nothing is being lost (Recommended)
+    - What happens: I take the time to find the real cause rather than reaching for a quick cover-up that hides it.
+  - B. People are affected, I need something today
+    - What happens: I put a stopgap in first so the bleeding stops, then investigate properly. I'll be clear about which part is the stopgap.
+  - C. Something is being lost or written wrong every time it happens
+    - What happens: We stop it running before anything else. Then I work out how much was already affected and whether it can be put right.
+  - D. I'm not sure what it's touching
+    - What happens: I'll trace what this actually reaches and come back with the list before we decide how urgent it is.
+- Why-this-matters: Reorders the whole investigation. Answer C makes containment the first Sprint Backlog task and pushes diagnosis behind it, which is the opposite of this bank's default order, and it adds a data-repair task with its own Evidence Ledger row. B splits the work into a stopgap task and an investigation task rather than one. Sits beside Q5, which asks how far to go once the cause is known; this asks what is happening in the meantime. Never state a count of affected records you did not measure, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads on the plain reading of most reports. Lead with C whenever the symptom involves money, a write that could be wrong, or anything a person will later dispute, and say why in C's own text.
+
+Q8. The usual causes for this shape of problem
+- Text: `<Name the domain and the symptom shape, e.g. "mail that arrives sometimes and not other times is usually about the sending domain's reputation rather than the code">`. The two things that normally cause it are `<mechanism 1 absent, and the symptom that produces>` and `<mechanism 2 absent, and the symptom that produces>`. Do you know whether you have those?
+- Header: Usual causes
+- Options:
+  - A. I don't know, check those first (Recommended)
+    - What happens: I check them before I read any code. If one is missing, that is very likely your answer and we're done in minutes rather than hours.
+  - B. Those are all in place, it's something else
+    - What happens: I rule them out quickly with evidence rather than taking it on trust, then start looking somewhere new.
+  - C. One of those is missing, that's probably it
+    - What happens: I confirm it's really the cause before changing anything, so we don't fix the obvious thing and leave the real one running.
+- Why-this-matters: Seeds the hypothesis list from mechanisms with known failure modes instead of from guessing, which is what the 3-hypothesis circuit breaker keeps running out of. Source them from [domain-mechanisms.md](domain-mechanisms.md), and state each one as an absent mechanism plus the symptom it produces; a bare "this is usually a configuration problem" is banned by the honesty rule in [wizard-contract.md](wizard-contract.md) and would seed nothing testable anyway. Each named mechanism becomes an ordered entry in the Investigation Plan's hypotheses-to-test list.
+- Recommend: A leads whenever the mechanisms are cheap to check, which is the usual case. Never lead with C on your own reading; that answer belongs to the user, because presenting a guess as the likely cause is how an investigation stops looking.
+
 **EXIT CRITERIA**
 
-Q1, Q2, Q3, Q4, Q5, Q6 all answered; evidence pasted (or "none yet" explicitly confirmed); hypotheses-tried list captured; instrumentation boundary recorded so Phase 3b knows its toolkit; the work-doc Approach section is replaced by an Investigation Plan with components-to-instrument, evidence-to-gather, and hypotheses-to-test in order.
+Q1, Q2, Q3, Q4, Q5, Q6, Q7 all answered; Q8 answered if its COMPOSITION trigger fired; when Q7 is answered B or C, containment leads the Investigation Plan and the diagnosis follows it; evidence pasted (or "none yet" explicitly confirmed); hypotheses-tried list captured; instrumentation boundary recorded so Phase 3b knows its toolkit; the work-doc Approach section is replaced by an Investigation Plan with components-to-instrument, evidence-to-gather, and hypotheses-to-test in order.

@@ -26,7 +26,8 @@ import re
 import sys
 
 DEFAULT_DIR = 'skills/hackify/references/clarify-questions'
-NON_BANKS = frozenset({'README.md', 'wizard-contract.md', 'picking-and-combining.md'})
+NON_BANKS = frozenset({'README.md', 'wizard-contract.md', 'picking-and-combining.md',
+                       'domain-mechanisms.md'})
 
 # Tokens that must never reach the user. Word-boundary anchored so "Taskbar"
 # and "phased" do not false-fire.

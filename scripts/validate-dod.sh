@@ -13,6 +13,13 @@
 #   40-quick-skill.sh, checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh, checks [24]-[26], [28]
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
+#   56-dist-integrity.sh, check [56], every file the sync COPIES into
+#                   dist/<runtime>/ is byte-identical to the canonical source it
+#                   came from. Sits beside [55] because the two are halves of one
+#                   question and neither is the other: [55] asks whether a
+#                   canonical file is NAMED in the sync manifest, this asks
+#                   whether the bytes that shipped are the bytes on disk. A
+#                   fresh clone has no built tree and gets a printed skip
 #   57-doc-links.sh, check [57], every cited .md link and prose path resolves to a real file
 #   60-primitives.sh, checks [29]-[32]
 #   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the
@@ -225,6 +232,7 @@ source "$DOD_MODULES_DIR/30-version-and-summary.sh"
 source "$DOD_MODULES_DIR/40-quick-skill.sh"
 source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
 source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
+source "$DOD_MODULES_DIR/56-dist-integrity.sh"
 source "$DOD_MODULES_DIR/57-doc-links.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"

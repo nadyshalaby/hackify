@@ -14,9 +14,11 @@ on:
 
 # Least privilege for GITHUB_TOKEN (OWASP CICD-SEC-4). With no block at all
 # every job inherits the repository default, which is read/write on many repos,
-# and nothing here needs write: the workflow reads the tree, runs tests, and
-# runs sync-runtimes.sh only with --dry-run, which touches nothing. It never
-# pushes, comments, releases, or calls the GitHub API.
+# and nothing here needs write: the workflow reads the tree, runs tests, and runs
+# sync-runtimes.sh for real. That last one writes, but only into dist/ inside the
+# job's own checkout, which is thrown away when the job ends and is gitignored
+# wholesale besides. `contents` governs what the token may do to the REPOSITORY,
+# and this workflow never pushes, comments, releases, or calls the GitHub API.
 #
 # Declared at WORKFLOW level rather than inside the one job on purpose. A job
 # added later inherits this restrictive default, whereas a job-level block
@@ -32,7 +34,7 @@ concurrency:
 
 jobs:
   validate:
-    name: DoD + scanner tests + sync dry-run
+    name: DoD + scanner tests + dist build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -137,8 +139,36 @@ jobs:
       - name: Renderer suite (escaping, output modes, symlink refusal)
         run: python3 scripts/test_render_report.py
 
+      # WHY THE TREE IS BUILT BEFORE THE VALIDATOR RUNS. Check [56] compares every
+      # file the sync copies into dist/<runtime>/ against the canonical source it
+      # came from, and dist/ is gitignored wholesale (`*` plus `!.gitignore`), so a
+      # CI checkout has the directory and none of the trees. Without this step [56]
+      # takes its written skip on every automated run and the release's headline
+      # gate ships unexercised. Measured on a fresh `git archive HEAD` unpacked into
+      # a clean repo, it printed exactly:
+      #   skip no dist/<runtime>/ tree is built ... (791 would be compared)
+      #
+      # WHAT THE GREEN MEANS HERE, AND WHAT IT DOES NOT. Building the tree in the
+      # same job that checks it cannot prove the SHIPPED trees are current, because
+      # git holds no shipped tree that could be stale: dist/ is untracked and CI
+      # builds it fresh on every run. What it does prove is that the sync writes a
+      # byte-identical copy of every file it plans to copy, that it writes every
+      # file it plans rather than silently dropping one, and that [56]'s own
+      # pairing, floor, exclusion pin and hasher run at all instead of being dead
+      # code on every automated path this repo has. The staleness reading survives
+      # only on a developer machine, where dist/ persists between syncs. Both halves
+      # are written down because a green read for more than it measures is the
+      # defect [56] exists to end.
+      #
+      # THIS REPLACES THE STANDALONE --dry-run STEP that used to run last. The
+      # dry-run planning path is still exercised twice inside the validator, by [24]
+      # (scripts/validate-dod.d/50-runtimes-and-companions.sh:4) and by [56] itself,
+      # so the standalone step was a third invocation of an already-covered path.
+      # The one thing it uniquely caught was a planner that exits non-zero, and [56]
+      # now reads that exit status itself and reddens naming the planner, which is
+      # earlier in the run and says which component failed.
+      - name: Build dist/ runtime trees (check [56] needs a real tree to compare)
+        run: bash scripts/sync-runtimes.sh
+
       - name: Definition-of-Done validator
         run: bash scripts/validate-dod.sh
-
-      - name: Sync-runtimes dry-run (manifest + all 7 runtime targets)
-        run: bash scripts/sync-runtimes.sh --dry-run

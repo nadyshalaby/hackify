@@ -15,6 +15,13 @@ Use when the user is adding new behavior the system doesn't currently have, a ne
 - Skip Q6 (UI surface) if the task is explicitly backend-only or CLI-only.
 - Always ask Q7 (Acceptance criteria), it gates Phase 2's DoD section.
 - Always ask Q8 (Edge cases, multi-select), under-asking here is the most common Phase 5 review failure.
+- Ask Q9, Q10 and Q11 straight after Q1 and BEFORE Q3 through Q6. They decide what is being built; a location or storage answer given before them is answered against the wrong feature.
+- Ask Q9 (Proven shape) only when the request touches a domain listed in [domain-mechanisms.md](domain-mechanisms.md). When nothing matches, skip Q9 and say so in the preamble. An invented mechanism is worse than a missing question.
+- Always ask Q10 (Smallest version). It is the only question in this bank that can shrink the request, and skipping it is how a two-screen ask becomes a six-screen build.
+- Ask Q11 (The rule) when the feature touches money, dates, permissions, ordering, or anything that has to be reconstructible later. Skip it when nothing about the feature could be wrong while still running, e.g. a colour change.
+- Ask Q12 (Volume) when the feature reads or writes a collection that grows. Skip for one-off or single-record work.
+- If the batch runs past the ~16 target, drop in this order: Q12, then Q9, then Q3. Never drop Q10 or Q11, see [picking-and-combining.md](picking-and-combining.md).
+- Q4, Q5 and Q6 carry `(Recommended)` on their smallest option as a written default. Re-decide it against the Q9 answer before sending, per the `(Recommended)` rule in [wizard-contract.md](wizard-contract.md).
 
 **QUESTIONS**
 
@@ -69,6 +76,7 @@ Q4. Saving data
   - D. Not sure, tell me what you think
     - What happens: I'll look at the data you already have and come back with a recommendation.
 - Why-this-matters: Determines whether a migration task enters the Sprint Backlog and whether the expand-then-contract pattern applies. B and C make Reviewer A's migration lens load-bearing.
+- Recommend: A only when nothing in the Q9 answer needs a record kept. A refund, an audit trail, a status the user can dispute, a scheduled item: each of those needs storage, so B or C leads and the reason is stated in its own text.
 
 Q5. Who else can reach it
 - Text: Will anything outside this app need to use this, for example another service, a mobile app, or a customer's own script?
@@ -81,6 +89,7 @@ Q5. Who else can reach it
   - C. It changes something outsiders already call
     - What happens: I keep the old behavior working so nothing breaks for them.
 - Why-this-matters: Decides whether route registration and API docs are touched, and makes Reviewer A's auth/permission lens load-bearing in Phase 5.
+- Recommend: A when nothing outside was named. When the user's own words mention a mobile app, a partner, a webhook or another service, B or C leads instead; the smallest answer is not the right one just because it is smallest.
 
 Q6. Does it need a screen
 - Text: Does someone need to see or click something for this, or does it all happen behind the scenes?
@@ -95,6 +104,7 @@ Q6. Does it need a screen
   - D. A popup or an inline action
     - What happens: Appears in place when someone triggers it; no new page.
 - Why-this-matters: Triggers (or skips) `references/frontend-design.md` and makes Reviewer E a standing reviewer on the diff for any answer other than A.
+- Recommend: A only when no human ever needs to trigger or read the result. If the Q10 answer describes a person pressing something, C or D leads, because a feature nobody can reach does not deliver the outcome.
 
 Q6b. What it should look like (ask only when Q6 is not A)
 - Text: For the visual side, `<state what you found: "your project has a written design guide at docs/design/DESIGN.md" OR "I could not find a written design guide">`. How should I decide how this looks?
@@ -134,6 +144,62 @@ Q8. What should happen when things go wrong (multi-select)
     - What happens: It either retries or tells the person clearly, never half-finishes.
 - Why-this-matters: Each selected case becomes a required Phase 3 test case and a Phase 5 review-checklist item.
 
+Q9. The shape that usually works for this
+- Text: `<Name the domain in plain words, e.g. "This is money moving back to a customer">`. Systems that get this right tend to do three things: `<mechanism 1, and the failure it prevents>`; `<mechanism 2, and the failure it prevents>`; `<mechanism 3, and the failure it prevents>`. How much of that do you want?
+- Header: Known shape
+- Options:
+  - A. All three, build it properly (Recommended)
+    - What happens: `<the feature>` gets all three from the start. Slightly more work now, and far less than adding them once real `<records>` exist.
+  - B. Just `<the one part that carries the outcome>`
+    - What happens: You get the working feature without `<the parts dropped>`. I write down what that leaves open, so adding it later is a decision rather than a surprise.
+  - C. Tell me what each part costs first
+    - What happens: I come back with what each piece adds in screens, database changes and places to edit, and you choose from there.
+- Why-this-matters: Fills the Approach section's mechanism list and seeds the Guardrails. Every mechanism the user accepts becomes an Acceptance Criteria bullet with its own Phase 4 Evidence Ledger row; every one declined becomes a stated Non-Goal so Phase 5 cannot file its absence as a defect. Source the three mechanisms from [domain-mechanisms.md](domain-mechanisms.md) and never state one without the failure it prevents, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads when all three mechanisms guard against something that is expensive or impossible to repair after the fact (money moved, data leaked, history lost). B leads when the dropped parts are recoverable later at similar cost.
+
+Q10. The smallest version that still gets you what you want
+- Text: What you're after is `<restate the outcome in their words, e.g. "a customer can get their money back without emailing you">`. The smallest thing that delivers that is `<the minimum, named concretely>`. The rest of what you described adds `<what the rest adds, in plain words>`, which is `<the difference in countable things: how many screens, whether the database changes, how many places get edited>`. Which do you want built?
+- Header: How much
+- Options:
+  - A. Just the outcome, nothing else (Recommended)
+    - What happens: I build `<the minimum>` and stop. You will not get `<what is dropped>`. That stays easy to add once you know somebody needs it.
+  - B. The outcome plus `<the one extra that is genuinely worth it>`
+    - What happens: `<the minimum>` plus `<the extra>`, and nothing beyond that. `<one line on why this extra is the one that earns its place>`.
+  - C. All of it, I have a reason
+    - What happens: I build the full version you described. Tell me the reason and I'll make sure the plan actually serves it rather than just matching the words.
+  - D. What would I be giving up?
+    - What happens: I list exactly what the smaller version cannot do, and you decide after reading it.
+- Why-this-matters: This is the scope-cutting question and it fills Out-of-Scope / Non-Goals directly. Answer A or B narrows the Sprint Backlog before it is written, which is far cheaper than the Phase 5 drift-check catching it after the code exists. Size differences MUST be stated as countable things, never as a number of days, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads by default here, and this is the one question where the small option genuinely is the honest recommendation, because the outcome is already reached. Move the lead only when the user's own words name the extra as the point of the request.
+
+Q11. The rule that has to be exactly right
+- Text: `<State the one rule this feature turns on, as a real question with real values, e.g. "If someone was already refunded 20 on a 50 order, what should happen when your staff try to refund another 40?">`
+- Header: The rule
+- Options:
+  - A. `<the strict answer, in plain words>` (Recommended)
+    - What happens: `<what the system does when it happens, and the specific mess this saves you from>`.
+  - B. `<the looser answer, in plain words>`
+    - What happens: `<what the system does instead, and what you are accepting by choosing it>`.
+  - C. I'm not sure, what usually happens?
+    - What happens: I'll tell you which answers actually hold up here and what each one costs you, then you pick.
+- Why-this-matters: This is the business rule no code review catches, because the code runs correctly either way. Draw the candidate rules from the "Correctness rules that bite here" list for the matched domain in [domain-mechanisms.md](domain-mechanisms.md): rounding and currency, which timezone a day means, what order events apply in, who may see whose records, what has to be auditable, what happens on a partial failure. The answer becomes an Acceptance Criteria bullet AND a named test case. If two rules genuinely bite, ask the sharper one here and state the other in the preamble for a one-line confirmation.
+- Recommend: Lead with whichever answer the mechanism in [domain-mechanisms.md](domain-mechanisms.md) supports, not with whichever is easier to build. Where both answers are defensible, say that in the option's own text rather than projecting certainty.
+
+Q12. How much of this there really is
+- Text: Roughly how many `<the real unit, e.g. "orders a month">` are we talking about today, and what would you expect in a year? If the honest answer is a few hundred, the simple version is the right one and I'll say so.
+- Header: Volume
+- Options:
+  - A. Small numbers, keep it simple (Recommended)
+    - What happens: I build the direct version: `<what that means here, e.g. "a plain database query, no caching, no background queue">`. Quickest to build, easiest to change, and correct at this size.
+  - B. Bigger than that, here's the number
+    - What happens: Tell me the number and I'll say plainly which parts of the design it changes and which parts it does not.
+  - C. Small today, but I'm expecting growth
+    - What happens: I build the simple version now and write down the one or two places that would have to change later, so growth is a known job instead of a rewrite.
+  - D. I don't know
+    - What happens: I'll count what's already in your data and tell you the number before either of us decides anything.
+- Why-this-matters: This question exists to make the right call visible in BOTH directions. A real answer of a few hundred records makes the simple design correct and building for millions the waste; a real answer in the millions makes the simple design a defect. Never state a volume figure the user did not give and you did not count, per the honesty rule in [wizard-contract.md](wizard-contract.md). The answer sets whether pagination, indexing and background work enter the Sprint Backlog at all.
+- Recommend: A leads unless the user's prompt or their data already names a number that breaks it. Do not move the lead on a feeling that the product might grow; that is the over-engineering this question exists to stop.
+
 **EXIT CRITERIA**
 
-Q1, Q4, Q5, Q7, Q8 answered (always required); Q2, Q3, Q6 answered if their COMPOSITION trigger fired; every answer reduced to A/B/C/D semantics (no free-text left ambiguous); the restatement from Q1 confirmed and captured verbatim as the North-Star Goal in the anchor.
+Q1, Q4, Q5, Q7, Q8, Q10 answered (always required); Q2, Q3, Q6, Q9, Q11, Q12 answered if their COMPOSITION trigger fired; every answer reduced to A/B/C/D semantics (no free-text left ambiguous); the restatement from Q1 confirmed and captured verbatim as the North-Star Goal in the anchor; every mechanism accepted in Q9 carried into Acceptance Criteria and every one declined recorded as a Non-Goal; the Q11 rule written down in the exact words the user chose.

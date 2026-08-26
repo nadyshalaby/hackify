@@ -40,6 +40,7 @@ MIRROR_SOURCES=(
   "skills/hackify/references/anti-patterns.md"
   "skills/hackify/references/clarify-questions/README.md"
   "skills/hackify/references/clarify-questions/debug.md"
+  "skills/hackify/references/clarify-questions/domain-mechanisms.md"
   "skills/hackify/references/clarify-questions/feature.md"
   "skills/hackify/references/clarify-questions/fix.md"
   "skills/hackify/references/clarify-questions/picking-and-combining.md"
@@ -262,21 +263,50 @@ mirror_canonical_files() {
 }
 
 prune_runtime_dist() {
-  # Remove stale skill and agent directories before mirroring so renamed or
-  # deleted sources do not leave orphaned destinations.
+  # Remove every subtree the sync writes into, before mirroring, so a renamed or
+  # deleted source leaves no orphan behind in the shipped tree.
   #
-  # agents/ is pruned for a sharper reason than skills/. A leftover agent file
+  # agents/ is pruned for a sharper reason than the rest. A leftover agent file
   # in dist/claude-code/agents/ is not dead weight, it is a REGISTERED AGENT
   # TYPE: the runtime loads whatever sits in that directory, so a retired agent
   # keeps being dispatchable for anyone installing from dist long after the
   # source stopped shipping it. v0.13.0 retired three spec reviewers and all
   # three survived the resync here until this line existed.
+  #
+  # THE LIST READ `skills agents` WHILE THE SYNC WROTE SIX SUBTREES. commands/,
+  # hooks/, rules/ and .claude-plugin/ were mirrored fresh on every run and never
+  # pruned, so a retired rule or command sat in dist/<runtime>/ indefinitely.
+  # Check [56] cannot see that class of defect either, and says so in its own
+  # scope line: it compares the files the sync PLANS, and an orphan is by
+  # definition absent from the plan. Pruning is the only thing that reaches it.
+  #
+  # DERIVED FROM THE MANIFEST, NEVER RE-LISTED HERE. The set is the top-level path
+  # component of every MIRROR_SOURCES and CLAUDE_CODE_EXTRA entry, so a manifest
+  # that grows a seventh top-level directory is pruned without anyone editing this
+  # function. A second hand-kept list is precisely how the first one went stale.
+  #
+  # PRUNED FOR EVERY RUNTIME, not only the one that writes a given subtree. Only
+  # claude-code mirrors agents/, hooks/ and .claude-plugin/, so for the other six
+  # this is a no-op on a healthy tree and a cleanup on one where something leaked
+  # in. copilot-cli writes MANIFEST.md and nothing else, so every subtree under
+  # dist/copilot-cli/ is an orphan by construction and all of them go.
+  #
+  # A manifest entry with no directory part names a file at the runtime ROOT
+  # rather than a subtree, and is skipped: MANIFEST.md and GEMINI.md are rewritten
+  # on every run, so they cannot go stale, and nothing here should be deleting
+  # files a runtime places beside them. `.`, `..` and absolute forms are refused
+  # outright, because this is an rm -rf driven by a list a human edits.
   local runtime="$1"
   [ "$DRY_RUN" -eq 1 ] && return 0
-  local dir
-  for dir in skills agents; do
-    if [ -d "dist/${runtime}/${dir}" ]; then
-      rm -rf "dist/${runtime}/${dir}"
+  local src top seen=" "
+  for src in ${MIRROR_SOURCES[@]+"${MIRROR_SOURCES[@]}"} ${CLAUDE_CODE_EXTRA[@]+"${CLAUDE_CODE_EXTRA[@]}"}; do
+    top="${src%%/*}"
+    [ "$top" = "$src" ] && continue
+    case "$top" in ''|.|..|/*) continue ;; esac
+    case "$seen" in *" $top "*) continue ;; esac
+    seen="$seen$top "
+    if [ -d "dist/${runtime}/${top}" ]; then
+      rm -rf "dist/${runtime}/${top}"
     fi
   done
 }

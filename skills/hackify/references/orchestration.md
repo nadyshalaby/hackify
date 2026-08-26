@@ -16,13 +16,13 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 
 ## Orchestration tier (ultracode)
 
-**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's single spec reviewer, each Phase 3 wave, Phase 5's evidence-gated reviewer panel plus its single refuter. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
+**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's single spec reviewer, each Phase 3 round, Phase 5's one reviewer panel plus its one refuter. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
 
 | Run point | What fans out |
 |---|---|
 | Phase 2.5 | 1 spec reviewer, three lenses over one read |
-| Phase 3, each wave | one implementer for the whole wave |
-| Phase 5 | the evidence-gated reviewer panel, then one refuter for the whole round |
+| Phase 3, each round | one implementer per wave, and every wave the partition test ([phases/phase-3-implement.md](phases/phase-3-implement.md)) clears is dispatched in the same message |
+| Phase 5 | the reviewer panel, then one refuter for the whole batch |
 
 **Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
 
@@ -57,7 +57,7 @@ Never quietly raise the tier back after the user has lowered it.
 |---|---|---|
 | Phase 5 address-all (fix → re-scan → settled diff) | inside Phase 5 | inline, never the iteration driver |
 | Phase 3b hypothesis cycle (≤3 hypotheses) | inside Phase 3b | inline, never the iteration driver |
-| Phase 3 wave loop (wave N → N+1) | inside Phase 3 | inline, never the iteration driver |
+| Phase 3 round loop (round N → N+1) | inside Phase 3 | inline, never the iteration driver |
 | **Task continuation (phase N → N+1 until archived)** | **above the phases** | **the iteration driver** |
 
 **Claude Code mapping (invoke it, do not describe it).** At the end of any turn that leaves a ledger item open, **invoke the `loop` skill** in self-paced mode (no interval), carrying `continue work on <slug>` as its prompt. Writing "the iteration driver carries this task" and then stopping is the failure this section exists to prevent: the driver is a tool call, and a turn that ends with open ledger items and no such call has dropped the task on the floor. Each firing resumes the work-doc per the Pause / Resume contract in `SKILL.md`, advances whatever phase is open, and schedules the next wake-up. Pace the delay to what is actually being waited on: a long fallback heartbeat when a subagent wave will notify on its own, a shorter delay only when polling something external the harness cannot report (a CI run, a deploy).

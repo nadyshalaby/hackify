@@ -28,42 +28,57 @@ FRAME_DURATION_MS = 600
 # compared frame by frame against the optimize=False output with
 # ImageChops.difference().getbbox(), alongside n_frames, duration, loop and
 # size. Only optimize cleared the bar of smaller without moving a pixel.
-#   optimize=False              227,491  the reference every other row is
+# RE-MEASURED when the phase-3 tag changed from "one agent per wave" to
+# "parallel waves, 1 agent". Different pixels means different frames means
+# every absolute below moves, so none of them was carried over on faith. The
+# previous table read 227,491 and 135,296 on the first two rows, and 40.5%.
+#   optimize=False              227,661  the reference every other row is
 #     measured against, and what the CURRENT generator emits with the flag off.
 #     It reached main at 69030e8 but no tagged release. The last RELEASED size
 #     is 226,856 (f1a2057, v0.2.5), from the older generator whose phase-3 tile
-#     tag still read "parallel waves". That 635-byte tag growth is why this
-#     table measures 40.5% and the 0.15.0 release note measures 40.4%
-#   optimize=True               135,296  identical, 40.5% smaller, KEPT
-#   interlace=True or False     135,296  identical, no effect at all: Pillow
+#     tag still read "parallel waves", which is the baseline the 0.15.0 release
+#     note measures its own 40.4% against
+#   optimize=True               134,070  identical, 41.1% smaller, KEPT
+#   interlace=True or False     134,070  identical, no effect at all: Pillow
 #     12.1.1 reads interlace only on the single-frame _save path and
 #     _write_multiple_frames never consults it
-#   include_color_table=False   135,296  identical, already the default
-#   include_color_table=True    136,064  identical but LARGER
-#   disposal=0 or disposal=1    135,296  identical, already the default
-#   disposal=2                  243,269  identical but larger than no
+#   include_color_table=False   134,070  identical, already the default
+#   include_color_table=True    134,838  identical but LARGER
+#   disposal=0 or disposal=1    134,070  identical, already the default
+#   disposal=2                  243,938  identical but larger than no
 #     optimization at all: restoring to background defeats the cross-frame
 #     delta that optimize exists to find
-#   disposal=3                  135,296  5 of the 7 frames CHANGED
-#   one shared global palette    60,087  every frame CHANGED, by up to 14 per
-#     channel. The frames carry 894 to 1166 distinct colors each, so a single
+#   disposal=3                  134,070  5 of the 7 frames CHANGED
+#   one shared global palette    66,384  every frame CHANGED, by up to 11 per
+#     channel. The frames carry 894 to 1162 distinct colors each, so a single
 #     256-entry table cannot hold them and the requantization is visible
-#   convert("P", dither=...)    135,296  identical either way, and that is the
+#   convert("P", dither=...)    134,070  identical either way, and that is the
 #     flag never REACHING the encoder rather than a measured neutral result. No
 #     GIF save option carries dither at all, and convert("P", palette=ADAPTIVE)
 #     routes to quantize(), which does not read convert's dither. Reaching it
 #     means adding a quantization step with a palette of its own, which is the
-#     shared-global-palette row above and its 14-per-channel drift
+#     shared-global-palette row above and its 11-per-channel drift
+#   quantize(colors=32)         125,520  all 7 frames CHANGED. It is SMALLER
+#     than optimize alone, which is a REVERSAL: the previous table measured
+#     139,778 and rejected it for being larger. The caption change flipped
+#     the size comparison and not the verdict, it was always the lossy option
 # Per-frame cropping needs no flag of its own: optimize=True already crops each
-# frame to its difference bounding box, which is where most of the 40.5% comes
-# from. Two more were measured earlier and are not repeated here: 7 frames
-# (6 phases plus 1 settle) is minimal for the content, and quantize(colors=32)
-# with optimize lands at 139,778, LARGER than optimize on its own.
+# frame to its difference bounding box, which is where most of the 41.1% comes
+# from. One more was measured earlier and is not repeated here: 7 frames
+# (6 phases plus 1 settle) is minimal for the content.
 
+# _draw_tile_text centres each tag in a 165px tile, so a tag wider than that
+# gets a negative pad and spills over the border into the arrow gutter. MEASURE
+# a replacement before shipping it, the way every row above was measured:
+#   ImageDraw.Draw(Image.new("RGB", CANVAS_SIZE)).textbbox((0, 0), tag,
+#                                                          font=load_font(14))
+# Current widths, in phase order: 96, 61, 146, 93, 89, 94. Phase 3 is the
+# tightest, at pad (165-146)//2 = 9. Nothing asserts this bound: the check
+# was proposed in a past retro and left unbuilt.
 PHASES = [
     (1, "Clarify", "batched wizard"),
     (2, "Plan", "hard gate"),
-    (3, "Implement", "one agent per wave"),
+    (3, "Implement", "parallel waves, 1 agent"),
     (4, "Verify", "fresh evidence"),
     (5, "Review", "multi-reviewer"),
     (6, "Finish", "summary table"),

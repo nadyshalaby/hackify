@@ -66,38 +66,44 @@ for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-qual
   check_token_present '{{metrics_table}}' "$f"
 done
 
-# (3) The scope grammar and the carry-over rules live in ONE file, so the A
-# block and the C block cannot drift apart on what `settle ` means.
+# (3) The scope grammar lives in ONE file, so no two reviewer prompts can drift
+# apart on what a scope value means. The carry-over half of this pin retired in
+# 0.16.0 with the round cap: nothing carries when the panel runs once. What is
+# pinned instead is the half that is still coverage rather than cost, the
+# unconditional exclusion append. A resolver that treats it as optional hands a
+# lens the work-doc to grade, which is the loop [76g] exists to refuse.
 check_file "$SCOPE_REF"
-check_token_present 'settle all' "$SCOPE_REF"
-check_token_present 'F never carries over' "$SCOPE_REF"
+check_token_present 'It is one of two forms' "$SCOPE_REF"
+check_token_present 'the append is never optional' "$SCOPE_REF"
 
-# (4) Carry-over is keyed on the BLOB HASH, never the path. A path-keyed ledger
-# would carry a verdict across a file that changed twice in one sprint, which
-# is a clean round over content no reviewer ever read.
-check_token_present 'git rev-parse' "$SCOPE_REF"
-check_token_present 'git rev-parse HEAD:<path>' "$P5_REVIEW"
+# (4) The scope ledger is ONE ROW PER CHANGED PATH, in both files that state
+# it. It used to be keyed on a blob hash as well, because a verdict could carry
+# from one round into the next; the round cap removed the carry and the hash
+# with it. The row-per-path shape is what survives, and it is the whole of what
+# makes "every file was covered" checkable rather than asserted.
+check_token_present 'One row per changed path' "$SCOPE_REF"
+check_token_present 'One row per changed path' "$WORK_DOC_TPL"
 
 # (5) An unclassifiable file defaults to B, so slicing can never leave a path
 # uncovered, and a lens with an empty slice is a written-down gate decision.
 check_token_present 'goes to B' "$P5_REVIEW"
 check_token_present 'B is never sliced' "$P5_REVIEW"
 
-# (6) A FULL round is now "every byte covered by a live verdict", not "the
-# panel re-read everything". The settle prefix is what makes a carried-over
-# round distinguishable from one the dispatcher never scoped at all.
-check_token_present 'settle ' "$P5_REVIEW"
-check_token_present 'settle all' "$RAV_REF"
+# (6) The address-all loop's exit lives in review-and-verify.md and is stated in
+# the phase file too. Both used to describe a settle round; both now describe the
+# cap. [76h] pins the cap sentence itself across all four sites, so what is
+# pinned here is that this file's own loop still HAS a closing step rather than
+# trailing off after the fixes.
+check_token_present 'Close the phase, once.' "$RAV_REF"
 
 # (6b) BOTH new dispatcher inputs have a PRODUCER, not just a consumer. This is
 # the defect class the {{repo_brief}} work hit in 0.11.0: prose requires an
 # artifact, every reviewer is told to read it, and nothing anywhere builds it.
 # {{review_scope}}'s producer is the work-doc's scope ledger; {{metrics_table}}'s
 # is the recipe in the dispatcher protocol. Without them the saving never fires
-# (metrics, which degrades to `unavailable`) or the carry-over rule becomes
-# uncheckable (scope, which is coverage).
+# (metrics, which degrades to `unavailable`) or coverage becomes uncheckable
+# (scope, whose ledger is the only record of which lens read which path).
 check_token_present '### Scope ledger (Phase 5)' "$WORK_DOC_TPL"
-check_token_present 'git rev-parse HEAD:<path>' "$WORK_DOC_TPL"
 check_token_present 'Build `{{metrics_table}}` before you dispatch B' "$P5_REVIEW"
 check_token_present 'max-lines-per-function' "$P5_REVIEW"
 check_token_present 'unavailable' "$P5_REVIEW"
@@ -107,86 +113,71 @@ check_file "skills/hackify/scripts/render-report.py"
 check_token_present 'Do not hand-write the HTML' "skills/hackify/references/html-report.md"
 check_token_present 'render-report.py' "skills/hackify/references/finish.md"
 
-yellow "[38h] the settle-echo contract's FILE SET, so a new site cannot join it unnoticed"
+yellow "[38h] the retired round vocabulary is gone, proved against a positive control"
 # WHAT THIS CATCHES AND WHAT IT DOES NOT, stated first, because a check whose comment
-# overstates its reach is the defect class this sprint spent itself on.
+# overstates its reach is the defect class the sprint before this one spent itself on.
 #
-# [76h] pins the FULL-round gate sentence BYTE FOR BYTE at the four files that state it,
-# so those four cannot drift apart. It is blind to a FIFTH file stating the same rule in
-# NEW WORDS, and that blindness is not hypothetical: three sites carried the pre-amendment
-# rule in three different phrasings, a grep on the literal found four of the six sites
-# that existed, and a person reading the file found the other two.
+# WHAT IT REPLACED. Until 0.16.0 this block counted the FILES under skills/ and agents/
+# carrying the settle-echo marker and reddened when that total moved, so a new site could
+# not join the contract unnoticed. The round cap deleted the contract outright: one panel,
+# one refuter, no settle round, nothing to echo a round prefix into. A count pinned at 12
+# would have had to become a count pinned at 0, and `check_list_size 0 0` passes over an
+# empty set while measuring nothing, which is the vacuous pass every block in this
+# directory refuses. So the count became a BAN, and the ban brought the vacuous-pass
+# problem with it: a ban that matches nothing looks identical to a ban whose scan never
+# ran. That is what the positive control below is for.
 #
-# THIS CLOSES ONE HALF OF THAT GAP AND ONLY ONE HALF. It counts the FILES under skills/
-# and agents/ mentioning the settle prefix at all, so a NEW FILE joining the contract
-# reddens until someone consciously adds it to the total. It does NOT catch a second,
-# differently worded statement inside a file ALREADY in the set. Both sites that broke
-# this sprint were of that second kind: review-scope.md and phases/phase-5-review.md were
-# already in the set and neither offending sentence carried the marker, so this number
-# would not have moved by one. Nothing mechanical catches that case at a cost worth
-# paying; a reader catches it, and saying so here is cheaper than a later maintainer
-# assuming it was covered.
+# THE SHAPE. Two scans, same roots, same grep. The BANNED set must come back empty. The
+# CONTROL, a literal known to be present because [76h] pins it at four sites, must come
+# back non-empty. A broken scan fails the control and reddens; only a scan that provably
+# reaches the tree is allowed to report the ban clean.
 #
-# IT LIVES BESIDE [38e] BECAUSE THAT IS THE BLOCK IT GUARDS. [38e] pins the diff-slicing
-# and carry-over mechanism, `settle all` and `F never carries over` included, in these
-# same files. This is the same saving's file set, one layer out.
+# WHAT IT STILL DOES NOT CATCH, unchanged from the block it replaces: a SECOND, differently
+# worded statement of the round rule inside a file already in the tree. Both sites that
+# broke in the sprint before this one were of that kind, and nothing mechanical catches it
+# at a cost worth paying. A reader catches it, and saying so here is cheaper than a later
+# maintainer assuming it was covered.
 #
-# THE MARKER WAS CHOSEN BY MEASUREMENT, not taste. The backticked prefix discovers
-# exactly the twelve files in the contract: four sliced reviewer prompts, their four
-# agents/ mirrors, and the four docs that state the rule. The obvious alternative, the
-# `Scope: ` echo token, is worse at both ends, dragging in
-# skills/lawkeeper/assets/report-template.md while missing all three docs that went stale.
-#
-# THE FILE COUNT FAILS, THE OCCURRENCE COUNT ONLY NOTES, and that asymmetry is the design
-# rather than an oversight to tidy into a second hard pin. The file count moves only when
-# a file joins or leaves the contract, which always deserves a human decision. The
-# occurrence total moves whenever anyone rewords a prompt and happens to say the prefix
-# once more, which is noise, and a check that cries wolf gets its expected number bumped
-# without thought. Two pins in this repo went vacuous exactly that way earlier in this
-# sprint. KNOWN HOLE, left open on purpose and written down: a site deleted INSIDE a file
-# that keeps its other mentions passes here, because the file total does not move and the
-# occurrence total only notes.
-#
-# A SECOND HOLE SITS BESIDE IT, and neither half of this check is a backstop for it. The
-# echo contract has two halves: the INSTRUCTION half, carrying both marks this check
-# counts, in the INPUTS block; and the SKELETON half, the `Scope: ` line in the OUTPUT
-# block the echo lands on, carrying NO mark, in all eight files that state it, the four
-# sliced prompts and their four agents/ mirrors. Deleting a skeleton line therefore moves
-# NEITHER number: the file keeps its two instruction marks so the file count stays 12 and
-# never reddens, and the deleted line held no mark so the occurrence total stays 25 and
-# does not even note. Nothing in this validator pins that line today, so it would vanish
-# green. Closing it wants its own pin on the skeleton line, the both-halves shape [76h]
-# already argues for and applies to B's round marker, not a hard total here, and that
-# decision has not been taken.
-#
-# grep -oF and -rlIF, never -c and never -E, and absolute /usr/bin/grep: the three reasons
-# argued above [76g] all bite here. -c counts LINES, and phase-5-review.md carries two
-# occurrences on one line today, so -c reads this set as 24 rather than 25.
-RSE_MARK='`settle `'
+# grep -rlIF and never -E: `Round: settle` and `settle all` are literals, -I skips binaries
+# so a __pycache__ blob cannot be counted, and /usr/bin/grep by absolute path because this
+# scan RECURSES a tree, which is exactly where the interactive zsh's ignore-file-honouring
+# grep wrapper would silently shrink the discovered set. Both reasons are argued in full
+# above [76g] in 96-review-scope-sites.sh and above check_no_token in 00-helpers.sh.
 RSE_ROOTS="skills agents"
-# Hand-written beside the check and independent of the list it polices, per the argument
-# above check_list_size in 00-helpers.sh. Today: 12 files, 25 occurrences (eight prompt
-# files at 2 each, phase-5-review.md 4, review-scope.md 3, SKILL.md and
-# review-and-verify.md 1 each).
-RSE_FILES_EXPECTED=12
-RSE_OCCUR_TODAY=25
-rse_files=$(/usr/bin/grep -rlIF -- "$RSE_MARK" $RSE_ROOTS 2>/dev/null); rse_rcf=$?
-rse_occs=$(/usr/bin/grep -roIF -- "$RSE_MARK" $RSE_ROOTS 2>/dev/null); rse_rco=$?
-if [ "$rse_rcf" -gt 1 ] || [ "$rse_rco" -gt 1 ]; then
-  red "  FAIL [38h] could not scan $RSE_ROOTS for '$RSE_MARK' (grep exited $rse_rcf then $rse_rco), so a count of 0 here would be a count of nothing"
+RSE_CONTROL='Phase 5 dispatches exactly ONE reviewer panel and ONE refuter'
+# MECHANISM MARKERS ONLY, deliberately. An earlier draft of this list also banned
+# the loose prose forms ('settle round', 'FULL round', 'live verdict') and that was
+# a mistake in both directions: it reddens a file explaining what the cap RETIRED,
+# which is exactly the paragraph the cap most needs, and it guards wording that
+# [76h]'s cap-sentence pin already guards better by requiring one agreed phrasing.
+# What is left is the three markers that are machinery and nothing else: a dispatch
+# prefix, a reserved scope value, and a report line. None of the three can appear in
+# correct text, which is the bar a ban has to clear.
+#
+# Its LENGTH is written a second time, the shape every ban list in this directory
+# uses and the reason is argued above check_list_size in 00-helpers.sh: a bound read
+# back out of the list it polices cannot police that list, and a whole ban could
+# vanish while every line below still printed green.
+RSE_DEAD=('`settle `' 'settle all' 'Round: settle')
+check_list_size "${#RSE_DEAD[@]}" 3 "the [38h] retired-round-vocabulary ban list"
+
+rse_ctl=$(/usr/bin/grep -rlIF -- "$RSE_CONTROL" $RSE_ROOTS 2>/dev/null); rse_ctl_rc=$?
+if [ "$rse_ctl_rc" -gt 1 ] || [ -z "$rse_ctl" ]; then
+  red "  FAIL [38h] the positive control '$RSE_CONTROL' matched nothing under $RSE_ROOTS (grep exited $rse_ctl_rc), so the ban below would report clean over a scan that never reached the tree"
   FAILED=$((FAILED + 1))
 else
-  rse_nf=0; rse_no=0
-  [ -n "$rse_files" ] && rse_nf=$(printf '%s\n' "$rse_files" | wc -l | tr -d ' ')
-  [ -n "$rse_occs" ] && rse_no=$(printf '%s\n' "$rse_occs" | wc -l | tr -d ' ')
-  check_list_size "$rse_nf" "$RSE_FILES_EXPECTED" "the files under $RSE_ROOTS in the settle-echo contract"
-  if [ "$rse_no" -eq "$RSE_OCCUR_TODAY" ]; then
-    green "  ok   '$RSE_MARK' sits at $rse_no occurrences, unchanged (advisory, this half never fails)"
-  else
-    yellow "  note '$RSE_MARK' moved to $rse_no occurrences from the $RSE_OCCUR_TODAY recorded here; advisory by design, update it once you have looked at why"
-  fi
-  if [ "$rse_nf" -ne "$RSE_FILES_EXPECTED" ]; then
-    red "  ---- the $rse_nf discovered file(s) were:"
-    printf '%s\n' "$rse_files" | sed 's/^/        /'
-  fi
+  green "  ok   the [38h] scan reaches $(printf '%s\n' "$rse_ctl" | wc -l | tr -d ' ') file(s) carrying the round-cap sentence, so its discovery resolves"
+  for rse_t in ${RSE_DEAD[@]+"${RSE_DEAD[@]}"}; do
+    rse_hits=$(/usr/bin/grep -rlIF -- "$rse_t" $RSE_ROOTS 2>/dev/null); rse_rc=$?
+    if [ "$rse_rc" -gt 1 ]; then
+      red "  FAIL [38h] could not scan $RSE_ROOTS for '$rse_t' (grep exited $rse_rc), so an empty result here would be a scan that never happened"
+      FAILED=$((FAILED + 1))
+    elif [ -z "$rse_hits" ]; then
+      green "  ok   '$rse_t' appears nowhere under $RSE_ROOTS (retired with the round cap in 0.16.0)"
+    else
+      red "  FAIL [38h] '$rse_t' is retired vocabulary and still appears under $RSE_ROOTS:"
+      FAILED=$((FAILED + 1))
+      printf '%s\n' "$rse_hits" | sed 's/^/        /'
+    fi
+  done
 fi

@@ -1,6 +1,6 @@
 # Perf-scout (deterministic performance candidate finder)
 
-A predictable, grep-based scan that surfaces performance-violation **candidates** keyed to the stable IDs in [rules/performance.md](../../../rules/performance.md) (the canonical catalog). Run by the parent at fixed points in the workflow; its output feeds the Phase 5 address-all decision table and Reviewer D (performance).
+A predictable, grep-based scan that surfaces performance-violation **candidates** keyed to the stable IDs in [rules/performance.md](../../../rules/performance.md) (the canonical catalog). Run at fixed points in the workflow, by the wave agent over its own file allowlist and by the parent over the wider scopes; its output feeds the Phase 5 address-all decision table and Reviewer D (performance).
 
 ## WHAT
 
@@ -13,10 +13,13 @@ A predictable, grep-based scan that surfaces performance-violation **candidates*
 
 | Run point | Scope | What happens with findings |
 |---|---|---|
-| **Phase 3, every wave-end** | Union of the wave's file allowlists (wave-touched files), before tasks tick | Trivial fixes inside the wave's allowlist may land in-wave (mark `fixed`); everything else is `staged` |
+| **Phase 3, the AGENT, before it returns** | That wave's OWN file allowlist, the files it landed | Trivial in-allowlist candidates are fixed in place (mark `fixed`); everything else is `staged` in the wave report |
+| **Phase 3, the PARENT, every round-end** | The round-touched files (what the round's waves DECLARED under `## Paths written`, never the allowlist union), before tasks tick | Each wave's dispositions carry forward unchanged; what the wider scope newly shows is `staged` for Phase 5, or sent back out as a one-task wave. The parent never writes the fix |
 | **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
 | **quick (5-lite mirror)** | Touched files, before the single-lens review | Findings resolved in the same pass, the quick lens includes performance |
-| **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop, auto-fixed at every severity |
+| **yolo (mirror)** | Same three points as full hackify, both Phase 3 run points and Phase 5 start | Findings enter yolo's address-all loop, auto-fixed at every severity |
+
+**Why the Phase 3 run point is BOTH the wave and the round.** The two scans answer questions the other cannot, so neither replaces it. The AGENT scan is keyed to the wave because that is the only moment fix-in-wave is possible at all: the agent is still holding its files, they sit inside its own allowlist, and a trivial fix lands in the same diff. The PARENT scan is keyed to the round because tasks tick at round end and the parent runs its repo-wide checks once per round, so a parent scan keyed to wave-end would run before the thing it is meant to gate. Where a round holds two or more waves it also reaches what no agent scan can: the round's declared set is the only scope in which a defect crossing two waves is visible, because no agent can scan a file it never held. **On a single-wave round that scope reason is void**, the round's declared set IS what that one wave declared, and the mandate still holds because two questions survive the collapse. First, whether the agent ran its scan at all: the wave report is a claim, and the parent's own scan is what checks it. Second, whether a fix-in-wave regressed the file after the agent's scan had already passed: a fix-in-wave edit lands AFTER the scan that surfaced the candidate, and nothing at the agent's run point re-reads the file once it has been edited, so the agent's green grades the pre-fix state and the parent's scan is the first read of the post-fix one. Canonical statement of both run points and the loop they sit in: [phases/phase-3-implement.md](phases/phase-3-implement.md).
 
 ## HOW
 
@@ -125,10 +128,10 @@ For Go, Rust, Java, Ruby, PHP, and anything else: derive tokens from the **Detec
 
 ## STAGING
 
-Stage findings in exactly this table (append it to the work-doc section for the run point, the wave log at wave-end, the Phase 5 review section at review start):
+Stage findings in exactly this table (the AGENT appends it to its own wave report under `## Scout dispositions`, the parent transcribes those rows into the wave log and appends the round-end table beside them, and at review start it goes in the Phase 5 review section):
 
 ```markdown
-### Perf-scout (<wave-id or phase-5>, <YYYY-MM-DD>)
+### Perf-scout (<run-point-id>, <YYYY-MM-DD>)
 
 | Finding | Catalog ID | file:line | Evidence | Proposed fix | Status |
 |---|---|---|---|---|---|
@@ -137,6 +140,7 @@ Stage findings in exactly this table (append it to the work-doc section for the 
 | `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items |, | false-positive: bounded constant list |
 ```
 
+- **`<run-point-id>`** names the run point that produced the table, and it is what tells two tables apart where both sit in one wave log under this same heading grammar: `<wave-id>-agent` for the wave agent's own scan over the files it landed, taking the wave id the Approach's execution-wave plan already assigns (`W9c-agent`); `R<n>-round-end` for the parent's scan over what that round's waves declared (`R9-round-end`); `phase-5` for the sprint-diff scan. Without it the round scan's first question, whether the agent ran its own scan at all, has no answer a reader can read off the log. On a single-wave round the two scopes coincide by construction and the id still earns its place, because the two SCANS do not: run point 1's green graded the pre-fix-in-wave state, and run point 2 is the first read of the post-fix one.
 - **Status** is one of `staged` / `fixed` / `false-positive: <one-line reason>`.
 - **Into the Phase 5 decision table** (Finding / Severity / Decision / Evidence): Finding, file:line, and Evidence carry over; Severity is the catalog default for the Catalog ID (Reviewer D may move it one level in context); `staged` rows enter as accept-candidates.
 
@@ -146,7 +150,7 @@ Stage findings in exactly this table (append it to the work-doc section for the 
 - **Dismissing needs a one-line reason** tied to the pattern's false-positive guard or the run context (bounded input, cold path, test fixture).
 - **Disputed rows go to Reviewer D**, implementer says false-positive but the evidence is unclear → Reviewer D decides; that verdict is final for the sprint.
 - **Critical candidates need a co-sign.** A candidate whose catalog default is Critical cannot be dismissed by the implementer alone. Reviewer D co-signs the false-positive. In quick mode there is no Reviewer D: the dismissal carries over to the 5-lite single reviewer, whose lens includes performance, for co-sign during its review.
-- **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist; mark them `fixed` with the diff in the wave log. Everything else waits for the address-all loop.
+- **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist, and only at the AGENT's run point, where the agent still holds those files; mark them `fixed` with the diff in the wave report. **The parent never fixes at round-end**, it stages, or sends the work back out as a one-task wave scoped to the owning file's allowlist, because every code change is written by a dispatched agent under an allowlist. Everything else waits for the address-all loop.
 
 ## Wrong → right micro-examples (top offenders)
 

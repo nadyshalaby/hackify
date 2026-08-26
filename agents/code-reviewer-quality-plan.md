@@ -1,6 +1,6 @@
 ---
 name: code-reviewer-quality-plan
-description: Phase 5 Multi-reviewer B, the panel's floor, carrying two lenses over one read of the diff. Quality and layering, audits a base..head git diff for DRY violations against existing helpers, function/parameter/nesting/file size caps, inline types in forbidden files, new lint suppressions, non-null assertions, empty catches and bare Error throws in domain code, citing verbatim CLAUDE.md rule sentences and file:line for every finding; re-judges every law-scout row and applies the semantic tier no grep reaches (one-construct-per-file, folder conformance, controller purity, single responsibility, reuse, SOLID/YAGNI, test coverage), citing lawkeeper rule_ids. Plan consistency and scope, audits the same diff against the authorizing hackify work-doc for DoD bullets without covering hunks, ticked Tasks without covering hunks, files touched without an authorizing Task in task_file_index, Q&A scope violations, missing or mismatched CHANGELOG bullets, and goal drift against the Primary Goal & Guardrails anchor; requires the dispatcher to provide a pre-built task_file_index. Also inherits the residual checklist of any reviewer the dispatcher gated off this wave, passed as folded_lenses, so a gated-off lens is carried, never dropped. Never sliced: it applies the semantic tier to every touched file and re-judges every scout row, so no subset of the diff is safe to withhold. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
+description: Phase 5 Multi-reviewer B, the panel's floor, carrying two lenses over one read of the diff. Quality and layering, audits a base..head git diff for DRY violations against existing helpers, function/parameter/nesting/file size caps, inline types in forbidden files, new lint suppressions, non-null assertions, empty catches and bare Error throws in domain code, citing verbatim CLAUDE.md rule sentences and file:line for every finding; re-judges every law-scout row and applies the semantic tier no grep reaches (one-construct-per-file, folder conformance, controller purity, single responsibility, reuse, SOLID/YAGNI, test coverage), citing lawkeeper rule_ids. Plan consistency and scope, audits the same diff against the authorizing hackify work-doc for DoD bullets without covering hunks, ticked Tasks without covering hunks, files touched without an authorizing Task in task_file_index, Q&A scope violations, missing or mismatched CHANGELOG bullets, and goal drift against the Primary Goal & Guardrails anchor; requires the dispatcher to provide a pre-built task_file_index. Closes with a mandatory completeness section that asks what the review did not reach, a check that cannot fail, a claim asserted but never verified, a new gate with no regression coverage, a number nobody re-measured, a file in the diff no lens opened, and files what it finds as findings with severities rather than as a note. Never sliced: it applies the semantic tier to every touched file and re-judges every scout row, so no subset of the diff is safe to withhold. Dispatch the panel in a single parent assistant message: A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -78,14 +78,7 @@ and charitable interpretation of "this probably counts as task T<n>".
    test / lint / typecheck commands, layering rules, where things
    live). Treat it as given and do NOT re-derive it, spend your reads
    on the diff instead.
-10. `{{folded_lenses}}`, the reviewers the dispatcher gated OFF this
-    wave and handed to you, one line each naming the lens and the
-    evidence that let it fold (for example `A security, no auth /
-    network / db / fs / crypto hunks, law-scout sec.* empty`). Empty
-    or `none` means the full panel ran and you own only your own
-    lenses. This input is never absent, an absent value means the
-    dispatcher did not decide, so refuse and say so.
-11. `{{metrics_table}}`, a precomputed table of size metrics for the
+10. `{{metrics_table}}`, a precomputed table of size metrics for the
     touched files, one row per function plus one per file: `path`,
     `symbol`, `lines`, `params`, `max_nesting`, `file_lines`. The
     dispatcher builds it from the project's own linter and an AST pass, so
@@ -186,13 +179,29 @@ happens there, so that steps 4 onward are analysis rather than fetching.
     Non-Goal excludes is Critical. Cite the anchor line and the hunk.
     Verdict wording canonical source: `references/goal-anchor.md`, the copies are identical by design; keep them in sync.
 
-*Inherited lenses. This step runs last because it sweeps the same hunks
-a second time with someone else's checklist.*
-20. For every lens named in `{{folded_lenses}}`, run its residual checklist over the same hunks, because a folded lens is one you inherited, not one the wave dropped. Tag each finding from this step with the lens it came from (`[folded: A]`, `[folded: D]`, `[folded: F]`).
-    - **A folded (security & correctness)**, check the hunks for injection through string-built queries / commands / paths, secrets or PII in source or logs, a permission check the diff moved or removed, unvalidated input crossing a boundary, and a migration that drops or rewrites data without a guard. Any hit is at least Important. A hit that contradicts the evidence line in `{{folded_lenses}}` is Critical and you say so in the finding, the gate decision was wrong.
-    - **D folded (performance)**, check the hunks for a query or network call inside a loop, a collection that grows without a bound, a sort or nested scan added to a request path, and a missing page/batch limit on a list read. Cite the `perf.<domain>.<slug>` ID from `rules/performance.md`. Any hit is at least Important, and a hit contradicting the evidence line is Critical.
-    - **F folded (cross-module coherence)**, F folds only when the diff stayed inside one module, so first confirm that is actually true. Then check every symbol the diff changed that anything outside its module imports, and every route, handler, subscription or column the diff added, for a counterpart that was never wired up. Any seam you find means the gate decision was wrong, and that is Critical, not Important: F folded because the dispatcher judged there was no second side to compare against.
-    You are the last lens on these, nothing downstream re-checks them. Do not downgrade a folded-lens finding because it was "not your area", it is your area for this wave.
+*Completeness. This step runs last because it asks what the nineteen
+before it did not reach.*
+20. Ask what this review MISSED, and file what you find as findings with
+    severities, never as a closing note. A note is read and forgotten; a
+    Critical is fixed. Five shapes, each one a real defect this step was
+    built to catch: **(a) a check that cannot fail**, a new gate, assertion
+    or test whose condition is already true, or whose scan runs over an
+    empty set, so it would print green over the defect it names.
+    A check that cannot fail passed for the wrong reason;
+    **(b) a claim asserted but never verified**, a number, a count or a
+    behaviour stated in prose or in a comment that nothing in the diff or
+    the tree actually establishes; **(c) a new gate with no regression
+    coverage**, a rule the diff introduces that nothing would redden on if
+    someone deleted it tomorrow; **(d) a number nobody re-measured**, a
+    figure the diff carries forward from an earlier state of the tree,
+    which is stale the moment the thing it counts moves; **(e) a file in
+    the diff no lens opened**, cross-checked against `{{task_file_index}}`
+    and your own read of the range. Severity is judged the same way as
+    everywhere else in this prompt: (a) and (c) are at least Important,
+    because a gate that cannot fire is worse than no gate, someone is
+    relying on it. Write `None.` under the heading when you genuinely find
+    nothing; going silent there reads as the step never having run.
+
 
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report.
@@ -216,29 +225,26 @@ If ANY answer is "no", loop back to METHOD.
    per finding? (yes / no)
 9. Did the dispatching agent provide `{{law_scout_report}}`? (yes / no)
 , if no, refuse to proceed.
-10. Did the dispatching agent provide `{{folded_lenses}}` (a list, or an
-    explicit `none`)? (yes / no), if no, refuse to proceed.
-11. For every lens named in `{{folded_lenses}}`, did you run its residual
-    checklist over every touched hunk and tag each resulting finding
-    `[folded: <lens>]`? (yes / no)
-
-12. Did you judge `{{metrics_table}}` rather than re-count the size caps
+10. Did you judge `{{metrics_table}}` rather than re-count the size caps
     by reading, or state that the table was `unavailable`? (yes / no)
-13. Did you map every DoD bullet (D1..Dn) to specific diff hunks OR
+11. Did you map every DoD bullet (D1..Dn) to specific diff hunks OR
     report it as incomplete? (yes / no)
-14. Did you map every ticked Task in the work-doc to specific diff
+12. Did you map every ticked Task in the work-doc to specific diff
     hunks OR report it as mismatched? (yes / no)
-15. Did you find an authorizing Task for every file in the diff OR
+13. Did you find an authorizing Task for every file in the diff OR
     report it as scope creep? (yes / no)
-16. Did you compare every locked Q&A answer against the diff for
+14. Did you compare every locked Q&A answer against the diff for
     contradictions? (yes / no)
-17. Did you verify the CHANGELOG entry's bullets against the diff's
+15. Did you verify the CHANGELOG entry's bullets against the diff's
     user-visible behavior? (yes / no)
-18. Did you cite the work-doc identifier (DoD bullet, Task ID, or Q&A
+16. Did you cite the work-doc identifier (DoD bullet, Task ID, or Q&A
     answer number) for every finding from steps 14 to 19? (yes / no)
-19. Did the dispatching agent provide `{{task_file_index}}`? (yes / no)
+17. Did the dispatching agent provide `{{task_file_index}}`? (yes / no)
 , if no, refuse to proceed.
-20. Did you trace every changed hunk to the Primary Goal & Guardrails
+18. Did you run the completeness step and file what it found as
+    findings with severities, or write `None.` under its heading?
+    (yes / no)
+19. Did you trace every changed hunk to the Primary Goal & Guardrails
     anchor and flag drift? (yes / no)
 
 **SEVERITY**.
@@ -285,30 +291,17 @@ If ANY answer is "no", loop back to METHOD.
 If you cannot verify a claim against live docs or live code, mark the finding Critical, not Important.
 
 **OUTPUT**.
-≤650 words, and that budget includes the scout verdicts. Two lenses in
-one report is not a licence for two reports' worth of prose: every
-Critical still needs `file:line` and a rule cite, every scout row still
-needs a verdict, and every plan finding still needs its work-doc anchor.
-Terse review beats long review.
-
-**Your report's FIRST line is a round marker**, not a heading. Write
-`Round: ` followed by the round the dispatch named, and nothing else:
-`Round: settle` on a settle round. It carries no pathspec, because you
-are never sliced and have no scope to echo back. What it records is WHICH
-round the dispatch named, and nothing more: a B that re-read every path and
-a B that re-read a handful emit the same string, so the marker is not
-evidence of coverage, which rests on the parent's scope ledger instead.
-The settle-round gate reads that marker. If the dispatch named no round,
-write `Round: unnamed` and never guess: an unnamed round is one the
-parent cannot close, which is the safe direction.
+≤700 words, and that budget includes the scout verdicts and the
+completeness section. Two lenses in one report is not a licence for two
+reports' worth of prose: every Critical still needs `file:line` and a
+rule cite, every scout row still needs a verdict, and every plan finding
+still needs its work-doc anchor. Terse review beats long review.
 
 Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verbatim. Tokens in `<...>` are placeholders YOU fill in with content you produced during METHOD.
 
 Use this exact report skeleton:
 
 ````
-Round: <first | middle | settle | unnamed>
-
 ## Scout verdicts
 - `<file>:<line>`, <rule_id>. CONFIRMED (<severity>) | DISMISSED: <one-line reason>.
 
@@ -325,11 +318,11 @@ Round: <first | middle | settle | unnamed>
 - `<file>:<line>`, <finding>.
 - [plan] <finding>, short note.
 
-## Folded lenses
-- <lens>, <evidence line from `{{folded_lenses}}`>. Residual checklist run: yes. Findings above tagged `[folded: <lens>]`.
+## What the review did not reach
+- <severity>: <finding>; shape: <cannot-fail check | unverified claim | ungated rule | unmeasured number | unopened file>; `<file>:<line>` or `<file>`.
 
 ## Verification
-1., 20. <yes|no>, one line per checklist item.
+1., 19. <yes|no>, one line per checklist item.
 ````
 
 If a findings section has no entries, write `None.` on its own line

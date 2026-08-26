@@ -239,6 +239,7 @@ parent can see which one held.
 If the batch is empty, write `None.` under `## Verdicts`, never go
 silent.
 ```
+<!-- parent-side: not mirrored -->
 
 ## Feeding the decision table
 
@@ -254,7 +255,7 @@ The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phas
 
 **A Critical is never closed by the refuter.** Both lenses refuting earns that finding an escalation, not the flip: dispatch the adjudication reviewer (`review-and-verify.md`, section "Reviewer subagent prompt template") on it, hand it both lens counter-citations as its evidence, and put the conflict to the user. The row reads `push-back` only after that reviewer rules and the user signs off. Until then it reads `accept` AND is held out of the address-all loop's fix dispatch, because landing a fix while the escalation is open is the phantom fix the refuter exists to prevent. **A Critical may never reach `push-back` on a single lens**, and it never reaches `push-back` on the refuter's word alone either: one agent carrying two lenses is still one agent, and `skills/review-triage/SKILL.md` puts the cost of a missed Critical above one agent's judgment.
 
-**Yolo is the one mode where that row lands the other way.** The escalation above ends in a human sign-off, and yolo has nobody to sign a dismissal off, so in yolo a both-lenses-refuted Critical is fixed anyway, both counter-citations recorded beside the fix. No adjudication, no gate, and no verdict takes a Critical out of the address-all loop. `skills/yolo/SKILL.md:108` is the authority for that landing. Everything else on this page still binds in yolo: one refuter per round, both lenses, and a Critical refutable only when both of them fail.
+**Yolo is the one mode where that row lands the other way.** The escalation above ends in a human sign-off, and yolo has nobody to sign a dismissal off, so in yolo a both-lenses-refuted Critical is fixed anyway, both counter-citations recorded beside the fix. No adjudication, no gate, and no verdict takes a Critical out of the address-all loop. The authority for that landing is the `## Anti-rationalizations` row `"Autopilot, so auto-fix without refuting"` in `skills/yolo/SKILL.md`, named by heading and row text rather than by a line number, which drifts on any edit above it. Everything else on this page still binds in yolo: one refuter per round, both lenses, and a Critical refutable only when both of them fail.
 
 A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted.
 

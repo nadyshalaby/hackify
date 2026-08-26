@@ -14,6 +14,11 @@ Use when behavior should NOT change but structure should, moving code, renaming,
 - Always ask Q4 (Test coverage), gates whether a "write tests first" sub-phase is inserted.
 - Always ask Q5 (Migration shape), determines whether Phase 2 plans a single PR or a staged rollout.
 - If the user's prompt cites an exemplar module to mimic, skip Q6 (Pattern reference) and link it in the preamble.
+- Ask Q7 (How much) straight after Q1 and BEFORE Q3, Q5 and Q6. Q1 asks why the user wants this; Q7 asks whether the expensive half of it earns its place, and Q3's reach answer means little until that is settled.
+- Always ask Q7. A rework with no named payoff is the easiest plan in this workflow to grow without anyone deciding it should, and option D is the only place the user is offered "this may not be worth doing".
+- Always ask Q9 (Who breaks). A rename or a move is measured by its callers, not by its own diff, and the user is the only one who knows about callers outside this project.
+- Ask Q8 (Target shape) only when the restructured code sits in a domain listed in [domain-mechanisms.md](domain-mechanisms.md). Skip it for a pure rename or a file move with no structural target, and say so in the preamble.
+- If the batch runs past the ~16 target, drop in this order: Q6, then Q8, then Q3. Never drop Q7 or Q9, see [picking-and-combining.md](picking-and-combining.md).
 
 **QUESTIONS**
 
@@ -34,14 +39,17 @@ Q1. What's bothering you about it
 - Why-this-matters: Frames the Phase 2 plan narrative and selects the Phase 5 reviewer focus (quality vs performance vs layering).
 
 Q2. Should anything look different afterwards
-- Text: After this, should anyone using the app notice any difference at all?
+- Text: After this, should anyone using the app notice any difference at all? One thing worth checking: `<name one current behaviour that looks like a bug a faithful rewrite would copy across, e.g. "an empty search box currently returns every record, which may or may not be what you wanted">`.
 - Header: Visible change
 - Options:
   - A. No, it should behave exactly the same (Recommended)
     - What happens: I capture how it behaves now and prove it still behaves identically afterwards.
   - B. Yes, some things should change too
     - What happens: Tell me which, and I'll treat those as intended rather than as mistakes.
-- Why-this-matters: Determines whether a behavior-equivalence check runs in Phase 5 and whether Phase 3 captures a before/after snapshot test.
+  - C. Some of what it does now is wrong, don't carry that over
+    - What happens: Tell me which parts look wrong. I check each one, fix the real bugs, and list them separately from the restructuring so you can see both.
+- Why-this-matters: Determines whether a behavior-equivalence check runs in Phase 5 and whether Phase 3 captures a before/after snapshot test. Option C is the correctness half: "behaviour must not change" quietly freezes today's bugs into the new structure, and a rewrite is the cheapest moment to catch one. C splits the Sprint Backlog into restructuring tasks and named fix tasks, each with its own Evidence Ledger row, so the behaviour-equivalence check knows which differences are intended.
+- Recommend: A leads on a plain restructure. Lead with C when you found a behaviour in the code that looks unintended, and name it in the question text so the user can judge it without opening anything.
 
 Q3. How much should move
 - Text: I found this pattern in `<real file(s) you found>`. Should I stay inside that, or follow it everywhere it appears?
@@ -89,6 +97,51 @@ Q6. Is there a good example already
     - What happens: I'll show you two or three options with the trade-offs before writing anything.
 - Why-this-matters: Phase 2 mimics the named exemplar verbatim; without one, Phase 2 spends time deriving the target shape.
 
+Q7. What this actually unblocks, and how much has to move for it
+- Text: A rework like this earns its cost when something specific gets easier afterwards. From what you've told me that's `<the named payoff, or "nothing specific yet">`. The smallest change that delivers it is `<the minimum, named concretely, e.g. "the three copies of the price calculation become one function and everything else stays put">`. Reworking all of `<the real module>` instead touches `<the difference in countable things: how many files, whether the database changes, how many callers get edited>`. Which?
+- Header: How much
+- Options:
+  - A. Just the part that pays off (Recommended)
+    - What happens: I make `<the small change>` and stop. `<what stays exactly as it is>`. Small enough to read in one sitting and simple to undo.
+  - B. That, plus `<the one adjacent piece worth doing while I'm here>`
+    - What happens: `<the small change>` plus `<the adjacent piece>`, and nothing past that. `<one line on why this one earns its place and the others don't>`.
+  - C. All of it, I want the whole area consistent
+    - What happens: Every place matching this pattern moves. Longer to review and slower to verify, and it does leave nothing half-done behind.
+  - D. Is this worth doing at all?
+    - What happens: I'll tell you straight whether it earns its cost right now, including the honest answer that it might not, and what leaving it alone would cost you later.
+- Why-this-matters: This is the necessity challenge and it fills Out-of-Scope / Non-Goals directly. Restructuring is the task type with no user-visible outcome to anchor scope, so the plan grows on feel unless something asks what the payoff is. Option D MUST be a real answer you are willing to give, not a strawman: "the duplication is in three places and none of them changes often, so this can wait" is a legitimate result of this question. State size differences in countable things, never in days, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads whenever a named smaller change delivers the payoff. Lead with D when you looked and found no payoff at all; saying so is more useful than a tidy plan for work nobody needed.
+
+Q8. The shape you're moving it to
+- Text: `<Name the domain and the current shape, e.g. "right now each screen queries the database directly">`. The structure that holds up does `<mechanism 1, and the failure it prevents>` and `<mechanism 2, and the failure it prevents>`. Is that the shape you want it moved into?
+- Header: Target shape
+- Options:
+  - A. Yes, move it to that (Recommended)
+    - What happens: The result matches a shape with known reasons behind it, and I can say for each piece which failure it prevents.
+  - B. Partly, just `<the one piece that matters here>`
+    - What happens: I move that piece and leave the rest as it is. Less to review, and the rest stays available to do later.
+  - C. I've got a different shape in mind, let me describe it
+    - What happens: Describe it and I'll follow yours, and say clearly if I think any part of it will hurt.
+  - D. What does each part actually buy me?
+    - What happens: I go through them one at a time with the failure each one prevents, and you pick.
+- Why-this-matters: A refactor with no named target shape becomes a matter of taste, and taste is what makes the Phase 5 quality review unarguable in both directions. Source the mechanisms from [domain-mechanisms.md](domain-mechanisms.md) and never state one without the failure it prevents, per the honesty rule in [wizard-contract.md](wizard-contract.md). The accepted shape becomes the Approach section and the standard Reviewer B judges the diff against.
+- Recommend: A leads when the current shape is causing something you can name from the code. Lead with B when only one mechanism is missing, and say which in B's own text.
+
+Q9. Who's standing on this today
+- Text: `<State what you found, e.g. "seventeen files call this function directly, and two of those run in your scheduled jobs">`. Moving or renaming it changes every one of them. How should that be handled?
+- Header: Who breaks
+- Options:
+  - A. Update them all in one go (Recommended)
+    - What happens: Nothing is left pointing at the old shape, so there's no half-moved state to trip over later. Bigger to read through in one sitting.
+  - B. Keep the old way working beside the new one, move callers gradually
+    - What happens: Safer when other services or other people's code call this. The project carries both versions for a while, and I'll write down when the old one goes.
+  - C. Only the callers I'm touching anyway
+    - What happens: The smallest change now. The area ends up half old and half new, which is harder to read than either shape on its own.
+  - D. I don't know what depends on it, find out first
+    - What happens: I'll list every place that uses it, inside this project and as far outside as I can see, before either of us decides.
+- Why-this-matters: A rename is measured by its callers, not by its own diff, and callers outside this repository are invisible to every tool here. Sits beside Q5 rather than replacing it: Q5 asks how the change is released, this asks who has to change with it. Answer B makes deprecation shims a Sprint Backlog task and adds a back-compat lens in Phase 5; D inserts a consumer sweep before the plan is drafted. Never state a caller count you did not grep for, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads when every caller lives in this project, which you can check. B leads whenever anything outside this repository calls it, because you cannot edit what you cannot see, and say that plainly in B's text.
+
 **EXIT CRITERIA**
 
-Q1, Q2, Q4, Q5 answered (always required); Q3, Q6 answered if their COMPOSITION trigger fired; behavior-contract decision and migration shape captured in the work-doc; if Q4 = B, the work-doc Tasks list opens with a "write characterization tests" task before any structural change.
+Q1, Q2, Q4, Q5, Q7, Q9 answered (always required); Q3, Q6, Q8 answered if their COMPOSITION trigger fired; the Q7 payoff written down in the user's own words, or its absence recorded when the answer is D; behavior-contract decision and migration shape captured in the work-doc; if Q4 = B, the work-doc Tasks list opens with a "write characterization tests" task before any structural change.

@@ -13,6 +13,7 @@ Runs before any task-type bank, on every Phase 1. Sets the four cross-cutting lo
 - If `CLAUDE.md` or the task-type bank pins a test discipline (e.g. TDD mandatory), skip Q3 (Tests).
 - Always ask Q4 (Done state) unless the user has explicitly stated PR vs merge intent in the prompt.
 - Always ask Q5 (Goal & guardrails) FIRST, it seeds the Primary Goal & Guardrails anchor. Skip only when the north-star goal AND any non-goals are already unambiguous from the prompt; then restate them in the preamble for a one-line confirmation instead of asking.
+- **"Prepend this bank" means Q5 leads, not the whole file.** Q5 (Goal & guardrails) opens the first batch. Q1 through Q4 are logistics (scope, workspace, tests, done state) and go in the LAST batch, after the matched bank's domain questions. This is the canonical batch order and the other files point here for it: goal first, then what the thing actually is, then where it goes and how it ships. Asking where to put the work before settling what the work is means asking about the wrong feature, and the user answers it seriously because the question looks reasonable.
 
 **QUESTIONS**
 

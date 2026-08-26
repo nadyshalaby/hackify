@@ -101,7 +101,7 @@ Built at the end of Phase 2, before the gate. ≤350 words. Passed verbatim as `
 
 ## 5. Sprint Backlog
 
-Flat checklist. One commit closes the whole wave, never one per task, so a task is one clean step inside that commit. Each task is 5-30 minutes of focused work.
+Flat checklist. One commit closes the whole round, never one per task and never one per wave, so a task is one clean step inside that commit. A round holding one wave is the same rule with one wave in it. Each task is 5-30 minutes of focused work.
 
 Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed. The verify line is the per-task analogue of the top-level Acceptance Criteria checklist; it lets the implementer agent ship and self-confirm without waiting on the parent for cross-task confirmation.
 
@@ -109,16 +109,26 @@ Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate 
 - [ ] **T2**, [task name]: ...
 - [ ] **T3**, ...
 
-After Phase 2.5 the Approach section carries an **Execution waves** block: one line
-per wave, naming that wave's task IDs in run order. ONE agent takes the whole wave,
-however wide it is, and runs those tasks in that order. Phase 5 builds
+After Phase 2.5 the Approach section carries an **Execution waves** block, written
+round by round: one line per wave, naming that wave's task IDs in run order. ONE
+agent takes the whole wave, however wide it is, when the wave's tasks share a read
+surface. A wave whose tasks share no read surface MAY be split into concurrent
+waves that go out at the same time, one agent each, but only when
+all three conditions of the partition test in
+[phases/phase-3-implement.md](phases/phase-3-implement.md) hold; a round holding
+one wave is normal. Phase 5 builds
 `{{task_file_index}}` from this block plus each task's Files list, so the block is
 what makes both the implementer dispatch and the reviewer scope checkable.
 
 ```
 Execution waves
-W1: T1, T3, T2
-W2: T4, T5, T6, T7
+
+Round 1 (2 concurrent waves)
+W1a: T1, T3, T2
+W1b: T4, T5
+
+Round 2 (1 wave)
+W2a: T6, T7
 ```
 
 ## 6. Daily Updates
@@ -151,8 +161,8 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 |---|---|---|---|---|---|
 | T1 | task | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
 | AC1 | acceptance | [what it asserts] | `<command>` | `<trimmed real output>` | ✅ |
-| scout.perf | protocol | no Critical/Important candidates | perf-scout over the diff | `<trimmed table / none>` | ✅ |
-| scout.law | protocol | no Critical/Important candidates | law-scout over the diff | `<trimmed table / none>` | ✅ |
+| scout.perf | protocol | perf-scout ran at BOTH Phase 3 run points and every candidate carries a disposition | perf-scout twice: each wave agent over its OWN file allowlist before it returned, then the parent at round end over what that round's waves DECLARED | `<trimmed table / none, one per run point>` | ✅ |
+| scout.law | protocol | law-scout ran at BOTH Phase 3 run points and every candidate carries a disposition | law-scout twice: each wave agent over its OWN file allowlist before it returned, then the parent at round end over what that round's waves DECLARED | `<trimmed table / none, one per run point>` | ✅ |
 | ship.build | runtime | builds clean from a cold cache | `<build command>` | `<trimmed real output>` | ✅ |
 | ship.boot | runtime | boots and reports ready | `<start command>` + readiness probe | `<trimmed real output>` | ✅ |
 | ship.smoke | runtime | touched flow works against the running app | `<smoke command>` | `<trimmed real output>` | ✅ |
@@ -181,12 +191,12 @@ One row per Sprint Backlog task AND per Acceptance-Criteria bullet. Proof sample
 
 ### Scope ledger (Phase 5)
 
-One row per changed path, written BEFORE the reviewer wave is dispatched. This is the artifact that makes "every file was covered" checkable instead of asserted, and it is what a carried-over verdict is checked against in the settle round. `blob` is `git rev-parse HEAD:<path>`, the content hash, never the path alone: a file touched in round 1, fixed in round 2 and touched again would otherwise carry a verdict that was never about the bytes now on disk. Mandatory whenever carry-over is used. See [review-scope.md](review-scope.md).
+One row per changed path, written BEFORE the reviewer wave is dispatched. This is the artifact that makes "every file was covered" checkable instead of asserted. It used to carry a `blob` content hash as well, because a verdict could be carried from one round into the next and a path-keyed carry-over would carry it across a file that had changed twice. The panel runs once now, so nothing carries and the hash has nothing left to prove. See [review-scope.md](review-scope.md).
 
-| path | blob | lenses | round 1 | settle |
-|---|---|---|---|---|
-| src/auth/session.ts | a3f91c2 | A B F | clean | carried |
-| src/ui/Button.tsx | 7d20e14 | B E | 2 findings | re-read |
+| path | lenses | verdict |
+|---|---|---|
+| src/auth/session.ts | A B F | clean |
+| src/ui/Button.tsx | B E | 2 findings |
 
 ### Self-review (Phase 5)
 
@@ -224,6 +234,49 @@ per change the user would recognise, five fields in this order, separated by a l
 **Verification evidence.** …
 **Deployment status.** …
 ```
+
+---
+
+## Current-shape conformance
+
+What "current shape" means for a work-doc, read off the skeleton above rather than off any
+other file. `skills/hackify/SKILL.md`'s Pause / Resume migration step points here instead of
+restating it, so the shape is written down in exactly one place, the one that IS the shape.
+
+A doc is at the current shape when all six hold:
+
+1. **Section 0 is the first body block.** `## 0. Phase ledger` sits between the title and
+   `## 1. Original ask`, one row per phase. On the groom path `## Groom Provenance` is the only
+   thing allowed between those two, per the section-order law in the skeleton.
+2. **The goal anchor is present.** `## Primary Goal & Guardrails`, all five parts.
+3. **The Repo Brief is present.** `### Repo Brief` inside `## 4. Approach`, every line ending in
+   the command or `file:line` that proved it.
+4. **The section labels are the skeleton's own, in the skeleton's order**, spelled the way the
+   skeleton spells them: Original ask, Clarifying Q&A, Acceptance Criteria, Approach, Sprint
+   Backlog, Daily Updates, Sprint Review (Phase 4 / 5), Retrospective, Update log. A doc still
+   carrying a prior label is renamed to its current one by the migration edit. The back-compat
+   note at the top of this file names the prior labels; the back-compat bullet under Pause /
+   Resume in `skills/hackify/SKILL.md` is where the two sets are listed side by side.
+5. **The frontmatter carries every key the `Frontmatter field reference` table below declares**,
+   and that table is the authority on the key list AND on each key's allowed values. Take the
+   list from nowhere else: check `[99]` reads the `status` row out of that same table, so a key
+   or a value sourced from prose somewhere is a claim no check enforces.
+6. **`status` agrees with the directory the doc sits in.** `done` belongs under
+   `docs/work/done/`, every other declared value belongs at the live path. This point goes
+   past what the task that first wrote this list enumerated, and it is kept deliberately
+   rather than by oversight. Check `[99]`'s assertion (c) already holds this repo's own
+   tracked docs to half of it, which settles that the rule is a shape invariant and not a
+   preference. But that check reads this plugin's tree and nothing else,
+   and its `judge_status` reader fires in one direction only, on a doc claiming `done` from
+   outside the archive. Resume runs inside the user's project, where no check of ours ever
+   looks, so the migration edit is the only place this invariant can be applied at all: drop
+   the point and a doc marked finished, left sitting at the live path, resumes with the
+   contradiction intact. Point 5 above cites `[99]` for the other half of that check, the
+   status vocabulary row, and the two halves are separate assertions.
+
+**Archived docs under `docs/work/done/` are exempt from all six.** An archived work-doc is a
+record of what somebody believed at the time, and rewriting it destroys the only thing it is
+for. Read it as it stands and change nothing.
 
 ---
 

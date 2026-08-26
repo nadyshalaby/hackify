@@ -1,6 +1,6 @@
 ---
 name: code-reviewer-coherence
-description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear because a wave's implementer is blind to every wave that ran before it and to every line of pre-existing code. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Dispatched whenever the diff crosses a module boundary, which is most non-trivial waves; folds into Reviewer B when the diff stays inside a single module and there is no counterpart to compare against. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
+description: Phase 5 Multi-reviewer F, audits a base..head git diff for cross-module coherence defects, the discrepancies that appear because a wave's implementer is blind to every wave that ran before it and to every line of pre-existing code. Compares every boundary-crossing symbol's producer against every consumer for shape agreement (field names, optionality, nullability, enum sets), semantic agreement (units, timezones, identifier space, ordering, range bounds), error and lifecycle agreement (throw vs null vs result object), duplicate concepts that should have reused a shared definition, and wiring completeness (routes registered, handlers subscribed, components mounted, columns actually read). Cites file:line for BOTH sides of every disagreement. Runs on every non-trivial diff; the seam gate that used to fold it into Reviewer B is retired, because a diff you were sure stayed inside one module is exactly the diff whose seam nobody looked for. Dispatch the panel in a single parent assistant message: A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -62,20 +62,20 @@ Bias against: accepting "they are close enough" between two shapes.
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 7. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file

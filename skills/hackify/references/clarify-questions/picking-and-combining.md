@@ -8,3 +8,12 @@ Closing rules applied across every bank after composition. Phase 1 loads this al
 - **Question whose answer is in your codebase-exploration tool output or recent commits** → don't ask it. Confirm in the preamble ("I see the existing `invitations` table has no `expires_at` column…") and skip the question.
 
 The point of the batch is to make Phase 1 **one round-trip**, not zero. If you have 10 things to ask, ask them, that's still one round-trip. If you have 3, ask 3.
+
+## The four domain questions, and which one goes first when the batch is full
+
+Every bank carries some of four questions that are about the user's product rather than about logistics: the **proven shape** for the domain, the **necessity challenge** that tries to cut the request down, the **correctness rule** that has to be exactly right, and the **volume** check. The mechanisms they draw on live in [domain-mechanisms.md](domain-mechanisms.md).
+
+- **They come first in the batch**, right after the goal question and before the preamble's logistics four (scope, workspace, tests, done state), which move to the last batch. The batch order is stated canonically in [universal-preamble.md](universal-preamble.md) COMPOSITION. Every logistics answer assumes the shape of the thing is already settled, so asking them late means asking them about the wrong feature.
+- **When the batch runs past the ~16 target, drop in this order:** volume, then proven shape, then the bank's own optional questions. Volume can usually be answered by counting rows in the user's own data, and the proven shape can be stated in the preamble for a one-line confirmation instead of asked. Each bank's COMPOSITION section names its own drop order; that overrides this one where they differ.
+- **Never drop the necessity challenge or the correctness rule.** The necessity challenge is the only question that can shrink the request, and dropping it costs a whole wave rather than a question. The correctness rule is the one thing no code review catches, because the code runs correctly whichever answer is right.
+- **Drop the proven-shape question entirely when no domain matches.** Some requests touch none of them: a colour change, a copy edit, a log line. An invented mechanism is worse than a missing question, per the honesty rule in [wizard-contract.md](wizard-contract.md).

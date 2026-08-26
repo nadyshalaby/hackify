@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer D (performance)
 
-This file holds the dispatchable sub-agent prompt for Reviewer D, the performance lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync. The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Reviewer A lives in `phase-5-multi-review-a-security.md`, B in `phase-5-multi-review-b-quality-plan.md` and F in `phase-5-multi-review-f-coherence.md`; dispatch all of them in ONE assistant message, with E joining on UI-bearing diffs.
+This file holds the dispatchable sub-agent prompt for Reviewer D, the performance lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer D prompt (portable across runtimes); `agents/code-reviewer-performance.md` mirrors the fenced block byte-for-byte, the copies are identical by design; keep them in sync. The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Reviewer A lives in `phase-5-multi-review-a-security.md`, B in `phase-5-multi-review-b-quality-plan.md` and F in `phase-5-multi-review-f-coherence.md`; dispatch all of them in ONE assistant message. **A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**.
 
 ```
 Subagent type: general-purpose
@@ -25,20 +25,20 @@ Bias against: premature optimization; cheapest-correct beats clever-slow.
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 7. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file

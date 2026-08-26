@@ -39,7 +39,7 @@ for name in "${AGENTS_EXPECTED[@]}"; do
     green "  ok   $f present with matching frontmatter name"
   fi
 done
-agent_count=$(find agents -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+agent_count=$(find agents -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
 if [ "$agent_count" -ne "${#AGENTS_EXPECTED[@]}" ]; then
   red "  FAIL agents/ contains $agent_count *.md files; expected ${#AGENTS_EXPECTED[@]}"
   FAILED=$((FAILED + 1))

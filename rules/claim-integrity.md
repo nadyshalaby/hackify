@@ -23,11 +23,24 @@ This is not a ban on reading. Docs carry intent, history and the reasons behind 
 - **An absence is only as good as the method's ability to have found the thing present.** Running a file and reading its silence tests one way a file can be reached and no other. A test suite in this repo was called dead on exactly that evidence; it is imported and run by its sibling, and every observation behind the call was true while the conclusion was false. Name the one path your search covers.
 - **A pre-derived fact has a shelf life shorter than a session.** A line number handed to an agent in this repo was correct when it was derived and wrong hours later, because concurrent waves kept growing the file above it. Where a citation has to outlive one wave, anchor it to a symbol or a heading rather than a line.
 - **A safety claim is about this case, not the class.** "All of these are pinned" and "this one is pinned" are different sentences, and only the second licenses the edit. A reassurance that is true of the set and false of the member is worse than none, because it is the sentence that authorises the risky act.
+- **Match depth to what a wrong claim costs: re-derive, cite a fresh run, spot-check. No tier skips proof. Name the tier.** The cost of being wrong is not spread evenly, and neither is the time there is to spend. A wrong claim about a permission check or a balance is a defect that ships; a wrong claim about a heading's wording is a typo somebody fixes in passing. Equal depth on both is how the deep read gets rationed away on the day it is needed. Which claim belongs in which tier, and what each tier owes as evidence, is below.
 - **Say what the checks do not reach.** Naming the gap is part of the report. Most of the findings in this sprint's own corpus are reachable by no check, and a rule implying the checks make claim drift impossible would be the defect it bans. The live split sits in `scripts/claim_corpus.json` rather than in this sentence, so it cannot go stale here.
 
 ## Procedures the digest cannot carry
 
 After the first prompt of a session only the bold leads above survive into context. The mechanics live here, for that first prompt and for anyone who re-reads the file.
+
+### Choosing the depth
+
+Three tiers. The choice is about where the depth goes, never about whether a fact gets verified, and the report names the tier it applied so a reader can argue with the choice instead of guessing at it.
+
+**Full re-derivation.** Money, security, auth and permissions, state machines, migrations, concurrency, data loss, and anything a test cannot catch: a timing property, two policy sentences that disagree, a completeness gap in a release note, a rationale that has quietly acquired a second reason. Read the code in this session and derive the claim from it. A green suite does not promote a claim out of this tier, because the tier exists for the claims a green suite would never have caught.
+
+**A fresh run, cited by name.** Behaviour a test already exercises. Here the test output IS the re-derivation, so cite the run (the suite, the test name, the exit status) rather than re-reading the code by hand. Two conditions, and both of them are laws above: the run happened in this session, and its failure would have been visible. A case the suite skips, an error it swallows, a comparison whose two sides are both empty: each returns the same green as a real pass, and citing it by name only makes the gap harder to see.
+
+**Spot-check.** Cosmetic, naming and formatting claims: a heading's wording, a filename, the casing of a label. Look at the thing once. A look, not a recollection.
+
+The tier is a claim of its own, so it is stated rather than implied. "Tier 2, `bash hooks/test_inject_context.sh` exit 0" is auditable; silence about the depth reads as full re-derivation to everyone downstream, which is how a spot-check becomes a guarantee somebody else builds on.
 
 ### Proving a zero
 

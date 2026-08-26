@@ -2,7 +2,7 @@
 
 This file holds the dispatchable sub-agent prompt for Reviewer A, the security and correctness lens of the Phase 5 multi-reviewer wave. It is the canonical Reviewer A prompt (portable across runtimes); `agents/code-reviewer-security.md` mirrors its fenced block byte-for-byte. B (quality, layering and plan consistency) lives in `phase-5-multi-review-b-quality-plan.md`, D in `phase-5-multi-review-d-performance.md`, E in `phase-5-multi-review-e-design.md`, F in `phase-5-multi-review-f-coherence.md`. The canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here. Aggregation guidance lives in `phase-5-aggregation.md`.
 
-Dispatch the whole wave in ONE assistant message. **B is the standing member, A, D and F are evidence-gated** and fold into B when their lens has nothing to look at; E joins on UI-bearing diffs, and the panel caps at 5. The gate table naming the evidence each lens is gated on is in `references/phases/phase-5-review.md`. Every reviewer that runs sees the same diff range and the same work-doc; each applies a different lens. Before dispatching, run both deterministic scouts on the sprint diff, the perf-scout (`references/perf-scout.md`) staging table is Reviewer D's `{{perf_scout_report}}` input, and the law-scout (`references/law-scout.md`) staging table is Reviewer B's `{{law_scout_report}}` input.
+Dispatch the whole wave in ONE assistant message. **A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**, and the panel caps at 5. E is the one conditional lens, omitted rather than folded when the diff has no UI surface. The panel table is in `references/phases/phase-5-review.md`. Every reviewer that runs sees the same diff range and the same work-doc; each applies a different lens. Before dispatching, run both deterministic scouts on the sprint diff, the perf-scout (`references/perf-scout.md`) staging table is Reviewer D's `{{perf_scout_report}}` input, and the law-scout (`references/law-scout.md`) staging table is Reviewer B's `{{law_scout_report}}` input.
 
 **This file used to hold three prompts.** Until v0.13.0 it carried A, B and C, which is why the mirror script could never enforce `agents/code-reviewer-security.md` against it: the script splits on the first fenced block and a three-prompt file has three. C folded into B in v0.13.0 and B already lived in its own file, so A is alone here now and the pair is enforced like every other one.
 
@@ -46,20 +46,20 @@ Bias against: deferring to author intent on "it works in practice".
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 6. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file
@@ -187,5 +187,6 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 If a findings section has no entries, write `None.` on its own line
 under the heading, never go silent.
 ```
+<!-- parent-side: not mirrored -->
 
-Reviewers D (performance) and F (cross-module coherence) live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`) and are evidence-gated like A, each joining the wave when the diff gives its lens something to look at and folding its residual checklist into B when it does not. B is the floor and carries whatever the gate leaves off. UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the fifth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 5. Gate table: `references/phases/phase-5-review.md`.
+Reviewers D (performance) and F (cross-module coherence) live in their own files (`phase-5-multi-review-d-performance.md`, `phase-5-multi-review-f-coherence.md`) and run on every non-trivial diff exactly as A does. UI-bearing diffs add Multi-reviewer E (design conformance, `phase-5-multi-review-e-design.md`) in the fifth slot. Any other distinct concern takes a specialist from `phase-5-escalation.md` instead of E. Cap at 5. Panel table: `references/phases/phase-5-review.md`.

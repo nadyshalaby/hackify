@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer F (cross-module coherence)
 
-The **seam lens**, dispatched whenever the diff crosses a module boundary and folded into Reviewer B when it does not. **B is the standing member, A, D and F are evidence-gated**; E joins on UI-bearing diffs. The gate table naming the evidence each lens is gated on is in `references/phases/phase-5-review.md`. Reviewer F exists because a wave's implementer is **blind to every wave that ran before it and to every line of pre-existing code**. One agent now carries a whole wave, so it can see both halves of a feature it writes itself; what it never sees is what earlier waves left behind and what the repo already held. That is exactly where a producer and its consumers drift apart, and it is what produces two halves of a feature that each look correct and do not agree.
+The **seam lens**, dispatched on every non-trivial diff. **A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**. The panel table is in `references/phases/phase-5-review.md`. Reviewer F exists because a wave's implementer is **blind to every wave that ran before it and to every line of pre-existing code**. One agent now carries a whole wave, so it can see both halves of a feature it writes itself; what it never sees is what earlier waves left behind and what the repo already held. That is exactly where a producer and its consumers drift apart, and it is what produces two halves of a feature that each look correct and do not agree.
 
 Nobody else owns this. A checks whether the code is safe, B whether it is well-built and whether it matches the plan, D whether it is fast. None of them asks whether the **producer and the consumer describe the same thing**. F does, and only that.
 
@@ -63,20 +63,20 @@ Bias against: accepting "they are close enough" between two shapes.
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 7. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file
@@ -218,10 +218,11 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 If a section has no entries, write `None.` on its own line under the
 heading, never go silent.
 ```
+<!-- parent-side: not mirrored -->
 
 ## Dispatch notes
 
-- **Gated on the seam, not on size.** F dispatches in the same single parent message as the rest of the panel, B always plus whichever of A, D and E the gate put on it. What earns F its slot is the diff crossing a module boundary, never diff size or file count. Most non-trivial waves do cross one, because a wave's implementer is blind to the waves that ran before it and to every line of pre-existing code, and F is the only lens that compares producer against consumer. When the diff stays inside one module there is no counterpart to compare against and F's residual checklist folds into B. The carve-out is the same as the rest of the wave: a purely one-line typo / comment / config-only diff.
+- **On the panel unconditionally, and not on size.** F dispatches in the same single parent message as the rest of the panel. It used to be gated on the diff crossing a module boundary; that gate is retired, and F now runs whether or not you can see a seam. Most non-trivial waves cross one anyway, because a wave's implementer is blind to the waves that ran before it and to every line of pre-existing code, and F is the only lens that compares producer against consumer. A diff you were sure stayed inside one module is exactly the diff whose seam nobody looked for. The carve-out is the same as the rest of the wave: a purely one-line typo / comment / config-only diff.
 - **`{{task_file_index}}` is the dispatcher's job, and it is built ONCE for the whole wave.** Reviewers B and F both receive it, so build it once from the work-doc's Execution waves block plus each task's file allowlist, keyed `W<n>/T<m>`. F reads the `W<n>` prefix to tell which seams cross a wave boundary; B matches on `T<m>` to map each touched file back to its authorizing task. In quick mode there is one implementation agent, so pass one entry per task, all keyed under wave 1 (`W1/T1: [...]`, `W1/T2: [...]`); in yolo, build it from the in-chat plan block. A reviewer that receives an unfilled placeholder must refuse and report `unfilled placeholder: task_file_index`.
 - **Findings feed the address-all loop** in `review-and-verify.md` like every other reviewer's. An `Unwired symbols` row with a named work-doc task is also a Reviewer B plan-consistency signal, expect the two reports to overlap there; that agreement is a confirmation, not a duplicate to drop.
 

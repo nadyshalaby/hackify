@@ -52,7 +52,7 @@ TB_PLANTED=0
 # next to its file list. A bound derived from the list cannot police the list: if
 # a ban group is deleted the parsed count drops with it and a `wc`-style bound
 # stays green while coverage quietly shrinks.
-TB_EXPECT_70=23
+TB_EXPECT_70=21
 TB_EXPECT_77=60
 # A THIRD list, and the one this suite used to miss entirely. [77] enforces it
 # against one named file instead of the six-file sweep, so it is counted apart

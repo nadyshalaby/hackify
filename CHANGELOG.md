@@ -5,6 +5,268 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-08-26
+
+> **Phase 3 stops being the workflow's throughput floor, and every safety property it carried
+> survives the change.** One agent still takes a whole wave, because a wave whose tasks read the same
+> types, the same neighbouring code and the same conventions pays for those reads once instead of
+> once per task. What does not survive is the unconditional version of that rule, which was stated
+> without conditions while its own justification carried one. Waves that share no file, no import
+> edge and no serial resource now go out at the same time, one agent each, and the parent settles
+> that with a written test rather than a hunch. The other half of the release is the checks
+> concurrency turned out to need, one of which found 68 stale files sitting in the built trees before
+> they could ship. Phase 5 also stops being open-ended: one reviewer panel, one refuter, and the
+> panel is no longer gated, so four lenses run on every non-trivial diff instead of one plus whatever
+> the evidence let through. Dev-facing: no phase moved, no gate moved, and no allowlist widened in
+> either direction. User-facing: what you install out of `dist/` is compared against the source it
+> was copied from, byte for byte, on every CI run, because the workflow builds `dist/` before the
+> validator; locally, whenever `dist/` has been synced, and it prints a skip line naming what it
+> would have compared otherwise.
+
+### Added
+
+- **A three-condition partition test, written once in
+  `skills/hackify/references/phases/phase-3-implement.md` and pointed at from every other site that
+  states the rule.** Take the union of every task's file allowlist in the wave and ask whether it
+  splits into subsets where no file appears twice, no import edge runs between the modules those
+  subsets live in, in either direction, and no subset holds a serial resource another subset also
+  holds. All three hold and the subsets MAY be dispatched as concurrent waves, one agent each; any
+  one of them fails and one agent takes the whole wave. Condition 1 is inherited from the wave plan
+  rather than work the test does, since a wave's tasks are file-disjoint by construction, so the
+  teeth are conditions 2 and 3. Condition 2 exists for what file-disjointness cannot see: two agents
+  that both read a shared type while each writes its own module can still contradict each other, and
+  that contradiction is the defect the Phase 5 coherence lens exists to catch. Where the tree has no
+  imports to follow, in prose, docs and config, the edge is the same relation without the keyword,
+  one subset reading text or values another subset is rewriting. **The three conditions say a split
+  is PERMITTED, never which permitted split to take**, because the trivial partition holding the
+  whole wave passes all three vacuously, so a passing partition always exists and a greedy reading
+  shatters a wave into singletons. Choosing among the passing partitions is a written procedure that
+  runs coarse to fine, proposing something finer only where the tasks share no read surface and
+  taking the fewer subsets when two proposals both pass. Assembling a ROUND out of waves is its own
+  step with its own pairwise allowlist intersect, because the test is scoped to one wave and never
+  asked whether two waves in a round collide with each other. The stop-at-first-failure clause is
+  stated explicitly as PER AGENT: every agent in a round stops on its own account, keeps its own
+  landed work on disk and files its own report, so one wave stopping never stops another and never
+  costs that wave what it already wrote.
+- **`exclusive_resources`, a new input on the wave dispatch contract, so two concurrent agents can
+  never both hold a shared test database.** Four parts, all of them the parent's job: each wave brief
+  names any exclusive resource that wave holds, concurrent waves run scoped unit tests ONLY, the
+  suite that needs the resource runs once and serially at the parent after the concurrent waves have
+  landed, and the parent records the cost in the wave log rather than leaving it implicit, naming
+  which resource was held back, which suite did not run while the concurrent waves ran, and that
+  those waves' evidence is scoped-unit-only until the serial run lands. Written but not exercised
+  this release: this sprint held no test database, no generated sequence and no shared fixture, and
+  the wave log says so rather than going quiet.
+- **A `## Serial resources` section in the Phase 2.5 spec reviewer's report, plus concurrency
+  candidate marks on the wave plan.** The reviewer names every shared file, generated sequence and
+  external exclusive resource the backlog touches, because parallelism keeps being blocked by a
+  handful of resources nobody names up front. The parent pulls the tasks holding those into one solo
+  foundation wave and runs it first, which stops that resource blocking condition 3 for every round
+  after it. The parent still applies the partition test itself, so a wrong mark from the reviewer
+  cannot start a bad run on its own.
+- **The law and perf scouts run at two points in Phase 3 instead of one, with different owners and
+  different scopes.** Each wave agent scans its OWN file allowlist before it returns and may fix a
+  trivial candidate in place, which is the run the round-level move had quietly left without an
+  actor. The parent then scans at round end over what that round's waves DECLARED they wrote, and
+  stages or re-dispatches rather than writing the fix itself. The parent's scope is the wider one on
+  purpose: a defect that crosses two waves is only visible over the union, and it is the declarations
+  that define that union.
+- **`[56] dist integrity` in `scripts/validate-dod.d/56-dist-integrity.sh`.** It reds on a shipped
+  file that differs from its source, a planned file the sync never wrote, an exclusion count off its
+  pin of 7, a comparable set below 700, a planner exiting non-zero, or a hasher that could not read
+  every file. **What a green cannot prove is freshness**, and that limit is worth stating rather than
+  leaving to be discovered: `dist/` is untracked and CI builds it fresh on every run, so in CI the
+  check compares a tree built minutes ago against the source it was built from and always agrees. It
+  proves the sync writes byte-identical copies of everything it plans and drops nothing. The stale
+  reading, the one that found the 68 files below, survives only on a developer machine where `dist/`
+  has been sitting since the last build. Every file the sync copies into `dist/<runtime>/` is
+  hashed against the canonical file it was copied from. The two checks that existed before it both
+  read the PLAN, whether the sync still targets all seven runtimes and whether every canonical file
+  is named in the manifest, and neither one ever opened a shipped file. The destination set is read
+  out of the sync script's own dry run rather than restated, so a future emitter with a different
+  layout is covered without editing the fragment, and the seven files written from a heredoc are
+  counted and printed as uncompared rather than passing silently.
+- **`[75h]` compares the hand-maintained tail of each agent mirror, not just the block the sync
+  rewrites.** A mirror that annexed parent-side text used to print nine `ok` lines and exit 0. The
+  rule is byte-equality against the template tail above a `<!-- parent-side: not mirrored -->`
+  marker, bounded at both ends so the marker cannot be forged: sliding it with the mirror untouched
+  reds too, which makes blessing drift a matched two-sided edit. `scripts/sync_agent_mirrors.py`
+  gained `--check-tails` to report tail drift alone, every mode exits non-zero on drift so a caller
+  chaining under `&&` stops, and an unrecognised flag exits 2 instead of falling through to write
+  mode, where a typo in a validator fragment would have had the validator edit the tree it audits.
+  The check now reports what it compared rather than how many lines it printed, and the regression
+  rows behind it live in `scripts/test_tamper_mirror_tails.py`.
+- **A proportionality law in `rules/claim-integrity.md`, with a `### Choosing the depth` procedure
+  naming three tiers.** Full independent re-derivation where a wrong claim costs real money or real
+  safety, the fresh test output cited by name where a passing test already covers the behavior, and a
+  spot-check for cosmetic, naming and formatting claims, with the agent stating which tier it
+  applied. No law was deleted and none was softened: proportionality decides WHERE the depth goes and
+  is never a licence to assert an unverified fact. The injected digest moved from 777 to 895
+  characters against a 900 cap, and that measurement was proved able to come back dirty before it was
+  trusted, twice: a deliberately over-long lead returned 903 with the file's last law dropping out of
+  the digest, and the unedited file returned 777 with the new lead absent. `hooks/test_inject_context.sh`
+  reports 66 passed, 0 failed. The tier paragraphs are deliberately unbulleted, because a bolded
+  bullet lead would have entered the digest and spent the remaining budget.
+- **Reviewer B closes every report with a completeness section, and it files findings rather than a
+  note.** The last step of B's METHOD asks what the review did NOT reach, in five named shapes: a
+  check that cannot fail, a claim asserted but never verified, a new gate with no regression
+  coverage, a number nobody re-measured, and a file in the diff no lens opened. Each answer is a
+  finding with a severity, because a note is read and forgotten while a Critical is fixed, and the
+  first two shapes are at least Important on the grounds that a gate which cannot fire is worse than
+  no gate, since someone is relying on it. It is a SECTION of B rather than a tenth agent, decided
+  deliberately: B is never sliced and already reads every touched file, so the lens costs one more
+  step instead of one more context. The evidence is a completeness critic run beside the four lenses
+  in this sprint, which found nine findings none of them had, two severe, a shell variable used but
+  assigned nowhere in the tree and a brand-new validator check that could never go red in CI.
+  Pinned in both halves, instruction and report skeleton, by `[76h]`.
+- **Phase 1 questions now ask about the product, not just the plumbing.** Every bank adds questions
+  about the proven shape for the domain, whether the expensive half needs building, the business
+  rule that has to be exactly right, and the real numbers. New
+  `references/clarify-questions/domain-mechanisms.md` states the mechanisms and the failure each one
+  prevents. Recommendations must now name a mechanism; "industry standard" and invented figures are
+  banned, and `(Recommended)` goes to the option the mechanism supports rather than the smallest one.
+  The new file is 305 lines covering twelve domains, and the per-bank question counts are feature +4,
+  revamp-redesign +4, fix +3, refactor +3, research +2, debug +2. The same wave repaired `fix.md`'s
+  COMPOSITION labels, which had been off by one since `895c9da`, with a duplicate Q6 arriving later
+  at `c7e1481`.
+
+- **Waves now declare what they DELETED, and the parent reconciles against that declaration.** The
+  wave contract grew a `## Paths deleted` fence beside `## Paths written`, mandatory and empty-not-
+  absent, bound by the same file allowlist. Before it, a deleted path reached the parent as a path in
+  the round's diff that no wave claimed, which is indistinguishable from the stray edit the
+  reconciliation exists to catch, so every deletion had to red. The parent's three checks now treat a
+  declared deletion exactly like a written path: same allowlist bound, same one-wave rule, same
+  claim. That is stricter than what it replaced rather than looser, because attribution now comes
+  from the wave's own declaration, which is authorship, instead of from allowlist membership, which
+  on a file-disjoint round names one wave whether or not that wave deleted anything. An UNdeclared
+  vanished path still reds, and the red names the allowlists that held it as the lead to follow.
+
+### Changed
+
+- **The parent MAY merge consecutive waves, and the sentence that seemed to forbid it now says what
+  it actually bans.** Merging is allowed when no file collides inside the merged set and no dependency
+  edge crosses the merge, and it needs no re-review: "read the plan rather than rebuild it" bans
+  RE-PLANNING, not merging. It is worth doing because every wave pays a near-constant setup cost, its
+  agent re-reading the project rules and quoting the same rule sentences before it writes a line, so
+  a run of narrow waves pays that toll over and over. The spec reviewer optimises the plan for
+  reviewability and produces narrow waves by design, which is the right thing for it to optimise and
+  the wrong thing to dispatch unchanged.
+- **One commit closes the whole ROUND, and a round holding one wave is that same rule with one wave
+  in it.** The commit point sat at the wave while the wave was the largest unit that existed. Now that
+  a round can hold several of them, a per-wave commit would cut one round's work into commits that
+  only make sense read together, and a reviewer pulling any one of them would get a tree the round
+  never actually left behind. The commit body still lists every task ID that landed, and a wave that
+  stopped early contributes only the IDs its agent reported, so the commit and the ticked checkboxes
+  say the same thing.
+- **Resuming an older work-doc migrates it to the current shape first, in one edit, before any phase
+  resumes.** What "current shape" means is a six-point conformance list in
+  `skills/hackify/references/work-doc-template.md`, the file that IS the shape, so the migration
+  reads it from there rather than from a restatement: section 0 present, the goal anchor present, the
+  repo brief present, the skeleton's own section labels in the skeleton's order, every frontmatter
+  key the field-reference table declares, and a `status` that agrees with the directory the doc sits
+  in. Content is preserved and reorganised, ticked tasks stay ticked, and the migration runs before
+  the resume confirmation rather than after, because a re-partition moves the status and the upcoming
+  task the confirmation quotes. Archived docs under `docs/work/done/` are exempt from all six: they
+  are records of what somebody believed at the time. Stated plainly in the skill and worth repeating
+  here, no validator check reaches any of this, because resume runs inside your project and the
+  validator only ever reads this plugin's tree.
+- **The demo animation's Phase 3 caption now reads `parallel waves, 1 agent`.** Measured at 146px
+  against a 165px tile with the same `ImageDraw.textbbox` method the renderer uses, and the method was
+  validated first by reproducing two already-recorded numbers exactly. The change was then proved to
+  be in the pixels rather than only in the source: the phase 3 tile's text padding moved from 19 to 9,
+  matching `(165-146)//2`, while a control tile held at 36. `docs/assets/hackify-demo.gif` went from
+  135,296 to 134,070 bytes, still 1200x675 across 7 frames.
+- **Phase 5 dispatches exactly ONE reviewer panel and ONE refuter, and the phase ends when the
+  surviving findings are fixed.** No second panel, no second refuter, no settle round, no re-scan,
+  however much the fixes changed. A defect a fix introduces is fixed in the same fix sequence and
+  reported; anything still unresolved when the fixes are done goes to the user as a written list
+  rather than as another round. **The rule this replaces was right about the mechanics, and the cap
+  gives that up rather than solving it.** A clean panel result describes the diff as it stood when
+  the panel read it, not the diff after the fixes, so the last fixes ship without the panel ever
+  having seen them. That risk is real and it is priced, not denied. What it buys off is measured: one
+  task in this sprint took 14 review rounds and 32 waves, and each extra round bought less than the
+  one before. Ten defects did surface after the panel closed, 3 created by fixes and 7 the panel had
+  missed, and all 7 were one family, a summary restating a canonical fact that had since moved.
+  Narrow, real and known, against a loop with no way to stop. Retired with it: the FULL-round exit
+  gate, the settle-round grammar and its `settle ` echo prefix, blob-hash-keyed verdict carry-over,
+  the scope ledger's `blob` column, and Reviewer B's `Round:` marker. The `':(exclude)docs/work/*'`
+  pathspec keeps its job, because it defines the reviewed diff and never depended on the round count.
+- **The reviewer panel is no longer evidence-gated: A, B, D and F each run on every non-trivial diff,
+  and E joins on a UI-bearing one.** E is the only conditional lens left, and it is omitted rather
+  than folded, because with no UI surface it leaves no residual for anyone else to carry. The gate
+  folded A, D or F into B whenever the diff showed no surface for their lens, with B running the
+  folded lens's residual checklist so nothing was formally dropped. The saving was real; the cost was
+  larger. On the diff that retired it the un-gated panel returned 41 findings where the gated one had
+  returned 15, because a checklist run by the reviewer that already read the diff for a different
+  purpose is not the same as a reviewer whose whole context is that lens. Folding moved the words and
+  lost the attention. **The bill is stated rather than buried:** two more reviewer contexts on every
+  non-trivial wave, paid every time, recovered nowhere. Folding had no remaining user afterwards, so
+  `{{folded_lenses}}`, the residual-checklist mechanism, the `[folded:` finding tag and the gate
+  table went with it rather than surviving as an always-`none` vestige.
+- **The phase ledger says which substrate it is on, prints a header you can read at a glance, and
+  re-prints inside a phase and not only at its edges.** It used to say to degrade to the printed
+  block *without comment* when no todo tracker exists, and that was the defect: silence about a
+  missing tool is indistinguishable from silence about a skipped step. One line, once, at the first
+  print, naming the substrate. The block now carries phase numbers and a `(<done> of <total>, Phase
+  <n>)` header, so a reader is not counting rows to find where the task is. And the re-print
+  obligation gained a second trigger: **the end of every wave round inside a phase**, not only phase
+  boundaries. Phase 5 stayed open for hours in this sprint across a panel, a refuter and four fix
+  waves, none of which is a boundary, so the old rule permitted total silence through the longest
+  phase of the run. What can honestly be checked is written down beside the rule: `[98]` catches a
+  section 0 that contradicts its own frontmatter, which is consistency and not currency, and a ledger
+  that stopped being updated two hours ago is perfectly self-consistent and passes. The in-phase
+  re-print is enforced by the rule and by a reader noticing the silence, and by nothing else.
+
+### Fixed
+
+- **Sixty-eight files in the built runtime trees were shipping the pre-fix text of their source.**
+  The figures below are a **historical measurement, taken on 2026-08-26 before the repair**, and they
+  are not reproducible now: `dist/` was resynced in that same fix, so re-running the check today
+  compares a fresh tree and reports zero drift. Dating them is the honest option, because a number
+  nobody can re-measure is a claim, not a record. Twelve rounds of fixes had rewritten canonical
+  files and the trees under `dist/` were never re-synced, so 68 of the 791 compared files were
+  carrying 13 source files as they read earlier in the sprint, and anyone installing from a built runtime would have got that older text. The worst
+  single instance makes the size of it legible: the shipped copy of `agents/wave-implementer.md` was
+  3,114 bytes behind, still carrying the round-end scout scope four rounds of this sprint had spent
+  their time correcting. Repaired with `scripts/sync-runtimes.sh` across 798 files and seven
+  runtimes, and `[56]` above is what keeps it repaired. The task that was supposed to cover this had
+  been ticked for twelve rounds, which is the real lesson: a done-claim about a generated artifact
+  expires every time its source changes.
+- **The wave contract's own verification step could not tell a concurrent wave's edits from an
+  allowlist breach, and the first thing that replaced it could not fail at all.** Step (a) diffed the
+  WHOLE tree against one wave's allowlist, which is correct under strictly serial dispatch and wrong
+  the moment two waves run at once: every agent sees its neighbours' files and reports a breach that
+  never happened. Two agents in this sprint's own first round hit it independently and both marked the
+  step inapplicable by hand, which is the worst available outcome for a gate, a check that survives by
+  being ignored. What ships is a two-sided gate instead. Each agent reports the paths it wrote under
+  `## Paths written`, scoped to its own wave, and the parent reconciles the round three ways at round
+  end: every declared path inside that wave's own allowlist, no path claimed by two waves, and no path
+  in the round's diff left unclaimed. The third check is the one the other two cannot cover, the stray
+  edit no agent admits to, and it has to union `git diff` with the untracked files, since a file that
+  was created and never staged appears in neither the diff nor any declaration. The reconciliation
+  block is written as a real array so it iterates identically under bash and zsh; the string form it
+  replaced was silently correct in one shell and silently wrong in the other, and silent-and-wrong is
+  the expensive one. Worth recording rather than fixing quietly: the original defect was created by
+  this release and caught by the release's own agents, which is the only reason it did not ship.
+- **Two mechanisms this release shipped were absent from this entry, which is the same defect class
+  the entry documents.** Recorded now rather than left to the next reader to rediscover. **(1) The
+  resume re-derivation bound.** `skills/hackify/SKILL.md` step 4 of Pause / Resume bounds a resuming
+  agent to re-deriving the plan for the UNTICKED tasks and nothing beyond them. That bound is not
+  arbitrary and it is not the one the work-doc's own Q&A #10 proposed: the frontmatter carries no
+  plugin-version stamp, so "which rules moved since this doc was written" is a question the document
+  cannot answer, and an agent told to re-derive only what a changed rule invalidated has no way to
+  tell which rules changed. The unticked remainder is the only bound a resuming agent can actually
+  derive from what is on disk. **(2) The wave contract refuses an incomplete dispatch, and reads its
+  concurrency out of `current_task`.** `{{exclusive_resources}}` is the input whose absence is
+  silent: the wave's method branches on what it NAMES, so a prompt that omits the line reads as
+  "names nothing" and the wave runs an exclusive suite against a harness a concurrent wave is
+  truncating, reporting PASS. An input that is missing, or that still carries literal `{{...}}`
+  text, means the dispatcher did not decide, so the agent REFUSES the dispatch, names the input that
+  did not arrive, and writes nothing; `none` is a decision and an absent line is the absence of one.
+  On the parent's side, frontmatter `current_task` carries every task in the round across all of its
+  waves (`R<n>:T<a>+T<b>+…`), which is what makes a round's concurrency legible on disk to a
+  resuming agent rather than only in the dispatch message that scrolled away.
+
 ## [0.15.1] - 2026-08-25
 
 > **The code is the only source of truth, and the workflow now says so in every prompt.** A document

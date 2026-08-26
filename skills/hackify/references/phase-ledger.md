@@ -2,7 +2,7 @@
 
 A visible checklist that forces the phases to run **in order** and makes a forgotten step (like archiving the work-doc) impossible to hide. The ledger is surfaced through the runtime's **todo tracker** (a trackable to-do list the user can see) when the runtime has one, and through a printed chat block when it does not. In full hackify it *lives* in the work-doc's `## 0. Phase ledger` section on either surface, and that copy is the one that survives the session. See **Substrate** below. It is the order-enforcer for the whole task.
 
-Load this file from Phase 1. The ledger is always-on: it is created early and updated at every phase boundary.
+Load this file from Phase 1. The ledger is always-on: it is created early, updated at every phase boundary, and re-printed at the end of every wave round inside a phase.
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ They do not overlap. The Sprint Backlog tracks *what code work* is left. The pha
 
 **Primary substrate.** The runtime's `todo tracker` primitive, whenever the runtime actually exposes one ([runtime-adapters.md](runtime-adapters.md)).
 
-**Fallback substrate.** Used whenever it does not. The ledger is **printed in chat** as a markdown checklist at task start, and re-printed at **every** phase boundary. In full hackify the durable copy is the work-doc's `## 0. Phase ledger` block, and writing it is the obligation rather than an extra: the chat print is the half that scrolls away, the file edit is the half a resume and an archive read back.
+**Fallback substrate.** Used whenever it does not. The ledger is **printed in chat** as a markdown checklist at task start, and re-printed at **every** phase boundary **and at the end of every wave round inside a phase**. In full hackify the durable copy is the work-doc's `## 0. Phase ledger` block, and writing it is the obligation rather than an extra: the chat print is the half that scrolls away, the file edit is the half a resume and an archive read back.
 
 The ledger opens at task start in every mode as a printed block, and in full hackify it is **written into the work-doc as section 0 at Phase 2 step 1**.
 
@@ -35,9 +35,28 @@ quick and yolo keep nothing on disk by contract, so they print only and the prin
 
 On the fallback substrate a tick is an edit plus a re-print, not a tool call: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` completed. That edit lands in the work-doc on disk, never in the chat block alone. The ordering law and the reflect-after-each-step rule below apply unchanged, the marks just live in text.
 
-**Ledger persistence (mandatory).** On BOTH substrates, in full hackify, **a tick is an edit to the work-doc file plus a chat re-print**. At every phase boundary you MUST rewrite the `## 0. Phase ledger` block in `docs/work/<slug>.md` so its marks match the ones you are about to print, and advance frontmatter `status` (plus `current_task` where the phase moves it) in that SAME edit. **The file edit comes before the print.** The one-line reflection may lead, but the block is never re-printed ahead of the edit that made it true, or the printed marks describe a file that does not carry them. A todo-tracker tick does not touch the file either, so the primary substrate owes this edit exactly as the fallback does. Skipping it is an abandoned-state bug: chat scrolls away, the file is what resume and archive read, and a doc that lands in `done/` still showing `- [>] Phase 5` is a false record of where the work stopped.
+**The printed block carries phase numbers and a where-we-are header**, because a bare list of ticks makes a reader count rows to work out where the task actually is. The heading states the position; each line carries the phase number the rest of the workflow refers to:
 
-**On Claude Code specifically**, `TodoWrite` is frequently absent from the session tool surface, so the fallback is the NORMAL path there, not an exotic edge case. Check for the primitive at task start, and when it is not there, degrade to the printed block without comment. A missing tool is never a reason to drop the ledger.
+```
+## 0. Phase ledger  (4 of 10, Phase 5)
+- [x] 1  Clarify
+- [>] 5  Review
+- [ ] 6c Archive
+```
+
+The count in the header is completed items over total items, then the phase the `- [>]` line names. Print every item, not the three shown here; the sample is elided to show the shape.
+
+**Ledger persistence (mandatory).** On BOTH substrates, in full hackify, **a tick is an edit to the work-doc file plus a chat re-print**. At every phase boundary, and at the end of every wave round inside a phase, you MUST rewrite the `## 0. Phase ledger` block in `docs/work/<slug>.md` so its marks match the ones you are about to print, and advance frontmatter `status` (plus `current_task` where the phase moves it) in that SAME edit. **The file edit comes before the print.** The one-line reflection may lead, but the block is never re-printed ahead of the edit that made it true, or the printed marks describe a file that does not carry them. A todo-tracker tick does not touch the file either, so the primary substrate owes this edit exactly as the fallback does. Skipping it is an abandoned-state bug: chat scrolls away, the file is what resume and archive read, and a doc that lands in `done/` still showing `- [>] Phase 5` is a false record of where the work stopped.
+
+**On Claude Code specifically**, `TodoWrite` is frequently absent from the session tool surface, so the fallback is the NORMAL path there, not an exotic edge case. Check for the primitive at task start, and when it is not there, degrade to the printed block. A missing tool is never a reason to drop the ledger.
+
+**Name the substrate once, in one line, the first time you print the block.** It used to say to degrade *without comment*, and that was the defect: silence about a missing tool is indistinguishable from silence about a skipped step, so a user watching for a to-do list saw nothing and could not tell which had happened. One line, once, at the first print:
+
+```
+Ledger substrate: printed block (no todo tracker in this session).
+```
+
+or `Ledger substrate: todo tracker.` when the primitive is there. Say it once and never again; repeating it every print is noise, and a substrate does not change mid-task. This is a statement of fact, not an apology, and it is not an invitation to explain the runtime.
 
 ## When to create it
 
@@ -89,7 +108,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 - **One item `in_progress` at a time.** Never two.
 - **No jumping ahead.** You may not set a later item to `in_progress` until the current item is `completed`.
 - **No silent skip.** A carve-out (a one-line typo that skips multi-reviewer; no entry-point so codewalk is skipped) is marked `completed` with a one-line reason appended, e.g. `Phase 5, skipped: one-line comment fix, no diff to review`. Never delete an item to make progress look done.
-- **Parallelism lives INSIDE a phase, not across phases.** The Phase 5 reviewer panel and Phase 1's research agents fan out *within* their phase. Phase 3 is the one place that gives it up on purpose: a wave's tasks are file-disjoint but they read the same code, so ONE agent takes the whole wave. The phases themselves stay sequential.
+- **Parallelism lives INSIDE a phase, not across phases.** The Phase 5 reviewer panel and Phase 1's research agents fan out *within* their phase. Phase 3 gives it up only where it buys something: when a wave's tasks share a read surface they read the same types, neighbours and conventions, so ONE agent takes the whole wave. A wave whose tasks share no read surface MAY be split into concurrent waves that run at the same time, one agent each, but only when all three conditions of the partition test in [phases/phase-3-implement.md](phases/phase-3-implement.md) hold, and those concurrent waves are still INSIDE Phase 3. The phases themselves stay sequential.
 
 ## Exit artifact per phase (the anti-skip lever)
 
@@ -100,7 +119,7 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 1 Clarify | Locked Primary Goal & Guardrails anchor, all 5 parts, in the work-doc (in-chat for quick/yolo) |
 | 2 Plan | Work-doc file exists at `docs/work/<date>-<slug>.md` **and** explicit user "go" |
 | 2.5 Spec review | 1 reviewer report aggregated; Critical + Important findings patched into the doc |
-| 3 Implement | Every Sprint Backlog checkbox ticked; each wave committed; wave-end persistence done; both scouts (perf + law) run on the wave-touched files with every candidate dispositioned |
+| 3 Implement | Every Sprint Backlog checkbox ticked; every round committed; wave-end persistence done; both scouts (perf + law) run at BOTH Phase 3 run points, each wave agent over its own file allowlist before it returns and the parent at every round-end over what that round's waves DECLARED under `## Paths written` rather than the union of their allowlists, with every candidate dispositioned at both |
 | 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0); the three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) present and each ✅ or `⏭ skipped` with a written reason |
 | 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |
 | 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
@@ -139,11 +158,21 @@ Steps 2 and 3 are ONE edit to the work-doc's `## 0. Phase ledger` block in full 
 
 The reflection is the checkpoint. A tick with no reflection is an untrusted tick, you skipped the "did it pass?" question.
 
+## Re-print inside a phase, not only at its edges
+
+**A phase boundary is not the only place the ledger goes stale, it is only the place the old rule looked.** Phase 5 has stayed open for hours across a panel, a refuter and four fix waves, and not one of those is a boundary, so the rule as written permitted total silence through the longest phase of the run. The user's last signal was the print that opened it.
+
+So the re-print obligation has a second trigger. **Re-print the block at the end of every wave round inside a phase**, wherever a phase dispatches work in rounds: each Phase 3 implementation round, and each Phase 5 fix round. The marks usually do not move, and that is the point. The block says which phase is open and how far the task has come, and a reader who has watched four rounds go by needs that more than a reader two minutes past a boundary does. The in-phase re-print carries the same one-line reflection as any other, naming the round rather than the phase: what that round changed, and whether it passed.
+
+The item marks do not change on an in-phase re-print, because a round is not a phase. Never tick an item to show a round finished; the ordering law is about phases, and a phase with three rounds is still one item.
+
+**What is actually checkable here, stated honestly.** Not much, and pretending otherwise would be the defect this repo spends itself on. `98-work-doc-ledger-sync.sh` reads the work-doc's section 0 and compares it against the frontmatter `status`, so it catches a block whose marks contradict the file they sit in. That is a consistency check, not a currency check: a ledger that stopped being updated two hours ago is perfectly self-consistent and passes. Nothing in the validator can see a chat print at all, and nothing can see how long a phase has been open. What the archive check catches at the end, a doc landing in `done/` still showing an open phase, is real but it is the last possible moment to catch it. **The in-phase re-print is enforced by nothing except this rule, and a reader noticing the silence.** Say so rather than implying a gate that does not exist.
+
 ## Pause / resume
 
 - The **Sprint Backlog** in the work-doc is the durable state. In full hackify the **phase ledger** is durable too, it is section 0 of the same file. Durable only if you keep writing it: a resume finds the phase your last file edit recorded, not the phase your last chat print showed.
-- On resume, **read the ledger back** from the work-doc's `## 0. Phase ledger` block: re-print it, restore it into the todo tracker if the runtime has one, and set the first open phase to `in_progress`. It is a read, not a reconstruction. Only when that block is missing (an older work-doc) do you rebuild it from `status` + the Sprint Backlog checkboxes.
-- quick / yolo keep no work-doc, so their ledger dies with the session, consistent with their no-resume contract.
+- On resume, **read the ledger back** from the work-doc's `## 0. Phase ledger` block: re-print it, restore it into the todo tracker if the runtime has one, and set the first open phase to `in_progress`. It is a read, not a reconstruction. When that block is missing (an older work-doc), rebuild it from `status` + the Sprint Backlog checkboxes **and write it into the doc** as part of the one migration edit resume makes before any phase resumes ([../SKILL.md](../SKILL.md), Pause / Resume). That rebuild is a ONE-TIME migration, never a standing fallback: once the block is on disk, every later resume reads it back like any other.
+- quick / yolo keep no work-doc, so their ledger dies with the session, consistent with their no-resume contract. Rebuilding is the permanent path there and there is nothing to migrate: the printed block IS the record, by contract, and no file is waiting to have one written into it.
 
 ## Anti-rationalizations (STOP and apply the reality)
 
@@ -155,7 +184,7 @@ The reflection is the checkpoint. A tick with no reflection is an untrusted tick
 | "The printed block is right, I'll write the file at the end" | There is no end that reads chat back. Tick the work-doc's section 0 and advance `status` in the same edit, then print. A ledger that is only ever printed dies with the session and archives at the wrong phase. |
 | "The todo tracker already has it, so it is tracked" | The tracker is session-local and never touches the work-doc. Its tick owes the same file edit the printed block does, otherwise the durable copy stays frozen at the phase you opened it on. |
 | "This phase does not apply. I'll delete its item" | Do not delete. Mark it `completed` with `skipped: <reason>`. Silent deletion hides drift. |
-| "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (the Phase 5 reviewer panel, Phase 1 research agents), never across them. |
+| "These two phases are independent. I'll do them together" | Phases are sequential. Parallelism belongs inside a phase (the Phase 5 reviewer panel, Phase 1 research agents, Phase 3's concurrent waves), never across them. Read it as written: concurrent waves are intra-phase and this row has never forbidden them. Two phases at once is what it forbids. |
 | "Tests are green, that's Phase 4 done" | Phase 4's exit artifact includes the three ship-gate rows. A green triad is not a booted app. |
 | "The last re-scan came back clean, Phase 5 is done" | Only if the diff has not changed since that scan. Fixes applied after a scan were never reviewed. |
 

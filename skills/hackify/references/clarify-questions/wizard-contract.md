@@ -19,7 +19,7 @@ The only things that stay plain chat are statements, not questions: progress lin
 | Field | Who reads it | Register |
 |---|---|---|
 | `text`, `options[].label`, `options[].description` | **the user** | plain, everyday words; no internal vocabulary, ever |
-| `why-this-matters`, COMPOSITION rules | **the model** | precise and internal; task IDs and phase names are fine here |
+| `why-this-matters`, `Recommend`, COMPOSITION rules | **the model** | precise and internal; task IDs and phase names are fine here |
 
 Leaking the model register into a user-facing field is the bug. Keep `why-this-matters` exactly as technical as it needs to be, it is never shown.
 
@@ -31,6 +31,8 @@ Never put any of these in `text`, a `label`, or a `description`:
 - **Phase references.** "Phase 2", "the gate", "Phase 4 cross-package verification", "in Wave 2".
 - **Internal artifact names.** DoD, work-doc, Sprint Backlog, Daily Updates, goal anchor, wave, sub-agent, perf-scout, law-scout, ship gate, Reviewer B, decision table, phase ledger.
 - **Project-specific architecture the user never named.** "control + tenant schema", "the router layer", unless the user used that word first or you read it in their code and quote it back.
+- **Authority claims with nothing behind them.** "Industry standard", "best practice", "enterprise-grade", "the standard approach", "battle-tested", and any company name used as proof ("this is how Stripe does it"). None of these is checkable by the person reading it, and a company name is not evidence. Name the mechanism and the failure it prevents instead, see the honesty rule below.
+- **Numbers nobody measured.** "About three days", "this scales to a million users", "roughly 30% faster", when nothing produced that figure. See the honesty rule below.
 
 If the answer genuinely changes something internal, say the *effect* in plain words instead. "This decides whether I write a database migration" is fine. "This drives the migration sub-agent in Wave 2" is not.
 
@@ -58,6 +60,37 @@ A question must carry the concrete detail that makes it answerable. You have alr
 - When you are asking the user to choose between two things that exist, name both.
 - When the choice is abstract, add a short example inside the `description` so the user can picture the result.
 - When the choice is between concrete artifacts (a layout, a schema shape, two code approaches), use `preview` and let them look.
+
+### The honesty rule (a recommendation has to be earned)
+
+Several questions in these banks recommend a shape: how a refund should be recorded, how a session should expire, how a long list should page. Those recommendations are the most useful thing said in this phase and the easiest thing to fake.
+
+**Earn it by naming the mechanism and the failure it prevents.** One sentence carrying both halves.
+
+- Allowed: "Every write carries a key the browser generates once, so a retry after a timeout cannot charge the customer twice."
+- Allowed: "The workspace comes from the signed-in session rather than from the request, so nobody can switch workspace by editing a field."
+- Banned: "This is what Stripe does." A company name is not evidence, and the reader has no way to check it.
+- Banned: "Industry standard", "best practice", "enterprise-grade", "the proven approach". None of them tells the reader anything they can weigh.
+
+The mechanisms, and the failure each one prevents, are collected in [domain-mechanisms.md](domain-mechanisms.md). A recommendation you cannot trace to a mechanism there, or to something you read in the user's own code, is one you do not make.
+
+**Say so when it is a judgment call.** Some choices are settled by a mechanism. Others are genuine trade-offs where reasonable engineers differ, and dressing one of those up as settled is the same dishonesty in a quieter voice. Put the doubt in the option's own text: "Either way works. I would start here because it is easier to undo later." Not a confident recommendation with the uncertainty left out.
+
+**Never invent a number.** A count, a size, a cost or a duration belongs in a question only when it came from the user or from something you measured in their project. "Your `orders` table has 1,240 rows in it" is fine, you counted. "About three days of work" and "this will scale to a million users" are not. Ranges and the word "roughly" are fine when the number behind them is real. Invented precision is the worst version of all, because it reads like measurement.
+
+When you need to show how much bigger one option is than another, say it in things the user can count. How many screens. Whether the database changes. How many places have to be edited. Never a number of days.
+
+### Which option gets `(Recommended)`
+
+The option order written in a bank file is a **default, not a verdict**. At composition time you MAY reorder a question's options for this request. Whichever option ends up first carries the ` (Recommended)` suffix, and no other option carries it.
+
+The habit this replaces was recommending whichever option was smallest, decided before anyone had read the request. Smallest is not automatically right. **`(Recommended)` goes to the option the named mechanism actually supports for the request in front of you.** When that is the bigger option, recommend it and give the reason in one line: "This one, because a refund kept as its own record can still be told apart from a mistaken charge a year later."
+
+Three ways this goes wrong:
+
+1. Recommending the small option to look disciplined, when what the user asked for plainly needs the bigger one.
+2. Recommending the big option to look thorough, when the outcome the user named is fully reached by the small one. Each bank carries a necessity question to catch exactly this.
+3. Leaving the bank's default order untouched without asking whether it fits this request. That is not a recommendation, it is a copy.
 
 ### Worked example, before and after
 
@@ -98,6 +131,9 @@ Read every question as if you had never seen this codebase or this workflow. If 
 3. An option's `description` restates its `label` instead of naming a consequence.
 4. It asks about hackify's process rather than the user's product.
 5. A smart friend who is not an engineer could not follow what is being asked.
+6. It recommends something without naming the mechanism behind it, or leans on a company name, "best practice" or "industry standard" as the proof.
+7. It states a number, a cost or a duration that nobody measured.
+8. Its recommended option is the bank file's default, and nobody checked whether that default fits this request.
 
 ---
 
@@ -105,7 +141,7 @@ Read every question as if you had never seen this codebase or this workflow. If 
 
 - **1-4 questions per call.** If your batch is larger, send **multiple back-to-back `AskUserQuestion` calls in the same turn**, fire the following call as soon as the previous batch is answered, with no chat narration in between unless something needs clarifying. Aim for ≤16 total questions across all batches; if you need more, your scope is too broad, narrow first.
 - **2-4 options per question.** Mutually exclusive by default. Use `multiSelect: true` ONLY when options are genuinely combinable (e.g., "which edge cases to handle"). Never use multiSelect for "pick one approach" questions.
-- **First option is the recommendation.** Suffix its `label` with ` (Recommended)`. Even if you'd personally rank a different option higher, leading with your strongest opinion saves the user time.
+- **First option is the recommendation.** Suffix its `label` with ` (Recommended)`. Which option leads is a per-request decision, not the order the bank file happens to use, see "Which option gets `(Recommended)`" above. Lead with your strongest opinion; it saves the user time.
 - **No "Other" option**, the tool auto-injects free-text input.
 - **`header`** ≤12 chars. Concrete chip text like `Hierarchy`, `Roles`, `Invite flow`. Not `Question 1`.
 - **`description`** is MANDATORY on every option and says what happens if you pick it, see the Clarity law above.
@@ -152,9 +188,10 @@ Every question in a bank's QUESTIONS section MUST specify:
 
 - **text**, the question shown to the user. Plain words. It MUST carry the concrete detail that makes it answerable (the real file, the real current behavior, the real names), and MUST NOT contain anything from the banned list above. One or two sentences is fine when the second sentence is the detail the user needs; brevity never wins over answerability.
 - **header**, the chip text rendered in the wizard. ≤12 characters. Concrete (`Scope`, `Roles`, `Invite flow`). NOT `Question 1` or `Q3`.
-- **options**, 2-4 mutually-exclusive options labeled A / B / C / D. Option A MUST be suffixed with ` (Recommended)`. NEVER include an `Other` option, the `AskUserQuestion` tool auto-injects free-text input.
+- **options**, 2-4 mutually-exclusive options labeled A / B / C / D. The leading option MUST be suffixed with ` (Recommended)`, and which option leads is decided per request rather than fixed by the bank file, see "Which option gets `(Recommended)`" above. NEVER include an `Other` option, the `AskUserQuestion` tool auto-injects free-text input.
 - **option descriptions**, one per option, MANDATORY. One plain sentence naming what happens to the user if they pick it. An option with no description, or a description that restates the label, is a bank defect.
 - **why-this-matters**, one line stating what the answer changes downstream (which task-type branch is taken, which plan section is generated, which sub-agent fans out, which verification step runs). **Model-facing only, never rendered.** Internal vocabulary is correct here. If the answer changes nothing downstream, the question MUST be cut.
+- **Recommend**, OPTIONAL and **model-facing only, never rendered.** One or two lines naming which option should lead for the request in front of you and why, when that decision is not obvious from the option order. Present it on questions where the bank's written order is a poor default for some requests, see "Which option gets `(Recommended)`" above. It is guidance for composing the call, never a field the user sees, and a bank that renders it has a defect.
 
 ## Composition rules
 

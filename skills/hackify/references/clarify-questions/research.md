@@ -13,6 +13,10 @@ Use when the user wants to discuss or explore an idea before committing to build
 - Always ask Q3 (Depth), sets the time-box and deliverable shape.
 - Always ask Q4 (Output), determines where conclusions land.
 - Always ask Q5 (Continuation), sets Phase 6's exit (auto-roll into build vs. pause for user decision).
+- Ask Q7 (Known ground) FIRST, before Q1, whenever the topic sits in a domain listed in [domain-mechanisms.md](domain-mechanisms.md). It is the only question that can end the task in one round-trip, and asking it after Q3 has already set a time-box wastes the round it was meant to save. Skip it when nothing in that file matches, and say so in the preamble.
+- Always ask Q6 (If it's no) unless Q2 was answered B, where the comparison itself is the deliverable and no single answer can be the unwanted one.
+- This bank carries two of the four domain questions rather than four, and the two it drops are dropped on purpose. There is no necessity challenge because Q7 IS the necessity challenge for research, and there is no correctness-rule question because research produces a recommendation, not a rule that runs; that question belongs to the `feature` or `fix` bank for whatever gets built afterwards.
+- If the batch runs past the ~16 target, drop Q3 before either of Q6 and Q7, see [picking-and-combining.md](picking-and-combining.md).
 
 **QUESTIONS**
 
@@ -78,6 +82,34 @@ Q5. What happens after
     - What happens: I write it so a person with no context can take it from there.
 - Why-this-matters: Sets Phase 6's exit (pause vs auto-dispatch a new `feature` work-doc) and the handoff format.
 
+Q6. What you'd do if the answer is the one you don't want
+- Text: Suppose I come back and tell you `<the answer they clearly don't want, e.g. "no, this can't work without replacing your payment provider">`. What would you do then?
+- Header: If it's no
+- Options:
+  - A. Drop it and move on (Recommended)
+    - What happens: The work is worth doing, because a no genuinely changes what you do next. I'll aim straight at the evidence that settles it.
+  - B. Do it anyway, but I'd want to know the cost
+    - What happens: Then your real question is how much, not whether. I'll aim at the cost and the risky parts instead of at a yes-or-no, which is a different piece of work.
+  - C. Look for another way round it
+    - What happens: I'll spend part of the time on the alternatives, so a no comes with somewhere to go rather than a dead end.
+  - D. I hadn't thought about that
+    - What happens: Worth two minutes now. If both answers lead to the same next step, this research changes nothing and I'll say so rather than spend the time.
+- Why-this-matters: The cheapest way to find out that research is theatre. Q2 asks which decision rides on the answer; this asks whether the decision actually moves, which Q2 cannot detect on its own. Answer B reframes the whole investigation from feasibility to cost, changing the Question-under-investigation line and the deliverable shape. Answer D with "same either way" is grounds for cutting the task in Phase 2 and saying so plainly.
+- Recommend: A leads when the topic is a genuine yes-or-no. Lead with B when the user's prompt already reads like a decision they have made, and say in B's own text that this is your read of their words rather than a settled fact.
+
+Q7. Whether this is already well-trodden ground
+- Text: `<State the known shape plainly, e.g. "getting email to reliably land in the inbox is a well-worn problem: prove the sending domain is yours with the standard DNS records, keep bulk mail on a different subdomain from receipts and password resets, and stop sending to addresses that already bounced">`. Is your question whether to do that, or about something that shape doesn't answer?
+- Header: Known ground
+- Options:
+  - A. That's the answer, I just needed to know it exists (Recommended)
+    - What happens: I stop here and write up how to apply it to your setup, which saves the whole investigation.
+  - B. I want to know whether it fits my situation
+    - What happens: I check that shape against your actual setup and report where it fits and where it doesn't. Much narrower than a general investigation.
+  - C. My question is about something that doesn't cover, let me explain
+    - What happens: Tell me the gap and I'll aim at exactly that, and skip everything the known answer already settles.
+- Why-this-matters: The most expensive research in this workflow is research into a solved problem, and no other question in this bank can catch it. Source the known shape from [domain-mechanisms.md](domain-mechanisms.md) and state the mechanism with the failure it prevents; a bare "this is the standard approach" is banned by the honesty rule in [wizard-contract.md](wizard-contract.md) and would make this question worthless anyway. Answer A ends Phase 1 with a write-up instead of an investigation and the Phase 2 gate becomes "approve the recommendation".
+- Recommend: A leads only when the known shape genuinely answers the question they asked. When it covers part of it, lead with B and say in its text which part is already settled and which part is not.
+
 **EXIT CRITERIA**
 
-Q1, Q2, Q3, Q4, Q5 all answered; question sentence captured verbatim in the work-doc preamble; decision-it-informs captured in the Approach section; depth time-box recorded so Phase 1 has a hard checkpoint; Phase 2 gate framed as "approve the conclusions and whether to build" (not "approve the plan to build").
+Q1, Q2, Q3, Q4, Q5 all answered; Q6 and Q7 answered if their COMPOSITION trigger fired; when Q7 is answered A, the task exits Phase 1 as a write-up and the depth time-box from Q3 is dropped with the reason recorded; question sentence captured verbatim in the work-doc preamble; decision-it-informs captured in the Approach section; depth time-box recorded so Phase 1 has a hard checkpoint; Phase 2 gate framed as "approve the conclusions and whether to build" (not "approve the plan to build").

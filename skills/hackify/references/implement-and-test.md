@@ -1,40 +1,71 @@
 # Implement & Test (Phase 3 Walkthrough)
 
-The implement phase is **wave-based, one foreground subagent per whole wave.** Tasks are sorted by priority and topological dependency, grouped into waves where no two tasks share a file, and the whole wave is dispatched to exactly one foreground agent that carries every task in it, in run order. Per-task discipline (TDD when applicable, file allowlist, fully green before reporting) is enforced inside that agent's prompt.
+The implement phase is **wave-based, one foreground subagent per whole wave when the wave's tasks share a read surface.** Tasks are sorted by priority and topological dependency, grouped into waves where no two tasks share a file, and the whole wave is dispatched to exactly one foreground agent that carries every task in it, in run order. A wave whose tasks share no read surface is the only wave worth proposing a finer split for, and that proposal MAY go out as concurrent waves, one agent each, only when all THREE conditions of the partition test in [phases/phase-3-implement.md](phases/phase-3-implement.md) hold: no file in two subsets, no import or read/write edge between them in EITHER direction, and no serial resource held by both. The ABSENCE of a shared read surface is what makes a finer split worth proposing; it never makes one permitted, and the three conditions are what permit it. Collecting the cleared waves into a round is a separate step, because the test is scoped to ONE wave and never asked whether two waves in a round hold a path in common. Per-task discipline (TDD when applicable, file allowlist, fully green before reporting) is enforced inside that agent's prompt.
 
-**A one-task wave is the same dispatch** with one task in it, e.g., a serializing migration step. There is no other shape and no cap on wave width: no module split, no grouping decision at dispatch time.
+**A one-task wave is the same dispatch** with one task in it, e.g., a serializing migration step. A single wave has no width valve and no split by module hunch: the partition test is the only thing that may split one, and what it splits becomes concurrent waves inside the same round rather than a wider fan-out inside one wave.
 
 ---
 
-## Wave loop (the canonical sequence)
+## Wave loop (the canonical sequence, run once per round)
 
 ```
-1.  Update frontmatter:    status: implementing,  current_task: W<n>:T<a>+T<b>+…
+1.  Update frontmatter:    status: implementing,  current_task: R<n>:T<a>+T<b>+…
+    (every task in the round, across all of its waves).
 2.  Confirm the wave plan from the work-doc Approach. Each wave member's
-    file allowlist must NOT overlap with peers in the same wave.
-3.  Dispatch ONE Agent for the WHOLE WAVE, however wide it is. Its prompt is
-    self-contained and carries the wave's task IDs in run order, per the
+    file allowlist must NOT overlap with peers in the same wave. Apply ALL
+    THREE conditions of the partition test (phases/phase-3-implement.md) to
+    every wave yourself, then collect the waves it clears into ROUNDS. A
+    round holding one wave is normal. Then intersect that ROUND, wave
+    against wave, as its own check: the test is scoped to ONE wave and never
+    asked whether two waves in a round hold a path in common. A path in two
+    waves SPLITS the round, the later wave moving to the next round or the
+    two merging. Record the intersection even when it is empty.
+3.  BEFORE dispatching anything, create $RECON outside the repo and
+    `touch $RECON/round_start`. Step 6 FAILs the round without that marker,
+    and it dates the sweep of the generated tree git cannot see, so a marker
+    created after the agents have run passes the existence check over a sweep
+    that finds nothing. Step 6 catches that too, by comparing the marker
+    against the round's own diff, but only a marker made HERE is honest.
+4.  Dispatch ONE Agent per wave, every wave in the round in ONE message,
+    each carrying its whole wave however wide it is. Every prompt is
+    self-contained and carries THAT wave's task IDs in run order, per the
     template in references/parallel-agents/phase-3-implementation.md.
-4.  Wait for the agent. Read its report, starting with the `## Wave status`
-    section it opens with: that is where it names which task IDs landed and
-    which did not.
-5.  Verify the wave diff stayed inside the file allowlists:
-       git diff --name-only ⇒ every path in the diff must appear in the
-       union of allowlists. Do NOT assert the reverse: a wave that stopped
-       early writes a strict SUBSET of the union on purpose, so a union path
-       missing from the diff is the stop working as designed, and only a
-       diff path missing from the union is a violation.
-       Each task's hunks stay inside that task's OWN allowlist.
-6.  Run full project suite ONCE for the wave: test + lint + typecheck. All green.
-7.  Self-review against references/review-and-verify.md (parent does this).
-8.  Tick ONLY the task IDs `## Wave status` lists as landed, never the whole
-    wave. Ticking a task the agent never finished records work that is not on
-    disk. Every not-landed ID stays unticked: re-dispatch it in the next wave
-    dispatch on an agent failure, drop to Phase 3b with it on a plan failure.
-    Append one Daily Updates entry per landed task.
-9.  Single commit for the wave (subject covers the wave; body lists the task
-    IDs that landed).
-10. Advance to wave N+1.
+5.  Wait for every agent in the round. Read every report, starting with the
+    `## Wave status` section each one opens with: that is where it names
+    which task IDs landed and which did not.
+6.  Reconcile the round's paths against what each wave DECLARED under
+    `## Paths written` and `## Paths deleted`, three ways: every declared
+    path inside THAT wave's OWN allowlist, no path claimed by two waves,
+    and nothing in the round's diff unclaimed. The declaration is the input
+    because git cannot attribute an uncommitted edit to a wave, and a
+    deleted path reaches the diff with nobody claiming it unless the wave
+    declared it. The third check catches the stray edit no agent admits to. Canonical rule and the
+    runnable form: phases/phase-3-implement.md, "The round's allowlist
+    reconciliation". Each task's hunks stay inside that task's OWN
+    allowlist; the wave union never widens what one task may touch.
+7.  Run full project suite ONCE for the ROUND, after every wave in it has
+    returned: test + lint + typecheck. All green. Any suite that needs an
+    exclusive resource runs here and nowhere else.
+8.  Self-review against references/review-and-verify.md (parent does this).
+9.  Run BOTH deterministic scouts over what that round's waves DECLARED,
+    BEFORE anything ticks: the perf-scout (references/perf-scout.md) and
+    the law-scout (references/law-scout.md). Every wave already scanned
+    its own allowlist before it returned and reported the rows under
+    `## Scout dispositions`; carry those forward unchanged and disposition
+    whatever this wider scope newly shows. The parent never writes the fix.
+    Two run points, two owners, two scopes, and why each exists:
+    phases/phase-3-implement.md, "The scouts run twice". Read it there, it
+    is deliberately not restated here.
+10. Tick ONLY the task IDs each report's `## Wave status` lists as landed,
+    never the whole wave. Ticking a task the agent never finished records
+    work that is not on disk. Every not-landed ID stays unticked:
+    re-dispatch it in the next dispatch on an agent failure, drop to Phase
+    3b with it on a plan failure. Append one Daily Updates entry per landed
+    task.
+11. Commit ONCE for the ROUND, after every wave in it has returned (subject
+    covers the round; body names every task ID in it and marks which landed
+    and which did not). A single-wave round is this rule with one wave in it.
+12. Advance to round N+1.
 ```
 
 Per-task discipline (enforced inside the wave agent's prompt, see the template). Steps a to e repeat for every task in the wave, in run order; step f runs once:
@@ -236,7 +267,7 @@ If any step surprises you, **stop and treat it as a bug**, switch to Phase 3b de
 
 ---
 
-## Commits (one per wave)
+## Commits (one per round)
 
 ```
 <type>(<scope>): <subject>
@@ -255,7 +286,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 **Never** `--no-verify` unless the user explicitly told you to. Hook failures point at real issues.
 
-One commit closes the whole wave, never one per task. The subject describes what the wave delivered; the body names the work-doc and lists every task ID that landed, which is what makes the commit traceable back to the Sprint Backlog. A wave that stopped early commits only the IDs its agent reported as landed, so the commit and the ticked checkboxes say the same thing:
+One commit closes the whole round, after every wave in it has returned, never one per task; a single-wave round is that same rule with one wave in it. The subject describes what the round delivered; the body names the work-doc and lists every task ID that landed, which is what makes the commit traceable back to the Sprint Backlog. A wave that stopped early commits only the IDs its agent reported as landed, so the commit and the ticked checkboxes say the same thing:
 
 ```
 feat(invitations): add expiry column and the expiry guard

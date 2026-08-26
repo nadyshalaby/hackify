@@ -36,21 +36,36 @@ REVIEWER_B_AGENT="agents/code-reviewer-quality-plan.md"
 REVIEWER_B_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
 WORK_DOC_TPL="skills/hackify/references/work-doc-template.md"
 
-# (1) The reviewer gate MOVES a lens to B, it never drops one. Reviewer B must
-# take {{folded_lenses}} as an input and actually run the inherited checklist,
-# in BOTH copies of the prompt, or gating A/D off deletes their coverage.
+# (1) THE EVIDENCE GATE IS RETIRED, and E is the one lens still conditional.
+# What this used to pin was folding: B took {{folded_lenses}} and ran the folded
+# lens's residual checklist, so gating A/D/F off moved their coverage instead of
+# deleting it. 0.16.0 removed the gate, so folding has no remaining user and the
+# whole mechanism went with it (CLAUDE.md 4.2, an always-`none` input is dead
+# code). E survives as a conditional lens and is OMITTED rather than folded,
+# which is the one distinction a later editor is most likely to collapse back
+# into "E folds into B" while the panel stays correct everywhere else. Both
+# halves are pinned: the rule, and the reason it is omission and not folding.
+# The exclusivity half, that E is the ONLY conditional lens, is pinned by [79]
+# instead, which enforces it as an invariant over a set it discovers rather than
+# over one named file. Pinned here is the half [79] cannot ask: that E's absence
+# is an OMISSION and not a fold, which is the distinction folding's removal makes
+# load-bearing and the one a later editor is most likely to collapse.
+check_token_present 'omitted, never folded' "$P5_REVIEW"
+# The retired mechanism must not walk back into either copy of B's prompt.
 for f in "$REVIEWER_B_AGENT" "$REVIEWER_B_TPL"; do
-  check_token_present '{{folded_lenses}}' "$f"
-  check_token_present 'residual checklist' "$f"
-  check_token_present '[folded:' "$f"
+  check_no_token '{{folded_lenses}}' "$f"
+  check_no_token '[folded:' "$f"
 done
-check_token_present 'Folding moves a lens, it never removes one.' "$P5_REVIEW"
-check_token_present '{{folded_lenses}}' "$P5_REVIEW"
 
-# (2) The address-all loop may only CLOSE on a full round over the full range.
-# Scoped middle rounds are the saving; letting one of them end the loop would
-# hand back a "settled diff" that no full panel ever saw.
-check_token_present 'The loop may only end on a FULL round' "$P5_REVIEW"
+# (2) THE ROUND CAP'S HONESTY CLAUSE, which replaced the FULL-round exit in
+# 0.16.0. The cap itself is pinned by [76h], worded identically at all four
+# sites. What is pinned HERE is the paragraph stating what the cap GIVES UP:
+# a clean panel result describes the diff the panel read, not the post-fix
+# diff, so the last fixes ship unreviewed by the panel. That is a real cost the
+# cap accepts rather than removes, and a later editor tidying the rule down to
+# its happy half would delete the only place it is admitted. The rule survives
+# such an edit; the honesty does not, which is why it needs its own pin.
+check_token_present 'What the cap gives up, stated plainly.' "$P5_REVIEW"
 
 # (3) {{repo_brief}} is a required input on every dispatched prompt, so it needs
 # a PRODUCER. NO COUNT IS WRITTEN HERE, deliberately, the same way
@@ -76,7 +91,11 @@ check_token_present 'by registered agent type' "skills/yolo/SKILL.md"
 check_token_present 'by registered agent type' "skills/quick/SKILL.md"
 check_token_present 'repo-brief.md' "skills/yolo/SKILL.md"
 check_token_present 'repo-brief.md' "skills/quick/SKILL.md"
-check_token_present 'evidence-gated panel' "skills/yolo/SKILL.md"
+# yolo used to be pinned on the phrase 'evidence-gated panel'. The gate retired in
+# 0.16.0, so what is pinned now is that yolo still names the panel file at all: yolo
+# is the mode most likely to quietly drop a reviewer for speed, and its own header
+# says YOLO speed comes from no gates rather than from skipped reviewers.
+check_token_present 'phases/phase-5-review.md' "skills/yolo/SKILL.md"
 
 # The pointer must carry the law, not merely point at it. This harness
 # summarises long conversations, and a summary can drop the turn that held the
@@ -89,12 +108,14 @@ check_token_present 'Core, still binding in full' "$INJECT_PY"
 check_token_present 'def qualifier' "$INJECT_PY"
 check_token_present 'if not digest_of(body):' "$INJECT_PY"
 
-# {{folded_lenses}} is refuse-on-absent, so EVERY dispatch site of Reviewer B
-# has to name it, middle rounds and the settle round included. One missing
-# site costs a whole round in a live sprint.
-check_token_present 'Every dispatch of Reviewer B carries' "$P5_REVIEW"
-check_token_present '{{folded_lenses}}' "skills/hackify/references/review-and-verify.md"
-check_token_present 'every round' "skills/yolo/SKILL.md"
+# {{folded_lenses}} was refuse-on-absent, so every dispatch site of Reviewer B had
+# to name it. Un-gating the panel left folding with no user at all, and an input
+# whose only possible value is `none` is dead code, so the input went rather than
+# being kept as a vestige. What replaces the pin is the roster itself: every mode
+# that dispatches the panel has to state who is on it, because the failure this
+# guarded against, a lens silently absent from a dispatch, did not retire with the
+# gate. It just changed shape, from a fold nobody carried to a lens nobody sent.
+check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "skills/yolo/SKILL.md"
 
 yellow "[38d] every routing trigger phrase survives in its skill description"
 # v0.11.0 trimmed all eight skill descriptions to cut always-on cost. The
@@ -193,24 +214,35 @@ ORCH_G="skills/hackify/references/orchestration.md"
 ESC_G="$PA/phase-5-escalation.md"
 QUICK_G="skills/quick/SKILL.md"
 check_token_present 'Cap at 5' "$P5_PHASE_G"
-check_token_present 'B is the standing member of every wave' "$P5_PHASE_G"
-check_token_present 'B is the standing member of every wave' "skills/hackify/SKILL.md"
-check_token_present 'The panel is evidence-gated, so its width is a decision you write down, not a constant.' "$RAV_G"
+# THE PANEL ROSTER, one wording, at the three files that state it in prose. The
+# gated version of this pin named B the standing member and A/D/F evidence-gated;
+# both halves of that claim retired together in 0.16.0. [79] enforces the same
+# rule as an invariant over a set it discovers, which catches a NEW file making a
+# roster claim; these three are pinned by name because they are the ones a reader
+# is sent to, and a paraphrase in any of them is a second rule to reconcile.
+check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "$P5_PHASE_G"
+check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "skills/hackify/SKILL.md"
+check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "$RAV_G"
 check_token_present 'plus E on UI-bearing diffs' "$ESC_G"
 # The five agent frontmatter descriptions carry the same gating clause, and so do the
 # two templates whose prose sits outside the fence. A description is NOT in the fenced
 # block, so [75h] cannot see it, and it is the line an orchestrator reads to pick who runs.
 PANEL_AGENTS="agents/code-reviewer-security.md agents/code-reviewer-quality-plan.md agents/code-reviewer-performance.md agents/design-conformance-reviewer.md agents/code-reviewer-coherence.md $PA/phase-5-multi-review-a-security.md $PA/phase-5-multi-review-f-coherence.md"
-for f in $PANEL_AGENTS; do check_token_present 'B is the standing member, A, D and F are evidence-gated' "$f"; done
+for f in $PANEL_AGENTS; do check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "$f"; done
 # Every literal below encodes a panel width nobody dispatches on any more, in either
 # phase. Banned everywhere rather than per-file because a hand-kept per-file list is the
 # thing that goes stale, and correct text cannot contain any of them. '3 reviewers' /
 # '2 reviewers' was a separate 4-file loop, folded in so work-doc-template.md is covered.
 P5_FILES="$P5_PHASE_G $RAV_G $ORCH_G $ESC_G $QUICK_G $PANEL_AGENTS skills/hackify/SKILL.md skills/yolo/SKILL.md $LEDGER $CONTRACT $P25_PHASE $WORK_DOC_TPL"
-P5_BANS=('A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FOUR foreground reviewers' 'FIVE foreground reviewers' 'A, B, D and F always' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers')
+# TWO ENTRIES LEFT THIS LIST IN 0.16.0, and both left for the same reason: they
+# became TRUE. 'A, B, D and F always' and 'FOUR foreground reviewers' each named a
+# panel width nobody dispatched on while the gate stood, and each names the actual
+# roster now that it is gone. A ban on correct text is a trap for the next writer,
+# who reads a red on a sentence that says exactly what the docs say.
+P5_BANS=('A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FIVE foreground reviewers' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers')
 # Both sizes below are written a SECOND time by hand, the shape [77] already uses: a bound read back out of a list cannot police that list.
 check_list_size "$(printf '%s' "$P5_FILES" | wc -w | tr -d ' ')" 18 "the [70] panel-width file set"
-check_list_size "${#P5_BANS[@]}" 23 "the [70] count-grammar ban list"
+check_list_size "${#P5_BANS[@]}" 21 "the [70] count-grammar ban list"
 # One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
 for f in $P5_FILES; do check_no_tokens_in "$f" "${P5_BANS[@]}"; done
 
@@ -293,10 +325,18 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 # original reason and CHANGELOG.md:18 records it dissolving on contact: one writer
 # per wave leaves no second writer to collide with. What survives is that every
 # touched file maps to exactly one task, which is how the parent reads a PARTIAL
-# diff back as a set of task IDs. phase-3-implementation.md:238 leans on that
-# directly, since a wave that stopped early writes a strict subset of the union on
-# purpose, and ticking a task the agent never finished is the one thing a work-doc
-# must never do.
+# diff back as a set of task IDs. The `(a) Your DECLARATION, checked against your
+# own allowlist.` block of phase-3-implementation.md leans on that directly, since a
+# wave that stopped early writes a strict subset of the union on purpose, and
+# ticking a task the agent never finished is the one thing a work-doc must never do.
+#
+# CITED BY BLOCK HEAD, NOT BY LINE, and that is the fix rather than the style. This
+# read `phase-3-implementation.md:238` until 0.16.0, and by then the block had moved
+# to 252 and then to 260 as edits landed above it. Nothing reddened, because [57]
+# only asserts the cited line EXISTS, and the file is long enough that any number
+# under its length resolves. A citation that survives every edit while pointing at
+# the wrong paragraph is worse than a dangling one: it reads as verified. The block
+# head is a string the file either carries or does not, so it goes stale loudly.
 for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
@@ -329,15 +369,16 @@ for f in "agents/finding-refuter.md" "$REFUTE_TPL"; do
   check_token_present 'BOTH lenses fail' "$f"
 done
 
-# (3b) F is gated on a SEAM, not on risk, and B inherits its checklist when it folds.
-# F is the only lens that compares a producer against its consumers, so a fold that is
-# not carried is how a half-built feature ships with both halves looking fine alone.
-check_token_present 'the diff crosses a module boundary' "$P5_PHASE"
-check_token_present 'F folds when the diff has no SEAM' "$P5_PHASE"
-check_token_present '[folded: F]' "$P5_PHASE"
-for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
-  check_token_present 'F folded (cross-module coherence)' "$f"
-done
+# (3b) F RUNS UNCONDITIONALLY, and that is what this block pins now. It used to pin
+# the seam gate and B's inherited F checklist: F folded when the diff stayed inside
+# one module, and B carried the residual so nothing was dropped. 0.16.0 removed the
+# gate for the reason the fold was always uncomfortable, that a diff you were sure
+# stayed inside one module is exactly the diff whose seam nobody looked for. F is
+# the only lens comparing a producer against its consumers, so both halves of that
+# argument, then and now, are about the same failure: a half-built feature shipping
+# because each half looked fine alone.
+check_token_present 'On the panel unconditionally' "$PA/phase-5-multi-review-f-coherence.md"
+check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "$P5_PHASE"
 
 # (4) The panel does not read Phase 3 dispatch bookkeeping. That block just grew a
 # batch list, so a reviewer still reading it pays for the batching twice over.

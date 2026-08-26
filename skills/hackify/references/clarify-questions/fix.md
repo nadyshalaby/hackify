@@ -8,13 +8,18 @@ Use when the user is reporting broken behavior, an observable defect, a stack tr
 
 **COMPOSITION**
 
-- Skip Q1 (Reproduction shape) and confirm if the user prompt contains BOTH the substring `expected` AND `actual`.
-- Skip Q2 (Frequency) if the user prompt contains any of the literal substrings `always`, `every time`, `intermittently`, `once`, or `sometimes`.
-- Skip Q3 (Recent changes) if the user prompt contains any of `started failing`, `regressed`, `after the`, `since we merged`.
-- Always ask Q4 (Regression scope), silently affected flows are the top source of incomplete fixes.
-- Always ask Q5 (Severity), it determines polish-vs-ship tradeoff.
-- Always ask Q6 (Solution shape), it gates whether Phase 3 dispatches a refactor sub-agent.
-- Always ask Q6 (Guard against it returning), defaults to A; the only gate that prevents silent re-breakage. Q1 wording aligns with `debug` Q1 by design (keep in sync if either is edited).
+**These labels were wrong from 0.2.6 to 0.16.0**, naming Q2 as "Frequency", Q3 as "Recent changes", Q4 as "Regression scope" and Q5 as "Severity", off by one against QUESTIONS from Q2 down. All four arrived when this bank was split out of a larger file (`895c9da`, measured with `git log -S` on each label); the duplicate second Q6 came later, at `c7e1481`. Every number cited did exist, so the dangling-reference check stayed green while a model following the labels asked the wrong question. Re-mapped below against the QUESTIONS section as it actually stands.
+
+- Skip Q1 (Repeatable) and confirm in the preamble if the user prompt contains BOTH the substring `expected` AND `actual`, OR any of the literal substrings `always`, `every time`, `intermittently`, `once`, `sometimes`, all of which already answer it.
+- Skip Q2 (Trigger) if the user prompt contains any of `started failing`, `regressed`, `after the`, `since we merged`.
+- Always ask Q3 (Reach), silently affected flows are the top source of incomplete fixes.
+- Always ask Q4 (Urgency), it determines the polish-versus-ship trade-off.
+- Always ask Q5 (Depth), it gates whether Phase 3 dispatches a refactor task alongside the fix.
+- Always ask Q6 (Guard), defaults to A; the only gate that prevents silent re-breakage. Q1 wording aligns with `debug` Q1 by design (keep in sync if either is edited).
+- Ask Q7 (What's right) straight after Q1, before Q4 and Q5. "Broken" names what the system does; it does not name what it should do, and every later answer assumes that is settled.
+- Always ask Q9 (Damage). A bug that ran in production wrote records while it was wrong, and a fix that repairs the code and leaves the records is a half fix. Skip only when the user's own prompt says it never reached real use.
+- Ask Q8 (Prevention) when the bug belongs to a class named in [domain-mechanisms.md](domain-mechanisms.md): a double charge, a lost message, a permission leak, a timezone slip, a retry that ran twice. Skip it when the bug is a one-off mistake with no class behind it, and say so in the preamble.
+- If the batch runs past the ~16 target, drop in this order: Q2, then Q8. Never drop Q7 or Q9, see [picking-and-combining.md](picking-and-combining.md).
 
 **QUESTIONS**
 
@@ -90,6 +95,47 @@ Q6. Guard against it returning
     - What happens: Quicker now. Nothing stops this breaking again silently in a future change.
 - Why-this-matters: Determines whether Phase 3 starts with a watched RED test. Recommend A unconditionally unless the user prompt contains `no test`, `quick fix only`, or `can't test`.
 
+Q7. What "working properly" should actually look like
+- Text: `<State the wrong behaviour and the candidate right ones with real values, e.g. "an invite sent at 11pm on the 30th currently stops working at 11pm on the 7th. Should the seven days be counted from the moment it was sent, or in whole days so it always expires at midnight?">`
+- Header: What's right
+- Options:
+  - A. `<the first candidate, in plain words>` (Recommended)
+    - What happens: `<what people will see, stated concretely, and what it means for the records already stored>`.
+  - B. `<the second candidate, in plain words>`
+    - What happens: `<the same, for this answer>`.
+  - C. I hadn't thought about it, what do you suggest?
+    - What happens: I'll tell you which answers hold up here and what each one costs, then you pick and I build that.
+- Why-this-matters: "It's broken" describes what the system does, never what it should do, and a fix built on an unstated assumption is a second bug with a nicer name. Draw the candidates from "Correctness rules that bite here" for the matched domain in [domain-mechanisms.md](domain-mechanisms.md). The answer becomes the Acceptance Criteria bullet AND the assertion inside the RED test, so it has to be a real value, not a direction.
+- Recommend: Lead with whichever answer the mechanism supports, not whichever is a smaller diff. Where both are genuinely defensible, say that in the option's own text instead of projecting certainty.
+
+Q8. Stopping the whole class, or just this one
+- Text: `<Name the class this bug belongs to, e.g. "this is a duplicate charge caused by a retry after a timeout">`. `<State the mechanism that prevents the class, and the failure it prevents, in one sentence>`. Do you want that put in, or just this one occurrence closed?
+- Header: Prevention
+- Options:
+  - A. Put the mechanism in (Recommended)
+    - What happens: This bug is fixed and the next one of its kind cannot happen. `<one line on what that adds, in countable things>`.
+  - B. Just close this one
+    - What happens: Quickest route back to working. The same cause can produce a different version of this bug somewhere else, and I'll write down where.
+  - C. What would the mechanism cost?
+    - What happens: I come back with what it adds in places to edit and whether the database changes, then you choose.
+- Why-this-matters: Sits beside Q5 rather than replacing it. Q5 asks how deep to go into THIS bug's cause; this asks whether to add the mechanism that makes the class impossible, which is a different and usually larger decision. A adds a task to the Sprint Backlog; B files a Retrospective follow-up naming the class. Source the mechanism from [domain-mechanisms.md](domain-mechanisms.md) and never name one without the failure it prevents, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads when the class is one where a repeat is expensive or unrecoverable: money moved, data leaked, a message lost for good. B leads when a repeat would be visible and cheap to fix, and say that plainly in B's text.
+
+Q9. What it cost while it was broken
+- Text: From what I can see this has been wrong since `<when, from what you found>`. `<State what that means for the records concretely, e.g. "so every invite sent in the last eleven days has the wrong expiry stored against it">`. Does that need putting right too, or only the code?
+- Header: Damage
+- Options:
+  - A. Fix the code and repair the affected records (Recommended)
+    - What happens: I fix the cause, then correct what was already written wrong, and show you the count before and after.
+  - B. Just the code, leave the old records alone
+    - What happens: New ones will be right. The existing wrong ones stay wrong, and I'll tell you how many that is so it's a choice rather than an oversight.
+  - C. Tell me how many are affected first
+    - What happens: I count them and come back with the number before either of us decides.
+  - D. Nobody was affected, it never reached real use
+    - What happens: Code only, nothing to repair. Faster, and I'll confirm that's true before I rely on it.
+- Why-this-matters: The half-fix this bank kept shipping. A code fix leaves a repair task unwritten, and nothing downstream notices, because the tests pass against the new behaviour. A adds a data-repair task to the Sprint Backlog with its own Evidence Ledger row (count before, count after). Never state a number of affected records that you did not count, per the honesty rule in [wizard-contract.md](wizard-contract.md).
+- Recommend: A leads whenever the wrong records are visible to anyone or feed anything else. D leads only when the user's own words say it never ran for real, never on your own assumption.
+
 **EXIT CRITERIA**
 
-Q4, Q5, Q6 answered (always required); for Q1, Q2, Q3: either the question was answered OR its COMPOSITION skip condition fired and was logged; if Q1 = C, the task is re-routed to the `debug` bank and this bank's exit is bypassed; the regression-guard decision captured in the work-doc.
+Q4, Q5, Q6, Q7, Q9 answered (always required); Q8 answered if its COMPOSITION trigger fired; the Q7 right-behaviour written down as a concrete value and used as the RED test's assertion; the Q9 repair decision recorded, with a data-repair task in the plan when the answer is A; for Q1, Q2, Q3: either the question was answered OR its COMPOSITION skip condition fired and was logged; if Q1 = C, the task is re-routed to the `debug` bank and this bank's exit is bypassed; the regression-guard decision captured in the work-doc.

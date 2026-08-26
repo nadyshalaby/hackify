@@ -232,7 +232,7 @@ LEDGER_EPOCH = '2026-08-23'
 # exact shape, and a created value that fails the gate is REPORTED, never dropped.
 DATE = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
 # The rule assertion (d) enforces: the "No silent skip" bullet of the ordering law.
-LEDGER_LAW = 'skills/hackify/references/phase-ledger.md:91'
+LEDGER_LAW = 'skills/hackify/references/phase-ledger.md:110'
 
 
 def read(path):

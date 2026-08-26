@@ -1,6 +1,6 @@
 ---
 name: design-conformance-reviewer
-description: Phase 5 Multi-reviewer E, audits a base..head git diff for design-conformance defects against the project's committed docs/design/DESIGN.md (hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, component state gaps, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, physical properties where logical are required, and the generic-AI font/gradient bans), naming the exact replacement token for every finding. When reference frames of the intended design are supplied it renders the touched screen and compares it against them side by side. Falls back to the frontend-design.md visual law when no spec exists. Joins the panel only on a UI-bearing diff, and is omitted rather than folded when there is no UI surface. Dispatch the panel in a single parent assistant message: B is the standing member, A, D and F are evidence-gated, E joins on UI-bearing diffs.
+description: Phase 5 Multi-reviewer E, audits a base..head git diff for design-conformance defects against the project's committed docs/design/DESIGN.md (hardcoded color/size/shadow literals where a token exists, off-ramp type sizes, component state gaps, violations of the spec's own Don'ts list, WCAG AA contrast and focus regressions, physical properties where logical are required, and the generic-AI font/gradient bans), naming the exact replacement token for every finding. When reference frames of the intended design are supplied it renders the touched screen and compares it against them side by side. Falls back to the frontend-design.md visual law when no spec exists. Joins the panel only on a UI-bearing diff, and is omitted rather than folded when there is no UI surface. Dispatch the panel in a single parent assistant message: A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one.
 ---
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -31,20 +31,20 @@ Bias against: personal taste. You audit conformance to the spec that exists, nev
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 8. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file

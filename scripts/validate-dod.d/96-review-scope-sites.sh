@@ -103,10 +103,16 @@ PLS_XROOTS="skills agents"
 # 16 occurrences, because PLS_XRULE is a full sentence, not its opening words. A
 # prefix that is not the pinned literal measures a different thing and agrees with
 # nothing.
+# 0.16.0 moved both occurrence totals down by one and left both file totals
+# alone, which is the composition working as described: the round cap deleted
+# the FULL-round paragraph from phases/phase-5-review.md and the carry-over
+# section from review-scope.md, each of which restated both literals, and the
+# cap's replacement paragraph put the pathspec back once in the phase file.
+# Re-measured with the two greps below, not reasoned about.
 PLS_XFILES_EXPECTED=19
-PLS_XOCCUR_EXPECTED=50
+PLS_XOCCUR_EXPECTED=49
 PLS_XRULE_FILES_EXPECTED=6
-PLS_XRULE_OCCUR_EXPECTED=7
+PLS_XRULE_OCCUR_EXPECTED=6
 
 # $1 the literal, $2 expected files, $3 expected occurrences.
 #
@@ -166,52 +172,64 @@ for pls_bf in "skills/hackify/references/parallel-agents/phase-5-multi-review-b-
   check_token_present '**It stays your authority for steps 14 to 19.**' "$pls_bf"
 done
 
-yellow "[76h] the FULL-round gate is worded identically at every site that states it, and B's round marker exists in both copies of its prompt"
-# ONE RULE, FOUR SITES, AND THE DEFECT THIS PINS ALREADY HAPPENED. The gate was
-# amended in review-scope.md to exempt Reviewer B from the scope echo, and the three
-# other files stating the same rule were left on the old wording, which demanded an
-# echo from EVERY lens. B is never sliced and has no {{review_scope}} to echo, and
-# 72-diff-slicing-pins.sh reddens the moment B's prompt gains that placeholder,
-# so the old wording was not merely stale, it was unsatisfiable: no dispatch could
-# declare any settle round FULL. A rule amended at one site and left standing at
-# three is the shape [76g] exists to refuse, so it gets the same mechanism.
+yellow "[76h] the Phase 5 round cap is worded identically at every site that states it"
+# ONE RULE, FOUR SITES, AND THE DEFECT THIS PINS ALREADY HAPPENED. The rule this
+# block guards changed in 0.16.0 and the mechanism did not: what used to be pinned
+# here was the FULL-round exit gate, and it was pinned because that gate had been
+# amended at one site and left standing at three, in wording that no dispatch could
+# then satisfy. The round cap replaced the gate. The four sites did not change, and
+# neither did the reason they have to agree byte for byte.
 #
 # DISCOVERED, NOT LISTED, for [76g]'s reason: a hand-kept list of the sites stating
 # this rule is the next thing to go stale, and the site that goes stale is the one
 # nobody remembered to list. Discovery also catches a NEW file picking the wording up.
 #
-# WORDED IDENTICALLY IS THE POINT, not merely present. Four paraphrases of one gate
-# are four rules a reader must reconcile, and the reconciling is where the amendment
-# got lost. Pinning ONE literal forces the four to agree byte for byte or redden,
-# the only version of "they agree" a script can check.
+# WORDED IDENTICALLY IS THE POINT, not merely present. Four paraphrases of one rule
+# are four rules a reader must reconcile, and the reconciling is where the last
+# amendment got lost. Pinning ONE literal forces the four to agree byte for byte or
+# redden, the only version of "they agree" a script can check.
 #
-# B'S MARKER IS PINNED IN BOTH HALVES, the instruction and the skeleton line, because
-# either alone leaves the other deletable while this stays green. The instruction with
-# no skeleton slot is a rule with nowhere to write the answer; the skeleton slot with
-# no instruction is a blank B fills in however it likes. The marker carries the ROUND the
-# dispatch named and nothing else, never coverage, and it is all the gate has to read
-# from B on a settle round, so losing half of it silently leaves the gate reading nothing.
+# WHAT LEFT WITH THE GATE. B's round marker was pinned here in both halves, the
+# instruction and the report skeleton, because either alone left the other deletable
+# while this stayed green. The marker named which round a dispatch was, and with one
+# round per phase it has no referent, so both halves went. The both-halves argument
+# did not go with them: it is why [76h] pins B's completeness section the same way,
+# below, and that section is the one thing in B's OUTPUT contract nothing else guards.
 #
 # grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: pls_x_assert is
 # the same function and all three reasons are spelled out above [76g], unchanged here.
-# The -E half is not academic here: PLS_BSKEL carries three `|` characters that -E reads
-# as alternation, so an -E scan would match one branch of the literal, not the literal.
-PLS_GATE='every dispatched lens that takes a scope echoed a `settle `-prefixed scope, F echoed `settle all`, and B echoed `Round: settle`'
-PLS_BMARK='`Round: ` followed by the round the dispatch named, and nothing else'
-PLS_BSKEL='Round: <first | middle | settle | unnamed>'
-# Hand-written beside the check and independent of the lists they police, per the
-# argument above check_list_size in 00-helpers.sh. Today: the gate wording sits at 4
-# occurrences over 4 files (SKILL.md, phases/phase-5-review.md, review-and-verify.md,
-# review-scope.md), and each half of B's marker at 2 over 2, its canonical prompt plus
-# its agents/ byte-mirror. Both marker numbers are 2 and stay 2: a third copy of B's
-# prompt is a roster change, not a wording change, and it should redden here.
-PLS_GATE_FILES_EXPECTED=4
-PLS_GATE_OCCUR_EXPECTED=4
-PLS_BMARK_FILES_EXPECTED=2
-PLS_BMARK_OCCUR_EXPECTED=2
-PLS_BSKEL_FILES_EXPECTED=2
-PLS_BSKEL_OCCUR_EXPECTED=2
+PLS_CAP='Phase 5 dispatches exactly ONE reviewer panel and ONE refuter, and the phase ends when the surviving findings are fixed'
+# Hand-written beside the check and independent of the list it polices, per the
+# argument above check_list_size in 00-helpers.sh. Today: 4 occurrences over 4 files
+# (SKILL.md, phases/phase-5-review.md, review-and-verify.md, review-scope.md), the
+# same four that carried the gate wording this replaced.
+PLS_CAP_FILES_EXPECTED=4
+PLS_CAP_OCCUR_EXPECTED=4
 
-pls_x_assert "$PLS_GATE" "$PLS_GATE_FILES_EXPECTED" "$PLS_GATE_OCCUR_EXPECTED"
-pls_x_assert "$PLS_BMARK" "$PLS_BMARK_FILES_EXPECTED" "$PLS_BMARK_OCCUR_EXPECTED"
-pls_x_assert "$PLS_BSKEL" "$PLS_BSKEL_FILES_EXPECTED" "$PLS_BSKEL_OCCUR_EXPECTED"
+pls_x_assert "$PLS_CAP" "$PLS_CAP_FILES_EXPECTED" "$PLS_CAP_OCCUR_EXPECTED"
+
+# B'S COMPLETENESS SECTION, PINNED IN BOTH HALVES, the instruction and the report
+# skeleton, because either alone leaves the other deletable while this stays green.
+# The instruction with no skeleton heading is a rule with nowhere to write the answer;
+# the skeleton heading with no instruction is a blank B fills in however it likes.
+# That is the same argument the retired round-marker pins made, and it applies harder
+# here: this section exists because a completeness critic running beside the panel
+# found nine findings none of the four lenses had, two of them severe, a shell
+# variable used but assigned nowhere in the tree and a new validator check that could
+# never go red in CI. It is a SECTION of B rather than a tenth agent, so nothing else
+# in the panel would notice its absence.
+#
+# Both numbers are 2 and stay 2: B's canonical prompt plus its agents/ byte-mirror. A
+# third copy of B's prompt is a roster change, not a wording change, and it should
+# redden here.
+PLS_BDNR='## What the review did not reach'
+# Pinned WHOLE and on ONE line. The first draft of this literal spanned two lines
+# of the hard-wrapped prompt, so the pin matched nothing and reddened at 0 of 2. The
+# sentence was reflowed to fit the pin rather than the pin trimmed to fit the
+# sentence, which is the same call [76g] records making one paragraph up.
+PLS_BCMP='A check that cannot fail passed for the wrong reason'
+PLS_BDNR_FILES_EXPECTED=2
+PLS_BDNR_OCCUR_EXPECTED=2
+
+pls_x_assert "$PLS_BDNR" "$PLS_BDNR_FILES_EXPECTED" "$PLS_BDNR_OCCUR_EXPECTED"
+pls_x_assert "$PLS_BCMP" "$PLS_BDNR_FILES_EXPECTED" "$PLS_BDNR_OCCUR_EXPECTED"

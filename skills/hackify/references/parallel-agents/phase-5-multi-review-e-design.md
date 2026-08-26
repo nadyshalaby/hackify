@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer E (design conformance)
 
-The design lens, dispatched whenever the diff is UI-bearing. Send it in the same parent message as whichever reviewers the Phase 5 evidence gate put on the panel: B (quality, layering and plan consistency) is the standing member and always runs, while A (security), D (performance) and F (cross-module coherence) run only when the diff gives their lens something to look at. Dispatch E whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome. Gate table: `../phases/phase-5-review.md`.
+The design lens, and the only conditional one on the panel. **A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**, so send E in the same parent message as A, B, D and F. Dispatch E whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome, and omit it rather than folding it when the diff has no UI surface at all. Panel table: `../phases/phase-5-review.md`.
 
 **Boundary against `phase-5-escalation.md`.** Reviewer E is the *standing* design lens, keyed to the project's committed `DESIGN.md`. The escalation reviewer stays for ad-hoc specialist surfaces the baseline roster does not cover (infrastructure, data migration, domain compliance, and deep accessibility audits beyond E's conformance checks). Dispatch E for design conformance; dispatch an escalation reviewer for anything else. They do not overlap, and the reviewer cap of 5 counts E.
 
@@ -38,20 +38,20 @@ Bias against: personal taste. You audit conformance to the spec that exists, nev
 it as given and do NOT re-derive it; spend your reads on the diff
    instead.
 8. `{{review_scope}}`, the git pathspec list the dispatcher assigned
-   to your lens. Resolve it into a diff command in three steps, in
-   order. (a) Strip a leading `settle `, it marks the settle round and
-   is not a pathspec. (b) If what remains is `all`, or the value was
-   absent or empty, use `.`, the whole diff; `all` is a reserved word
-   here and never a path, and handing git the literal `all` matches
-   nothing, exits 0 and hands you a clean report over an empty diff.
-   (c) Append `':(exclude)docs/work/*'` unconditionally, because the
+   to your lens. Resolve it into a diff command in two steps, in
+   order. (a) If the value was absent or empty, use `.`, the whole
+   diff. Anything that is not a pathspec list is a dispatch defect:
+   report it rather than guessing, and never hand git a bare word
+   like `all`, which matches nothing, exits 0 and hands you a clean
+   report over an empty diff.
+   (b) Append `':(exclude)docs/work/*'` unconditionally, because the
    work-doc is the ruler the diff is measured against and cannot also
    be the measured, and a bare `.` carries no exclusion of its own. So
    you run `git diff {{base_sha}}..{{head_sha}} -- <resolved>
    ':(exclude)docs/work/*'`. **Resolution rewrites the diff command,
    never the echo**, echo `{{review_scope}}` byte for byte as received
-   on the first line of your report, `settle ` prefix and `all`
-   included, or the parent cannot tell a settle round from an unscoped
+   on the first line of your report and never the value you resolved
+   it to, or the parent cannot tell a sliced lens from an unscoped
    one. If the resolved command returns no paths, report an empty scope
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file

@@ -2,7 +2,7 @@
 
 This file is the dispatchable sub-agent prompt for one Phase 3 implementer agent. Load it whenever the parent dispatches a Phase 3 execution wave; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT`, `SEVERITY` is omitted because this is a build template, not a review template) lives in `template-contract.md`, do not restate it here.
 
-Dispatch ONE agent for the whole execution wave, in a SINGLE assistant message. Each prompt is fully self-contained. The wave plan comes from the Phase 2.5 spec reviewer ([phase-2.5-spec-reviewer.md](phase-2.5-spec-reviewer.md)), and every task in a wave goes to that one agent. **There is no cap and no width valve, in any mode:** a wave of one task and a wave of nine each dispatch exactly one agent, and tasks are never split off by module. One agent per wave reads the shared types, neighbours and conventions once instead of once per task, quotes the rule files once instead of once per task, and cannot contradict itself across the halves of one feature. The price is a wider blast radius when a wave stops early, and the contract pays it down in its failure clause: the agent stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
+Dispatch ONE agent for the whole execution wave, in a SINGLE assistant message. Each prompt is fully self-contained. The wave plan comes from the Phase 2.5 spec reviewer ([phase-2.5-spec-reviewer.md](phase-2.5-spec-reviewer.md)), and every task in a wave goes to that one agent. **One agent takes a wave whose tasks share a read surface, and there is no cap on how wide that wave gets:** a wave of one task and a wave of nine each dispatch exactly one agent, and no task is ever split off by a module hunch. What is not fixed is the wave's SHAPE. A wave whose tasks do NOT share a read surface may be split into concurrent waves, one agent each, when the partition test in [../phases/phase-3-implement.md](../phases/phase-3-implement.md) passes; that test is the only thing that may split a wave. One agent per wave reads the shared types, neighbours and conventions once instead of once per task, quotes the rule files once instead of once per task, and cannot contradict itself across the halves of one feature. The price is a wider blast radius when a wave stops early, and the contract pays it down in its failure clause: the agent stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
 
 ```
 Subagent type: general-purpose
@@ -67,6 +67,13 @@ Bias against: refactoring outside the file allowlist or the task scope.
 test / lint / typecheck commands, layering rules, where things live).
 Treat it as given and do NOT re-derive it; spend your reads on the diff
    instead.
+13. `{{exclusive_resources}}`, the exclusive resources THIS wave holds,
+    each one named, one per line: a shared test database, a shared
+    fixture, a generated sequence, anything two processes cannot hold at
+    once without corrupting it. `none` is passed explicitly and means the
+    wave holds none. This input is never absent, an absent value means
+    the dispatcher did not decide, so refuse and say so.
+
 **OBJECTIVE**.
 A minimal, test-anchored diff that delivers every task in
 `{{task_ids}}`, the whole wave, from `{{work_doc_path}}`, each task
@@ -74,6 +81,17 @@ touching only the files in its own allowlist, and none touching
 anything outside `{{file_allowlist}}`.
 
 **METHOD**.
+**Before step 1, check the dispatch is COMPLETE.** Count the numbered INPUTS
+lines you actually received against the thirteen declared above.
+`{{exclusive_resources}}` (13) is the one whose absence is SILENT: step 10
+branches on what that input NAMES, so a prompt that simply omits the line reads
+as "names nothing", and the wave then runs the exclusive suite against a harness
+a concurrent wave is truncating while reporting PASS. Nothing else in this
+prompt would notice. An input that is MISSING, or that still carries literal
+`{{...}}` text, means the dispatcher did not decide: REFUSE the dispatch, name
+the input that did not arrive, and write nothing. Never infer a value, and never
+read `none` into a line that is not there, since `none` is a decision and an
+absent line is the absence of one.
 1. Read `{{work_doc_path}}` end-to-end. Re-read every block of
    `{{task_descriptions}}` verbatim. List the acceptance signals you
    will be verifying against, one set per task, before writing any code.
@@ -142,7 +160,22 @@ the wave stops early, and especially then.
    and the reason in your OUTPUT.
 10. Run `{{lint_command}}` scoped to the touched files. Run
     `{{typecheck_command}}` scoped to the touched files. Capture exit
-    codes. Do not run any repo-wide command.
+    codes. Do not run any repo-wide command. **When
+    `{{exclusive_resources}}` names anything, or when this wave is one of
+    several running at the same time, run SCOPED UNIT TESTS ONLY.** Never
+    run the suite that needs the exclusive resource; the parent runs that
+    suite once, serially, after the concurrent waves have landed. A
+    concurrent run against a harness that truncates tables is data
+    corruption, not a slowdown. **No INPUT carries the second fact, so
+    DERIVE it while you are in the work-doc at step 1:** its frontmatter
+    `current_task` key carries every task ID in the ROUND, across all of
+    its waves (`skills/hackify/references/phases/phase-3-implement.md`,
+    the pre-flight step that sets it), so a round naming IDs that are not in `{{task_ids}}` is a
+    round with another wave in it. If that key is absent or will not
+    parse, treat this wave as concurrent: the cheap wrong answer defers
+    one serial suite, the expensive one puts two waves in the same
+    truncating harness. Read UNIT literally, too. A scoped INTEGRATION
+    test still reaches the shared resource, so scoping it buys nothing.
 11. Do NOT modify any file outside the CURRENT task's own allowlist. A
     path that belongs to a different task in this wave is not yours
     while you are on this task, and `{{file_allowlist}}` is the outer
@@ -150,20 +183,112 @@ the wave stops early, and especially then.
     is wide by construction, and that width belongs to the wave, not to
     the task in front of you. If you discover you need a file outside,
     STOP and report under "Deviations", do not edit it. Do NOT commit;
-    the parent commits the wave.
+    the parent commits the wave. **Keep a running list of every path you
+    CREATE or MODIFY as you go, and a second list of every path you
+    DELETE.** Those lists are your DECLARATION: you know them because
+    you wrote them, and git cannot tell your uncommitted edit from a
+    concurrent wave's. Report them under `## Paths written` and
+    `## Paths deleted`, and expect the parent to reconcile the round
+    against both. A deletion needs its own line because the parent
+    cannot attribute one otherwise: a path that vanished appears in the
+    round's diff with nobody claiming it, which reads exactly like the
+    stray edit the reconciliation exists to catch. A deleted path is
+    bound by the same allowlist as a written one, so deleting a file
+    outside the CURRENT task's allowlist is the breach this step names,
+    not an exception to it.
+12. **Runs ONCE for the whole wave, not per task.** After your last
+    landed task and BEFORE you write your report, run BOTH deterministic
+    scouts over YOUR OWN file allowlist, meaning the paths in
+    `{{file_allowlist}}` you actually touched. Never the whole tree,
+    never another wave's files. Protocols:
+    `skills/hackify/references/perf-scout.md` and
+    `skills/hackify/references/law-scout.md`. This runs even when you
+    stopped early, over what you did land. **This is where fix-in-wave
+    lives:** you are still holding these files, so fix a TRIVIAL
+    in-allowlist candidate in place, mark it `fixed`, and stage
+    everything else. Where the law-scout's deterministic tier cannot run
+    here (no `python3`, or no resolvable path to the bundled scanner),
+    record `deterministic tier unavailable` as a staging row and run the
+    semantic tier only, per that protocol's own fallback; never drop a
+    tier silently. Every candidate gets exactly one disposition,
+    `staged` / `fixed` / `false-positive: <one-line reason>`, and every
+    one of them goes in your report under `## Scout dispositions`. A
+    candidate that vanishes without a row is a protocol violation, not a
+    judgment call. The parent scans again at round end over what the
+    round's waves DECLARED, the `## Paths written` lists rather than
+    the allowlist union, since a wave that stopped early declares a
+    strict subset on purpose. Your dispositions carry forward
+    unchanged, so a row you stage is a row that reaches Phase 5.
 
 **VERIFICATION**.
 
 ```bash
-# Binary pass/fail check the sub-agent runs before reporting done.
+# Binary pass/fail check the sub-agent runs before reporting done. BOTH halves
+# gate. Neither one reports and shrugs.
 set -e
 
-# (a) File-allowlist compliance.
-allow="{{file_allowlist}}"
-touched=$(git diff --name-only HEAD)
-echo "$touched" | while read -r f; do
-  [ -z "$f" ] && continue
-  echo "$allow" | grep -qxF "$f" || { echo "FAIL: $f not in file_allowlist"; exit 1; }
+# (a0) THE DISPATCH WAS COMPLETE BEFORE ANY OF IT RAN. Checked here because
+# `{{exclusive_resources}}` is the input whose ABSENCE is silent: an omitted line
+# leaves step 10 reading "names nothing" and the wave reports PASS having run the
+# exclusive suite against a harness a neighbour is truncating.
+#
+# EVERY VALUE BELOW ARRIVES AS DATA AND MUST NEVER BECOME SHELL. Each one is
+# pasted in from a prompt, and a quoted assignment cannot hold one safely: a
+# single-quoted string ENDS at the first apostrophe a path contains, and
+# everything after it parses as commands; a double-quoted one runs `$(...)` and
+# backticks with no apostrophe needed at all (CWE-78, OWASP A03:2021). Measured
+# on one hostile value carrying all three, the single-quoted form ran an injected
+# `touch` and died, and the double-quoted form ran two and exited 0 while doing
+# it. A heredoc whose delimiter is QUOTED expands nothing and ends only on a line
+# that is exactly the delimiter, so every such value goes between the markers as
+# literal text. Paste BETWEEN the markers, never onto the assignment line, and
+# never turn `<<'` into `<<`, which is the one edit that hands the expansion back.
+#
+# Fill this one with INPUT 13 as you received it, and leave the body EMPTY, the
+# placeholder line deleted and both markers kept, when your prompt carried no such
+# input at all, which is the case this refuses.
+exclusive=$(cat <<'HACKIFY_EXCLUSIVE_EOF'
+<INPUT 13 as received; delete this line entirely if the input was absent>
+HACKIFY_EXCLUSIVE_EOF
+)
+case "$exclusive" in
+  ''|*'{{'*|*'<INPUT 13'*)
+    echo "FAIL: no exclusive-resource decision reached this wave; refuse the dispatch"
+    exit 1 ;;
+esac
+
+# (a) Your DECLARATION, checked against your own allowlist.
+# `declared` is every path you CREATED or MODIFIED this wave, absolute, one per
+# line, the same list you report under `## Paths written`.
+#
+# git is NOT the input here, and restoring it as one would be a regression, not
+# an improvement. Waves in a round run at the same time, so a whole-tree
+# `git diff --name-only HEAD` carries a neighbour's legitimate edits and reads
+# them as your breach; it also never lists a file you CREATED and did not stage;
+# and no pathspec repairs either. Scoping that diff to your own allowlist is
+# worse than useless, since it returns only paths that were already inside the
+# allowlist and so can never fail. You know what you wrote, so you say what you
+# wrote, and the PARENT reconciles every wave's declaration against the tree
+# (`references/phases/phase-3-implement.md`, "The round's allowlist
+# reconciliation").
+#
+# One-way, here as everywhere: a declared path outside the allowlist is a
+# violation, an allowlist path you never wrote is an early stop working as
+# designed. Never assert the reverse.
+# Both of these are pasted values too, so both take the heredoc form argued at
+# (a0). The allowlist is the more dangerous of the two: it was double-quoted.
+allow=$(cat <<'HACKIFY_ALLOW_EOF'
+{{file_allowlist}}
+HACKIFY_ALLOW_EOF
+)
+declared=$(cat <<'HACKIFY_DECLARED_EOF'
+<every path you wrote this wave, absolute, one per line>
+HACKIFY_DECLARED_EOF
+)
+echo "$declared" | while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  echo "$allow" | grep -qxF -- "$f" ||
+    { echo "FAIL: declared $f is outside file_allowlist"; exit 1; }
 done
 
 # (b) Scoped test + lint + typecheck must all exit 0.
@@ -190,7 +315,15 @@ wave, then repeat the per-task skeleton once per task in
 the parent can tick each task and re-dispatch just the one that failed.
 A report that merges its tasks into one block is unusable, and so is
 one that leaves the parent counting headings to work out which task IDs
-landed.
+landed. `## Paths written` is wave-level and is the UNION of every
+per-task `## Files touched` list, so the two can never disagree. It is
+the declaration the parent reconciles the round against, so a path you
+leave out of it reads as an edit no agent admits to. **Write it as a
+FENCED BLOCK of BARE absolute paths, one per line: no bullet, no
+backticks, no commentary inside the fence.** The parent matches each line
+with `grep -qxF`, which is an exact whole-line match, so a leading `- `
+or a wrapping backtick makes every path miss and the reconciliation reads
+your whole wave as unclaimed.
 
 Tokens in `{{...}}` are pre-substituted by the dispatching agent, copy them verbatim. Tokens in `<...>` are placeholders YOU fill in with content you produced during METHOD.
 
@@ -202,6 +335,39 @@ Use this exact report skeleton:
 - Landed: <task IDs finished and verified, in order>
 - Not landed: <task IDs stopped or never started, "None." if all landed>
 - Stopped at: <task ID and one-line reason, "None." if all landed>
+
+## Paths written
+(once for the whole wave: every path this wave CREATED or MODIFIED,
+absolute, the union of the per-task `## Files touched` lists below, and
+the declaration the parent reconciles the round against, per METHOD step
+11. Bare paths INSIDE the fence, one per line, nothing else: this note
+sits outside it because the parent reads every fenced line as a path.)
+
+```
+<absolute path>
+<absolute path>
+```
+
+## Paths deleted
+(once for the whole wave: every path this wave DELETED, absolute, same
+rules as above and the same allowlist bound. Bare paths INSIDE the
+fence, one per line, nothing else. The fence is EMPTY when the wave
+deleted nothing, and an empty fence is the answer, not a missing
+section: without this section a deletion reaches the parent as a path in
+the round's diff that no wave claimed, which is indistinguishable from
+the stray edit the reconciliation exists to catch.)
+
+```
+<absolute path, or nothing at all>
+```
+
+## Scout dispositions
+(once for the whole wave, produced by METHOD step 12)
+- perf-scout: <candidate count, or "no candidates" plus the one-line reason>
+- law-scout: <finding count plus the coverage reconcile, or `deterministic
+  tier unavailable` plus why>
+- <one staging-table row per candidate, each ending in `staged` / `fixed` /
+  `false-positive: <one-line reason>`; "None." when neither scout found one>
 
 ## <task id>
 (everything below repeats once per task in `{{task_ids}}`, in order)
@@ -234,11 +400,13 @@ Use this exact report skeleton:
 If a section has nothing to report, write `None.` on its own line, never
 go silent.
 ```
+<!-- parent-side: not mirrored -->
 
-After the wave's single agent returns:
-1. Read its report, starting with the `## Wave status` section at the top: that is where the agent names which task IDs landed and which did not. Spot-check that nothing landed OUTSIDE the union of the wave's allowlists (`git diff --name-only`, every path in the diff must appear in the union). Do not assert the reverse. A wave that stopped early writes a strict SUBSET of the union on purpose, so a union path missing from the diff is the stop working as designed, and only a diff path missing from the union is a violation.
-2. Run the repo-wide triad ONCE, `<test runner command> && <linter command> && <typecheck command>`, substituting the project's actual commands.
-3. If any are red, classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b).
-4. Run BOTH deterministic scouts over the wave-touched files (the union of this wave's allowlists), **before ticking anything**: the perf-scout (`../perf-scout.md`) and the law-scout (`../law-scout.md`). Give every candidate exactly one disposition, `fixed` (trivial and inside this wave's allowlist), `staged` (carried to Phase 5), or `false-positive: <one-line reason>`. Append both staging tables to this wave's Daily Updates entry. A candidate that vanishes without a row is a protocol violation.
-5. Tick ONLY the task IDs the report's `## Wave status` lists as landed, never the whole wave. Ticking a task the agent never finished records work that is not on disk, which is the one thing a work-doc must never do. The not-landed IDs stay unticked: re-dispatch them in the next wave dispatch when the agent stopped for an agent reason (a bad prompt, a lost context, a tool failure), and drop to Phase 3b with them when it stopped for a plan reason (the task as written cannot be built). Append one Daily Updates entry per landed task, plus one line naming the stopping task and its reason whenever anything did not land.
-6. Single commit for the wave (subject covers the wave; body lists the task IDs that landed).
+After the round's wave agents have returned. **Steps 1 and 6 run once PER WAVE; steps 2, 3, 4, 5 and 7 run once for the ROUND, after every wave in it has returned.** A round holding one wave is that same rule with one wave in it.
+1. Read EACH wave's report, starting with the `## Wave status` section at the top: that is where the agent names which task IDs landed and which did not. Then take that report's `## Paths written` list, the wave's DECLARATION of every path it created or modified, and set it beside that wave's own file allowlist. That list is a fenced block of BARE absolute paths, one per line, which is the shape `grep -qxF` matches; a bullet or a backtick in it is a malformed report, not an unclaimed path, and it is sent back rather than reconciled.
+2. Reconcile the ROUND three ways, before anything else runs: every path a wave declares is inside THAT wave's own allowlist, no path is claimed by two waves, and no path in the round's diff is unclaimed. All three can come back dirty. The third is the one that catches a stray edit no agent admits to, and it is the one only a declaration makes possible, since git cannot attribute an uncommitted change to a wave; the work-doc is its only exempt path, per `no-parent-authored-diff`. Canonical rule and the runnable form, including why the old `git diff --name-only HEAD -- <allowlist>` form could never fail: `../phases/phase-3-implement.md`, "The round's allowlist reconciliation". Then check each task's hunks stayed inside that task's OWN allowlist, since the wave union never widens what one task may touch.
+3. Run the repo-wide triad ONCE for the round, `<test runner command> && <linter command> && <typecheck command>`, substituting the project's actual commands. Any suite that needs an exclusive resource runs HERE and nowhere else, which is the other half of the scoped-unit-tests-only clause the wave agents run under.
+4. If any are red, classify: agent failure (re-dispatch the offending task with a sharper prompt) vs. plan failure (drop to Phase 3b). A red belongs to the wave that caused it; the other waves in the round keep everything they landed.
+5. Run BOTH deterministic scouts over what the round's waves DECLARED, the `## Paths written` lists step 2 already reconciled rather than the union of the allowlists (a wave that stopped early declares a strict subset on purpose, and the rest is files the round never touched), **before ticking anything**: the perf-scout (`../perf-scout.md`) and the law-scout (`../law-scout.md`). **This is the second of two Phase 3 run points**, and every wave already scanned its own allowlist before it returned, under `## Scout dispositions` in its report. Carry those rows into the round's staging table unchanged: a candidate an agent already dispositioned is NOT re-dispositioned here. Then give every candidate this wider scope newly makes visible exactly one disposition, `staged` (carried to Phase 5) or `false-positive: <one-line reason>`. **The parent never writes the fix itself.** A trivial cross-wave finding worth closing now goes back out as a one-task wave scoped to the owning file's allowlist, because every code change is written by a dispatched agent under an allowlist. Append both staging tables to that wave's Daily Updates entry. A candidate that vanishes without a row is a protocol violation. Canonical rule for both run points: `../phases/phase-3-implement.md`.
+6. Tick ONLY the task IDs the report's `## Wave status` lists as landed, never the whole wave. Ticking a task the agent never finished records work that is not on disk, which is the one thing a work-doc must never do. The not-landed IDs stay unticked: re-dispatch them in the next wave dispatch when the agent stopped for an agent reason (a bad prompt, a lost context, a tool failure), and drop to Phase 3b with them when it stopped for a plan reason (the task as written cannot be built). Append one Daily Updates entry per landed task, plus one line naming the stopping task and its reason whenever anything did not land.
+7. ONE commit for the ROUND, after every wave in it has returned. The subject covers the round; the body names every task ID in the round and marks which landed and which did not, on the same rule step 6 ticks by. A round of one wave is this rule with one wave in it.

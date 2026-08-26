@@ -1,6 +1,6 @@
 # Law-scout (deterministic engineering-law scan)
 
-A predictable scan that surfaces **engineering-law violations** in the code this sprint touched, keyed to the stable `rule_id`s in [lawkeeper's rule catalog](../../lawkeeper/references/rule-catalog.md). Run by the parent at fixed points in the workflow; its output feeds the Phase 5 address-all decision table and Reviewer B (quality & layering).
+A predictable scan that surfaces **engineering-law violations** in the code this sprint touched, keyed to the stable `rule_id`s in [lawkeeper's rule catalog](../../lawkeeper/references/rule-catalog.md). Run at fixed points in the workflow, by the wave agent over its own file allowlist and by the parent over the wider scopes; its output feeds the Phase 5 address-all decision table and Reviewer B (quality & layering).
 
 Sibling protocol to [perf-scout.md](perf-scout.md). Same contract, different law: the perf-scout finds `perf.*` waste, the law-scout finds `ban.*` / `cap.*` / `sec.*` / `clean.*` rule breaks. Both feed the same decision table.
 
@@ -15,10 +15,13 @@ Sibling protocol to [perf-scout.md](perf-scout.md). Same contract, different law
 
 | Run point | Scope | What happens with findings |
 |---|---|---|
-| **Phase 3, every wave-end** | Union of the wave's file allowlists, before tasks tick | Trivial fixes inside the wave's allowlist land in-wave (mark `fixed`); everything else is `staged` |
+| **Phase 3, the AGENT, before it returns** | That wave's OWN file allowlist, the files it landed | Trivial in-allowlist candidates are fixed in place (mark `fixed`); everything else is `staged` in the wave report |
+| **Phase 3, the PARENT, every round-end** | The round-touched files (what the round's waves DECLARED under `## Paths written`, never the allowlist union), before tasks tick | Each wave's dispositions carry forward unchanged; what the wider scope newly shows is `staged` for Phase 5, or sent back out as a one-task wave. The parent never writes the fix |
 | **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to Reviewer B as `{{law_scout_report}}`; `staged` rows join the address-all decision table |
 | **quick (5-lite mirror)** | Touched files, before the single-lens review | Resolved in the same pass; the quick lens carries the law lens too |
-| **yolo (mirror)** | Same two points as full hackify | Findings enter yolo's address-all loop, auto-fixed at every severity |
+| **yolo (mirror)** | Same three points as full hackify, both Phase 3 run points and Phase 5 start | Findings enter yolo's address-all loop, auto-fixed at every severity |
+
+**Why the Phase 3 run point is BOTH the wave and the round.** The two scans answer questions the other cannot, so neither replaces it. The AGENT scan is keyed to the wave because that is the only moment fix-in-wave is possible at all: the agent is still holding its files, they sit inside its own allowlist, and a trivial fix lands in the same diff. The PARENT scan is keyed to the round because tasks tick at round end and the parent runs its repo-wide checks once per round, so a parent scan keyed to wave-end would run before the thing it is meant to gate. Where a round holds two or more waves it also reaches what no agent scan can: the round's declared set is the only scope in which a defect crossing two waves is visible, because no agent can scan a file it never held. **On a single-wave round that scope reason is void**, the round's declared set IS what that one wave declared, and the mandate still holds because two questions survive the collapse. First, whether the agent ran its scan at all: the wave report is a claim, and the parent's own scan is what checks it. Second, whether a fix-in-wave regressed the file after the agent's scan had already passed: a fix-in-wave edit lands AFTER the scan that surfaced the candidate, and nothing at the agent's run point re-reads the file once it has been edited, so the agent's green grades the pre-fix state and the parent's scan is the first read of the post-fix one. Canonical statement of both run points and the loop they sit in: [phases/phase-3-implement.md](phases/phase-3-implement.md).
 
 The write-time ban hook (`hooks/block-banned-tokens.sh`) already blocks some of these tokens *as they are typed*, but only for net-new lines in JS/TS files. The scout is what catches everything the hook cannot see: file-size caps, inline types, ownerless debt markers, `// removed:` leftovers, project `ban-patterns.txt` lines, non-JS stacks, and any file written by a tool the hook does not intercept. Running both is not redundant.
 
@@ -32,7 +35,10 @@ git diff --name-only "<base_sha>..HEAD" -- . ':(exclude)docs/work/*' > "$SCOUT_P
 # file no reviewer grades, and those rows rejoin the address-all table, which reopens
 # the loop the exclusion exists to close. Latent only while `.md` sits outside the
 # scanner's default extensions, and the `--text-only-ext .md` line below makes it live.
-# ... or the union of the wave's file allowlists, one path per line, at wave-end.
+# ... or, at the parent's round-end run point, the round-touched files (what the round's
+# waves DECLARED under `## Paths written`, never the allowlist union), one path per line.
+# At the AGENT's run point it is that wave's own share of the same set: just the files
+# that wave landed, inside its own allowlist and no other wave's.
 
 # 2. Run the bundled scanner over ONLY those paths.
 python3 "<plugin-root>/skills/lawkeeper/scripts/audit_scan.py" "<project_root>" \
@@ -97,10 +103,10 @@ Carve-outs are honored before anything is reported: test files, generated code, 
 
 ## STAGING
 
-Stage findings in exactly this table (append it to the work-doc section for the run point, the wave log at wave-end, the Phase 5 review section at review start):
+Stage findings in exactly this table (the AGENT appends it to its own wave report under `## Scout dispositions`, the parent transcribes those rows into the wave log and appends the round-end table beside them, and at review start it goes in the Phase 5 review section):
 
 ```markdown
-### Law-scout (<wave-id or phase-5>, <YYYY-MM-DD>)
+### Law-scout (<run-point-id>, <YYYY-MM-DD>)
 
 | Finding | rule_id | file:line | Evidence | Proposed fix | Status |
 |---|---|---|---|---|---|
@@ -110,6 +116,7 @@ Stage findings in exactly this table (append it to the work-doc section for the 
 | Bare Error in a UI asset | ban.bare-error | web/src/boot.tsx:9 | throw is in presentation, not domain code | none | false-positive: not domain code |
 ```
 
+- **`<run-point-id>`** names the run point that produced the table, and it is what tells two tables apart where both sit in one wave log under this same heading grammar: `<wave-id>-agent` for the wave agent's own scan over the files it landed, taking the wave id the Approach's execution-wave plan already assigns (`W9c-agent`); `R<n>-round-end` for the parent's scan over what that round's waves declared (`R9-round-end`); `phase-5` for the sprint-diff scan. Without it the round scan's first question, whether the agent ran its own scan at all, has no answer a reader can read off the log. On a single-wave round the two scopes coincide by construction and the id still earns its place, because the two SCANS do not: run point 1's green graded the pre-fix-in-wave state, and run point 2 is the first read of the post-fix one.
 - **Status** is one of `staged` / `fixed` / `false-positive: <one-line reason>`.
 - **Into the Phase 5 decision table** (Finding / Severity / Decision / Evidence): Finding, file:line, and Evidence carry over; Severity maps from the catalog (`critical` → Critical, `high` → Critical, `medium` → Important, `low` → Minor), and Reviewer B may move it one level in context with the reason stated. `staged` rows enter as accept-candidates.
 
@@ -119,7 +126,7 @@ Stage findings in exactly this table (append it to the work-doc section for the 
 - **Dismissing needs a one-line reason** tied to a documented carve-out or the run context (test fixture, generated file, project exception).
 - **`sec.hardcoded-secret` can never be dismissed by the implementer.** It is the only catalog-critical mechanical rule. Reviewer A (security) co-signs any dismissal; in quick mode the 5-lite reviewer co-signs.
 - **The two syntactic rules need the one-step check before staging.** `ban.bare-error`: is the throw in domain code? `ban.inline-type`: does the declaration have 2+ properties? Record the answer in Evidence, not the fact that you checked.
-- **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist; mark them `fixed` with the diff in the wave log. Everything else waits for the address-all loop.
+- **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist, and only at the AGENT's run point, where the agent still holds those files; mark them `fixed` with the diff in the wave report. **The parent never fixes at round-end**, it stages, or sends the work back out as a one-task wave scoped to the owning file's allowlist, because every code change is written by a dispatched agent under an allowlist. Everything else waits for the address-all loop.
 - **Pre-existing findings in touched files are in scope.** A cap break or empty catch that the sprint did not introduce, but which lives in a file the sprint edited, is a Phase 6 Step C.5 class (g) item: surface it and offer to fix so touched files end clean. Untouched files stay out of scope.
 
 ## See also

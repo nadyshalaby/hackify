@@ -89,12 +89,17 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[75f] review loop exits on a settled diff, not the first clean scan"
+yellow "[75f] Phase 5 closes once, and the clause that says so is intact"
+# Was: the settled-diff exit condition, which policed a review LOOP. The 0.16.0
+# round cap removed the loop, so that premise is gone and writing the old phrase
+# back would leave a pin green over a doc asserting the opposite. What still
+# needs guarding is the cap's hard edge: soften "no second panel" and the loop
+# quietly returns with nothing to notice.
 RAV="skills/hackify/references/review-and-verify.md"
-if grep -qF 'unchanged since' "$RAV" || grep -qF 'settled diff' "$RAV"; then
-  green "  ok   $RAV states the settled-diff exit condition"
+if grep -qF 'no second panel, no second refuter and no re-scan' "$RAV"; then
+  green "  ok   $RAV states the one-panel cap without an escape hatch"
 else
-  red "  FAIL $RAV missing the settled-diff exit condition (a clean scan on a stale diff must not end the loop)"
+  red "  FAIL $RAV missing the no-second-panel clause (softening it silently restores the review loop the cap replaced)"
   FAILED=$((FAILED + 1))
 fi
 
@@ -110,8 +115,10 @@ else
 fi
 
 yellow "[75h] agent mirrors are byte-identical to the canonical source they claim to mirror"
-# Four agent files assert "mirrors its fenced block byte-for-byte". Until
-# v0.9.0 that was verified by hand (the 0.8.1 release notes say so). A claim
+# Every agent file in agents/ asserts "mirrors its fenced block byte-for-byte".
+# It said FOUR here for four releases after the set reached nine, and the ninth
+# file did not carry the sentence at all until this sprint gave it one. Until
+# v0.9.0 the claim was verified by hand (the 0.8.1 release notes say so). A claim
 # nothing checks is a claim that drifts, and the mirrors just multiplied.
 #
 # Extraction: the outer fence is a line of exactly three backticks; the
@@ -123,9 +130,33 @@ extract_fenced() {
 # lives in exactly one place. A second hand-maintained copy here would be the
 # very duplication this check exists to catch.
 MIRROR_PAIRS=$(python3 scripts/sync_agent_mirrors.py --list 2>/dev/null)
+# EMPTINESS WAS THE ONLY THING GUARDED, AND FIVE OF NINE IS NOT EMPTY. Measured:
+# drop four tuples from MIRROR_PAIRS and this loop prints five greens, the tail
+# branch prints its own, and the whole validator exits 0 on ALL CHECKS PASSED
+# with four mirrors covered by neither half.
+#
+# THE FLOOR COMES FROM agents/ AND THAT IS THE POINT, not a tidier way to write
+# 9. A number beside the list is edited by the same hand that shortens the list,
+# in the same file, in the same minute. agents/ is a second source: the sync
+# script's own docstring says the pair list and the contents of agents/ are the
+# same things, so a tuple dropped there leaves a file behind here and the two
+# stop agreeing. Adding a tenth agent moves both, and moving only one reds,
+# which is the whole behaviour being bought.
+#
+# Both counts are captured as their own statement. `grep -c` exits 1 on zero
+# matches, so folding either into `x=$(...) && ...` reports a real zero as the
+# assignment failing. `wc -l` pads on macOS, so the digits are stripped before
+# the arithmetic compare rather than after it.
+MIRROR_PAIR_TOTAL=$(printf '%s\n' "$MIRROR_PAIRS" | grep -cF '|')
+AGENT_FILE_TOTAL=$(find agents -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')
 if [ -z "$MIRROR_PAIRS" ]; then
   red "  FAIL scripts/sync_agent_mirrors.py --list produced no pairs"
   FAILED=$((FAILED + 1))
+elif [ "$MIRROR_PAIR_TOTAL" -ne "$AGENT_FILE_TOTAL" ]; then
+  red "  FAIL the mirror pair list covers $MIRROR_PAIR_TOTAL pair(s) against $AGENT_FILE_TOTAL file(s) in agents/; every agent file is a mirror, so the difference is covered by neither half of [75h] and both halves stay green over it"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   the mirror pair list covers all $AGENT_FILE_TOTAL file(s) in agents/"
 fi
 while IFS='|' read -r mirror canonical; do
   [ -n "$mirror" ] || continue
@@ -144,6 +175,116 @@ while IFS='|' read -r mirror canonical; do
 done <<MIRROR_EOF
 $MIRROR_PAIRS
 MIRROR_EOF
+
+# THE FENCED BLOCK IS ONLY HALF OF WHAT A MIRROR CARRIES. Everything after it,
+# the OUTPUT skeleton and whatever follows, is hand-maintained on BOTH sides and
+# the sync script never copies it, so the loop above is blind to it: a tail could
+# drift on both sides and this check still printed nine greens. A planted
+# regression proved it.
+#
+# WHY THIS IS NOT A SECOND diff LOOP. Part of a template's tail is parent-side by
+# design (a dispatcher's round procedure, a `## See also` block), so full
+# equality reds on a healthy tree, and a bare prefix test passes a mirror that
+# lost its whole tail because eight of the nine mirrors carry an empty tail
+# legitimately. The template marks where its mirrored region ends and the
+# comparison lives in scripts/sync_agent_mirrors.py, over the same split this
+# check already reads its pair list from. One implementation, read here rather
+# than rewritten in awk.
+#
+# A CRASH IS NOT DRIFT, AND THIS BRANCH USED TO CALL IT ONE. Delete a fence from
+# any mirror and the comparison raises; the traceback landed in $TAIL_REPORT, the
+# FAIL grep matched nothing, and the operator was told a tail had drifted and the
+# sync script could not fix it, with no detail under it. It failed safe, so the
+# cost was only debugging time, but a confident wrong diagnosis spends that time
+# in the wrong file. rc alone cannot tell the two apart, since an uncaught Python
+# exception also exits 1, so the discriminator is whether the report named any
+# drift at all.
+#
+# AND THE GREEN NAMED NINE MATCHES OVER ONE COMPARISON. Eight of the nine pairs
+# owe their mirror an EMPTY tail region, so "every mirror tail matches its
+# template up to the parent-side marker" was a ninefold claim with content on one
+# pair. The script now prints `none` for a pair it did not compare and ends on a
+# summary counting the two kinds apart; this branch quotes that summary instead
+# of restating a claim, and counts the verdict lines so a short list cannot exit
+# 0 over a comparison that never ran.
+#
+# The exit code is its own statement, for the reason the pair-count block above
+# gives. `grep -F 'FAIL'` carries no `--` guard here and neither does [75e] four
+# blocks up: the house rule in this file is that a `--` guard goes on a pattern
+# read out of a variable, where a leading `-` is possible, and a literal spelled
+# in place cannot be read as an option.
+TAIL_REPORT=$(python3 scripts/sync_agent_mirrors.py --check-tails 2>&1)
+TAIL_RC=$?
+TAIL_VERDICTS=$(printf '%s\n' "$TAIL_REPORT" | grep -cE '^  (ok|none|FAIL) ')
+TAIL_FAILS=$(printf '%s\n' "$TAIL_REPORT" | grep -cE '^  FAIL ')
+if [ "$TAIL_RC" -ne 0 ] && [ "$TAIL_FAILS" -eq 0 ]; then
+  red "  FAIL the mirror tail comparison CRASHED (exit $TAIL_RC) without reporting drift on any pair, so nothing was compared; this is a broken comparison rather than a drifted tail, and hand-carrying text between the mirrors will not fix it"
+  printf '%s\n' "$TAIL_REPORT" | tail -6 | sed 's/^/         /'
+  FAILED=$((FAILED + 1))
+elif [ "$TAIL_RC" -ne 0 ]; then
+  red "  FAIL a mirror tail drifted from the canonical tail it must carry (hand-maintained on both sides, the sync script cannot fix it)"
+  printf '%s\n' "$TAIL_REPORT" | grep -F 'FAIL' | head -6 | sed 's/^/         /'
+  FAILED=$((FAILED + 1))
+elif [ "$TAIL_VERDICTS" -ne "$AGENT_FILE_TOTAL" ]; then
+  red "  FAIL the mirror tail comparison returned a verdict for $TAIL_VERDICTS pair(s) against $AGENT_FILE_TOTAL file(s) in agents/; it exited 0 over a list shorter than the set it covers, which is a green nobody measured"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   $TAIL_VERDICTS mirror tail verdict(s) over $AGENT_FILE_TOTAL agent file(s): $(printf '%s\n' "$TAIL_REPORT" | tail -1 | sed 's/^ *//')"
+fi
+
+# AND THE HEAD IS THE THIRD REGION, HAND-DUPLICATED PROSE ON ONE PAIR. Above the
+# fence each side is its own document, a mirror opening with YAML frontmatter and
+# a template with an H1, so there is no mirrored region for a marker to bound and
+# both branches above are silent there by construction
+# (scripts/sync_agent_mirrors.py, "WHAT THE HEAD IS NOT"). That silence cost
+# nothing until the wave-implementer pair began restating the SAME dispatch rule
+# in both heads. Measured before this block existed: 1230 characters on the
+# mirror against 1276 on the template, already divergent, compared by nothing.
+#
+# WHY CLAUSES AND NOT A BYTE COMPARE. The two copies differ ON PURPOSE in exactly
+# two spans, and both are pointers aimed at different readers: the agent file
+# names the runtime agent type it is dispatched by, the template links the
+# sibling file a reader opens next. Byte equality would hand one audience the
+# other's pointer. So what is pinned is the RULE the duplication exists to state,
+# on both sides, and a clause dropped or reworded on either side reds.
+#
+# HEAD-SCOPED, BECAUSE A WHOLE-FILE GREP WOULD LET THE BLOCK MASK THE HEAD. That
+# is the same masking [38d] guards against in the skill descriptions, and one
+# clause here already fails that way: "reports which task IDs landed and which
+# did not" appears in the mirror's frontmatter too, so it is deliberately NOT in
+# the list below. Every clause that IS below was measured at exactly one
+# occurrence per file, in the head, on both sides.
+head_above_fence() { awk '/^```$/{exit} {print}' "$1"; }
+WI_HEAD_FILES='agents/wave-implementer.md
+skills/hackify/references/parallel-agents/phase-3-implementation.md'
+WI_HEAD_CLAUSES='One agent takes a wave whose tasks share a read surface
+no task is ever split off by a module hunch
+that test is the only thing that may split a wave
+cannot contradict itself across the halves of one feature
+the agent stops at the first task it cannot finish
+The price is a wider blast radius when a wave stops early'
+WI_CLAUSE_TOTAL=$(printf '%s\n' "$WI_HEAD_CLAUSES" | grep -c .)
+while IFS= read -r wi_file; do
+  [ -n "$wi_file" ] || continue
+  if [ ! -f "$wi_file" ]; then
+    red "  FAIL $wi_file missing, so the duplicated head prose was never compared"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  wi_head=$(head_above_fence "$wi_file")
+  wi_missing=0
+  while IFS= read -r wi_clause; do
+    [ -n "$wi_clause" ] || continue
+    if ! grep -qF -- "$wi_clause" <<<"$wi_head"; then
+      red "  FAIL $wi_file lost the duplicated head clause '$wi_clause'; this pair states the dispatch rule in BOTH heads and nothing else compares them"
+      FAILED=$((FAILED + 1))
+      wi_missing=1
+    fi
+  done <<<"$WI_HEAD_CLAUSES"
+  if [ "$wi_missing" = "0" ]; then
+    green "  ok   $(basename "$wi_file") head carries all $WI_CLAUSE_TOTAL duplicated dispatch-rule clauses"
+  fi
+done <<<"$WI_HEAD_FILES"
 
 yellow "[75i] orchestration tier + iteration driver + completion sentinel are wired as defaults in every mode"
 # `ultracode` and `/loop` became workflow DEFAULTS in v0.9.0, `/goal` joined

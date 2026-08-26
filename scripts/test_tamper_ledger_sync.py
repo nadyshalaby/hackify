@@ -147,7 +147,7 @@ def test_98_an_archived_doc_created_after_the_pin_with_no_section_0_reds():
   expect_red(rc, out, 'docs/work/done/planted.md is archived and '
              'resolves to %s, on or after the day section 0 became a work-doc '
              'section, yet it carries no ## 0. Phase ledger block' % AFTER_LEDGER,
-             'never deleted, per skills/hackify/references/phase-ledger.md:91')
+             'never deleted, per skills/hackify/references/phase-ledger.md:110')
 
 
 def test_98_an_archived_doc_created_before_the_pin_needs_no_section_0():
