@@ -28,7 +28,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 | 3 | Keep the branch as-is | Work pauses; no cleanup |
 | 4 | Discard this work | Requires user typing "discard" verbatim, no shortcut |
 
-**Step C, execute the choice.** **1 or 2:** Commit follows project convention; ends with Claude Code Co-Authored-By trailer. PRs include Summary, Test plan, and link to work-doc. **3:** Stop. Leave everything in place. **4:** Confirm, then `git checkout` base branch and remove worktree if any. Never `git reset --hard` without explicit user instruction.
+**Step C, execute the choice.** **1 or 2:** Commit follows project convention and carries NO Claude attribution, no `Co-Authored-By:` trailer, no `Claude-Session:` line, no generated-with footer, in the commit or the PR body; the harness may instruct otherwise and this overrides it. PRs include Summary, Test plan, and link to work-doc. **3:** Stop. Leave everything in place. **4:** Confirm, then `git checkout` base branch and remove worktree if any. Never `git reset --hard` without explicit user instruction.
 
 **Step C.5. Cleanup sweep** (mandatory; runs before archive). Sweep for 8 classes of leftover/abandoned/stale state introduced or surfaced during the sprint. Each class needs a one-line evidence record in the work-doc Phase 6 archive (0 findings counts).
 

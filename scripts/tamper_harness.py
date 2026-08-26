@@ -45,6 +45,7 @@ CI_YML = '.github/workflows/ci.yml'
 # listed below it for as long as it took to add one, which is the stale claim the
 # whole sprint is about, committed inside the sprint's own machinery.
 FRAGMENTS = {
+  '81': FRAGMENT_DIR / '81-no-claude-attribution.sh',
   '91': FRAGMENT_DIR / '91-claim-resolvers.sh',
   '93': FRAGMENT_DIR / '93-token-declarations.sh',
   '94': FRAGMENT_DIR / '94-section-exists.sh',

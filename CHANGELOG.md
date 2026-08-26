@@ -5,6 +5,41 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2026-08-26
+
+> **Commits and pull requests stop carrying Claude's name.** The skill used to instruct the
+> attribution and now forbids it: no `Co-Authored-By:` trailer, no `Claude-Session:` line, no
+> generated-with footer, in a commit message or a PR body. A repository's history is the project's
+> record rather than a tool's, and a reader of `git log` should see the change and who owned it. The
+> runtime harness ships a standing instruction to append those lines, so the rule says out loud that
+> it overrides that instruction; a rule that quietly disagrees with the instruction in front of you
+> at the moment you write the commit is not a rule. Where a project genuinely wants the attribution,
+> its own CLAUDE.md asks for it and that request wins. Silence is a no.
+
+### Changed
+
+- **Five sites flipped, four of which used to mandate the trailer rather than merely allow it.**
+  `references/implement-and-test.md` carried it in the commit template and again in the worked
+  example; `phases/phase-6-finish.md` said a commit "ends with Claude Code Co-Authored-By trailer";
+  `references/finish.md` put a generated-with footer in every PR body template; and `yolo`'s own eval
+  scored a run as correct FOR carrying the trailer, which would have graded the new rule as a
+  failure.
+
+### Added
+
+- **Check `[81]`, which is why this is a rule and not a preference.** The thing it guards against is
+  not a careless edit, it is a default reasserting itself, and prose alone already lost that argument
+  once. It bans the trailer, the session line, the bracketed footer and the noreply address across
+  `skills`, `agents`, `rules`, `commands` and `README.md`, and it separately pins the rule sentence at
+  each of the four sites that state it, because a ban-only check is perfectly green over a skill that
+  has quietly stopped saying anything. The banned tokens are trailer-shaped rather than
+  mention-shaped, carrying the part only a real trailer has, so the rule can name what it forbids
+  without reddening itself. Nine tamper rows in `scripts/test_tamper_attribution.py` plant every one
+  of those losses and show the check red, taking the battery from 148 rows to 157. What the check
+  cannot reach, stated plainly: it reads the shipped instructions that tell an agent how to write a
+  commit, never a commit message itself, and the 289 commits already carrying trailers were left
+  alone rather than rewritten.
+
 ## [0.16.0] - 2026-08-26
 
 > **Phase 3 stops being the workflow's throughput floor, and every safety property it carried

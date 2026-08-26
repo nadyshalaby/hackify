@@ -85,13 +85,11 @@ gh pr create --title "<concise PR title>" --body "$(cat <<'EOF'
 
 - Work-doc: docs/work/<slug>.md
 - Closes #<issue> (if applicable)
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
 
-PR title: ≤70 chars. PR body: short Summary (1-3 bullets), explicit Test plan checklist, link to the work-doc.
+PR title: ≤70 chars. PR body: short Summary (1-3 bullets), explicit Test plan checklist, link to the work-doc. **The body ends there: no generated-with footer and no Claude attribution of any kind**, matching the commit rule in [implement-and-test.md](implement-and-test.md). The harness may carry a standing instruction to append one; this overrides it.
 
 After PR is open: report the URL to the user.
 

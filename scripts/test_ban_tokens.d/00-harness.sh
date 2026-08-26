@@ -68,9 +68,9 @@ tb_drop_unreadable() {
 # a token carrying a newline is itself a defect the token guard reddens.
 # ---------------------------------------------------------------------------
 tb_extract_lists() {
-  python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_TMP" <<'PY'
+  python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_SRC_81" "$TB_TMP" <<'PY'
 import io, re, shlex, sys, os
-src70, src77, tmp = sys.argv[1], sys.argv[2], sys.argv[3]
+src70, src77, src81, tmp = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
 # All three lists are shell arrays, so one parser serves all of them, and it reads
 # bare words and quoted words alike. An empty parse exits non-zero right here
@@ -93,7 +93,8 @@ def parse_array(path, name):
 
 lists = (("tokens70.txt", parse_array(src70, "P5_BANS")),
          ("tokens77.txt", parse_array(src77, "RR_BANS")),
-         ("tokens77rpt.txt", parse_array(src77, "RR_RPT")))
+         ("tokens77rpt.txt", parse_array(src77, "RR_RPT")),
+         ("tokens81.txt", parse_array(src81, "CA_BANS")))
 for name, toks in lists:
     with io.open(os.path.join(tmp, name), "w", encoding="utf-8") as fh:
         fh.write("".join(t + "\n" for t in toks))

@@ -60,7 +60,11 @@ TB_EXPECT_77=60
 TB_EXPECT_RPT=6
 # The number CHANGELOG.md stakes a claim on, "all 89 tokens in the validator's three
 # batched ban lists". THREE was prose with nothing behind it, so it is written here.
-TB_EXPECT_CALLS=3
+# FOUR since 0.16.1, when [81] added the attribution ban. The changelog sentence that
+# said three is a historical entry describing the tree at ITS release and is left
+# alone; a record does not go wrong because the tree later grew.
+TB_EXPECT_CALLS=4
+TB_EXPECT_81=4
 
 # The two files whose ban lists this test re-reads on every run, so it always
 # tests what ships rather than a copy that can drift away from it. The names
@@ -69,6 +73,7 @@ TB_EXPECT_CALLS=3
 # 70 was split at the 500-LOC cap, and the check ID went with it.
 TB_SRC_70="scripts/validate-dod.d/71-release-mechanism-pins.sh"
 TB_SRC_77="scripts/validate-dod.d/77-reviewer-roster.sh"
+TB_SRC_81="scripts/validate-dod.d/81-no-claude-attribution.sh"
 # The harness and the cases, sourced in order. Definitions only: every one of
 # them reads TB_TMP, TB_LIST and the counters above at CALL time, so the run
 # order at the foot of this file is still the only thing that decides what runs.
@@ -192,6 +197,7 @@ tb_check_call_sites
 tb_check_list_size "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_check_list_size "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 tb_check_list_size "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
+tb_check_list_size "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ban list"
 
 tb_load_list "$TB_TMP/tokens70.txt"
 tb_case_green_path
@@ -215,6 +221,12 @@ tb_plant_every_token "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 # differs between this section and the one above it is which array screens the
 # plant. Planting these with the RR_BANS array would prove nothing about them.
 tb_plant_every_token "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
+
+# [81]'s list, planted the same way. Its tokens are trailer-shaped rather than
+# bare names on purpose (the fragment says why), so planting one writes a string
+# only a real trailer carries, and a green here means the net catches the real
+# thing rather than a mention of it.
+tb_plant_every_token "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ban list"
 
 # Ran to completion. tb_finish reads this status, so a finished run is
 # distinguishable from an exit taken anywhere above rather than being whatever

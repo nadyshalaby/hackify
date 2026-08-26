@@ -57,6 +57,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import test_tamper_attribution
 import test_tamper_dist_integrity
 import test_tamper_fragments
 import test_tamper_hostile
@@ -70,7 +71,8 @@ from replay_claim_checks import (ClassCheck, MissingFixtureError, UnscorableRunE
 from tamper_harness import (COUNT_BUMP, RED_CALL, REPO_ROOT, TEMPLATE, apply_edits,
                             clean_scratch, expect, temp_dir)
 
-PARTS = (test_tamper_dist_integrity, test_tamper_fragments, test_tamper_hostile,
+PARTS = (test_tamper_attribution, test_tamper_dist_integrity, test_tamper_fragments,
+         test_tamper_hostile,
          test_tamper_ledger_sync, test_tamper_mirror_tails, test_tamper_status_claims)
 
 HELPERS_REL = 'scripts/validate-dod.d/00-helpers.sh'

@@ -70,6 +70,8 @@
 #                   over a file set the check discovers rather than lists.
 #                   Split out of 77 at the 500-LOC cap
 #   80-file-size-caps.sh, checks [80] and [80b], file-size ≤ 500 LOC across
+#   81-no-claude-attribution.sh, check [81], no Co-Authored-By trailer,
+#     Claude-Session line or generated-with footer in commits or PR bodies
 #                   primitives, and the two 500-LOC counters (wc -l and the
 #                   lawkeeper scanner) agreeing at the cap boundary ([80b])
 #   85-design-spec-conformance.sh, check [85], design-spec catalog conformance
@@ -245,6 +247,7 @@ source "$DOD_MODULES_DIR/77-reviewer-roster.sh"
 source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
+source "$DOD_MODULES_DIR/81-no-claude-attribution.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 source "$DOD_MODULES_DIR/91-claim-resolvers.sh"

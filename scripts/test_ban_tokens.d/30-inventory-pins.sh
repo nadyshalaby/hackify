@@ -82,7 +82,7 @@ tb_check_list_size() {
 # TB_PLANTED is moved by tb_plant_case alone, so this counts what the run really
 # screened rather than what the run order implies.
 tb_check_plant_total() {
-  local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT))
+  local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT + TB_EXPECT_81))
   # All three totals fire from this one EXIT-trap call, and they go FIRST so a
   # plant verdict returning early cannot take any of them out of the run.
   tb_check_failclosed_total
@@ -97,7 +97,7 @@ tb_check_plant_total() {
   # cannot change what the first one decided.
   tb_check_wi_failclosed_total
   if [ "$TB_PLANTED" -eq "$want" ]; then
-    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all three lists"
+    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all four lists"
     return
   fi
   tb_bad "plant total: $TB_PLANTED tokens actually planted, expected $want (a plant section is pointed at the wrong list, planted twice, or not running at all)"
