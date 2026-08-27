@@ -64,6 +64,23 @@ ALSO_SCANNED = ('agents/placeholder.md', 'rules/placeholder.md',
                 'commands/placeholder.md', 'hooks/placeholder.sh',
                 '.claude-plugin/placeholder.json', 'README.md')
 
+# The enforcement half, added when [81] stopped being a check about hackify's own
+# text and started pinning the hook that reaches YOUR repository. These four are
+# `check_file`/`check_token_present` targets rather than grep -r trees, so they
+# have to exist in the tree for the clean baseline to be green at all.
+HOOK = 'hooks/block-ai-attribution.sh'
+HOOK_TEST = 'hooks/test_block_ai_attribution.sh'
+HOOKS_JSON = 'hooks/hooks.json'
+CI = '.github/workflows/ci.yml'
+
+ENFORCEMENT = {
+    HOOK: '# SCOPE, deliberately narrow. Only commands that CREATE something.\n',
+    HOOK_TEST: '# tests for the blocker\n',
+    HOOKS_JSON: '{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":['
+                '{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/hooks/block-ai-attribution.sh"}]}]}}\n',
+    CI: 'jobs:\n  ci:\n    steps:\n      - run: bash hooks/test_block_ai_attribution.sh\n',
+}
+
 
 def _tree():
   """A tree [81] passes over cleanly. Every row starts from one of these."""
@@ -72,6 +89,8 @@ def _tree():
     write(root, rel, body)
   for rel in ALSO_SCANNED:
     write(root, rel, 'nothing banned in here\n')
+  for rel, body in ENFORCEMENT.items():
+    write(root, rel, body)
   return root
 
 
@@ -208,3 +227,43 @@ def test_the_shipped_fragment_names_every_file_it_pins():
   # apply_edits raises when its search text is not unique, which is how this file
   # announces that the fragment moved under it rather than silently passing.
   apply_edits(body, [("CA_BANS=('Co-Authored-By: Claude'", "CA_BANS=('x'")])
+
+
+def test_deleting_the_blocker_hook_reds():
+  """THE ROW THAT COVERS THE ONLY HALF THAT LEAVES THIS REPOSITORY. Every other
+  row here proves something about hackify's own shipped prose, which is not
+  running when you commit to your own project. The hook is: it refuses the Bash
+  call. Delete the file and the rule silently returns to being advice."""
+  root = _tree()
+  (root / HOOK).unlink()
+  rc, out = run_check('81', cwd=root)
+  _red(rc, out, 'MISS %s' % HOOK)
+
+
+def test_unregistering_the_hook_reds_even_though_the_file_is_still_there():
+  """A hook file that nothing dispatches is a file, not a guard, and it looks
+  identical to a working one on disk. Only the registration says which."""
+  root = _tree()
+  write(root, HOOKS_JSON, '{"hooks":{"PreToolUse":[]}}\n')
+  rc, out = run_check('81', cwd=root)
+  _red(rc, out, HOOK, HOOKS_JSON)
+
+
+def test_dropping_the_hook_test_from_ci_reds():
+  """The blocker has one job and a case file proving it does it. Unwired from CI,
+  those cases stop running and the next edit to the hook is unverified."""
+  root = _tree()
+  write(root, CI, 'jobs:\n  ci:\n    steps:\n      - run: echo nothing\n')
+  rc, out = run_check('81', cwd=root)
+  _red(rc, out, 'test_block_ai_attribution.sh', CI)
+
+
+def test_losing_the_narrow_scope_sentence_reds():
+  """The scope is what makes the hook safe to leave switched on. Widen it to
+  every Bash command and it starts refusing `git log | grep -i co-author`, the
+  exact audit you would run to find a trailer that already landed, and the first
+  thing anyone would do about that is switch the whole hook off."""
+  root = _tree()
+  write(root, HOOK, '# blocks things\n')
+  rc, out = run_check('81', cwd=root)
+  _red(rc, out, 'SCOPE, deliberately narrow', HOOK)

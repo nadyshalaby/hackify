@@ -21,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The no-AI-attribution rule now stops the commit, instead of asking nicely.**
+  It used to live only in written rules and in a check that runs inside this
+  repository, so in a real project the only thing preventing a sign-off trailer
+  was the model choosing that rule over the one its own harness pushes the other
+  way. It kept losing. A new blocker sits in front of the shell and refuses any
+  command that would create a commit, tag, pull request or release carrying a
+  co-author line naming an assistant, a link back to a chat, a generated-with
+  footer or a robot emoji, including one written to a file first. It reads
+  nothing else: a plain `git log | grep` audit still runs, which matters,
+  because that is how you find a trailer that already landed. Claude Code only,
+  since it is the only supported tool with a place to put such a thing.
 - **A check that reads the shell inside the agent instructions.** Some of those
   instruction files carry a small script the worker runs on itself before it
   reports back. Nothing ever checked that script was valid, because the files

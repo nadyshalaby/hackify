@@ -99,6 +99,9 @@ jobs:
       - name: Context-injector hook tests
         run: bash hooks/test_inject_context.sh
 
+      - name: Attribution-blocker hook tests
+        run: bash hooks/test_block_ai_attribution.sh
+
       # Deliberately NOT wired into validate-dod.sh: it costs ~9s, twice the
       # whole validator, and CI is where that time is free. It covers the
       # validator's own ban-token matching engine, so it runs just before the

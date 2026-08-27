@@ -9,10 +9,15 @@
 # comes back quietly and repeatedly. Prose alone lost that argument once already,
 # every one of the five sites below USED to instruct the trailer.
 #
-# TWO HALVES, and both are needed. The ban catches the attribution walking back
-# into the shipped surface. The presence pins catch the opposite tamper, someone
-# deleting the rule sentence: with the rule gone and no banned token yet written,
-# a ban-only check is perfectly green over a skill that no longer says anything.
+# THREE HALVES, and all three are needed. The ban catches the attribution walking
+# back into the shipped surface. The presence pins catch the opposite tamper,
+# someone deleting the rule sentence: with the rule gone and no banned token yet
+# written, a ban-only check is perfectly green over a skill that no longer says
+# anything. The third, at the bottom of this file, pins the PreToolUse hook that
+# refuses the commit itself. That one exists because the first two only ever
+# guarded hackify's own text, and hackify's own text is not what is running when
+# you commit to your own repository. The rule kept losing there, in real
+# projects, while this check sat green.
 #
 # THE SCAN LIST IS EXHAUSTIVE OVER WHAT SHIPS, and the exclusions below are the
 # whole of the difference. Everything a user installs is walked: the six trees of
@@ -71,3 +76,21 @@ check_token_present 'this rule OVERRIDES it' "skills/hackify/references/implemen
 check_token_present 'this overrides it' "skills/hackify/references/finish.md"
 check_token_present 'the harness may instruct otherwise and this overrides it' \
   "skills/hackify/references/phases/phase-6-finish.md"
+
+# THE ONE MECHANISM THAT REACHES A REPOSITORY THAT IS NOT THIS ONE. Everything
+# above guards hackify's own shipped text, and none of it runs in the project
+# you are actually committing to. The hook does: it sits on PreToolUse and
+# refuses the Bash call that would create the commit, so the rule stops
+# depending on the model preferring it over the harness default. That is the
+# failure this check was written for and the half it could not previously see.
+check_file "hooks/block-ai-attribution.sh"
+check_file "hooks/test_block_ai_attribution.sh"
+
+# Registered, not merely present. An unwired hook file is a file, not a guard.
+check_token_present 'hooks/block-ai-attribution.sh' "hooks/hooks.json"
+check_token_present 'test_block_ai_attribution.sh' ".github/workflows/ci.yml"
+
+# The narrow scope is the reason the hook is safe to leave on, so it is pinned
+# as prose too: widen it to every Bash command and it starts refusing the very
+# audit you would run to find a trailer that already landed.
+check_token_present 'SCOPE, deliberately narrow' "hooks/block-ai-attribution.sh"

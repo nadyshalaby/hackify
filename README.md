@@ -42,7 +42,9 @@ For small fixes and single-file edits, a sibling skill `/hackify:quick` runs a c
   waiting. Autopilot mode goes in the same release, leaving two ways to run
   hackify, and every phrase that used to start autopilot now starts the full
   workflow. Workers also write down what they finish as they finish it, so a
-  session that dies halfway still leaves a record.
+  session that dies halfway still leaves a record. And the ban on AI sign-off
+  lines in commits is now enforced by a blocker that refuses the command,
+  rather than by a rule the model can be talked out of.
 
 ### New in 0.16.0
 

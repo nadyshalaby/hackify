@@ -190,6 +190,7 @@ CLAUDE_CODE_EXTRA=(
   "hooks/inject-context.sh"
   "hooks/inject_context.py"
   "hooks/block-banned-tokens.sh"
+  "hooks/block-ai-attribution.sh"
   "hooks/scan_edit.py"
   "hooks/scan_bash.py"
 )
