@@ -12,7 +12,7 @@ the kind a single row would have caught:
   THE FIVE STAT TOKENS WERE BUILT WITH A BARE str(). Every other token goes
   through esc(), whose own docstring says payload text is untrusted prose and
   never markup. main() lets anything in the payload beat the git-derived value, a
-  behaviour html-report.md documents for quick and yolo runs, so a script tag in
+  behaviour html-report.md documents for quick runs, so a script tag in
   stats.files reached the page verbatim. On a local file that is ugly; on a hosted
   origin it is stored cross-site scripting.
 

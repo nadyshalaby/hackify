@@ -40,7 +40,7 @@
 # already reads, which is the sharper lesson: covering a file is not covering a
 # claim. That is why all three survived every earlier sweep with the validator
 # fully green:
-#   skills/yolo/SKILL.md:114                   "4-to-5 parallel reviewers"
+#   a since-retired mode SKILL.md              "4-to-5 parallel reviewers"
 #   parallel-agents/phase-5-aggregation.md:5   "2 spec reviewers", "the 5-to-6 reviewer panel"
 #   references/review-scope.md:9               "The panel is five now"
 #
@@ -57,10 +57,10 @@
 #   presence pin cannot catch a wrong number. phase-5-aggregation.md is in no ban
 #   list at all. Lose these two and this block's unique reach is gone.
 #
-#   DEEPER, four files. skills/yolo/SKILL.md, skills/quick/SKILL.md,
-#   phases/phase-5-review.md and references/review-and-verify.md are ALREADY in
-#   [70]'s ban loop (its P5_FILES set). This block is not redundant on them, it
-#   is mostly wider: the loop below runs 60 tokens per file against [70]'s 23.
+#   DEEPER, three files. skills/quick/SKILL.md, phases/phase-5-review.md and
+#   references/review-and-verify.md are ALREADY in [70]'s ban loop (its
+#   P5_FILES set). This block is not redundant on them, it is mostly wider:
+#   the loop below runs 60 tokens per file against [70]'s 21.
 #   Direction first, because it reads backwards easily: these are substring
 #   bans, so the SHORTER token is the BROADER one. Hence '5-to-6' reaches
 #   '5-to-6-reviewer', '5-to-6 panel' and '5-to-6 spec reviewers' alike where
@@ -162,10 +162,10 @@
 # covered file that no longer discusses reviewers is either the wrong path or a
 # file whose ban list needs rethinking.
 
-yellow "[77] reviewer-roster drift: count grammar over 6 files (2 no other check reaches, a wider token set on the 4 shared with [38g]) plus the adjudication reviewer's report input"
+yellow "[77] reviewer-roster drift: count grammar over 5 files (2 no other check reaches, a wider token set on the 3 shared with [38g]) plus the adjudication reviewer's report input"
 
 RR_PA="skills/hackify/references/parallel-agents"
-RR_FILES="skills/yolo/SKILL.md skills/quick/SKILL.md"
+RR_FILES="skills/quick/SKILL.md"
 RR_FILES="$RR_FILES skills/hackify/references/review-scope.md"
 RR_FILES="$RR_FILES $RR_PA/phase-5-aggregation.md"
 RR_FILES="$RR_FILES skills/hackify/references/phases/phase-5-review.md"
@@ -175,7 +175,7 @@ RR_FILES="$RR_FILES skills/hackify/references/review-and-verify.md"
 # derived from the list is argued above check_list_size in 00-helpers.sh; this is
 # the set that taught it, a floor of 4 under a set of 6 printing "ok all 4 files
 # exist" while two of them had quietly left coverage.
-RR_EXPECTED=6
+RR_EXPECTED=5
 
 # Existence gate. Runs to completion before any ban, see the header.
 RR_PARSED=0
@@ -217,8 +217,8 @@ RR_BANS+=('4-5 reviewers' '5-6 reviewers' '4 or 5 reviewers' '5 or 6 reviewers')
 # The same claim in adjectival form, "the 5-to-6 reviewer panel" was one of
 # the three sites fixed this sprint.
 RR_BANS+=('4-reviewer' '5-reviewer' '6-reviewer' 'four-reviewer' 'five-reviewer' 'six-reviewer')
-# Dispatch counts. "4-to-5 parallel reviewers" was the yolo defect, these are
-# the grammars a rewrite of it would land on.
+# Dispatch counts. "4-to-5 parallel reviewers" was the retired mode's defect,
+# these are the grammars a rewrite of it would land on.
 RR_BANS+=('2 parallel reviewers' '3 parallel reviewers' '4 parallel reviewers' '5 parallel reviewers' '6 parallel reviewers')
 RR_BANS+=('two parallel reviewers' 'three parallel reviewers' 'four parallel reviewers' 'five parallel reviewers' 'six parallel reviewers')
 # The same dispatch count with its words in the other order, which is how the

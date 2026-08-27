@@ -49,14 +49,14 @@ yellow "[40] the Phase 3 implementer rename, live name present and dead name abs
 # changes which files get checked. WI_LIVE_PATHS below and WI_DEAD_WORDS at the
 # foot of the block are both arrays already, so this is the shape the rest of
 # [40] follows and these two were the odd pair out.
-WI_TYPE_SITES=('skills/hackify/SKILL.md' 'skills/quick/SKILL.md' 'skills/yolo/SKILL.md')
+WI_TYPE_SITES=('skills/hackify/SKILL.md' 'skills/quick/SKILL.md')
 WI_TYPE_SITES+=('skills/hackify/references/parallel-agents/README.md')
 # The size is hand-written beside the list, the shape [77] and [80] both use: a
 # bound read back out of a list cannot police that list. Drop a site from the
 # array and the element count drops with it, so that site's own check leaves the
 # run and the run stays green one check shorter, which is the failure this whole
 # block exists to stop.
-check_list_size "${#WI_TYPE_SITES[@]}" 4 "the [40] dispatch-site file set"
+check_list_size "${#WI_TYPE_SITES[@]}" 3 "the [40] dispatch-site file set"
 for f in "${WI_TYPE_SITES[@]}"; do check_token_present 'hackify:wave-implementer' "$f"; done
 
 # THE #11-A REPORTING HALF, ON BOTH MIRROR SIDES. [38f](2) already pins the

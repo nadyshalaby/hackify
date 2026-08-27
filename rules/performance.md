@@ -1,6 +1,6 @@
 # Performance Violation Catalog (Canonical)
 
-The canonical catalog of performance violations hackify scans for. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: Phase 3 implementers (before touching data access, loops, or hot paths), Phase 5 Reviewer D (performance), the deterministic perf-scout ([skills/hackify/references/perf-scout.md](../skills/hackify/references/perf-scout.md)), lawkeeper's performance category, and the quick/yolo mirrors.
+The canonical catalog of performance violations hackify scans for. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: Phase 3 implementers (before touching data access, loops, or hot paths), Phase 5 Reviewer D (performance), the deterministic perf-scout ([skills/hackify/references/perf-scout.md](../skills/hackify/references/perf-scout.md)), lawkeeper's performance category, and the quick mirror.
 
 **Canonical direction.** THIS file is canonical. `rules/perf-guardrails.md` is the tight always-on stub injected on every prompt, distilled FROM this catalog. Note the direction is the INVERSE of the caps pair: for caps, the always-on `rules/hard-caps.md` is canonical and `rules/code-quality.md` is the deep doctrine; for performance, the deep file (this one) is canonical and the always-on file is the distillation.
 

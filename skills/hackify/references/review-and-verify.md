@@ -62,7 +62,7 @@ Run the layers in order. Each layer can be re-run on demand, the point is that t
 
 **Layer 3. Independent re-prove.** Re-earn the proof WITHOUT trusting Layer 1's output. Either re-run from a clean checkout / fresh state, or dispatch a fresh foreground subagent that re-runs the ledger's commands and reports what it actually saw. If Layer 3 disagrees with Layer 1, Layer 1 was stale, investigate before advancing.
 
-**How much to run.** Full hackify + yolo run all three layers. quick runs Layers 1-2 (skips the heavier independent pass). Re-run any layer whenever the user asks "prove it again", that is why the layers are named.
+**How much to run.** Full hackify runs all three layers. quick runs Layers 1-2 (skips the heavier independent pass). Re-run any layer whenever the user asks "prove it again", that is why the layers are named.
 
 ### Part 3, The ship gate (prove it runs, not just that it compiles)
 

@@ -11,7 +11,7 @@ At Phase 6 Step F, after the update log is generated and the work is verified. O
 ## Where
 
 - **Full hackify**, write it to the archive path the work-doc is about to take: `<project>/docs/work/done/<slug>.report.html`. Step F renders it before the doc itself is moved there, so the path exists first and the doc follows.
-- **quick / yolo** (no archived work-doc), write `<project>/docs/work/reports/<YYYY-MM-DD>-<slug>.report.html` (create the `reports/` dir if absent).
+- **quick** (no archived work-doc), write `<project>/docs/work/reports/<YYYY-MM-DD>-<slug>.report.html` (create the `reports/` dir if absent).
 
 After writing, tell the user the path and offer to open it. Where the runtime can publish a page, also publish it and give them the link, see **Publishing it as a link** below.
 
@@ -22,7 +22,7 @@ Compute each from git + the work-doc. Show `0` / "none" honestly when a value is
 | Stat | Source |
 |---|---|
 | Tasks done (n / total) | Count ticked vs total Sprint Backlog checkboxes. |
-| Files changed | `git diff --stat <base>..HEAD -- . ':(exclude)docs/work/*'` file count (or `--staged` / working tree for quick/yolo pre-commit). |
+| Files changed | `git diff --stat <base>..HEAD -- . ':(exclude)docs/work/*'` file count (or `--staged` / working tree for a quick pre-commit). |
 | LOC added / removed | `git diff --numstat <base>..HEAD -- . ':(exclude)docs/work/*'` summed. |
 | Commits | `git rev-list --count <base>..HEAD`. |
 | Findings by severity | Phase 5 decision table: Critical / Important / Minor counts + how many fixed. |
@@ -84,7 +84,7 @@ Payload. Every key is optional, and a missing key renders an honest empty state 
 }
 ```
 
-- **Anything in `stats` beats the git-derived value**, so quick and yolo can report a working-tree diff with no base SHA to diff against.
+- **Anything in `stats` beats the git-derived value**, so quick can report a working-tree diff with no base SHA to diff against.
 - **The five update-log headings are fixed wording** and the renderer emits them for you: Problem, Root cause, Solution, Verification evidence, Deployment status. They mirror the chat update log and are never paraphrased.
 - **Escaping is the script's job.** Pass raw text. A commit subject carrying `&`, a type like `Promise<User>`, a proof sample with a stray `<`, all safe.
 

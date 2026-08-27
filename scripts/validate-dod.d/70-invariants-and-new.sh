@@ -35,37 +35,54 @@ for f in "skills/hackify/SKILL.md" "skills/quick/SKILL.md"; do
   fi
 done
 
-yellow "[34] skills/yolo/SKILL.md exists with name + description frontmatter and required body tokens"
-check_file "skills/yolo/SKILL.md"
-if [ -f "skills/yolo/SKILL.md" ]; then
-  if grep -q "^name: yolo$" "skills/yolo/SKILL.md"; then
-    green "  ok   skills/yolo/SKILL.md has name: yolo"
+yellow "[34] the plugin ships exactly two build modes, hackify and quick, and yolo stays deleted"
+# 0.17.0 retired yolo and folded contention-first dispatch into full hackify, so
+# this block was REWRITTEN rather than repointed at a new file. It used to assert
+# that skills/yolo/SKILL.md existed and carried four body tokens: 'in-chat plan',
+# 'auto-pass', 'commit to current branch locally' and 'no work-doc'. All four are
+# FALSE of gated hackify, which keeps a work-doc on disk, waits at its Phase 2
+# gate, and does not commit to the current branch without asking. Carrying those
+# tokens across to a new subject would have forced a choice between a red and a
+# lie, which is why the subject moved and the tokens did not come with it.
+#
+# What is worth pinning now is the MODE SET itself. Two skills are build modes,
+# each carries the frontmatter its loader reads, and the third one stays gone. A
+# revert that restored skills/yolo/ would otherwise put a third build mode back
+# on disk, and the collision scan stops listing a slug the moment it leaves
+# HACKIFY_SLUGS, so nothing else in CI would say a word about it.
+for mode_slug in hackify quick; do
+  mode_file="skills/$mode_slug/SKILL.md"
+  check_file "$mode_file"
+  [ -f "$mode_file" ] || continue
+  if grep -q "^name: $mode_slug\$" "$mode_file"; then
+    green "  ok   $mode_file has name: $mode_slug"
   else
-    red "  FAIL skills/yolo/SKILL.md missing 'name: yolo' frontmatter"
+    red "  FAIL $mode_file missing 'name: $mode_slug' frontmatter"
     FAILED=$((FAILED + 1))
   fi
-  if echo "yolo" | grep -Eq '^[a-z0-9-]{1,64}$'; then
-    green "  ok   skills/yolo/SKILL.md slug 'yolo' matches regex ^[a-z0-9-]{1,64}\$"
+  # Read the slug OUT OF THE FILE. The predecessor tested the loop variable,
+  # a literal typed two lines above, against the slug regex: a tautology that
+  # printed a green nobody could ever turn red. What the loader actually reads
+  # is the frontmatter value, so that is the string worth validating.
+  mode_declared="$(awk -F': ' '/^name: /{print $2; exit}' "$mode_file")"
+  if printf '%s' "$mode_declared" | grep -Eq '^[a-z0-9-]{1,64}$'; then
+    green "  ok   $mode_file declares slug '$mode_declared', which matches ^[a-z0-9-]{1,64}\$"
   else
-    red "  FAIL skills/yolo/SKILL.md slug 'yolo' fails slug regex"
+    red "  FAIL $mode_file declares slug '$mode_declared', which fails the slug regex the loader requires"
     FAILED=$((FAILED + 1))
   fi
-  if grep -q "^description:" "skills/yolo/SKILL.md"; then
-    green "  ok   skills/yolo/SKILL.md has description: frontmatter"
+  if grep -q "^description:" "$mode_file"; then
+    green "  ok   $mode_file has description: frontmatter"
   else
-    red "  FAIL skills/yolo/SKILL.md missing 'description:' frontmatter"
+    red "  FAIL $mode_file missing 'description:' frontmatter"
     FAILED=$((FAILED + 1))
   fi
-  check_token_present "Phase 1" "skills/yolo/SKILL.md"
-  check_token_present "Phase 2.5" "skills/yolo/SKILL.md"
-  check_token_present "Phase 3" "skills/yolo/SKILL.md"
-  check_token_present "Phase 4" "skills/yolo/SKILL.md"
-  check_token_present "Phase 5" "skills/yolo/SKILL.md"
-  check_token_present "Phase 6" "skills/yolo/SKILL.md"
-  check_token_present "in-chat plan" "skills/yolo/SKILL.md"
-  check_token_present "auto-pass" "skills/yolo/SKILL.md"
-  check_token_present "commit to current branch locally" "skills/yolo/SKILL.md"
-  check_token_present "no work-doc" "skills/yolo/SKILL.md"
+done
+if [ -e "skills/yolo" ]; then
+  red "  FAIL skills/yolo/ is back on disk; 0.17.0 retired it and the plugin ships two build modes"
+  FAILED=$((FAILED + 1))
+else
+  green "  ok   skills/yolo/ stays deleted, so the build-mode set is exactly hackify + quick"
 fi
 
 yellow "[37] hooks/hooks.json command targets exist on disk (.sh targets executable)"

@@ -27,7 +27,7 @@ This is deliberately the opposite bias from an adversarial-verification prompt a
 | **Scout rows already CONFIRMED by Reviewer B or D** | none | The reviewer's re-judge step already did this pass; refuting again is theatre |
 | **Findings two reviewers independently raised** | none | Independent agreement is stronger evidence than a third opinion |
 
-Dispatch that one refuter after aggregation and before the first fix, handing it the whole round in a single message. There is no per-Critical dispatch, no conditional follow-up dispatch, and nothing to schedule in a second message. Quick mode and yolo run the same single refuter, and the dispatch itself prompts the user at no point in any mode. What differs in yolo is not the refuter but what the parent does with a refuted Critical afterwards, see the yolo carve-out under "Feeding the decision table".
+Dispatch that one refuter after aggregation and before the first fix, handing it the whole round in a single message. There is no per-Critical dispatch, no conditional follow-up dispatch, and nothing to schedule in a second message. Quick mode runs the same single refuter, and the dispatch itself prompts the user at no point in any mode. Nothing about the refuter, or about what the parent does with a refuted Critical afterwards, varies by mode; "Feeding the decision table" below states that landing once, for every mode.
 
 **The two lenses, both carried by that one agent** (apply them in this order):
 
@@ -254,8 +254,6 @@ The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phas
 | ESCALATED | `accept` at the new severity | the refuter's escalation citation |
 
 **A Critical is never closed by the refuter.** Both lenses refuting earns that finding an escalation, not the flip: dispatch the adjudication reviewer (`review-and-verify.md`, section "Reviewer subagent prompt template") on it, hand it both lens counter-citations as its evidence, and put the conflict to the user. The row reads `push-back` only after that reviewer rules and the user signs off. Until then it reads `accept` AND is held out of the address-all loop's fix dispatch, because landing a fix while the escalation is open is the phantom fix the refuter exists to prevent. **A Critical may never reach `push-back` on a single lens**, and it never reaches `push-back` on the refuter's word alone either: one agent carrying two lenses is still one agent, and `skills/review-triage/SKILL.md` puts the cost of a missed Critical above one agent's judgment.
-
-**Yolo is the one mode where that row lands the other way.** The escalation above ends in a human sign-off, and yolo has nobody to sign a dismissal off, so in yolo a both-lenses-refuted Critical is fixed anyway, both counter-citations recorded beside the fix. No adjudication, no gate, and no verdict takes a Critical out of the address-all loop. The authority for that landing is the `## Anti-rationalizations` row `"Autopilot, so auto-fix without refuting"` in `skills/yolo/SKILL.md`, named by heading and row text rather than by a line number, which drifts on any edit above it. Everything else on this page still binds in yolo: one refuter per round, both lenses, and a Critical refutable only when both of them fail.
 
 A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted.
 

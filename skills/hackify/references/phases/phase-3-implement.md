@@ -1,8 +1,33 @@
-# Phase 3, Implement (one agent per wave, concurrent waves when they share nothing)
+# Phase 3, Implement (foundation wave, then concurrent tracks, then assembly)
 
 Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
 
-**Goal.** Ship the Sprint Backlog wave by wave, dispatching each wave to ONE foreground subagent that carries the whole wave. Inside a wave the saving is tokens and coherence, not wall-clock. Across waves it can be both: waves that share no read surface run at the same time, one agent each, whenever the partition test below passes.
+**Goal.** Ship the Sprint Backlog in three stages: a solo foundation wave that lands every contended write, then N concurrent module tracks that each deliver DONE, then a solo assembly wave that mounts everything and boots it for real. Each wave goes to ONE foreground subagent that carries the whole wave. Inside a wave the saving is tokens and coherence, not wall-clock; across waves it can be both, whenever the partition test clears two waves to run at the same time.
+
+**The technique behind this shape, stated once and not restated here:** [../contention-dispatch.md](../contention-dispatch.md). That file is canonical for the partition test and for the three classes of serial resource; this file is the dispatch protocol that runs on them.
+
+### The three stages, and how the shape scales down
+
+Phase 2.5 has already named every serial resource in a `## Serial resources` section, re-tested each one for real exclusivity, and pulled every contended write into one place. Phase 3 then runs:
+
+```
+foundation wave (solo)    every contended write, at once, no business logic
+  → N module tracks       concurrent, each under its own allowlist, each delivering DONE
+  → assembly wave (solo)  mount every registrar, reconcile every seam, boot it for real
+```
+
+**The size falls out of the partition, never out of how large the task looks.** Zero contended writes and there is no foundation wave: mark it complete with a written reason, never drop it in silence. One track and there is nothing to assemble, same treatment. A two-file change therefore dispatches one wave and looks like an ordinary hackify round. Nothing in this phase is ever inferred from apparent size, and the deliberate deviation that makes the machinery always-on is argued in [../contention-dispatch.md](../contention-dispatch.md).
+
+**Agent selection, decided per wave and recorded in the wave plan:**
+
+| Wave | Agent type | Why |
+|---|---|---|
+| Foundation (solo) | `hackify:wave-implementer` | Nothing runs beside it, so the blind-sibling rules protect nothing and only cost context. |
+| Two or more concurrent tracks | `hackify:module-implementer` | Its own database, siblings it cannot see, builds against planned contracts, and it never discards working-tree state. |
+| Assembly (solo) | `hackify:wave-implementer` | Same reason as the foundation wave: no siblings to be blind to. |
+| A single-track round | `hackify:wave-implementer` | One wave in the round means no siblings, so the blind-sibling rules buy nothing and cost context. |
+
+Both types are dispatched by registered agent type, never by pasting a template ([../parallel-agents/README.md](../parallel-agents/README.md)).
 
 **Ledger, at phase open.** Set `Phase 3. Implement (all waves committed)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: implementing` in the same edit, and re-print the whole block after that edit is saved. Never open it while `Phase 2.5. Spec review` is still open. Waves run INSIDE this phase; they never advance the ledger past it. Contract: [../phase-ledger.md](../phase-ledger.md).
 
@@ -14,11 +39,12 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
    section, and the `[concurrency candidate]` / `[serial: <condition>]` mark on each wave line. Reading the plan is
    not re-planning it, and the line between them is drawn under "The wave is the unit of dispatch" below, in the rule
    headed "The pre-flight plan IS the dispatch plan".
-2. Pull every task that holds a serial resource into ONE solo foundation wave and run it first. Rule and source:
-   "Serial resources get a solo foundation wave" below.
-3. Apply the partition test below to every wave YOURSELF, then collect the waves that may run at the same time into
-   ROUNDS. A round holding one wave is normal. Put your verdict beside that wave's mark and report any disagreement,
-   per the two paragraphs under this block.
+2. Pull every task that holds a serial resource into ONE solo foundation wave and run it first, and put the
+   mounting, reconciling and real-boot tasks into ONE solo assembly wave and run it last, per "The three stages"
+   above. A stage with nothing in it is marked complete with a written reason, never dropped in silence.
+3. Apply the partition test (canonical: `../contention-dispatch.md`) to every wave YOURSELF, then collect the waves
+   that may run at the same time into ROUNDS. A round holding one wave is normal. Put your verdict beside that
+   wave's mark and report any disagreement, per the two paragraphs under this block.
 4. Intersect the ROUND you just assembled, wave against wave, as its own step: step 3's test is scoped to ONE wave and
    cannot see this. A path in two waves SPLITS the round, the later wave moving to the next round or the two merging.
    Record the intersection even when it is empty. Rule: "Rounds are ASSEMBLED, and assembly is where collisions
@@ -33,7 +59,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 **Why step 3 re-derives what the reviewer already marked, and why that is not re-planning.** The spec reviewer's contract settles
 the division in its own words, **"You MARK and the parent DECIDES"**: the reviewer applies the test to its own plan and marks each
 wave, and the parent applies the same test at dispatch. The reviewer also restates the test inline in compressed form, and a
-restatement can drop a condition; the parent reading the test from this file is the only thing standing behind that. **Step 3 is a
+restatement can drop a condition; the parent reading the test from its canonical file is the only thing behind that. **Step 3 is a
 backstop, and the mark is not. Do not remove it as duplication.**
 
 **But the backstop is two keys in one direction and ONE key in the other.** A wave marked `[concurrency candidate]` needs the parent
@@ -114,7 +140,7 @@ So the WAVE is the unit, scoped to the case that earns it:
    the width of a single wave: nine tasks that share a read surface go to one agent, the
    same as two. What is not fixed is the wave's SHAPE. A wave whose tasks do NOT share a
    read surface may be split into concurrent waves, one agent each, when the partition
-   test below passes. There is still no width valve and no split by module hunch, because
+   test passes. There is still no width valve and no split by module hunch, because
    the partition test is the only thing that may split a wave.
 2. **The pre-flight plan IS the dispatch plan.** It is written once, from the Phase
    2.5 spec reviewer's wave plan ([references/parallel-agents/phase-2.5-spec-reviewer.md](../parallel-agents/phase-2.5-spec-reviewer.md),
@@ -134,49 +160,15 @@ So the WAVE is the unit, scoped to the case that earns it:
    own report; one wave stopping never stops another wave in the same round and never
    costs that wave what it already wrote.
 
-**The partition test.** Take the union of every task's file allowlist in the wave. Ask whether that union splits into two or more
-subsets where all three of these hold:
+**The partition test is stated in [../contention-dispatch.md](../contention-dispatch.md) and is deliberately not restated here.** Read
+it there before you split anything: all three conditions, the coarse-to-fine rule that decides WHICH passing partition to take, and
+why the trivial one-subset partition passing means a passing test can never on its own mean "split". A compressed copy in this file
+would be one more restatement that can quietly drop a condition, which is the failure the canonical-file ruling exists to stop.
 
-1. **No file appears in more than one subset.**
-2. **No import edge runs between the modules those subsets live in, in EITHER direction.**
-   Where the tree has no imports to follow (prose, docs, config), the edge is that same
-   relation without the keyword: one subset reading text or values that another subset is
-   rewriting.
-3. **No subset holds a serial resource that another subset also holds**, a shared file, a
-   generated sequence, or an exclusive external resource such as a test database. Serial
-   and exclusive are not the same set; "Serial resource against exclusive resource" below
-   states the relation and what the parent does with it.
+One thing the test leans on belongs to this phase rather than to that file: serial and exclusive are not the same set, and "Serial
+resource against exclusive resource" below states the relation and what the parent does with it.
 
-When all three hold, the subsets MAY be dispatched as concurrent waves, one agent each. When any one of them fails, ONE agent takes
-the whole wave.
-
-**Which passing partition you take is part of the test, not a judgment call beside it.** The three conditions say a split is
-PERMITTED, never which permitted split to take, and the trivial partition, one subset holding the whole wave, satisfies all three
-vacuously. So a passing partition ALWAYS exists, "all three hold" can never on its own mean "split", and reading the test greedily
-shatters a wave into singletons, re-paying per task the setup cost one-agent-per-wave exists to avoid. Applying it runs coarse to
-fine:
-
-1. **Start at the whole wave, one subset.** The default, and it always passes.
-2. **Propose something finer ONLY where the tasks do not share a READ SURFACE**, in the
-   sense "The wave is the unit of dispatch" gives that phrase above: the same types, the
-   same neighbouring code, the same conventions. "These two feel separable" is no proposal.
-3. **Test the proposal against all three conditions.** If one fails, fall back and stop.
-4. **Between two proposals that both pass, take the one with FEWER subsets.** A finer split
-   EARNS its way past a coarser one by showing the subsets share no read surface.
-
-**Step 2 is load-bearing because conditions 2 and 3 cannot see a read surface at all.** Condition 2's operative branch is a
-WRITE-dependency test, one subset reading what another is REWRITING, so two subsets that merely READ the same file create no edge
-and a shared read surface passes straight through unnoticed. This sprint's own W1b is the case: T6 writes the skill file, T7 writes
-three reference files, file-disjoint, neither rewrites what the other reads, no serial resource. All three conditions hold for
-{T6}/{T7} and a greedy reading splits them. Step 2 never proposes it, because both tasks read the same skill's vocabulary in order
-to write in it, and step 4 keeps them in one wave.
-
-Condition 1 is inherited from the wave plan rather than work the test does: a wave's tasks are file-disjoint by construction, so it
-is already satisfied before the test starts. The teeth are conditions 2 and 3. Condition 2 is there for what file-disjointness
-cannot see, because two agents that both READ a shared type while each writes its own module can still contradict each other, and
-that contradiction is exactly the defect Phase 5's coherence lens exists to catch.
-
-**Rounds are ASSEMBLED, and assembly is where collisions enter.** The partition test above is scoped to ONE wave, to "the union of
+**Rounds are ASSEMBLED, and assembly is where collisions enter.** The partition test is scoped to ONE wave, to "the union of
 every task's file allowlist in the wave", and that scope is deliberate: inside a wave the tasks are file-disjoint by construction,
 which is why condition 1 is inherited rather than checked. A ROUND is a different object, a COLLECTION of waves the parent builds at
 step 3, and neither the test nor the wave plan ever asked whether two waves in it are disjoint from each OTHER. The one check that
@@ -188,9 +180,9 @@ free, and a round-scoped test would have to check condition 1 for real against e
 instead. **This sprint's own work-doc caught exactly this**, task T4 landing in two waves of one round, by running a check this file
 never asked for. That is luck, not a control.
 
-**Serial resources get a solo foundation wave.** The Phase 2.5 spec reviewer reports a `## Serial resources` section naming every
-shared file, generated sequence and external exclusive resource the backlog touches. The parent pulls the tasks that hold those into
-ONE solo foundation wave, runs it first, and parallelises what is left behind it. A serial resource settled in the foundation wave
+**Where the foundation wave's task list comes from.** The Phase 2.5 spec reviewer reports a `## Serial resources` section naming
+every shared file, generated sequence and external exclusive resource the backlog touches, with an exclusivity verdict on each. The
+parent pulls the tasks holding those into the solo foundation wave of "The three stages" above. A serial resource settled there
 stops blocking condition 3 for every round after it, which is what turns a long line of forced-serial waves into a couple of rounds.
 
 **Serial resource against exclusive resource, the mapping the parent performs at every dispatch.** They are different sets and the
@@ -220,6 +212,10 @@ wave in sequence finishes later than several agents running the same tasks at on
 once and quoted the rules once, and one agent that cannot contradict itself halfway through the wave. That purchase is worth making
 when the tasks share a read surface and buys nothing when they do not, which is the whole job of the partition test. Rule 4 is the
 mitigation for the blast radius that comes with putting a whole wave in one agent.
+
+Filling the work-doc's `### Module briefs` block before a concurrent round, and
+merging each track's own progress file after it, are both stated once in
+[../contention-dispatch.md](../contention-dispatch.md).
 
 ### The round's allowlist reconciliation
 
@@ -432,12 +428,12 @@ afford a second way to rot. **Edit here first, then sweep every file named here.
 The split is whether the restatement carries a pointer back here FOR THE RUN POINTS, which is what keeps a copy honest. Five do:
 `skills/hackify/references/perf-scout.md`, `skills/hackify/references/law-scout.md`, `skills/hackify/SKILL.md`,
 `skills/hackify/references/implement-and-test.md`, `skills/hackify/references/parallel-agents/phase-3-implementation.md`. The last
-two are not scout protocols and were missing from this list entirely. Eight restate the pair with no run-point pointer, so they are
-the ones a sweep has to reach by name: `skills/yolo/SKILL.md`, `README.md`, `rules/perf-guardrails.md`, `rules/expert-mindset.md`,
+two are not scout protocols and were missing from this list entirely. Seven restate the pair with no run-point pointer, so they are
+the ones a sweep has to reach by name: `README.md`, `rules/perf-guardrails.md`, `rules/expert-mindset.md`,
 `skills/hackify/references/expert-mindset.md`, `skills/hackify/references/runtime-adapters.md`,
-`skills/hackify/references/phase-ledger.md`, `skills/hackify/references/work-doc-template.md`. `README.md` and
-`skills/yolo/SKILL.md` each DO cite this file, but for the partition test rather than for the run points, which is a pointer a
-reader chasing the scouts never follows, so both sit on this side of the split.
+`skills/hackify/references/phase-ledger.md`, `skills/hackify/references/work-doc-template.md`. `README.md` DOES cite this file, but
+for the wave shape rather than for the run points, which is a pointer a reader chasing the scouts never follows, so it sits on this
+side of the split.
 
 **Run point 1, the AGENT, over its OWN file allowlist, before it returns.** The wave agent runs both scouts across the files it
 landed, once, after its last landed task and before it writes its report. **This is where fix-in-wave lives**, and it is the only

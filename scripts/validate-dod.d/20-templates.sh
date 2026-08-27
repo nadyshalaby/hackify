@@ -25,6 +25,7 @@ PA_NON_TEMPLATE=(README.md template-contract.md phase-5-aggregation.md)
 PA_BUILD_FILES=(
   "$PA_DIR/investigation.md"
   "$PA_DIR/phase-3-implementation.md"
+  "$PA_DIR/phase-3-module-implementation.md"
   "$PA_DIR/phase-4-cross-package-verification.md"
 )
 PA_REVIEW_SINGLE_FILES=(

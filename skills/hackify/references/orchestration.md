@@ -21,7 +21,7 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 | Run point | What fans out |
 |---|---|
 | Phase 2.5 | 1 spec reviewer, three lenses over one read |
-| Phase 3, each round | one implementer per wave, and every wave the partition test ([phases/phase-3-implement.md](phases/phase-3-implement.md)) clears is dispatched in the same message |
+| Phase 3, each round | one implementer per wave, and every wave the partition test ([contention-dispatch.md](contention-dispatch.md)) clears is dispatched in the same message |
 | Phase 5 | the reviewer panel, then one refuter for the whole batch |
 
 **Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
@@ -41,9 +41,9 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 
 `ultracode` normally means *the user typed a keyword authorizing heavy multi-agent spend*. Hackify makes it a standing default instead, and the authorization is **installing the plugin and invoking the workflow**. That is a real grant, and it should never be a silent one:
 
-- **Announce it once per task**, in the Phase 2 plan message (Phase 1 for quick, the in-chat plan block for yolo): one line naming that this task runs at maximum orchestration tier and how to turn it down.
+- **Announce it once per task**, in the Phase 2 plan message (Phase 1 for quick): one line naming that this task runs at maximum orchestration tier and how to turn it down.
 - **Honor an opt-out phrase at any point.** `light mode`, `no ultracode`, `cheap mode`, `single agent` drop the tier to a flat parallel batch for the rest of the task. The phases do not change; only the machinery does.
-- **A dropped tier is recorded**, one line in the work-doc Approach (in chat for quick/yolo), so a later reader knows why a wave ran thin.
+- **A dropped tier is recorded**, one line in the work-doc Approach (in chat for quick), so a later reader knows why a wave ran thin.
 
 Never quietly raise the tier back after the user has lowered it.
 
@@ -70,7 +70,7 @@ Never quietly raise the tier back after the user has lowered it.
 2. **Blocked on the user.** A hard gate is open (the Phase 2 sign-off, a Phase 5 approval wizard, the Phase 6 four-options menu) or a circuit breaker fired (3 failed debug hypotheses). Stop and surface; never keep looping against a question only the user can answer.
 3. **Not converging.** Two consecutive firings that advance no ledger item and tick no Sprint Backlog task. Stop, say what is stuck, and hand back. A loop that cannot make progress must not keep spending.
 
-**The loop never bypasses a gate.** Auto-passing gates is yolo's contract, not the driver's. In full hackify the driver stops at the Phase 2 gate and waits; in yolo the gate auto-passes and the driver continues, because yolo already decided that.
+**The loop never bypasses a gate.** No mode auto-passes one, so the driver has nothing to inherit: it stops at the Phase 2 sign-off and waits, exactly as a hand-driven run does. Firing the loop authorizes it to keep working, never to answer a gate on the user's behalf.
 
 ## Completion sentinel (/goal)
 
@@ -94,7 +94,6 @@ Never quietly raise the tier back after the user has lowered it.
 |---|---|---|
 | hackify | the message right after Phase 2 sign-off, as Phase 2.5 opens | `/goal docs/work/done/<date>-<slug>.md exists with status: done, every Sprint Backlog box ticked, and the evidence ledger shows test, lint and typecheck each exiting 0 plus ship.build / ship.boot / ship.smoke rows` |
 | quick | the Phase 1 goal-anchor line | `/goal the <slug> change is committed, test + lint + typecheck each exited 0 with the output shown in this session, and the single-lens review round closed with zero remaining findings` |
-| yolo | the in-chat plan block | `/goal the <slug> change is committed, test + lint + typecheck each exited 0 with output shown, the ship gate recorded build / boot / smoke rows, and the reviewer loop closed with zero findings on a settled diff` |
 
 Quick mode often finishes inside one turn, and the line is still worth printing: it costs one line, and the moment a "quick" fix turns out not to be quick, the condition is already set.
 

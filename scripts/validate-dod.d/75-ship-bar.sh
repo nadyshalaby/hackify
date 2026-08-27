@@ -11,7 +11,7 @@
 # four fail loudly, which is the same failure mode check [38] was written for
 # after the perf-guardrails hook injection went missing.
 
-SHIP_BAR_MODES="skills/hackify/SKILL.md skills/quick/SKILL.md skills/yolo/SKILL.md"
+SHIP_BAR_MODES="skills/hackify/SKILL.md skills/quick/SKILL.md"
 LAW_SCOUT_REF="skills/hackify/references/law-scout.md"
 SHIP_GATE_REF="skills/hackify/references/ship-gate.md"
 COHERENCE_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md"

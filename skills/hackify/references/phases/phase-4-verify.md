@@ -14,7 +14,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 |---|---|---|
 | 1 Fresh triad | test + lint + typecheck from a clean state (all packages, no warm cache) | all |
 | 2 Goal-drift re-check | trace every proof to the North-Star Goal + Success Signals in the anchor; a signal with no proving row = not done | all |
-| 3 Independent re-prove | re-earn the proof without trusting Layer 1, clean re-run or a fresh subagent | hackify + yolo |
+| 3 Independent re-prove | re-earn the proof without trusting Layer 1, clean re-run or a fresh subagent | hackify |
 
 **Part 3. Ship gate (prove it runs).** A green triad says the code is well-formed, not that it starts. Run three legs and record one ledger row each: `ship.build` (builds clean from a cold cache, artifact on disk), `ship.boot` (starts, reaches a real ready signal, tears down clean), `ship.smoke` (the critical path this sprint touched works against the running app). **A leg is blocking whenever the diff touched something that leg's target consumes (source the build compiles, config read at startup, the touched flow); a written `⏭ skipped` row with the reason otherwise; never silently absent.** The trigger is the diff, not whether a run command exists, so a docs-only change records skips rather than booting the app. Detection table per ecosystem, readiness-probe rules, and the secrets/state guards: [references/ship-gate.md](../ship-gate.md). Runs in every mode, quick included.
 

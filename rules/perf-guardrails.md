@@ -21,4 +21,4 @@ Injected into every prompt by hackify's `UserPromptSubmit` hook, beside the hard
 
 ## Enforcement
 
-The deterministic perf-scout (`skills/hackify/references/perf-scout.md`) greps for these at both Phase 3 run points, the wave agent over its own file allowlist before it returns and the parent at round-end over what that round's waves declared, and again at Phase 5 start, and Reviewer D (performance) judges every staged candidate against the catalog, quick and yolo run the same checks at their mirror points.
+The deterministic perf-scout (`skills/hackify/references/perf-scout.md`) greps for these at both Phase 3 run points, the wave agent over its own file allowlist before it returns and the parent at round-end over what that round's waves declared, and again at Phase 5 start, and Reviewer D (performance) judges every staged candidate against the catalog, quick runs the same checks at its mirror points.

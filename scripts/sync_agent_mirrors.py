@@ -6,7 +6,7 @@ fenced prompt block of a canonical template, and check [75h] in
 scripts/validate-dod.sh enforces that promise. Editing one side by hand and
 forgetting the other is a build break, so this script copies canonical ->
 mirror for every pair. As of v0.13.0 there are no exceptions left: the list
-below and the contents of agents/ are the same nine things.
+below and the contents of agents/ are the same ten things.
 
 Getting to zero exceptions took splitting one file. phase-5-multi-review.md
 used to carry Reviewers A, B and C in three fenced blocks, and this script
@@ -40,7 +40,7 @@ both sides while --check reported nine of nine and exited 0, and check [75h]
 asserted byte-identity over the same block and inherited the same blind spot. A
 reviewer found it when a planted regression printed a false green.
 
-FULL EQUALITY IS THE WRONG FIX, AND THE REASON IS MEASURABLE. Four of the nine
+FULL EQUALITY IS THE WRONG FIX, AND THE REASON IS MEASURABLE. Four of the ten
 template tails carry MORE than their mirror BY DESIGN: a dispatcher's round
 procedure, a reference file's `## See also`, panel-roster prose a reviewer never
 reads. Requiring equality reds on a healthy tree. A bare prefix test is worse:
@@ -65,11 +65,11 @@ of the prompt. So the prompt's own closing fence sits in the tail, and a marker
 above it would cut the prompt in half and let a mirror drop the OUTPUT skeleton
 with this check still reporting a match. The rule: no bare fence may sit below
 the marker. It constrains exactly one pair today and is silent on the other
-eight rather than printing a verdict it did not reach, and a parent-side region
+nine rather than printing a verdict it did not reach, and a parent-side region
 that ever needs a fenced example must open it with four backticks.
 
 WHAT THE HEAD IS NOT, measured before it was left out. No mirror head is a prefix
-of its template head, on any of the nine: a mirror opens with YAML frontmatter, a
+of its template head, on any of the ten: a mirror opens with YAML frontmatter, a
 template with an H1 title. They are different documents rather than drifted
 copies, so there is no mirrored region for a marker to bound and the rule above
 cannot be stated for the head at all.
@@ -86,7 +86,7 @@ both are written down here instead of being rediscovered a third time.
     runtime agent type and one linking a sibling file, written for different
     readers.
 
-  - THE `description:` FIELD, on all nine, and this gap is DELIBERATE rather than
+  - THE `description:` FIELD, on all ten, and this gap is DELIBERATE rather than
     unnoticed. It is the text the runtime dispatcher matches on, so it is
     load-bearing prose, and nothing compares it to anything. The exposure is real
     and was measured: rewriting the gating clause in the security reviewer's
@@ -96,7 +96,7 @@ both are written down here instead of being rediscovered a third time.
     compare against, the template side carrying no frontmatter at all. It is a
     single-copy ROUTING surface, which is the thing [38d] in
     scripts/validate-dod.d/71-release-mechanism-pins.sh already pins phrase by
-    phrase for the eight skill descriptions. The nine agent descriptions belong in
+    phrase for the eight skill descriptions. The ten agent descriptions belong in
     that block, beside the skills, and not in a mirror contract that has no second
     copy to hold them against.
 
@@ -111,10 +111,10 @@ pointed at the tail: check [75h] reads its verdict instead of growing a second
 comparison in shell.
 
 A PAIR WITH NOTHING TO COMPARE NO LONGER PRINTS A PASSED COMPARISON. Measured
-over the list below, EIGHT of the nine templates owe their mirror an EMPTY tail
+over the list below, EIGHT of the ten templates owe their mirror an EMPTY tail
 region, five because neither side carries a tail and three because the marker
-sits on the tail's first line, so "ok ... tail matches" was one real comparison
-wearing nine pass lines. Those pairs now print `none` and say what was actually
+sits on the tail's first line, so "ok ... tail matches" was two real comparisons
+wearing ten pass lines. Those pairs now print `none` and say what was actually
 asserted, which is only that the mirror carries no tail of its own, and the run
 ends on a summary counting the two kinds apart. A caller wanting a green can
 then quote a number instead of inheriting a claim.
@@ -143,6 +143,7 @@ MIRROR_PAIRS = (
     ("agents/codebase-investigator.md", f"{PA}/investigation.md"),
     ("agents/spec-reviewer.md", f"{PA}/phase-2.5-spec-reviewer.md"),
     ("agents/wave-implementer.md", f"{PA}/phase-3-implementation.md"),
+    ("agents/module-implementer.md", f"{PA}/phase-3-module-implementation.md"),
     ("agents/code-reviewer-security.md", f"{PA}/phase-5-multi-review-a-security.md"),
     ("agents/code-reviewer-quality-plan.md", f"{PA}/phase-5-multi-review-b-quality-plan.md"),
     ("agents/code-reviewer-performance.md", f"{PA}/phase-5-multi-review-d-performance.md"),

@@ -61,7 +61,7 @@ check_token_present 'carries NO Claude attribution' \
 check_token_present 'no generated-with footer and no Claude attribution of any kind' \
   "skills/hackify/references/finish.md"
 check_token_present 'carries no Claude attribution' \
-  "skills/yolo/evals/evals.json"
+  "skills/hackify/evals/evals.json"
 
 # THE OVERRIDE MUST STAY SAID OUT LOUD. A reader who meets only "do not add the
 # trailer" while the harness instruction says "always add the trailer" has two

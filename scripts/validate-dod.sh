@@ -49,6 +49,11 @@
 #                   dispatch site and the dead one absent from the whole
 #                   tracked tree. Split out of 70 at the 500-LOC cap, where it
 #                   was two thirds of the file on its own
+#   74-agent-shell-blocks.sh, check [74], every fenced shell block in a
+#                   dispatchable agent template parses under /bin/bash. Added
+#                   after a `case` pattern's `)` closed its enclosing `$(` in
+#                   bash 3.2 and made a whole VERIFICATION block dead code that
+#                   nothing else in this validator ever opened
 #   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
 #                   coherence reviewer, refute + settled-diff exit) wired in every mode
 #   76-phase-ledger-substrate.sh, checks [76]-[76f], [76i], where the phase
@@ -241,6 +246,7 @@ source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/71-release-mechanism-pins.sh"
 source "$DOD_MODULES_DIR/72-diff-slicing-pins.sh"
 source "$DOD_MODULES_DIR/73-implementer-rename.sh"
+source "$DOD_MODULES_DIR/74-agent-shell-blocks.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
 source "$DOD_MODULES_DIR/76-phase-ledger-substrate.sh"
 source "$DOD_MODULES_DIR/77-reviewer-roster.sh"

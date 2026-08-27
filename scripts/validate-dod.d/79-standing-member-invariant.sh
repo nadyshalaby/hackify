@@ -107,16 +107,16 @@
 # side, so it never matches a letter inside a word.
 #
 # Stripping parentheticals is LOAD-BEARING and was not in the first draft. Under
-# the retired rule, skills/yolo/SKILL.md legitimately read "B (... v0.13.0 merged
-# Reviewer C into it) is the standing member", and a raw backward scan read the
+# the retired rule, a since-retired mode SKILL.md legitimately read "B (... v0.13.0
+# merged Reviewer C into it) is the standing member", and a raw backward scan read the
 # subject as C out of that aside and reddened a correct sentence. It bites the same
 # way on the rule that replaced it: "E (design conformance) is the one conditional
 # lens" reads as D without the strip. Parentheses name other reviewers incidentally
 # and are never the subject of the claim.
 #
 # Every occurrence on a line is judged, not just the first. These files carry
-# single lines hundreds of characters long (one yolo/SKILL.md table cell is a whole
-# paragraph), so a second claim appended to a line that already carries a correct
+# single lines hundreds of characters long (a skills/hackify/SKILL.md table cell runs
+# past 1700), so a second claim appended to a line that already carries a correct
 # one is a live way back in. No line in the current set states the phrase twice, so
 # the loop does not fire on today's prose; it exists for the line that will.
 #

@@ -84,18 +84,13 @@ check_token_present 'Build the Repo Brief' "skills/hackify/SKILL.md"
 # single largest avoidable cost in a review wave.
 check_token_present 'Do not open the template file to paste the prompt' "$P5_REVIEW"
 
-# The companion modes must not describe the pre-0.11.0 world. quick and yolo
-# dispatch the same agents; prose that still says "paste the template" or
-# "5 parallel reviewers" sends two of three modes down the old path.
-check_token_present 'by registered agent type' "skills/yolo/SKILL.md"
+# The companion mode must not describe the pre-0.11.0 world. quick dispatches the
+# same agents full hackify does; prose that still says "paste the template" or
+# "5 parallel reviewers" sends a live mode down the old path, and a mode tuned for
+# speed is the one that drifts there first, because every sentence it drops is a
+# sentence it saves.
 check_token_present 'by registered agent type' "skills/quick/SKILL.md"
-check_token_present 'repo-brief.md' "skills/yolo/SKILL.md"
 check_token_present 'repo-brief.md' "skills/quick/SKILL.md"
-# yolo used to be pinned on the phrase 'evidence-gated panel'. The gate retired in
-# 0.16.0, so what is pinned now is that yolo still names the panel file at all: yolo
-# is the mode most likely to quietly drop a reviewer for speed, and its own header
-# says YOLO speed comes from no gates rather than from skipped reviewers.
-check_token_present 'phases/phase-5-review.md' "skills/yolo/SKILL.md"
 
 # The pointer must carry the law, not merely point at it. This harness
 # summarises long conversations, and a summary can drop the turn that held the
@@ -108,19 +103,10 @@ check_token_present 'Core, still binding in full' "$INJECT_PY"
 check_token_present 'def qualifier' "$INJECT_PY"
 check_token_present 'if not digest_of(body):' "$INJECT_PY"
 
-# {{folded_lenses}} was refuse-on-absent, so every dispatch site of Reviewer B had
-# to name it. Un-gating the panel left folding with no user at all, and an input
-# whose only possible value is `none` is dead code, so the input went rather than
-# being kept as a vestige. What replaces the pin is the roster itself: every mode
-# that dispatches the panel has to state who is on it, because the failure this
-# guarded against, a lens silently absent from a dispatch, did not retire with the
-# gate. It just changed shape, from a fold nobody carried to a lens nobody sent.
-check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "skills/yolo/SKILL.md"
-
 yellow "[38d] every routing trigger phrase survives in its skill description"
 # v0.11.0 trimmed all eight skill descriptions to cut always-on cost. The
 # description IS the router: the model picks a skill by matching the user's
-# words against these literals, and the eight skills discriminate against each
+# words against these literals, and the seven skills discriminate against each
 # other on them. Trimming prose is safe; trimming a trigger silently re-routes
 # real user phrases to the wrong skill, and nothing else in CI would notice.
 # Every phrase below was verified present when the trim landed. Removing one
@@ -147,9 +133,15 @@ trigger_check() {
   [ "$missing" = "0" ] && green "  ok   ${skill} keeps all $# trigger phrases"
 }
 
-trigger_check hackify "use the workflow" "add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit" "auth, crypto, migration, secret, token, password"
+# The seven autopilot phrases at the tail of the hackify list are the retired
+# mode's triggers, and they are pinned HERE because this is the only place that
+# makes the re-routing real. 0.17.0 folded the third build mode into full hackify
+# and decided its trigger words should re-point rather than go dead, so a user who
+# still types "yolo" or "go full auto" reaches the gated workflow instead of
+# nothing at all. Drop one of these from the description and that phrase silently
+# stops routing anywhere, which is the failure this whole block exists to catch.
+trigger_check hackify "use the workflow" "add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit" "auth, crypto, migration, secret, token, password" "yolo" "just do it" "don't ask me" "no questions" "fully autonomous" "auto mode" "go full auto"
 trigger_check quick "quick fix" "small change" "just fix the" "one-line fix" "tiny edit" "small fix" "small bug" "quick patch" "minor tweak" "just rename" "fix typo" "/hackify:quick" "switch to full" "promote to full"
-trigger_check yolo "/hackify:yolo" "/yolo" "yolo it" "go yolo" "just do it" "don't ask me" "no questions" "fully autonomous" "auto mode" "go full auto" "Does NOT trigger on" "just fix it"
 trigger_check lawkeeper "audit my code against our rules" "does this follow CLAUDE.md" "find all rule violations" "validate the architecture"
 trigger_check codewalk "/codewalk" "walk this code" "walk me through" "walk through this" "trace this call stack" "trace this flow" "trace from" "explain this flow" "explain how this works" "what happens when" "onboard me to" "call-stack viewer" "code walkthrough"
 trigger_check review-triage "/hackify:review-triage" "respond to the review" "respond to PR feedback" "respond to reviewer comments" "address review findings"
@@ -170,10 +162,8 @@ P25_PHASE="skills/hackify/references/phases/phase-2.5-spec-review.md"
 # (1) Phase 2.5 dispatches ONE reviewer, in every file that states a count.
 check_token_present '1 reviewer scrutinizes work-doc' "skills/hackify/SKILL.md"
 check_token_present '1 reviewer, patch the doc' "$LEDGER"
-check_token_present '1 reviewer on the plan block' "$LEDGER"
 check_token_present '1 reviewer report aggregated' "$LEDGER"
 check_token_present 'one reviewer, three lenses' "$CONTRACT"
-check_token_present 'Dispatch the 1 reviewer' "skills/yolo/SKILL.md"
 check_token_present 'Dispatch exactly 1 reviewer' "$P25_PHASE"
 
 # (2) The letter C is retired, not reassigned. Reusing it would silently point a
@@ -216,7 +206,11 @@ QUICK_G="skills/quick/SKILL.md"
 check_token_present 'Cap at 5' "$P5_PHASE_G"
 # THE PANEL ROSTER, one wording, at the three files that state it in prose. The
 # gated version of this pin named B the standing member and A/D/F evidence-gated;
-# both halves of that claim retired together in 0.16.0. [79] enforces the same
+# both halves of that claim retired together in 0.16.0. These pins are also what
+# replaced the retired {{folded_lenses}} input: an input whose only possible value
+# was `none` is dead code, but the failure it guarded against, a lens silently
+# absent from a dispatch, did not retire with the gate. It changed shape, from a
+# fold nobody carried to a lens nobody sent. [79] enforces the same
 # rule as an invariant over a set it discovers, which catches a NEW file making a
 # roster claim; these three are pinned by name because they are the ones a reader
 # is sent to, and a paraphrase in any of them is a second rule to reconcile.
@@ -233,7 +227,7 @@ for f in $PANEL_AGENTS; do check_token_present 'A, B, D and F each run on every 
 # phase. Banned everywhere rather than per-file because a hand-kept per-file list is the
 # thing that goes stale, and correct text cannot contain any of them. '3 reviewers' /
 # '2 reviewers' was a separate 4-file loop, folded in so work-doc-template.md is covered.
-P5_FILES="$P5_PHASE_G $RAV_G $ORCH_G $ESC_G $QUICK_G $PANEL_AGENTS skills/hackify/SKILL.md skills/yolo/SKILL.md $LEDGER $CONTRACT $P25_PHASE $WORK_DOC_TPL"
+P5_FILES="$P5_PHASE_G $RAV_G $ORCH_G $ESC_G $QUICK_G $PANEL_AGENTS skills/hackify/SKILL.md $LEDGER $CONTRACT $P25_PHASE $WORK_DOC_TPL"
 # TWO ENTRIES LEFT THIS LIST IN 0.16.0, and both left for the same reason: they
 # became TRUE. 'A, B, D and F always' and 'FOUR foreground reviewers' each named a
 # panel width nobody dispatched on while the gate stood, and each names the actual
@@ -241,7 +235,7 @@ P5_FILES="$P5_PHASE_G $RAV_G $ORCH_G $ESC_G $QUICK_G $PANEL_AGENTS skills/hackif
 # who reads a red on a sentence that says exactly what the docs say.
 P5_BANS=('A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as a sixth' 'Cap at 6' 'cap of 6' 'FIVE foreground reviewers' 'five baseline Phase 5 reviewers' 'five-to-six reviewers' 'five-to-six-parallel' '5-to-6-reviewer' '5-6 reviewers' '5-to-6 parallel reviewers' '3 parallel reviewers' 'Dispatch 2 foreground reviewers' 'Parallel agents scrutinize' 'Cap B at' 'B/C/F' '3 reviewers' '2 reviewers')
 # Both sizes below are written a SECOND time by hand, the shape [77] already uses: a bound read back out of a list cannot police that list.
-check_list_size "$(printf '%s' "$P5_FILES" | wc -w | tr -d ' ')" 18 "the [70] panel-width file set"
+check_list_size "$(printf '%s' "$P5_FILES" | wc -w | tr -d ' ')" 17 "the [70] panel-width file set"
 check_list_size "${#P5_BANS[@]}" 21 "the [70] count-grammar ban list"
 # One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
 for f in $P5_FILES; do check_no_tokens_in "$f" "${P5_BANS[@]}"; done

@@ -31,7 +31,7 @@ Phase 1 is a grooming session, not a formality. Its exit condition is a complete
 ## Persistence
 
 - **Full hackify + any run with a work-doc**, write the anchor into the work-doc `## Primary Goal & Guardrails` section (see [work-doc-template.md](work-doc-template.md)). It sits directly under `## 1. Original ask`.
-- **quick / yolo (no persisted work-doc)**, keep the anchor as an in-chat block and restate its North-Star Goal + top Non-Goal at the top of each phase so drift is visible even without a file.
+- **quick (no persisted work-doc)**, keep the anchor as an in-chat block and restate its North-Star Goal + top Non-Goal at the top of each phase so drift is visible even without a file.
 
 ## Enforcement (the drift-check)
 

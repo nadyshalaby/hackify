@@ -71,11 +71,11 @@ FENCE = '```'
 # Written beside the lists they police rather than derived from them, on the
 # argument 00-helpers.sh makes at check_list_size: a bound taken from the list
 # drops with the list and guards nothing. TAILS_COMPARED is the pairs whose
-# mirrored region has CONTENT: eight of nine owe an empty one, so nine pass lines
-# were never nine comparisons.
-MIRROR_PAIR_COUNT = 9
+# mirrored region has CONTENT: eight of ten owe an empty one, so ten pass lines
+# were never ten comparisons.
+MIRROR_PAIR_COUNT = 10
 MARKED_TEMPLATE_COUNT = 4
-TAILS_COMPARED_COUNT = 1
+TAILS_COMPARED_COUNT = 2
 
 # A marked pair and an unmarked one. The second has two empty, equal tails.
 MARKED_PAIR = ('agents/wave-implementer.md', PA_DIR + '/phase-3-implementation.md')
@@ -286,8 +286,8 @@ def test_75h_tells_a_crashing_tail_comparison_apart_from_a_drifted_tail():
 # hand-plant recorded in a wave report, which is a proof that does not run again.
 #
 # THE PLANT HAS TO MOVE THE TREE, NOT THE FRAGMENT, and that is the whole reason
-# this row is shaped the way it is. A hardcoded 9 is INVISIBLE on a tree that has
-# nine agent files: the derived form and the hardcoded form print the identical
+# this row is shaped the way it is. A hardcoded 10 is INVISIBLE on a tree that has
+# ten agent files: the derived form and the hardcoded form print the identical
 # green. The defect only becomes one when the tree moves, so these two rows move
 # the tree once and run both forms over that same tree, which turns an invisible
 # difference into two verdicts that contradict each other.

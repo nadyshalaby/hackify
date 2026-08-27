@@ -2,7 +2,7 @@
 
 A green test suite is not a running app. Tests, lint, and typecheck prove the code is *well-formed*; they do not prove it **builds**, **boots**, or **serves a request**. A missing environment variable, a broken bundler config, a circular import at module load, a migration that never ran, none of those show up in the triad, and all of them ship a dead app.
 
-The ship gate is the last mechanical proof in Phase 4: run the thing, watch it come up, drive the main flow. It is **always-on in every mode** (full hackify, quick, yolo) and takes no user opt-in.
+The ship gate is the last mechanical proof in Phase 4: run the thing, watch it come up, drive the main flow. It is **always-on in every mode** (full hackify, quick) and takes no user opt-in.
 
 ## The contract
 

@@ -41,6 +41,9 @@
         },
         {
           "text": "Self-review checklist is filled in within the work-doc Verification section"
+        },
+        {
+          "text": "Final commit message follows project convention and carries no Claude attribution: no Co-Authored-By trailer, no Claude-Session line, no generated-with footer"
         }
       ],
       "files": []

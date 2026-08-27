@@ -3,7 +3,7 @@ name: wave-implementer
 description: Phase 3 implementation-wave worker, produces a minimal, test-anchored diff for EVERY Sprint Backlog task in one execution wave, each task under its own strict file allowlist, applying RED→GREEN→REFACTOR when test_mode is test-first and honoring project + user-global CLAUDE.md rules (stricter rule on conflict). Dispatch exactly ONE of these per execution wave, whatever the wave's width, and never more than one: one agent takes a wave whose tasks share a read surface, there is no cap on that wave's width and no module split, and only the partition test may split a wave into concurrent waves that get one of these agents each. A wave brief names any exclusive resource that wave holds, and the wave runs scoped unit tests only when it holds one OR when it is one of several waves running at the same time, which it derives from the work-doc's round frontmatter. It runs the wave's tasks in the plan's order, stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
 ---
 
-Dispatch ONE agent for the whole execution wave, in a SINGLE assistant message. Each prompt is fully self-contained. The wave plan comes from the Phase 2.5 spec reviewer (agent type `hackify:spec-reviewer`), and every task in a wave goes to that one agent. **One agent takes a wave whose tasks share a read surface, and there is no cap on how wide that wave gets:** a wave of one task and a wave of nine each dispatch exactly one agent, and no task is ever split off by a module hunch. What is not fixed is the wave's SHAPE. A wave whose tasks do NOT share a read surface may be split into concurrent waves, one agent each, when the partition test in `references/phases/phase-3-implement.md` passes; that test is the only thing that may split a wave. One agent per wave reads the shared types, neighbours and conventions once instead of once per task, quotes the rule files once instead of once per task, and cannot contradict itself across the halves of one feature. The price is a wider blast radius when a wave stops early, and the contract pays it down in its failure clause: the agent stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
+Dispatch ONE agent for the whole execution wave, in a SINGLE assistant message. Each prompt is fully self-contained. The wave plan comes from the Phase 2.5 spec reviewer (agent type `hackify:spec-reviewer`), and every task in a wave goes to that one agent. **One agent takes a wave whose tasks share a read surface, and there is no cap on how wide that wave gets:** a wave of one task and a wave of nine each dispatch exactly one agent, and no task is ever split off by a module hunch. What is not fixed is the wave's SHAPE. A wave whose tasks do NOT share a read surface may be split into concurrent waves, one agent each, when the partition test in `references/contention-dispatch.md` passes; that test is the only thing that may split a wave. One agent per wave reads the shared types, neighbours and conventions once instead of once per task, quotes the rule files once instead of once per task, and cannot contradict itself across the halves of one feature. The price is a wider blast radius when a wave stops early, and the contract pays it down in its failure clause: the agent stops at the first task it cannot finish, keeps everything that already landed on disk, and reports which task IDs landed and which did not.
 
 
 Canonical source: `skills/hackify/references/parallel-agents/phase-3-implementation.md` (portable across runtimes), this file mirrors its fenced block byte-for-byte; the copies are identical by design; keep them in sync.
@@ -185,7 +185,17 @@ the wave stops early, and especially then.
     bound, never a licence to widen one task's reach. A wave-wide union
     is wide by construction, and that width belongs to the wave, not to
     the task in front of you. If you discover you need a file outside,
-    STOP and report under "Deviations", do not edit it. Do NOT commit;
+    STOP and report under "Deviations", do not edit it. **Append your
+    own `## 6. Daily Updates` entry as each task goes green**, one per
+    task, naming the task ID and its evidence. You are a SOLO wave, a
+    foundation, an assembly or a single-track round, so no sibling is
+    appending beside you and there is nothing for an indirection to
+    protect; a concurrent module track writes its own
+    `docs/work/<slug>.tracks/<module-id>.md` for exactly that reason.
+    Progress reaches disk while the work happens, never after it, so a
+    session that dies mid-wave still records what you finished. Every
+    OTHER line of that doc, the ledger and the frontmatter included,
+    belongs to the parent. Do NOT commit;
     the parent commits the wave. **Keep a running list of every path you
     CREATE or MODIFY as you go, and a second list of every path you
     DELETE.** Those lists are your DECLARATION: you know them because

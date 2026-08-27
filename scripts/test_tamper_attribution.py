@@ -41,7 +41,7 @@ FRAGMENT = FRAGMENTS['81']
 IMPL = 'skills/hackify/references/implement-and-test.md'
 FINISH6 = 'skills/hackify/references/phases/phase-6-finish.md'
 FINISH = 'skills/hackify/references/finish.md'
-EVALS = 'skills/yolo/evals/evals.json'
+EVALS = 'skills/hackify/evals/evals.json'
 
 PINNED = {
     IMPL: ('NO CLAUDE ATTRIBUTION, in the commit or anywhere else it lands.\n'
@@ -147,9 +147,10 @@ def test_softening_the_harness_override_clause_reds():
   _red(rc, out, "'this overrides it' missing")
 
 
-def test_the_yolo_eval_reverting_to_assert_the_trailer_reds():
-  """yolo's eval used to score a run as correct FOR carrying the trailer, so it
-  is the one site that could put the rule back by grading against it."""
+def test_the_hackify_eval_reverting_to_assert_the_trailer_reds():
+  """A since-retired mode's eval used to score a run as correct FOR carrying the
+  trailer, which is why an eval is the one site that could put the rule back by
+  grading against it. [81] pins hackify's eval now, and this row guards that one."""
   root = _tree()
   write(root, EVALS, '{"text": "the commit ends with the Co-Authored-By trailer"}\n')
   rc, out = run_check('81', cwd=root)

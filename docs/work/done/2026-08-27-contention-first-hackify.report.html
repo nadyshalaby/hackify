@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Side-by-side work becomes the default, hackify report</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #1a1c22;
+    --ink-dim: #5b6270;
+    --line: #e4e7ec;
+    --brand: #7c3aed;
+    --brand-soft: #efe8fe;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --crit: #dc2626;
+    --imp: #d97706;
+    --min: #64748b;
+    --add: #16a34a;
+    --del: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  /* Two dark blocks, same tokens, because a viewer's theme has three states.
+     A published page renders inside a host that stamps data-theme="dark" or
+     data-theme="light" on the root element when the viewer picks one, and
+     stamps nothing on the default "system" setting, where only the media query
+     separates light from dark. The media block is guarded so an explicit light
+     choice wins on a dark OS; the attribute block is what makes an explicit
+     dark choice win on a light OS. The bare :root above stays the light
+     default, so every token has a value before either block runs. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+      --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1116; --panel: #171a21; --ink: #e8eaf0; --ink-dim: #9aa2b1;
+    --line: #262b36; --brand: #a684f5; --brand-soft: #241b3a; --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header.report { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--brand); background: var(--brand-soft);
+    padding: 3px 10px; border-radius: 999px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 12px 0 6px; }
+  .meta { color: var(--ink-dim); font-size: 13px; }
+  .meta code { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  .goal { margin-top: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--brand); border-radius: 10px; color: var(--ink-dim); }
+  .goal strong { color: var(--ink); }
+  .summary { margin: 0 0 8px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--ok); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .summary h2 { margin: 0 0 8px; color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 17px; }
+  .summary p { margin: 0; font-size: 16px; line-height: 1.6; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-dim);
+    margin: 34px 0 14px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); }
+  .card .n { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .card .k { font-size: 12px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .card .add { color: var(--add); } .card .del { color: var(--del); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .timeline { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--ink-dim); background: var(--bg); }
+  .pill.done { color: #fff; background: var(--brand); border-color: var(--brand); }
+  .pill.skipped { opacity: .55; text-decoration: line-through; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-dim); }
+  tr:last-child td { border-bottom: 0; }
+  td code, .area { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .sev { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  .sev.critical { color: var(--crit); } .sev.important { color: var(--imp); } .sev.minor { color: var(--min); }
+  ul.items { list-style: none; padding: 0; margin: 0; }
+  ul.items li { padding: 10px 0 10px 26px; border-bottom: 1px solid var(--line); position: relative; }
+  ul.items li:last-child { border-bottom: 0; }
+  ul.items li::before { content: "→"; position: absolute; left: 4px; color: var(--brand); font-weight: 700; }
+  .empty { color: var(--ink-dim); font-style: italic; }
+  section.update + section.update { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+  section.update h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--ink-dim); margin: 14px 0 4px; font-weight: 700; }
+  section.update h3:first-child { margin-top: 0; }
+  section.update p { margin: 0; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--ink-dim); font-size: 12px; }
+  footer a { color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report">
+    <span class="eyebrow">Sprint report</span>
+    <h1>Side-by-side work becomes the default</h1>
+    <p class="meta"><code>2026-08-27-contention-first-hackify</code> · generated 2026-08-28</p>
+    <div class="goal"><strong>Sprint goal.</strong> Make hackify contention-first by default: settle every shared thing first in one solo pass, then run the independent pieces side by side, then mount and boot the result in one last solo pass. Retire the autopilot mode so only two ways to run it remain.</div>
+  </header>
+
+  <section class="summary">
+    <h2>What changed &amp; why it matters</h2>
+    
+    <p>Until now the workflow did one piece of work at a time, in a queue, even when the pieces had nothing to do with each other. This release turns that around. The plan review lists everything only one worker can hold at once, then re-asks each item whether it is really exclusive or only exclusive out of habit. Most turn out to be habit. Whatever genuinely is exclusive gets settled first, alone, in a single pass that writes those shared files and no feature code. Everything left runs as separate tracks at the same time, each one finishing and testing its own piece, and one final solo pass mounts it all and boots it for real. The shape shrinks to fit the job, so a two-file change runs exactly as it did before: nothing shared means no first pass, one track means nothing to assemble. Nothing was removed from the checking to buy this, only the waiting. The autopilot mode goes in the same release, leaving two ways to run hackify.</p>
+  </section>
+
+  <h2>At a glance</h2>
+  <div class="cards">
+    <div class="card"><div class="n">19 / 19</div><div class="k">Tasks done</div></div>
+    <div class="card"><div class="n">60</div><div class="k">Files changed</div></div>
+    <div class="card"><div class="n"><span class="add">+2543</span> <span class="del">−680</span></div><div class="k">Lines</div></div>
+    <div class="card"><div class="n">1</div><div class="k">Commits</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="panel">
+      <h2 style="margin-top:0">Review findings</h2>
+      
+      <svg viewBox="0 0 320 108" width="100%" role="img" aria-label="Findings by severity, found versus fixed">
+      <text x="0" y="22" font-size="12" fill="currentColor">Critical</text>
+      <rect x="76" y="10" width="111" height="16" rx="3" fill="#e5484d" opacity="0.35"/>
+      <rect x="76" y="10" width="111" height="16" rx="3" fill="#e5484d"/>
+      <text x="195" y="22" font-size="12" fill="currentColor">7/7 fixed</text>
+      <text x="0" y="56" font-size="12" fill="currentColor">Important</text>
+      <rect x="76" y="44" width="190" height="16" rx="3" fill="#f5a524" opacity="0.35"/>
+      <rect x="76" y="44" width="79" height="16" rx="3" fill="#f5a524"/>
+      <text x="274" y="56" font-size="12" fill="currentColor">5/12 fixed</text>
+      <text x="0" y="90" font-size="12" fill="currentColor">Minor</text>
+      <rect x="76" y="78" width="127" height="16" rx="3" fill="#8b8d98" opacity="0.35"/>
+      <rect x="76" y="78" width="0" height="16" rx="3" fill="#8b8d98"/>
+      <text x="211" y="90" font-size="12" fill="currentColor">0/8 fixed</text>
+      </svg>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0">Phases</h2>
+      
+      <div class="timeline"><span class="pill done">1 Clarify</span><span class="pill done">2 Plan + Gate</span><span class="pill done">3 Spec review</span><span class="pill done">4 Implement</span><span class="pill done">5 Verify</span><span class="pill done">6 Review</span><span class="pill done">7 Finish</span></div>
+    </div>
+  </div>
+
+  <h2>Findings detail</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Finding</th><th>Severity</th><th>Decision</th><th>Evidence</th></tr></thead>
+      <tbody>
+        
+        <tr><td>The self-check script inside the worker instructions could not run at all. One line used a shell construct that the older shell shipped with macOS reads as a syntax error, which silently disables the whole block.</td><td><span class="sev critical">critical</span></td><td>Fixed, and a new check now reads the shell inside all eleven instruction files so this class cannot come back.</td><td>Reproduced by hand, then rewritten and put through six end-to-end runs in a throwaway repo. The new check was proved by replanting the original defect and watching it go red.</td></tr>
+        <tr><td>A second part of the same self-check would quit early and skip its own clean result, because of how the shell treats a search that finds nothing.</td><td><span class="sev critical">critical</span></td><td>Fixed.</td><td>Reproduced with a minimal case. My original test of this block was run without the setting that causes the bug, so it could never have caught it.</td></tr>
+        <tr><td>The new side-by-side worker asked for eight pieces of information that nothing in the workflow produced, so it would have refused every job it was given.</td><td><span class="sev critical">critical</span></td><td>Fixed. The plan file now has a block that fills all eight in before the workers go out.</td><td>Read the plan skeleton against the worker&#x27;s input list, one line at a time.</td></tr>
+        <tr><td>Eight live places still pointed at the old home of the three-condition test that decides whether work can be split.</td><td><span class="sev critical">critical</span></td><td>Fixed, all eight.</td><td>Searched the tree, then re-searched after the edits.</td></tr>
+        <tr><td>One of the acceptance bullets claimed the new reference covers all nine sections of the source design. It covers seven.</td><td><span class="sev critical">critical</span></td><td>The bullet was narrowed to say seven, and the missing section was written down as a follow-up rather than folded into a tick.</td><td>Searched for the missing section&#x27;s content and found nothing.</td></tr>
+        <tr><td>A check meant to confirm a mode name is well formed was testing a value it had just written itself, so it could not fail.</td><td><span class="sev important">important</span></td><td>Fixed. It now reads the real value out of the file.</td><td>Confirmed by feeding it a bad value and watching it go red for the first time.</td></tr>
+        <tr><td>A name for a mode that was designed but never shipped had been left in the worker instructions.</td><td><span class="sev important">important</span></td><td>Fixed.</td><td>Zero hits for it anywhere in the shipped tree.</td></tr>
+        <tr><td>The plan said its build stage was finished while two of its own tasks were still marked half done.</td><td><span class="sev important">important</span></td><td>Fixed in the closing edit.</td><td>Read the ledger against the task list.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Action items &amp; follow-ups</h2>
+  <div class="panel">
+    <ul class="items">
+      
+      <li>Write the missing sizing section into the side-by-side reference: how much a wider run actually buys, and why width is the last multiplier to reach for rather than the first.</li>
+      <li>The folder allowlist a worker is given still accepts a path that climbs out of its own folder. Tighten it.</li>
+      <li>The check for leftover work-in-progress looks at the whole repository and has no time bound, so it can flag something from months ago.</li>
+      <li>The list of things only one worker can hold at once now exists in three places. The release notes say one. Pick one home.</li>
+      <li>The house rules travel with the side-by-side worker but not yet with the solo worker, which gets more jobs.</li>
+      <li>The rewritten check that confirms the retired mode is gone has no test proving it would notice if the mode came back.</li>
+    </ul>
+  </div>
+
+  <h2>What changed</h2>
+  <div class="panel">
+    
+    <section class="update"><h3 class="update-title">Work that shares nothing now happens at the same time</h3><h3>Problem</h3><p>Every piece of a job went out one at a time, in a queue, even when two pieces touched completely different files and neither needed the other. Waiting was the single biggest cost in a long run, and almost none of it was buying anything.</p><h3>Root cause</h3><p>The workflow only ever asked whether pieces could be ordered, never whether they had to be. Anything that looked like it might clash was put in the queue, and nothing went back to check whether the clash was real.</p><h3>Solution</h3><p>The plan review now lists everything only one worker can hold at once, a file two jobs both write, a numbered sequence, a single shared test database, and then re-asks each one whether it is genuinely exclusive or only exclusive out of habit. Most are habit. Whatever survives that second question gets settled first, alone, in one pass that writes those shared files and no feature code. Everything left runs as separate tracks at the same time, each track finishing and testing its own piece. One last solo pass mounts everything, reconciles it and boots it for real.</p><h3>Verification evidence</h3><p>Four tracks ran at once across forty five files in this very sprint with no two of them writing the same file. Every track reported green on its own work while the tree as a whole was still broken, which is precisely the case the final solo pass was added to catch, and it caught it.</p><h3>Deployment status</h3><p>Shipped in 0.17.0. It is the default, not something you turn on.</p></section>
+    <section class="update"><h3 class="update-title">The shape shrinks to fit the job</h3><h3>Problem</h3><p>A three stage arrangement sounds like a lot of ceremony to put in front of a two file change.</p><h3>Root cause</h3><p>Nothing, this was a risk in the design rather than a defect. It is written down because it is the thing most likely to be misread.</p><h3>Solution</h3><p>The size of a run falls out of what the work actually shares, never out of how big the job looks. Nothing shared means there is no first pass at all. One track means there is nothing to assemble. A stage that does not apply is marked finished with a written reason instead of being dropped in silence.</p><h3>Verification evidence</h3><p>A single file edit produces one track and no extra stages, which is the same behaviour as before this release.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+    <section class="update"><h3 class="update-title">Two ways to run it instead of three</h3><h3>Problem</h3><p>There were three modes and the differences between two of them were getting thin.</p><h3>Root cause</h3><p>The autopilot mode existed mainly to skip the sign off step. Once the main workflow got faster, the reason to skip anything got weaker.</p><h3>Solution</h3><p>Autopilot is gone. Two modes remain, the full workflow and the compressed one for small fixes. Every phrase that used to start autopilot now starts the full workflow, so nothing you already type stops working.</p><h3>Verification evidence</h3><p>The mode is absent from the source and from all six built packages. A check now fails the build if it ever reappears.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+    <section class="update"><h3 class="update-title">Workers write down what they finished, while they are finishing it</h3><h3>Problem</h3><p>Progress only existed in the message a worker sent back at the end. If a session died halfway through, everything the worker had already done went unrecorded, even though the work itself was safely on disk.</p><h3>Root cause</h3><p>Workers were told not to touch the plan file at all, because several of them writing one file at once is the exact clash this release was built to remove.</p><h3>Solution</h3><p>Split by situation. A worker running on its own writes straight into the plan file&#x27;s daily log as each piece goes green. Workers running side by side each keep their own small file, and the parent folds those in once the round ends. Nobody ever writes the same file as somebody else.</p><h3>Verification evidence</h3><p>Read the two sets of instructions against each other to confirm neither can write where the other does.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+    <section class="update"><h3 class="update-title">The house rules now travel with the worker</h3><h3>Problem</h3><p>The engineering rules were being attached to messages from you, and a job handed to a worker is not one of those. Workers had never actually been receiving them.</p><h3>Root cause</h3><p>The mechanism that attaches the rules only fires on a prompt a person types. Nobody had noticed that a worker does not get one.</p><h3>Solution</h3><p>The rules a worker is most likely to break, the size limits, the ban on silencing a linter, the ban on claiming something passed without running it, are now written into the worker&#x27;s own instructions. It is a floor, not a replacement, and the worker is still told to read the full rules.</p><h3>Verification evidence</h3><p>Confirmed the rules are present in the worker instructions and that the full read is still required alongside them.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+    <section class="update"><h3 class="update-title">Something finally reads the shell hidden inside the instruction files</h3><h3>Problem</h3><p>Some instruction files carry a small script the worker runs on itself before it reports back. One of them had been broken the whole time. The worker&#x27;s self check quietly did nothing, and every other check stayed green over it for an entire sprint.</p><h3>Root cause</h3><p>Those files are documents. No tool opens a document looking for code, so nothing ever tried to run the script inside one.</p><h3>Solution</h3><p>A new check reads all eleven of those files, pulls out every script, and fails if any of them will not run.</p><h3>Verification evidence</h3><p>Proved by putting the original defect back exactly as it was, watching the new check go red, then restoring the fix byte for byte and watching it go green.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+    <section class="update"><h3 class="update-title">The README got shorter</h3><h3>Problem</h3><p>The README had grown to the point where the part explaining the repository layout listed every file by hand, which duplicates the repository, goes stale on every rename, and took up nearly a quarter of the page.</p><h3>Root cause</h3><p>It had been added to release after release without anything ever being taken out.</p><h3>Solution</h3><p>The hand written file listing became a short directory map that cannot go stale the same way. The two longest release notes were compressed. Every path still mentioned was confirmed to resolve.</p><h3>Verification evidence</h3><p>The page went from 440 lines to 380, and the check that confirms every path in prose still exists passes over all 120 files.</p><h3>Deployment status</h3><p>Shipped in 0.17.0.</p></section>
+  </div>
+
+  <h2>Next steps &amp; instructions</h2>
+  <div class="panel">
+    <ul class="items">
+      
+      <li>Tag and publish 0.17.0.</li>
+      <li>Watch the first few real runs for a track that reports finished while the tree as a whole is broken, which is exactly what the final solo pass exists to catch and what happened once during this sprint.</li>
+      <li>Clear the six follow-ups above in a small sweep rather than letting them age.</li>
+    </ul>
+  </div>
+
+  <h2>Evidence appendix</h2>
+  <div class="panel" style="padding:0 20px">
+    <table>
+      <thead><tr><th>Item</th><th>Claim</th><th>What ran</th><th>Proof sample</th><th>Result</th></tr></thead>
+      <tbody>
+        
+        <tr><td>Full validator</td><td>Every rule this plugin holds itself to still passes.</td><td><code>bash scripts/validate-dod.sh</code></td><td><code>1370 ok lines against a floor of 1350</code></td><td>ALL CHECKS PASSED</td></tr>
+        <tr><td>Tamper battery</td><td>Each check would actually notice if the thing it guards were broken.</td><td><code>python3 scripts/test_tamper_battery.py</code></td><td><code>159 cases, each one breaks something on purpose</code></td><td>159 passed, 0 failed</td></tr>
+        <tr><td>Banned wording</td><td>No forbidden phrasing survives anywhere in the shipped text.</td><td><code>bash scripts/test_ban_tokens.sh</code></td><td><code>161 cases</code></td><td>161 passed, 0 failed</td></tr>
+        <tr><td>Instruction copies</td><td>Each worker definition still matches the template it is generated from.</td><td><code>python3 scripts/sync_agent_mirrors.py --check</code></td><td><code>10 pairs</code></td><td>10 of 10 match</td></tr>
+        <tr><td>Built packages</td><td>All seven supported tools still build cleanly from one source.</td><td><code>bash scripts/sync-runtimes.sh</code></td><td><code>805 files</code></td><td>OK</td></tr>
+        <tr><td>Name collisions</td><td>No two skills or commands answer to the same name.</td><td><code>bash scripts/check-collisions.sh</code></td><td><code>7 packages compared</code></td><td>7 OK, 0 overlaps</td></tr>
+        <tr><td>Retired mode</td><td>The autopilot mode is genuinely gone, not just unlinked.</td><td><code>ls skills/yolo; ls -d dist/*/skills/yolo</code></td><td><code>source plus all six built trees</code></td><td>absent everywhere</td></tr>
+        <tr><td>Self check scripts</td><td>Every script embedded in a worker instruction file will run.</td><td><code>bash scripts/validate-dod.sh (check 74)</code></td><td><code>11 instruction files</code></td><td>all parse</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Generated by hackify · Phase 6 summary report · self-contained, works offline.</footer>
+
+</div>
+</body>
+</html>

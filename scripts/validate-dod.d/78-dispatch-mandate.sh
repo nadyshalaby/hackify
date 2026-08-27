@@ -24,13 +24,11 @@ yellow "[78] dispatch mandate, no parent-authored diffs + actionable orchestrati
 
 MAIN_SKILL="skills/hackify/SKILL.md"
 QUICK_SKILL="skills/quick/SKILL.md"
-YOLO_SKILL="skills/yolo/SKILL.md"
 ORCH_REF="skills/hackify/references/orchestration.md"
 
 # [78a] The law itself, stated where each mode's reader will hit it.
 check_token_present "The parent never authors a diff" "$MAIN_SKILL"
 check_token_present "no-parent-authored-diff" "$QUICK_SKILL"
-check_token_present "no-parent-authored-diff" "$YOLO_SKILL"
 
 # [78b] The law binds the three phases that change code, not just Phase 3.
 for ref in \

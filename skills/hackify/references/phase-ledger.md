@@ -13,7 +13,7 @@ Prose rules like "do not skip Phase 2.5" and "archive before the summary" are so
 | Layer | Lives in | Scope | Survives a session? |
 |---|---|---|---|
 | **Sprint Backlog** | the work-doc | task-level (one line per task) | Yes, the durable state |
-| **Phase ledger** | work-doc section 0 in full hackify, surfaced through the todo tracker or a printed chat block | phase/step-level (one line per phase) | Mode-dependent, full hackify yes (it is in the work-doc), quick and yolo no |
+| **Phase ledger** | work-doc section 0 in full hackify, surfaced through the todo tracker or a printed chat block | phase/step-level (one line per phase) | Mode-dependent, full hackify yes (it is in the work-doc), quick no |
 
 They do not overlap. The Sprint Backlog tracks *what code work* is left. The phase ledger tracks *which workflow phase* you are in and forbids running them out of order.
 
@@ -29,9 +29,8 @@ The ledger opens at task start in every mode as a printed block, and in full hac
 |---|---|---|
 | **Full hackify** | the work-doc's `## 0. Phase ledger` block | durable, archived with the doc, read back on resume |
 | **quick** | nothing, by contract | the printed block in chat |
-| **yolo** | nothing, by contract | the printed block in chat |
 
-quick and yolo keep nothing on disk by contract, so they print only and the printed block is the record. Do not invent a scratch ledger file for them.
+quick keeps nothing on disk by contract, so it prints only and the printed block is the record. Do not invent a scratch ledger file for it.
 
 On the fallback substrate a tick is an edit plus a re-print, not a tool call: `- [ ]` open, `- [>]` the single in-progress item, `- [x]` completed. That edit lands in the work-doc on disk, never in the chat block alone. The ordering law and the reflect-after-each-step rule below apply unchanged, the marks just live in text.
 
@@ -63,7 +62,6 @@ or `Ledger substrate: todo tracker.` when the primitive is there. Say it once an
 - **Full hackify**, opened at **task start in Phase 1** as a printed block, right after the ask is real and before any code. It becomes section 0 of the work-doc at **Phase 2 step 1**, before you draft the rest of it.
 - **Full hackify entered through groom**, where the work-doc already exists before Phase 1 runs, because [../../groom/SKILL.md](../../groom/SKILL.md) Step 2 creates it from the template at graduation. The rule that covers both paths is **whoever creates the file writes section 0 into it first**. So groom writes the block with every item open and prints it at handoff; **Phase 1 adopts** it, restore it into the todo tracker if the runtime has one, set Phase 1 `in_progress`, and never open a second one, groom just printed the block so the next print is the ordinary phase-boundary one; **Phase 2 step 1 still runs** and **confirms** the block is present and in sync instead of writing it. One section 0, written once, on every path.
 - **quick**, at task start, right after Phase 1.
-- **yolo**, at task start, right after Phase 1.
 
 Create it with the **todo tracker** primitive when the runtime exposes one, otherwise with the fallback substrate above (`runtime-adapters.md`). One item per phase; **Phase 6 is split into sub-steps** so archiving is its own tracked line.
 
@@ -93,22 +91,12 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 5. Phase 6. Cleanup sweep (Step C.5)
 6. Phase 6. Update log + HTML report
 
-**yolo** (7 items), no work-doc, so no archive item:
-
-1. Phase 1. Clarify + goal anchor
-2. Phase 2. In-chat plan (no gate)
-3. Phase 2.5. Spec review (1 reviewer on the plan block)
-4. Phase 3. Implement (waves)
-5. Phase 4. Verify (full ledger + 3 layers)
-6. Phase 5. Multi-reviewer (address-all, auto-fix)
-7. Phase 6. Cleanup + commit (Option 1) + summary + report
-
 ## The ordering law (the whole point)
 
 - **One item `in_progress` at a time.** Never two.
 - **No jumping ahead.** You may not set a later item to `in_progress` until the current item is `completed`.
 - **No silent skip.** A carve-out (a one-line typo that skips multi-reviewer; no entry-point so codewalk is skipped) is marked `completed` with a one-line reason appended, e.g. `Phase 5, skipped: one-line comment fix, no diff to review`. Never delete an item to make progress look done.
-- **Parallelism lives INSIDE a phase, not across phases.** The Phase 5 reviewer panel and Phase 1's research agents fan out *within* their phase. Phase 3 gives it up only where it buys something: when a wave's tasks share a read surface they read the same types, neighbours and conventions, so ONE agent takes the whole wave. A wave whose tasks share no read surface MAY be split into concurrent waves that run at the same time, one agent each, but only when all three conditions of the partition test in [phases/phase-3-implement.md](phases/phase-3-implement.md) hold, and those concurrent waves are still INSIDE Phase 3. The phases themselves stay sequential.
+- **Parallelism lives INSIDE a phase, not across phases.** The Phase 5 reviewer panel and Phase 1's research agents fan out *within* their phase. Phase 3 gives it up only where it buys something: when a wave's tasks share a read surface they read the same types, neighbours and conventions, so ONE agent takes the whole wave. A wave whose tasks share no read surface MAY be split into concurrent waves that run at the same time, one agent each, but only when all three conditions of the partition test in [contention-dispatch.md](contention-dispatch.md) hold, and those concurrent waves are still INSIDE Phase 3. The phases themselves stay sequential.
 
 ## Exit artifact per phase (the anti-skip lever)
 
@@ -116,14 +104,14 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 
 | Phase | Exit artifact that must exist before you tick it |
 |---|---|
-| 1 Clarify | Locked Primary Goal & Guardrails anchor, all 5 parts, in the work-doc (in-chat for quick/yolo) |
+| 1 Clarify | Locked Primary Goal & Guardrails anchor, all 5 parts, in the work-doc (in-chat for quick) |
 | 2 Plan | Work-doc file exists at `docs/work/<date>-<slug>.md` **and** explicit user "go" |
 | 2.5 Spec review | 1 reviewer report aggregated; Critical + Important findings patched into the doc |
 | 3 Implement | Every Sprint Backlog checkbox ticked; every round committed; wave-end persistence done; both scouts (perf + law) run at BOTH Phase 3 run points, each wave agent over its own file allowlist before it returns and the parent at every round-end over what that round's waves DECLARED under `## Paths written` rather than the union of their allowlists, with every candidate dispositioned at both |
 | 4 Verify | A proof row per task **and** per acceptance bullet; fresh triad green (exit 0); the three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) present and each ✅ or `⏭ skipped` with a written reason |
 | 5 Review | Decision table empty, every finding refuted with a counter-citation or fixed; final re-scan clean **on a diff unchanged since that scan** |
 | 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
-| 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick/yolo), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
+| 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
 | **6c Archive** | **Frontmatter `status: done` and a fully closed ledger written into the work-doc, with `git mv docs/work/<slug>.md docs/work/done/<slug>.md` as the mechanical step that immediately follows** |
 | 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log`, **and** `<slug>.report.html` already written to `docs/work/done/<slug>.report.html`. Where the runtime can publish a page, the report is published too and the user gets the link, but that link is an extra on top of this row and never part of it: the artifact is the printed log plus the file on disk, so a runtime with no publish tool still closes 6d ([runtime-adapters.md](runtime-adapters.md)) |
 
@@ -152,7 +140,7 @@ When you complete a ledger item, do three things in order:
 2. Flip the item to `completed` and advance frontmatter `status` in the same edit.
 3. Set the next item to `in_progress` in that same edit, save, then re-print the block.
 
-Steps 2 and 3 are ONE edit to the work-doc's `## 0. Phase ledger` block in full hackify, and the re-print follows that saved edit. quick and yolo have no file, so there the print is the whole tick.
+Steps 2 and 3 are ONE edit to the work-doc's `## 0. Phase ledger` block in full hackify, and the re-print follows that saved edit. quick has no file, so there the print is the whole tick.
 
 **The final pair is the one exception.** 6c and 6d close together, in one edit, with no next item to open, because 6d's artifacts are produced before either row is ticked and the move that finishes 6c has to be the last thing that happens to the file (**Closing the ledger** above). Every other tick in the workflow closes one row and opens the next. Read this as the single named exception it is, never as permission to close two rows at once elsewhere, and never as permission to tick a row whose artifact does not exist yet.
 
@@ -172,7 +160,7 @@ The item marks do not change on an in-phase re-print, because a round is not a p
 
 - The **Sprint Backlog** in the work-doc is the durable state. In full hackify the **phase ledger** is durable too, it is section 0 of the same file. Durable only if you keep writing it: a resume finds the phase your last file edit recorded, not the phase your last chat print showed.
 - On resume, **read the ledger back** from the work-doc's `## 0. Phase ledger` block: re-print it, restore it into the todo tracker if the runtime has one, and set the first open phase to `in_progress`. It is a read, not a reconstruction. When that block is missing (an older work-doc), rebuild it from `status` + the Sprint Backlog checkboxes **and write it into the doc** as part of the one migration edit resume makes before any phase resumes ([../SKILL.md](../SKILL.md), Pause / Resume). That rebuild is a ONE-TIME migration, never a standing fallback: once the block is on disk, every later resume reads it back like any other.
-- quick / yolo keep no work-doc, so their ledger dies with the session, consistent with their no-resume contract. Rebuilding is the permanent path there and there is nothing to migrate: the printed block IS the record, by contract, and no file is waiting to have one written into it.
+- quick keeps no work-doc, so its ledger dies with the session, consistent with its no-resume contract. Rebuilding is the permanent path there and there is nothing to migrate: the printed block IS the record, by contract, and no file is waiting to have one written into it.
 
 ## Anti-rationalizations (STOP and apply the reality)
 

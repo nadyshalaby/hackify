@@ -110,25 +110,42 @@ Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate 
 - [ ] **T3**, ...
 
 After Phase 2.5 the Approach section carries an **Execution waves** block, written
-round by round: one line per wave, naming that wave's task IDs in run order. ONE
-agent takes the whole wave, however wide it is, when the wave's tasks share a read
-surface. A wave whose tasks share no read surface MAY be split into concurrent
-waves that go out at the same time, one agent each, but only when
-all three conditions of the partition test in
-[phases/phase-3-implement.md](phases/phase-3-implement.md) hold; a round holding
-one wave is normal. Phase 5 builds
-`{{task_file_index}}` from this block plus each task's Files list, so the block is
-what makes both the implementer dispatch and the reviewer scope checkable.
+round by round: one line per wave, naming that wave's task IDs in run order. Phase 3
+runs it in three stages. A **foundation wave** goes first, on its own, and takes
+every contended write in the round, the shared files, registries and generated
+sequences that two or more tasks would otherwise reach for at the same time. Then
+the **module tracks** run concurrently, one agent each, and a track carries its own
+tasks all the way to DONE rather than handing a half-built module on. An **assembly
+wave** closes the round, on its own again, and does the mounting, the cross-track
+reconcile and a real boot of the assembled system.
+
+**The shape scales, and both ends of it are ordinary.** A round with no contended
+write has no foundation wave to run, and a round with one track has nothing to
+assemble. The stage that does not apply is marked complete with a written reason,
+the way a skipped phase is, and never dropped in silence, so a later reader can tell
+a stage that had no work from a stage nobody ran. A two-file change therefore looks
+the way it always has: one wave, one agent, no ceremony bought for it.
+
+Whether a round's tasks may be split across concurrent tracks at all is settled by
+the partition test in [contention-dispatch.md](contention-dispatch.md),
+all three of its conditions, and never by how large the round happens to look.
+Phase 5 builds `{{task_file_index}}` from this block plus each task's Files list, so
+the block is what makes both the implementer dispatch and the reviewer scope
+checkable.
 
 ```
 Execution waves
 
-Round 1 (2 concurrent waves)
-W1a: T1, T3, T2
-W1b: T4, T5
+Round 1 (foundation, solo)
+W1: T1, T2
 
-Round 2 (1 wave)
-W2a: T6, T7
+Round 2 (3 concurrent tracks)
+W2a: T3, T4
+W2b: T5
+W2c: T6, T7
+
+Round 3 (assembly, solo)
+W3: T8
 ```
 
 ## 6. Daily Updates
@@ -150,6 +167,53 @@ Append one entry per task as you complete (or get stuck on) it.
 
 ### T2 ([task name], in progress)
 - ...
+
+### Module briefs (concurrent rounds only)
+
+**Fill this before dispatching a round that holds two or more concurrent tracks,
+or the dispatch fails.** `hackify:module-implementer` refuses on any of its
+fifteen INPUTS arriving unfilled, and eight of them have no other producer: the
+Phase 2.5 wave plan emits wave numbers, task IDs, an agent type and a
+concurrency mark, and nothing else names them. One block per track. A round with
+one track needs none of this, because a single-track round takes
+`hackify:wave-implementer`.
+
+```
+#### M<n> <module name>  (tasks T<a>, T<b>)
+- module_id:        M<n>
+- module_plan_path: <this doc>#m<n>-<module-name>
+- folder_allowlist: <one absolute folder per line; disjoint from every sibling's>
+- owned_elsewhere:  <shared surface> -> owned by <M<k>|the foundation wave|the assembly wave>
+- mandatory_reading: <the architecture-contract sections this module must honour>
+- sharp_invariants: <the 2-3 places THIS module is most likely to get wrong>
+- database_name:    <the database THIS track creates and owns; never the shared one>
+- handoff_contract: <what the assembly wave needs back: registrar to mount, exported names>
+```
+
+`folder_allowlist` is where the partition becomes real, so derive it from the
+`## Serial resources` table rather than by intuition: any folder two tracks would
+both write is a contended write and belongs to the foundation wave instead.
+`database_name` is the standard lifting move for a single shared test database,
+which is conventionally serial rather than genuinely exclusive.
+
+### Track progress (concurrent rounds only)
+
+A concurrent track does NOT write this file. Four tracks appending to one
+markdown file is the shared-file contention the partition exists to remove, and
+an append has no lock, no merge and no error when a write is lost. Each track
+writes its own `docs/work/<slug>.tracks/<module-id>.md` instead, disjoint by
+construction, updated as each unit goes green rather than once at the end. The
+parent merges them into `## 6. Daily Updates` at round end and deletes the
+folder when the round closes.
+
+**A solo wave writes `## 6. Daily Updates` directly**, because a foundation
+wave, an assembly wave and a single-track round have no sibling to collide with,
+so there is nothing for the indirection to protect. The mechanism follows the
+contention, and where there is none it gets out of the way.
+
+Either way the rule is the same one: **progress reaches disk while the work is
+happening, not after it.** A session that dies mid-round leaves a work-doc that
+still says what every track had finished.
 
 ## 7. Sprint Review (Phase 4 / 5)
 

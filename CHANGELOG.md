@@ -5,6 +5,79 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-08-27
+
+> **The full workflow now plans around what genuinely has to happen one at a time, and runs
+> everything else at once.** A round used to turn into a queue of waves, and most of that queue was
+> waiting rather than working. The plan review now names every serial resource the backlog touches,
+> a file two tasks both write, a counted sequence, an exclusive external resource such as one shared
+> test database, and then asks of each one whether it is really exclusive or only exclusive by
+> convention. Most turn out to be convention. Whatever survives the question is settled up front in
+> a single solo pass, the module tracks then run side by side with every track delivering finished
+> and tested work, and one last solo pass mounts the parts and boots the system for real. The shape
+> scales to the change: nothing contended means no first pass, one track means nothing to assemble,
+> so a small edit runs exactly as it always did. No verification was traded away to get this. The
+> waiting was.
+
+### Added
+
+- **A check that reads the shell inside the agent instructions.** Some of those
+  instruction files carry a small script the worker runs on itself before it
+  reports back. Nothing ever checked that script was valid, because the files
+  are documents and no tool opens a document looking for code. One of them had
+  been broken the whole time, so the worker's self-check quietly did nothing
+  while every other check stayed green. The new check reads all eleven of those
+  files and fails if any of their scripts will not run.
+- **A place in the work-doc for the details a side-by-side worker needs.** A
+  worker running next to others needs to be told which folders are its own,
+  which are somebody else's, which database to make for itself, and what to
+  hand back at the end. Nothing produced any of that, so it would have refused
+  every job. The plan file now has a block for it, filled in before the workers
+  go out.
+- **Workers write down what they finished, while they are finishing it.**
+  Progress used to live only in the message a worker sends back at the end, so
+  a session that died halfway through lost the record of everything done up to
+  that point. A worker running alone now writes straight into the plan file's
+  daily log; workers running side by side each keep their own file, which the
+  parent folds in afterwards, because several of them writing one file at once
+  is the exact clash this release was built to remove.
+- **The house rules now travel with the worker.** They used to be attached to
+  messages from you, and a job handed to a worker is not one of those, so
+  workers had never actually been receiving them. The rules a worker is most
+  likely to break are now written into its instructions directly.
+
+- **`references/contention-dispatch.md`, the technique written down in one place.** It carries the
+  three classes of serial resource, the exclusivity re-test, how a foundation wave gets extracted,
+  what a track finishes for itself against what it defers to assembly, what the dispatcher owes the
+  round while tracks are in flight, and the honest limits. Phase 3 and the spec reviewer cite it
+  instead of restating it, so there is one copy of these rules to keep current rather than three.
+- **`module-implementer`, a second implementer agent for concurrent tracks.** It builds against the
+  planned contract rather than waiting for a sibling's code to land, holds its own test database
+  where the stack needs one, and is told in as many words never to destroy work it did not write.
+  The wave implementer still takes the foundation wave, the assembly wave and any round with only
+  one track, because with no siblings running the blind-sibling rules protect nothing and cost
+  context.
+
+### Changed
+
+- **Phase 3 is three stages now, not a queue.** A solo foundation wave lands every contended write
+  and no feature code, N module tracks then run at the same time, and a solo assembly wave mounts,
+  reconciles and boots. A stage with nothing in it is marked complete with a written reason rather
+  than silently dropped, which is what keeps the shape honest on a two-file change.
+- **Phase 2.5 re-tests exclusivity instead of just recording it.** The spec reviewer already listed
+  the serial resources a backlog touches. It now has to say, per resource, whether the thing is
+  genuinely exclusive or merely conventionally so, because a resource nobody re-tested is how a
+  round ends up serial for no reason at all.
+
+### Removed
+
+- **The `yolo` mode is gone, and `skills/yolo/` with it.** Two build modes ship from here, the full
+  workflow and `quick`. The phrases that used to start autopilot, `yolo`, `just do it`,
+  `don't ask me`, `no questions`, `fully autonomous`, `auto mode` and `go full auto`, now route to
+  the full workflow rather than failing silently. Little is lost in the trade: autopilot skipped the
+  plan sign-off and the finish menu to save time, and contention-first dispatch saves that time by
+  deleting the waiting instead of the gates.
+
 ## [0.16.1] - 2026-08-26
 
 > **Commits and pull requests stop carrying Claude's name.** The skill used to instruct the

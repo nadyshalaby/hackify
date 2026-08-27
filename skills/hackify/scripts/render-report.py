@@ -23,7 +23,7 @@ output path is written through a symlink, whichever one is planted there.
 
 Git-derived stats (files changed, LOC added/removed, commits) are computed
 here when --base is given; anything the payload supplies explicitly wins, so a
-quick/yolo run with no base SHA can pass them directly.
+quick run with no base SHA can pass them directly.
 
 Payload shape (every key optional, missing values render as an honest zero or
 an empty-state row, never as fabricated content):
@@ -205,7 +205,7 @@ def stat_tokens(stats):
     """The five stat cards, every one of them escaped.
 
     THESE ARE NOT GIT-ONLY VALUES. main() lets the payload win over anything git
-    derived, which html-report.md documents for quick and yolo runs, so each of
+    derived, which html-report.md documents for quick runs, so each of
     these five is untrusted prose exactly like the rest of the payload. They were
     built with a bare str() until a reviewer put a script tag through
     stats.files and watched it land in the page, and the page is published to a
