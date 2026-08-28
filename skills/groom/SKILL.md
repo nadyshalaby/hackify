@@ -1,6 +1,6 @@
 ---
 name: groom
-description: Socratic pre-task refinement skill, the idea-shaping front door to the hackify workflow. Runs an interactive 1-or-2-forking-questions-per-turn conversation (NOT a batched wizard), reflects what the user said before each following question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers, invoke this skill when the user prompt contains any of `/hackify:groom`, `let's discuss`, `let's think`, `what if`, `groom`, `explore the idea`, `what do you think`, `considering`, `thinking about`, or any open-ended idea-exploration phrasing that has no concrete build verb. Do NOT invoke when the prompt already contains build verbs like `add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`, those route directly to full hackify or quick via each skill's own description-based auto-discovery.
+description: Socratic pre-task refinement skill, the idea-shaping front door to the hackify workflow. Runs an interactive 1-or-2-forking-questions-per-turn conversation (NOT a batched wizard), reflects what the user said before each following question, and graduates to full hackify Phase 1 the moment the user signals build intent. Auto-discovery triggers, invoke this skill when the user prompt contains any of `/hackify:groom`, `let's discuss`, `let's think`, `what if`, `groom`, `explore the idea`, `what do you think`, `considering`, `thinking about`, or any open-ended idea-exploration phrasing that has no concrete build verb. Do NOT invoke when the prompt already contains build verbs like `add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`, those route directly to full hackify or quick via each skill's own description-based auto-discovery. A positive trigger wins over a build verb, so that block applies only to a prompt carrying none of the trigger phrases above.
 ---
 
 # Groom (Socratic pre-task refinement)
@@ -21,8 +21,11 @@ Auto-discovery fires this skill when the user's most recent prompt contains any 
 - `what if`
 - `groom`
 - `explore the idea`
+- `what do you think`
+- `considering`
+- `thinking about`
 
-Do NOT invoke groom when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`), those route directly to full hackify or quick via each skill's own auto-discovery. Groom is strictly pre-task; it is not a discussion stage that runs after Phase 1.
+Do NOT invoke groom when the user prompt already contains build-intent verbs (`add`, `implement`, `build`, `fix`, `refactor`, `ship`, `make this happen`), those route directly to full hackify or quick via each skill's own auto-discovery. A prompt can match both lists at once, and when it does the positive trigger wins: the build-verb block applies only to a prompt that carries none of the trigger phrases above, which is why `let's discuss adding rate limiting` grooms and `add rate limiting at 100 req/min per IP` does not. Groom is strictly pre-task; it is not a discussion stage that runs after Phase 1.
 
 ---
 
@@ -48,9 +51,10 @@ Graduation fires when the user signals intent to build. The signal phrases (case
 
 - `let's build`
 - `let's do this`
-- `ship it`
 - `OK make this happen` (and the case variant `make this happen`)
 - An explicit task-shaped ask of the form "now add `<feature>`" / "now implement `<change>`" / "now fix `<bug>`"
+
+`ship it` is deliberately NOT a graduation signal. Phase 1's handover question in [../hackify/references/clarify-questions/universal-preamble.md](../hackify/references/clarify-questions/universal-preamble.md) recommends the unreviewed straight-to-main option only when the user's prompt carries that literal phrase, and groom hands off to Phase 1 in the same turn, so a user who meant "start building" would be steered into a merge nobody read. Do not add it back.
 
 On graduation, execute these three steps in order. Do not reorder. Do not skip.
 

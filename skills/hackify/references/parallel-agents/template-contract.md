@@ -63,7 +63,7 @@ Five elements, all mandatory:
 
 **2. INPUTS (mandatory)**
 
-Numbered list. Each input names a `{{placeholder}}` and the type (e.g. "`{{work_doc_path}}`, absolute filesystem path"). Placeholders are instructions to the DISPATCHING AGENT (the parent), NOT the sub-agent. The dispatching agent MUST replace every `{{placeholder}}` with a concrete value before sending the prompt. A sub-agent receiving literal `{{...}}` text is a dispatch bug, the sub-agent should refuse and report "unfilled placeholder: `<name>`".
+Numbered list. Each input names a `{{placeholder}}` and the type (e.g. "`{{work_doc_path}}`, absolute filesystem path"). Placeholders are instructions to the DISPATCHING AGENT (the parent), NOT the sub-agent. The dispatching agent MUST replace every `{{placeholder}}` with a concrete value before sending the prompt. A sub-agent receiving literal `{{...}}` text is a dispatch bug, the sub-agent MUST refuse to proceed and MUST report `unfilled placeholder: <name>`.
 
 **3. OBJECTIVE (mandatory)**
 

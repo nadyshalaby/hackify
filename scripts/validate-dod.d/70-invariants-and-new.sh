@@ -166,6 +166,109 @@ else
 fi
 check_file "hooks/test_inject_context.sh"
 
+yellow "[38i] every prompt site restating hard-caps' module-role list carries all eight roles"
+# rules/hard-caps.md names the module roles the inline-type ban covers, and six
+# files restate that list in full so a dispatched agent does not have to open the
+# rule file mid-review. 0.17.2 shipped after three of those prompts had quietly
+# stopped at "router / service / middleware", which left five of the eight
+# unchecked by the only reviewer that looks for them at all. Restating a list is
+# cheap and drifting from it is invisible, so every restatement is pinned to the
+# rule rather than to the other restatements.
+#
+# THE ROLES ARE READ AT RUN TIME AND NEVER TYPED HERE. A hardcoded copy would be
+# one more copy of the list, free to drift from the law it guards, and a pin that
+# can disagree with its own source is worse than no pin at all. The ban line is
+# read out of rules/hard-caps.md, split on " / ", and its length asserted against a
+# bound written by hand beside it, so a reword that breaks the read collapses the
+# set to zero and reddens rather than measuring every site against nothing. A role
+# RENAMED in the rule file keeps the count at eight and reddens every site instead,
+# which is the same news arriving on six lines.
+#
+# THE ORDERED CHAIN, NOT EIGHT SEPARATE WORDS. Each role alone would match prose
+# anywhere in the file: "service" and "route" run through most of these prompts
+# several times over, so a per-word search is a check that cannot fail. What is
+# looked for is the whole sequence, over a copy of the file with its newlines
+# flattened, because every site but one wraps the list across two lines.
+#
+# TWO NUMBERS AND NOT SIX. A site count and a grand total of full chains carry what
+# per-file counts would, without needing a rewrite every time a prompt is reworded:
+# a site that loses the chain reddens on its own line, and one copy deleted inside a
+# file that still holds another moves the total. That is the bargain [76g] argues at
+# length in 96-review-scope-sites.sh, taken here for the same reason.
+HARD_CAPS_RULE="rules/hard-caps.md"
+MODULE_ROLE_SEQ=$(grep -F 'inline `interface`/`type` blocks' "$HARD_CAPS_RULE" 2>/dev/null \
+  | sed -n 's/.* in any \(.*\) module,.*/\1/p' | head -1)
+MODULE_ROLES=()
+mr_rest="$MODULE_ROLE_SEQ"
+while [ -n "$mr_rest" ]; do
+  case "$mr_rest" in
+    *" / "*) MODULE_ROLES+=("${mr_rest%% / *}"); mr_rest="${mr_rest#* / }" ;;
+    *)       MODULE_ROLES+=("$mr_rest"); mr_rest="" ;;
+  esac
+done
+check_list_size "${#MODULE_ROLES[@]}" 8 "the [38i] module-role list read out of $HARD_CAPS_RULE"
+
+# BOTH MIRROR SIDES, because the agents/ copy is what actually runs, the same rule
+# [38g] and the refuter pins in 71-release-mechanism-pins.sh state for their own
+# file sets. Listed rather than discovered: a file that has lost the list entirely
+# is exactly what a discovery pass would stop seeing.
+MODULE_ROLE_SITES=(
+  "skills/hackify/references/parallel-agents/phase-3-implementation.md"
+  "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
+  "skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
+  "agents/implementer.md"
+  "agents/code-reviewer-quality-plan.md"
+  "agents/spec-reviewer.md"
+)
+check_list_size "${#MODULE_ROLE_SITES[@]}" 6 "the [38i] module-role restatement site set"
+MODULE_ROLE_TOTAL=0
+
+# The longest matching PREFIX of the chain is what names the missing role: the walk
+# stops at the first link the file does not carry, so the red line can say which
+# role broke it and how far the file got. Rationale for the flattening is above.
+module_role_site_check() {
+  local site="$1"
+  local body prefix held missing role i n hits
+  if [ ! -f "$site" ]; then
+    red "  FAIL [38i] $site is missing, so the module-role list it restates was never checked"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  body=$(tr '\n' ' ' < "$site" | tr -s ' ')
+  prefix=""; held=""; missing=""; i=0; n=${#MODULE_ROLES[@]}
+  while [ "$i" -lt "$n" ]; do
+    role="${MODULE_ROLES[$i]}"
+    if [ -z "$prefix" ]; then prefix="$role"; else prefix="$prefix / $role"; fi
+    case "$body" in
+      *"$prefix"*) held="$prefix" ;;
+      *) missing="$role"; break ;;
+    esac
+    i=$((i + 1))
+  done
+  if [ -n "$missing" ]; then
+    red "  FAIL $site restates the module-role list but breaks at '$missing'; $HARD_CAPS_RULE names all $n roles in order and the longest run this file carries is '${held:-none}'"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  hits=$(printf '%s\n' "$body" | grep -oF "$MODULE_ROLE_SEQ" | wc -l | tr -d ' ')
+  MODULE_ROLE_TOTAL=$((MODULE_ROLE_TOTAL + hits))
+  green "  ok   $site carries all $n module roles as $HARD_CAPS_RULE names them ($hits full chain(s))"
+}
+
+# Counted loop, not `for x in "${arr[@]}"`: the run sets -u, where an empty array
+# expanded that way aborts the whole validator instead of failing this check.
+mr_i=0
+if [ "${#MODULE_ROLES[@]}" -eq 0 ]; then
+  red "  FAIL [38i] no module roles were read out of $HARD_CAPS_RULE, so not one restatement site was measured"
+  FAILED=$((FAILED + 1))
+else
+  while [ "$mr_i" -lt "${#MODULE_ROLE_SITES[@]}" ]; do
+    module_role_site_check "${MODULE_ROLE_SITES[$mr_i]}"
+    mr_i=$((mr_i + 1))
+  done
+  check_list_size "$MODULE_ROLE_TOTAL" 12 "the [38i] full module-role chains counted across the six sites"
+fi
+
 yellow "[39] performance review surfaces registered (Reviewer D agent + perf-scout wiring)"
 check_file "agents/code-reviewer-performance.md"
 check_token_present "perf-scout.md" "skills/hackify/SKILL.md"

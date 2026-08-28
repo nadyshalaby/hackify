@@ -21,10 +21,11 @@ Every mode ends with work that is **proven to run**, not merely proven to compil
 
 ## When to invoke
 
-- **Default for every prompt** that asks for any of: building / adding / fixing / refactoring / redesigning / restyling / debugging / polishing / migrating / testing / discussing-then-building.
+- **Default for every prompt** that asks for any of: building / adding / fixing / refactoring / redesigning / restyling / debugging / polishing / migrating / testing. A conversation that arrives at a build lands here the moment it names one; open-ended discussion with no build verb belongs to groom.
 - **Slash command:** `/hackify:hackify <ask>` to start, `/hackify:hackify resume <slug>` to continue.
 - **Carve-outs (skill optional):** trivial factual Q&A, one-line typo fixes, pure read-only inspection that won't lead to writing/editing/committing.
 - **Compressed-flow alternative:** for small bug fixes, single-file edits, and quick direct-effort requests, use `/hackify:quick`. Skips Plan+Gate, Spec review, Multi-reviewer, and 4-options finish; runs Clarify-if-ambiguous → Implement → Verify → 5-lite review → cleanup → summary; stays in quick mode until you explicitly switch to full hackify.
+- **Pre-task front door:** for a fuzzy, exploratory ask that has no build verb yet, use `/hackify:groom`. It runs a short Socratic back-and-forth, one or two forking questions a turn, and graduates into Phase 1 with a work-doc the moment you signal intent to build.
 - **The old autopilot phrases land here now**, including the word the retired autopilot mode was named after. "just do it", "don't ask me", "no questions", "fully autonomous", "auto mode" and "go full auto" all route into this workflow, gates and work-doc included. Two build modes ship, this one and `/hackify:quick`, and neither auto-passes the plan gate. Say that in one line when a user arrives on one of those phrases, then start Phase 1.
 
 When in doubt, invoke. Redundant skill load is cheap; a missed one ships broken work.

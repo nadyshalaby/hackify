@@ -13,6 +13,7 @@ The refuter is the step that turns a claim into a verdict **before** the address
 - **A refuted Critical is still not a closed row.** Both lenses failing earns that finding an escalation, not a `push-back`, see "Feeding the decision table" below.
 - An Important or Minor finding dies on **one** refutation with a file:line counter-citation.
 - "I could not confirm it" is **not** a refutation. Uncertainty keeps the finding, at its original severity.
+- **"I cannot even restate this claim" is not a refutation either.** That is the same uncertainty one step earlier, so it gets its own non-fatal outcome, `NEEDS-RESTATEMENT`, which keeps the finding alive at its original severity and hands it back for rewording. It is not one of the three verdicts and it never closes a row.
 - A refuter may also **escalate**: if the claim is real and worse than stated, say so. Refuting is the job, not the goal.
 
 This is deliberately the opposite bias from an adversarial-verification prompt aimed at generated content, where the cost of a false positive is only wasted work. Here a false negative ships a bug.
@@ -104,17 +105,41 @@ Bias against: refuting on plausibility instead of a file:line.
    One dispatch takes the whole round, at every severity. There is no
    lens input: you carry both lenses yourself.
 
+EVERY input above is REQUIRED. Exactly one accepts the literal `none` as
+a DECISION: `{{findings_batch}}`, where `none` means the round produced
+no findings and you write `None.` under `## Verdicts`. Anything else is
+the ABSENCE of a decision rather than `none`: an EMPTY value, a numbered
+line that never arrived, or one still carrying literal `{{...}}` text.
+On any of those, REFUSE before step 1, report
+`unfilled placeholder: <name>` naming the input, and judge nothing. A
+blank `{{findings_batch}}` is the dangerous one, because a blank looks
+exactly like a quiet round: read it as "no findings" and every finding
+the reviewers actually filed is dropped unjudged, which is the failure
+this agent exists to prevent. `none` is a sentence the dispatcher wrote;
+a blank line is nobody saying anything.
+
 **OBJECTIVE**.
 A per-finding verdict of UPHELD, REFUTED, or ESCALATED for every
 finding in `{{findings_batch}}`, each carrying a file:line
-counter-citation. On a Critical, report one verdict PER LENS,
-separately, because a Critical dies only when BOTH lenses fail.
+counter-citation, plus the one non-verdict outcome
+NEEDS-RESTATEMENT for a finding too vague to restate at all. On a
+Critical, report one verdict PER LENS, separately, because a Critical
+dies only when BOTH lenses fail.
 
 **METHOD**.
 1. Read every finding in `{{findings_batch}}` verbatim. Restate each
    in one line as a falsifiable claim ("calling X with Y produces Z").
-   A finding you cannot restate as a falsifiable claim is itself a
-   defect, report it as REFUTED with reason `unfalsifiable as written`.
+   A finding you cannot restate that way is itself a defect, and it is
+   the REVIEWER's defect rather than evidence against the finding.
+   Record it NEEDS-RESTATEMENT, name in one line the part of the claim
+   you could not pin down, and take it no further: run no lens on it
+   and give it no verdict. NEEDS-RESTATEMENT is NOT a verdict. The
+   finding stays alive at its original severity, stays in the fix
+   queue, and goes back to the parent for rewording. Never file it as
+   REFUTED. You would have no file:line counter-citation to give,
+   which Verification 2 requires of every REFUTED verdict, and being
+   unable to restate a claim is uncertainty, which never kills a
+   finding here.
 2. From `{{project_root}}`, open the post-image of every file:line the
    batch cites, scoping the diff to those paths
    (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
@@ -132,16 +157,23 @@ separately, because a Critical dies only when BOTH lenses fail.
    its text covers this case, and the file is not carved out from it
    (test file, generated file, documented project exception). A cite
    that does not exist, or that does not cover the case, is a
-   refutation with the quoted counter-evidence.
+   refutation, and it carries the file:line you quoted it from.
 5. Check the exemption floors before upholding anything: is the cited
    file a test, a generated artifact, a migration, or listed in the
-   project's own carve-outs? A finding against a carved-out file is
-   REFUTED with the carve-out named.
-6. Assign exactly one FINAL verdict per finding. UPHELD (the claim survives;
+   project's own carve-outs? A carve-out that covers the file is
+   AUTHORITY-lens counter-evidence, so record it as that lens's
+   refutation with the carve-out's own file:line. It is not a fourth
+   way to kill a finding outside the lenses, so on a Critical the
+   reproduction lens must refute as well before the finding dies.
+6. Assign exactly one FINAL verdict per finding you restated at step 1.
+   UPHELD (the claim survives;
    cite the evidence that makes it real). REFUTED (cite the file:line
    that makes it wrong, plus a one-line technical reason). ESCALATED
    (the claim is real AND worse than the stated severity; name the new
-   severity and why). **On a Critical, record a verdict for EACH lens
+   severity and why). A finding you marked NEEDS-RESTATEMENT at step 1
+   takes no verdict and runs no lens; that outcome is already its
+   answer, and pairing it with a verdict is the error this step names.
+   **On a Critical, record a verdict for EACH lens
    and refute the finding only when BOTH lenses fail to sustain it**;
    reproduction refuting while authority upholds leaves the Critical
    alive at its original severity. On an Important or Minor, one
@@ -154,8 +186,9 @@ separately, because a Critical dies only when BOTH lenses fail.
 **VERIFICATION**.
 Paste this checklist under a `## Verification` heading in your report.
 If ANY answer is "no", loop back to METHOD.
-1. Did every finding in `{{findings_batch}}` receive exactly one
-   FINAL verdict? (yes / no)
+1. Did every finding in `{{findings_batch}}` end with exactly one
+   outcome, either one FINAL verdict or NEEDS-RESTATEMENT, and never
+   both? (yes / no)
 2. Does every REFUTED verdict carry a file:line counter-citation, not
    a general argument? (yes / no)
 3. Did you open the post-image of every cited file:line rather than
@@ -165,9 +198,17 @@ If ANY answer is "no", loop back to METHOD.
 5. Did every Critical receive a separate verdict on EACH lens, and did
    you refute it only where both lenses failed? (yes / no)
 6. Did you keep, not refute, every finding whose evidence was
-   ambiguous or unverifiable? (yes / no)
+   ambiguous or unverifiable, the ones you could not restate
+   included? (yes / no)
 7. Does every REFUTED verdict state what would change your mind?
    (yes / no)
+8. Is every NEEDS-RESTATEMENT finding still listed at its original
+   severity, with no verdict beside it and no claim of a
+   counter-citation? (yes / no)
+9. Did all four numbered INPUTS arrive with a concrete value, counting a
+   declared `none` on `{{findings_batch}}` as concrete? (yes / no). This
+   is the one item whose "no" does NOT loop back to METHOD: METHOD
+   cannot produce an input nobody sent, so refuse per the INPUTS gate.
 
 **SEVERITY**.
 Severity here means the confidence of the verdict, not the danger of
@@ -207,7 +248,8 @@ the round grows until it collides with the step 6 rule
 and a per-finding number is what stops the collision arising at all.
 120 is sized for the widest block the skeleton can produce, a Critical
 carrying a verdict line, two lens lines, `would change my mind` and
-`new severity`; a non-Critical block runs well under it. The
+`new severity`; a non-Critical block runs well under it, and a
+NEEDS-RESTATEMENT block is three lines. The
 `## Verification` section sits outside this budget. A later rule that
 adds a line to a block raises this number, it never licenses dropping a
 finding to fit it.
@@ -227,17 +269,29 @@ Use this exact report skeleton:
   - would change my mind: <one line>   (REFUTED verdicts only)
   - new severity: <Critical|Important|Minor>   (ESCALATED verdicts only)
 
+- <finding ID you could not restate>. NEEDS-RESTATEMENT
+  - unclear: <the part of the claim you could not pin down, one line>
+  - still open at <its original severity>, still in the fix queue
+
 A Critical reads REFUTED on the top line only when BOTH lens lines
 below it read REFUTED. Any other combination leaves the finding alive,
 UPHELD or ESCALATED, and both lens lines still get written, so the
 parent can see which one held.
 
+NEEDS-RESTATEMENT is not a fourth verdict. It carries no lens lines
+and no counter-citation, because nothing has been countered yet. In
+the decision table it reads `needs-restatement`, the one `Decision`
+value there that holds a row open instead of closing it
+(`skills/review-triage/SKILL.md`). File a finding here and it is still
+the parent's to reword and re-run, never a row the round can close.
+
 ## Verification
-1., 7. <yes|no>, one line per checklist item.
+1., 9. <yes|no>, one line per checklist item.
 ````
 
-If the batch is empty, write `None.` under `## Verdicts`, never go
-silent.
+If `{{findings_batch}}` is the literal `none`, write `None.` under
+`## Verdicts`, never go silent. A BLANK batch is not that case, it is the
+dispatch bug the INPUTS gate refuses on.
 ```
 <!-- parent-side: not mirrored -->
 
@@ -252,8 +306,11 @@ The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phas
 | REFUTED (Critical: both lenses refute) | `accept` while the adjudication escalation runs, `push-back` only once it closes | each lens's counter-citation, verbatim, then the adjudication verdict and the sign-off |
 | REFUTED (Critical: only one lens) | `accept` | both lens verdicts recorded; the split is the reason it stays |
 | ESCALATED | `accept` at the new severity | the refuter's escalation citation |
+| NEEDS-RESTATEMENT (any severity) | `needs-restatement`, the one Decision that closes nothing and holds the row open | the one line naming what could not be pinned down |
 
 **A Critical is never closed by the refuter.** Both lenses refuting earns that finding an escalation, not the flip: dispatch the adjudication reviewer (`review-and-verify.md`, section "Reviewer subagent prompt template") on it, hand it both lens counter-citations as its evidence, and put the conflict to the user. The row reads `push-back` only after that reviewer rules and the user signs off. Until then it reads `accept` AND is held out of the address-all loop's fix dispatch, because landing a fix while the escalation is open is the phantom fix the refuter exists to prevent. **A Critical may never reach `push-back` on a single lens**, and it never reaches `push-back` on the refuter's word alone either: one agent carrying two lenses is still one agent, and `skills/review-triage/SKILL.md` puts the cost of a missed Critical above one agent's judgment.
+
+**NEEDS-RESTATEMENT is the parent's row to fix, not the refuter's to close.** Go back to the reviewer's own text, rewrite the claim so it names what breaks and where, and put the rewritten finding through the next refuter round. Until that happens the finding is held out of the fix dispatch the same way an escalated Critical is, because a fix aimed at a claim nobody could state is a guess. What it never does is disappear: an unclear finding is a reviewer writing badly about something, and often that something is real.
 
 A `push-back` row still gets recorded in the work-doc Sprint Review with its counter-citation, so a refuted finding is auditable rather than deleted.
 

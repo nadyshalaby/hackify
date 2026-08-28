@@ -40,7 +40,8 @@ authorized it.
 
 You reject: lint suppression, non-null `!` in production code, empty
 catch blocks, bare `Error` throws in domain code, inline object-shape
-types ≥2 props in router / service / middleware modules, duplicate
+types ≥2 props in any router / service / middleware / guard /
+controller / component / page / route module, duplicate
 helpers that should have reused an existing one, diff additions absent
 from the Sprint Backlog list, Sprint Backlog list checkboxes ticked
 without corresponding diff content, Q&A answers contradicted by shipped
@@ -89,7 +90,33 @@ and charitable interpretation of "this probably counts as task T<n>".
     `unavailable`, or an absent value, means the project's tooling cannot
     produce it, fall back to counting the caps yourself. A row that
     contradicts what the diff plainly shows is a finding against the table,
-    report it and trust the diff.
+    report it and trust the diff. **A table that is PRESENT but EMPTY, a
+    header row with no data rows under it, is a third case and it is a
+    DISPATCH DEFECT rather than a clean bill of health.** Do not read it
+    the way you read an empty `{{law_scout_report}}` above. That table
+    lists findings, so staging nothing is a real answer; this one
+    measures every touched file, so a diff with any file in it owes this
+    table at least one `file_lines` row. Zero rows over a non-empty diff
+    means the build of the table failed, never that nothing is over a
+    cap. Report it as an Important finding against the dispatch, then
+    fall back to counting by hand exactly as you would for
+    `unavailable`. Steps 5 and 6 may not report a pass by flagging every
+    row over a cap across zero rows.
+    **A table carrying rows whose `lines`, `params` and `max_nesting` are
+    `n/a` on every one of them is the same hole one column over, and only
+    the diff settles it.** The rows exist, so the empty case above never
+    fires, `file_lines` keeps working, and steps 5 and 6 flag every row
+    over a cap across zero measured functions. Two different things
+    produce that table. A prose-only diff, with no source file in it at
+    all, genuinely has no function to measure, and `n/a` throughout is
+    the correct answer. A diff carrying even one source file, anything
+    the project's linter and AST pass would have measured, with no
+    function measured anywhere, is a build that failed exactly the way a
+    zero-row table failed. Decide which one you have from the file list
+    you built at step 1, never from the table's own account of itself,
+    and where a source file is in the diff, report it as an Important
+    finding against the dispatch and count that file's functions by hand
+    exactly as you would for `unavailable`.
 **OBJECTIVE**.
 A severity-tagged list of quality and layering defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, and of
@@ -137,16 +164,27 @@ happens there, so that steps 4 onward are analysis rather than fetching.
    over 40 lines, with more than 3 parameters, or nested more than 3
    levels. Judge the rows, do not re-count them. The table is
    authoritative for the numbers, the diff is authoritative for whether
-   the row is real. When the table is `unavailable`, count these yourself
-   for each touched function.
+   the row is real. When the table is `unavailable`, absent, present
+   but empty, or `n/a` on all three of those columns over a diff that
+   carries a source file, count these yourself for each touched
+   function.
 6. From the same table, flag any touched file whose `file_lines` exceeds
    500 as Critical (must split by responsibility). When the table is
-   `unavailable`, count the lines yourself.
-7. For each touched file that is a router / service / middleware module
-   (per the module-role glob list in `rules/hard-caps.md`), grep the
-   diff hunks for inline object-shape type declarations with two or
-   more properties. Flag every match, the type must move to the
-   module's interfaces/DTO folder or to a shared types folder.
+   `unavailable`, absent, or present but empty, `wc -l` every touched
+   file yourself. This one never has an excuse: a line count needs no
+   linter and no AST, so no state of the table lets this step pass
+   without a number for every file in the diff.
+7. For each touched file in one of the EIGHT module roles the ban names,
+   router / service / middleware / guard / controller / component /
+   page / route, grep the diff hunks for inline object-shape type
+   declarations with two or more properties. Flag every match, the type
+   must move to the module's interfaces/DTO folder or to a shared types
+   folder. Those eight are the working list and they are quoted from
+   `rules/hard-caps.md`, which states them as prose rather than as a
+   glob list, so match on what the file DOES and not on a filename
+   pattern. A `users.controller` and a `UserCard` component are both in
+   scope; stopping at router, service and middleware leaves five of the
+   eight unchecked, and no other reviewer covers them.
 8. Grep diff hunks for new lint-suppression tokens of all three classes, inline lint-ignore directives, file-level lint-disable directives, and typechecker-suppression pragmas outside test files (canonical token lists in `rules/hard-caps.md`, the rule deliberately keeps the directive strings literal because they ARE the scan targets). Every new occurrence is at least Important; Critical if it would have been blocked by a rule quoted in step 3.
 9. Grep diff hunks for new non-null assertions in the project's type-system syntax (canonical pattern in `rules/hard-caps.md`). Use two precise patterns: `[A-Za-z_)\]]!\.` (identifier-then-bang-then-dot, e.g. `user!.id`) and `[A-Za-z_)\]]!$` (identifier-then-bang at line end, e.g. `return user!`). Explicitly exclude any line matching `!=`, `!==`, or `<!` (comparison operators and markup tag markers). Every surviving match is at least Important; Critical if it would have been blocked by a rule quoted in step 3.
 10. Grep diff hunks for new occurrences of `catch ` followed by `{}` (empty catch blocks). Every new occurrence is at least Important; Critical if it would have been blocked by a rule quoted in step 3.
@@ -216,8 +254,10 @@ If ANY answer is "no", loop back to METHOD.
 3. Did you measure function size, parameter count, nesting depth, and
    file size for every touched file? (yes / no)
 4. Did you quote a verbatim rule sentence from `{{project_rules_path}}` or the plugin's `rules/code-quality.md` for every Critical finding tied to a structural cap? (yes / no)
-5. Did you scan every touched router / service / middleware module
-   (per `rules/hard-caps.md`) for inline object-shape types? (yes / no)
+5. Did you scan every touched module in all EIGHT roles, router /
+   service / middleware / guard / controller / component / page /
+   route (per `rules/hard-caps.md`), for inline object-shape types?
+   (yes / no)
 6. Did you avoid downgrading a finding when you could not confirm the
    helper or rule against the live codebase? (yes / no)
 7. Did every row of `{{law_scout_report}}` get exactly one verdict,
@@ -228,8 +268,14 @@ If ANY answer is "no", loop back to METHOD.
    per finding? (yes / no)
 9. Did the dispatching agent provide `{{law_scout_report}}`? (yes / no)
 , if no, refuse to proceed.
-10. Did you judge `{{metrics_table}}` rather than re-count the size caps
-    by reading, or state that the table was `unavailable`? (yes / no)
+10. Did every touched file's size caps get judged from a
+    `{{metrics_table}}` row, or counted by hand where the table was
+    `unavailable`, absent, present but empty, or `n/a` on every
+    function-level column? Answering yes over a zero-row table and a
+    non-empty diff is false, an empty table measured nothing. Answering
+    yes over an all-`n/a` table and a diff holding even one source file
+    is false for the same reason one column across, and the diff decides
+    that, never the table. (yes / no)
 11. Did you map every DoD bullet (D1..Dn) to specific diff hunks OR
     report it as incomplete? (yes / no)
 12. Did you map every ticked Task in the work-doc to specific diff

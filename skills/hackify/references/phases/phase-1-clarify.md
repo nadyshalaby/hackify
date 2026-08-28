@@ -1,8 +1,8 @@
-# Phase 1, Clarify (the grooming session)
+# Phase 1, Clarify (lock the goal anchor)
 
 Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
 
-**Goal.** Groom the ask into a locked **Primary Goal & Guardrails** anchor, maximum understanding before any code. Phase 1 is a grooming session that drives every downstream plan and implementation decision and is enforced by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal. See [references/goal-anchor.md](../goal-anchor.md).
+**Goal.** Pin the ask down into a locked **Primary Goal & Guardrails** anchor, maximum understanding before any code. Phase 1 is the clarifying pass that drives every downstream plan and implementation decision and is enforced by the drift-check, so no question survives into Phase 3 and no later phase wanders off the goal. See [references/goal-anchor.md](../goal-anchor.md).
 
 **Ledger, at phase open.** The phase ledger is born here, at task start, before the first question. Print it in chat as a markdown checklist, one item per phase for this mode, with `Phase 1. Clarify (lock the goal anchor)` in progress. That printed block IS the tracker whenever the runtime exposes no todo-tracker tool, which on Claude Code is the normal case, not the exception. In full hackify it becomes the work-doc's `## 0. Phase ledger` section at Phase 2 step 1, and from that save on a tick is an edit to that block plus the re-print, never a print alone. Nothing goes to disk before the ask has a slug; on the groom path the file already exists with `status: clarifying`, so tick it there from the start. Item lists per mode, the ordering law and the substrate rules: [../phase-ledger.md](../phase-ledger.md).
 

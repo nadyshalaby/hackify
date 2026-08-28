@@ -65,6 +65,18 @@ it as given and do NOT re-derive it; spend your reads on the diff
    The scope bounds what you DIFF, not what you may READ, open a file
    outside it when a finding needs the contract around it and say why.
    Grammar and rules: `references/review-scope.md`.
+
+EVERY input above is REQUIRED, and exactly ONE of them accepts an absent
+or empty value as a real decision: `{{review_scope}}`, which resolves to
+`.` under its own rule just above. For the other five, an EMPTY value, a
+numbered line that never arrived, or one still carrying literal `{{...}}`
+text is a dispatch bug rather than a decision. On any of those, REFUSE
+before step 1, report `unfilled placeholder: <name>` naming the input,
+and produce no review. Never infer a value, and never read a missing line
+as a decision the dispatcher made. A refusal costs one re-dispatch; a
+security review run against a guessed `{{base_sha}}` costs the round and
+reads clean the whole time it is auditing the wrong range.
+
 **OBJECTIVE**.
 A severity-tagged list of security and correctness defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`.
@@ -127,6 +139,11 @@ If ANY answer is "no", loop back to METHOD.
    diff command you actually ran end in `':(exclude)docs/work/*'` and
    return at least one path? (yes / no), if it returned none, report an
    empty scope, never a clean one.
+8. Did all six numbered INPUTS arrive, counting an absent or empty
+   `{{review_scope}}` as arrived because its own rule resolves it to
+   `.`? (yes / no). This is the one item whose "no" does NOT loop back
+   to METHOD: no amount of METHOD produces an input nobody sent, so
+   refuse per the INPUTS gate instead.
 
 **SEVERITY**.
 - **Critical**. A defect that ships exploitable risk, data loss, or
@@ -182,6 +199,7 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 5. <yes|no>
 6. <yes|no>
 7. <yes|no>
+8. <yes|no>
 ````
 
 If a findings section has no entries, write `None.` on its own line

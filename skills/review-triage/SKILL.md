@@ -1,11 +1,11 @@
 ---
 name: review-triage
-description: Structured response engine for reviewer findings, converts a batch of comments into a per-finding decision table with columns Finding / Severity / Decision / Evidence, where every row picks exactly one of `accept` / `push-back` / `defer`. Two trigger surfaces. First, hackify Phase 5 internal, where it runs AFTER the adversarial refuter whose UPHELD / REFUTED / ESCALATED verdicts fill the Decision and Evidence columns, except on a Critical, where the verdict is evidence for the escalation and never the Decision itself. Second, external paste, where the user pastes review feedback from GitHub PR comments, Slack quotes, or email and asks the model to respond. Push-back REQUIRES technical evidence with file:line, prior commit, or established pattern. Critical findings cannot be pushed back without explicit Phase 5 escalation. Use this skill when the user types `/hackify:review-triage`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", or "address review findings". NOT for producing a review from a raw diff, that is code-review's job.
+description: Structured response engine for reviewer findings, converts a batch of comments into a per-finding decision table with columns Finding / Severity / Decision / Evidence, where every row picks exactly one of `accept` / `push-back` / `defer` / `needs-restatement`, the last of those being the one value that holds a row open instead of closing it. Two trigger surfaces. First, hackify Phase 5 internal, where it runs AFTER the adversarial refuter whose UPHELD / REFUTED / ESCALATED verdicts fill the Decision and Evidence columns and whose fourth, non-verdict outcome NEEDS-RESTATEMENT lands on the row as `needs-restatement`, except on a Critical, where the verdict is evidence for the escalation and never the Decision itself. Second, external paste, where the user pastes review feedback from GitHub PR comments, Slack quotes, or email and asks the model to respond. Push-back REQUIRES technical evidence with file:line, prior commit, or established pattern. Critical findings cannot be pushed back without explicit Phase 5 escalation. Use this skill when the user types `/hackify:review-triage`, says "respond to the review", "respond to PR feedback", "respond to reviewer comments", or "address review findings". NOT for producing a review from a raw diff, that is code-review's job.
 ---
 
 # Review-Triage (structured response to reviewer findings)
 
-This skill converts a batch of reviewer comments into a per-finding response table. Every comment becomes one row. Every row carries a Decision (`accept` / `push-back` / `defer`) and Evidence anchored in code, not opinion.
+This skill converts a batch of reviewer comments into a per-finding response table. Every comment becomes one row. Every row carries a Decision (`accept` / `push-back` / `defer` / `needs-restatement`) and Evidence anchored in code, not opinion.
 
 The skill is fully self-contained. It does not call other skills.
 
@@ -29,8 +29,8 @@ The deliverable is a single 4-column markdown table. One row per finding, never 
 |---|---|
 | Finding | Concise restatement of the reviewer's concern, ≤25 words. Include the `file:line` anchor when the reviewer provided one. Do not paraphrase severity tags into this cell, they go in the Severity column. |
 | Severity | Exactly one of `Critical` / `Important` / `Minor`. Mirror the reviewer's tag verbatim when they tagged. Otherwise infer per the Severity rubric below. |
-| Decision | Exactly one of `accept` / `push-back` / `defer`. No other strings. Lowercase, hyphen in `push-back`. |
-| Evidence | For `accept`, the commit-shaped one-liner of what the fix will be (`fix: validate token expiry in auth.service.ts:142`). For `push-back`, 1-3 sentences with file:line citations, prior-commit SHA, or referenced precedent. For `defer`, the follow-up issue/ticket reference, or the literal string "follow-up entry queued in Retrospective." |
+| Decision | Exactly one of `accept` / `push-back` / `defer` / `needs-restatement`. No other strings. Lowercase, hyphens in `push-back` and `needs-restatement`. The first three close the row; the fourth holds it open. |
+| Evidence | For `accept`, the commit-shaped one-liner of what the fix will be (`fix: validate token expiry in auth.service.ts:142`). For `push-back`, 1-3 sentences with file:line citations, prior-commit SHA, or referenced precedent. For `defer`, the follow-up issue/ticket reference, or the literal string "follow-up entry queued in Retrospective." For `needs-restatement`, the one line naming the part of the claim nobody could pin down, copied from the refuter's outcome where one exists. |
 
 Rows are ordered by Severity (Critical first, then Important, then Minor), then by file path within a severity band.
 
@@ -50,7 +50,7 @@ When the inference is ambiguous between two bands, pick the stricter (higher) on
 
 ## Decision rules
 
-Every row picks exactly one of three Decisions. The semantics are not interchangeable.
+Every row picks exactly one of four Decisions. The semantics are not interchangeable, and only the first three close a row.
 
 **`accept`, the reviewer is right and this PR will fix it.** Use when the codebase confirms the reviewer's claim and the fix fits the current scope. Evidence column carries the commit-shaped one-liner of the fix (verb in imperative, file:line anchor when applicable). The fix lands before Phase 6.
 
@@ -58,9 +58,11 @@ Every row picks exactly one of three Decisions. The semantics are not interchang
 
 **`defer`, the concern is valid but out of scope for this PR.** Use when the finding is real but fixing it would widen scope past the work-doc Acceptance Criteria, or when the finding belongs to a separate change-set with its own gate. Evidence column carries the follow-up issue/ticket reference (`#1234`, `JIRA-456`) or the literal string "follow-up entry queued in Retrospective." Defer is not an escape hatch for cheap fixes, see Anti-rationalizations.
 
+**`needs-restatement`, nobody can yet say what the finding claims.** Use when the Phase 5 refuter returned NEEDS-RESTATEMENT on the row (`skills/hackify/references/parallel-agents/phase-5-refute.md`), or on Path B when a pasted comment cannot be restated as a falsifiable claim naming what breaks and where. This is the one Decision that closes nothing. The finding stays alive at its original severity, stays in the fix queue, and is held out of the fix dispatch until someone rewrites the claim and puts it back through judgment, at which point the row takes one of the other three. It is emphatically not `defer`: `defer` says the concern was understood and belongs to a separate change-set, which settles the row, while this says the concern is not understood yet, and an unclear comment is usually a reviewer writing badly about something real. Evidence column carries the one line naming what could not be pinned down. A table still holding an open `needs-restatement` row is unfinished, and it is presented with that row visible rather than quietly resolved.
+
 **Critical-finding guardrail.** Critical findings MUST resolve to `accept` or `defer-with-user-signoff`. A bare `push-back` on a Critical row is forbidden, the cost of a missed Critical (shipped security defect, lost data, broken release) is too high to gate behind a single agent's judgment. The Phase 5 refuter is one of those agents: it carries both lenses itself, so a both-lenses REFUTED verdict on a Critical supplies the escalation's evidence, it does not decide the row. When a Critical finding looks wrong, the response is to escalate via a Phase 5 adjudication reviewer (`skills/hackify/references/review-and-verify.md` "Reviewer subagent prompt template") and surface the conflict to the user, NOT to push back unilaterally. The escalation paragraph runs adjacent to the table, citing the Critical row by ID and stating the rebuttal evidence; the user signs off before the row's Decision flips to `push-back`.
 
-**Evidence is non-optional.** Every `push-back` row carries technical evidence. Every `accept` row carries the fix one-liner. Every `defer` row carries the follow-up reference. A row with empty Evidence is incomplete and blocks the table from being presented.
+**Evidence is non-optional.** Every `push-back` row carries technical evidence. Every `accept` row carries the fix one-liner. Every `defer` row carries the follow-up reference. Every `needs-restatement` row carries the unclear part, named. A row with empty Evidence is incomplete and blocks the table from being presented.
 
 ## Worked example
 
@@ -98,6 +100,7 @@ These thoughts mean STOP and apply the listed reality.
 | "Two findings are basically the same, I'll merge rows" | Never collapse. Each reviewer comment is owed a per-finding response, even when wording overlaps, the reviewer wrote two comments because they meant two distinct concerns, and the response table is how they verify both landed. Collapsing rows hides which concern got which Decision. |
 | "The reviewer didn't tag severity so I'll skip the column" | The Severity column is mandatory on every row. When the reviewer did not tag, infer per the Severity rubric and pick the stricter band on tie. |
 | "Evidence is overkill for an accept row" | The Evidence cell on an `accept` row is the commit-shaped fix one-liner. It is what the user reads to verify the fix actually addresses the finding before the row gets implemented. Empty Evidence on `accept` means the fix is undefined and the row blocks implementation. |
+| "`needs-restatement` and `defer` both mean not in this PR, so I'll write `defer`" | They mean opposite things. `defer` says you understood the finding and moved it to another change-set, and that closes the row. `needs-restatement` says nobody could state what the finding claims, so there is nothing to schedule yet and the row stays open. Writing the second as the first is exactly how a real defect nobody managed to word disappears, which is the drop the fourth value exists to prevent. |
 | "Push-back without a file:line is fine if the reasoning is good" | No. Every push-back row carries a file:line citation, prior commit SHA, or referenced precedent. Reasoning without an anchor is opinion, the codebase is the source of truth. |
 
 ## File map
@@ -110,4 +113,4 @@ This skill has no `references/` directory. Cross-references point into the main 
 
 ## One-line summary
 
-Every reviewer comment becomes one row, `accept` with a fix one-liner, `push-back` with technical evidence and a file:line citation, or `defer` with a follow-up reference. Critical findings never push back without Phase 5 escalation and user sign-off.
+Every reviewer comment becomes one row, `accept` with a fix one-liner, `push-back` with technical evidence and a file:line citation, or `defer` with a follow-up reference. A finding nobody could restate takes `needs-restatement` instead, which holds the row open at its original severity rather than closing it. Critical findings never push back without Phase 5 escalation and user sign-off.

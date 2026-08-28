@@ -23,7 +23,7 @@ Open a template on Claude Code for exactly two reasons: you are **authoring or a
 | `hackify:code-reviewer-performance` | 5 D, performance | + `perf_scout_report`, `review_scope` | `phase-5-multi-review-d-performance.md` |
 | `hackify:design-conformance-reviewer` | 5 E, design conformance (UI-bearing only) | + `design_spec_path`, `reference_images` | `phase-5-multi-review-e-design.md` |
 | `hackify:code-reviewer-coherence` | 5 F, cross-module coherence | + `task_file_index` | `phase-5-multi-review-f-coherence.md` |
-| `hackify:finding-refuter` | 5, exactly ONE adversarial refuter per review round, judging every finding at every severity and carrying both lenses itself. No per-Critical dispatch and no second-lens follow-up | `project_root`, `base_sha`, `head_sha`, `findings_batch` (the whole round, verbatim) | `phase-5-refute.md` |
+| `hackify:finding-refuter` | 5, exactly ONE adversarial refuter per review round, judging every finding at every severity and carrying both lenses itself. No per-Critical dispatch and no second-lens follow-up | `project_root`, `base_sha`, `head_sha`, `findings_batch` (the whole round, verbatim, and the literal `none` on a round that found nothing, never a blank, which the agent refuses) | `phase-5-refute.md` |
 
 ### What a Phase 3 wave passes as `sibling_tracks`
 

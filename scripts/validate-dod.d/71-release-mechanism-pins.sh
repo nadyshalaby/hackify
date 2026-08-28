@@ -124,13 +124,100 @@ trigger_check() {
   # surface can still appear and mask its own removal.
   desc=$(awk 'NR>1 && /^---[ \t]*$/{exit} /^description:/{f=1; print; next} f && /^[a-z-]+:[ \t]/{exit} f{print}' "$file" 2>/dev/null)
   local missing=0
+  local body_skill
   for phrase in "$@"; do
     case "$desc" in
       *"$phrase"*) ;;
       *) red "  FAIL ${skill} description lost trigger '${phrase}'"; FAILED=$((FAILED + 1)); missing=1 ;;
     esac
   done
+  # RECORD, do not assert. The body half below consumes exactly the list this
+  # call was given, so the two checks can never drift onto two different lists.
+  # Nothing here changes what this function reads; it still sees the description
+  # and nothing else.
+  for body_skill in "${TRIGGER_BODY_SKILLS[@]}"; do
+    [ "$body_skill" = "$skill" ] || continue
+    for phrase in "$@"; do
+      TRIGGER_BODY_ROW_SKILL+=("$skill")
+      TRIGGER_BODY_ROW_PHRASE+=("$phrase")
+    done
+  done
   [ "$missing" = "0" ] && green "  ok   ${skill} keeps all $# trigger phrases"
+}
+
+# THE OTHER DIRECTION. trigger_check reads the frontmatter alone, on purpose, and
+# that leaves the reverse hole open: a phrase pinned on the routing surface can go
+# missing from a skill BODY whose own lead-in tells the reader it lists every
+# trigger. groom shipped in exactly that state, six bullets under a sentence
+# promising the complete set while eight phrases were pinned, so a user typing
+# "considering" matched the router and read a body that never mentioned it.
+#
+# Only a skill whose body actually claims to list its triggers belongs in the
+# array. groom is the only one today: over the `## When to invoke` section,
+# `grep -c '^- `' returns 9 for groom and 0 for the other six skills, so naming
+# any of the others would red this check against a list that does not exist.
+#
+# READ THE LIST, NOT THE WHOLE BODY. The first version of trigger_body_check
+# substring-matched everything after the closing frontmatter ---, and that is a
+# pin that cannot fire on the phrase most likely to move. groom's own precedence
+# sentence quotes `let's discuss` as its worked example, so the phrase sits in
+# the prose whether or not the bullet is in the list: deleting the bullet left
+# this check printing green over the exact loss it was written to catch, and the
+# red it was accepted on was true of the other seven phrases only. The read is
+# now the `- `phrase`` bullets of the `## When to invoke` section, the same shape
+# the paragraph above measured that list with, so prose elsewhere in the file can
+# no longer stand in for a bullet that is gone. The frontmatter half is
+# untouched: the two halves still read two different surfaces and still fail
+# independently.
+#
+# THE LIST IS A SUPERSET OF THE PIN SET, and the ok line says so rather than
+# leaving a reader to wonder which bullet went missing. groom lists nine bullets
+# against eight pinned phrases. The unpinned one is the bare skill name, and it
+# stays unpinned on purpose: the word runs through every page of the file, so a
+# pin on it would pass no matter what the list said, which is the same defect
+# this comment opens with.
+TRIGGER_BODY_SKILLS=(groom)
+check_list_size "${#TRIGGER_BODY_SKILLS[@]}" 1 "the [38d] body-mirror skill set"
+# Two parallel arrays rather than one delimited array: a trigger phrase is free
+# text and every separator character is a character some future phrase may hold.
+# Same index, same recorded pair, nothing to split and nothing to escape.
+TRIGGER_BODY_ROW_SKILL=()
+TRIGGER_BODY_ROW_PHRASE=()
+
+trigger_body_check() {
+  local skill="$1"
+  local file="skills/${skill}/SKILL.md"
+  local body listed
+  # The bullet LIST under `## When to invoke`, never the whole body. Rationale
+  # above the function, with the phrase that proved the whole-body read vacuous.
+  body=$(awk '/^## When to invoke/{f=1;next} f&&/^## /{exit} f&&/^- `/' "$file" 2>/dev/null)
+  listed=$(printf '%s\n' "$body" | grep -c '^- `')
+  local missing=0
+  local found=0
+  local phrase
+  local i=0
+  local n=${#TRIGGER_BODY_ROW_PHRASE[@]}
+  # Counted loop, not `for x in "${arr[@]}"`: the run sets -u, and an empty array
+  # expanded that way aborts the whole validator instead of failing this check.
+  while [ "$i" -lt "$n" ]; do
+    if [ "${TRIGGER_BODY_ROW_SKILL[$i]}" = "$skill" ]; then
+      phrase="${TRIGGER_BODY_ROW_PHRASE[$i]}"
+      found=$((found + 1))
+      case "$body" in
+        *"$phrase"*) ;;
+        *) red "  FAIL ${skill} body lost trigger '${phrase}'"; FAILED=$((FAILED + 1)); missing=1 ;;
+      esac
+    fi
+    i=$((i + 1))
+  done
+  # A skill named in the array whose phrases were never recorded asserts nothing
+  # at all, which reads green and guards nothing. That is a failure, not a pass.
+  if [ "$found" = "0" ]; then
+    red "  FAIL ${skill} is in TRIGGER_BODY_SKILLS but no trigger_check call recorded its phrases, so its body was never checked"
+    FAILED=$((FAILED + 1))
+  elif [ "$missing" = "0" ]; then
+    green "  ok   ${skill} body list carries all ${found} pinned trigger phrases (${listed} bullets listed, a superset: a phrase the rest of the file repeats anyway, such as the bare skill name, is left unpinned because a pin on it could never fail)"
+  fi
 }
 
 # The seven autopilot phrases at the tail of the hackify list are the retired
@@ -147,6 +234,11 @@ trigger_check codewalk "/codewalk" "walk this code" "walk me through" "walk thro
 trigger_check review-triage "/hackify:review-triage" "respond to the review" "respond to PR feedback" "respond to reviewer comments" "address review findings"
 trigger_check groom "/hackify:groom" "let's discuss" "let's think" "what if" "explore the idea" "what do you think" "considering" "thinking about"
 trigger_check skillsmith "/hackify:skillsmith" "author a hackify skill" "create a new skill for hackify" "make a hackify-style skill" "new hackify skill"
+
+# Runs last because it consumes what the calls above recorded.
+for trigger_body_skill in "${TRIGGER_BODY_SKILLS[@]}"; do
+  trigger_body_check "$trigger_body_skill"
+done
 
 yellow "[38g] the v0.13.0 agent-merge changes keep their mechanism"
 # Same discipline as [38c], [38e] and [38f], with one difference worth stating:

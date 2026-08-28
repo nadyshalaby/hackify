@@ -14,9 +14,9 @@ Five sub-parts. Keep each tight, this is a decision record, not an essay.
 - **Guardrails / Invariants**, the properties the solution must never violate (a passing test suite, a security boundary, a public API contract, a size cap). Breaking one is a Critical defect.
 - **Success Signals**, how we will know the goal is met: the concrete, observable proofs Phase 4 will paste.
 
-## Phase 1 capture (grooming)
+## Phase 1 capture
 
-Phase 1 is a grooming session, not a formality. Its exit condition is a complete anchor, and the batched wizard keeps asking until every sub-part is pinned.
+Phase 1 is where the target gets pinned down, and it is not a formality. Its exit condition is a complete anchor, and the batched wizard keeps asking until every sub-part is pinned.
 
 **Coverage checklist, do not leave Phase 1 until all five are settled:**
 

@@ -5,6 +5,166 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.2] - 2026-08-28
+
+> **The idea-shaping skill and the main workflow stopped stepping on each other.** Three of the
+> phrases that route a prompt to `groom` were listed on the routing surface but missing from the
+> list inside the skill that tells you it names them all, so someone who typed "considering" or
+> "thinking about" landed in groom and then read a page that never mentioned the words they used.
+> Saying "ship it" was worse. Groom read it as "start building" and handed straight over, and the
+> very next question offered to merge the work into main with nobody reviewing it, because "ship
+> it" is also the phrase that opens that option. Both are fixed. What happens when a prompt is a
+> discussion and a build request at the same time is now written down rather than left to be
+> guessed, and the main workflow file finally says where a fuzzy, half-formed ask should go.
+>
+> **The review agents got a pass in the same release, and one of them was quietly throwing away
+> real problems.** There is an agent whose only job is to double-check every review comment before
+> anyone spends time fixing it. It had a rule saying that when it could not restate a comment as a
+> clear, testable claim, it should mark that comment wrong and drop it. But being confused by a
+> comment is not evidence the comment is wrong, and that was the one route in the whole file that
+> could kill a top-severity finding with no counter-evidence at all. Four other checks that could
+> report "all clear" without actually looking at anything were closed at the same time.
+
+### Added
+
+- **The validator now checks that a skill's two trigger lists agree with each other.** It already
+  guarded the routing surface, the frontmatter line the model matches your words against, so a
+  phrase could not quietly disappear from it during a round of trimming. The other direction was
+  open: a phrase could sit on the routing surface and be absent from the list printed inside the
+  skill, which is what had happened to groom. Both lists are now checked against one pinned set of
+  phrases, and the two halves fail separately so a red line tells you which surface lost the phrase.
+  The half that reads the skill body reads the bullet list itself, never the whole page. The first
+  version searched the entire file, and one of the eight phrases is quoted a few lines under the
+  list as a worked example, so deleting its bullet left the check printing green over the exact
+  loss it exists to catch. That was re-proved afterwards on that phrase, and the check now fails on
+  all eight, as well as on an emptied list and on a skill wired in without its phrases. The green
+  line also reports how many bullets the list holds beside how many are pinned, because groom lists
+  nine and pins eight. The odd one out is the bare word `groom`, which runs through every page of
+  the file, so a pin on it could never fail and there is no point pretending otherwise.
+
+- **A new check keeps one rule's list of file kinds identical everywhere it is repeated.** The rule
+  banning loose type definitions names eight kinds of file, and six agent prompts repeat that list
+  so a working reviewer does not have to stop and open the rule file mid-review. Nothing was
+  watching those copies, which is how three of them had quietly drifted back to the first three
+  kinds. The check reads the eight straight out of the rule file on every run rather than keeping a
+  copy of its own, looks for the whole list in order in each of the six places, and names both the
+  file and the exact kind that went missing when one breaks. It was watched failing four ways: a
+  kind deleted from one prompt, a kind deleted from the rule itself, the rule's sentence reworded so
+  the read comes back empty, and one copy deleted from a file that still held two more.
+
+### Changed
+
+- **The main workflow skill names `/hackify:groom` where it lists the other ways in.** It described
+  `/hackify:quick` as the compressed route and said nothing about groom at all, while its own first
+  line claimed everything "discussing-then-building" for itself. That line now says a conversation
+  lands in the workflow the moment it names something to build, and open-ended discussion with no
+  build verb belongs to groom. A new line describes groom in the same shape as the others.
+- **The two places that dispatch the double-checking agent now say what to hand it.** That agent
+  got a rule this release that makes it refuse a blank list of comments, which is right: a blank
+  looks exactly like a quiet round, and reading it that way would drop every comment the reviewers
+  actually filed. What nothing said was that the dispatcher has to pass that list at all, so a
+  review round that found nothing would have hit the refusal instead of finishing. Both dispatch
+  paragraphs and the dispatch table now say the whole round goes across word for word, and that a
+  round with nothing in it passes the written word `none` rather than a blank.
+- **Phase 1 no longer calls itself a grooming session.** Two places in the Clarify protocol used
+  the word for the phase itself, which read as if Phase 1 and the groom skill were the same thing.
+  They are not: groom runs before a task exists and hands over, Phase 1 runs inside the task. The
+  protocol now describes itself as locking the goal anchor. The two mentions of "the groom path",
+  which correctly point at the handover, are untouched.
+- **A third page was still calling Phase 1 a grooming session, and now it does not.** The
+  goal-anchor reference is linked straight from the Clarify protocol, so the two pages disagreed
+  with each other after the fix above. It now makes the same point without borrowing groom's name.
+- **A design review on a project with no design spec is no longer close to a no-op.** It used to
+  skip six of its nine checks the moment no spec was found, and it kept only the ones that look
+  for generic-looking fonts and gradients. Colour contrast was one of the six it dropped, so a
+  screen shipping grey text nobody could read came back clean. Contrast, hardcoded colour and size
+  values, and missing hover and focus states now run whether or not a spec exists, because an
+  accessibility standard is a standard with or without one. Only the four checks that genuinely
+  measure against the project's own spec still wait for one, and the report now states which mode
+  it ran in and what that mode skipped. What counts as a user-interface file got wider in the same
+  pass, and that is a real change in how much gets reviewed rather than a wording tidy-up: page
+  templates of any flavour, plain HTML, SVG and other vector art, and design-token data files all
+  count now, and so does a file you are unsure about. More files get looked at than before. An empty
+  list after that filtering is reported as "not UI-bearing", with every touched file named so you
+  can check the call, instead of coming back as a clean result.
+
+### Fixed
+
+- **"ship it" no longer counts as a signal to start building.** It was on groom's list of phrases
+  that end the conversation and open the task, and it is also the exact phrase that makes Phase 1
+  recommend merging straight into main unreviewed. Since groom hands over in the same turn, anyone
+  using "ship it" to mean "let's go" would have been steered toward an unread merge. The phrase is
+  off the list, and the reason is written beside it so it does not come back.
+- **`what do you think`, `considering` and `thinking about` now appear inside groom, not only on
+  its routing surface.** The list in the skill body says it holds every trigger, and it was three
+  short. The new check above is what stops the two lists drifting apart again.
+- **Groom now says which rule wins when a prompt matches both of its lists.** "let's discuss adding
+  rate limiting" carries a discussion phrase and a build verb at once, and nothing said which one
+  decided. The rule the tests already assumed is now stated in both the routing surface and the
+  skill body: a discussion phrase wins, and the build-verb block only applies to a prompt carrying
+  none of them.
+- **The response table now has somewhere to put a comment nobody could restate.** The
+  double-checking agent gained that outcome in this same release, and the skill that turns its
+  verdicts into a table still allowed exactly three answers. The only one of the three that fitted
+  an unresolved row was "defer", which is the quiet drop the new outcome existed to prevent, so the
+  comment survived inside one file and died at the join to the next. The table takes a fourth
+  answer now, `needs-restatement`, and it is the one answer that holds a row open instead of
+  closing it: the comment keeps its severity, stays on the list, and waits for someone to write it
+  more clearly. Both files call the state by the same name, and the skill says plainly where it
+  differs from "defer", since that is the place the two are most likely to be confused.
+- **A review comment nobody could restate is no longer thrown away.** The double-checking agent
+  used to file it as refuted, which took it off the fix list for good, and it did that before
+  either of its two lines of attack had run. It also could not obey its own rule that every
+  refusal cites the line of code proving the comment wrong, because there was no such line to
+  cite. Those comments now get their own outcome that keeps them alive at their original severity
+  and hands them back to be written more clearly. The observation that a vague comment is itself a
+  problem was right and is kept; only the punishment changed. While that was being traced, one
+  more free kill turned up nearby: a comment aimed at a carved-out file (a test, a generated file)
+  could be dropped outside the two-attack rule entirely, and that now counts as one of the two.
+- **The size-cap review can no longer pass over nothing.** The reviewer is handed a table of
+  measurements and told to flag every row above a cap. It knew what to do when the table was
+  missing or explicitly marked unavailable, and it fell back to counting by hand. A table that
+  arrived present but with no rows in it was undeclared, so the reviewer flagged every row over a
+  cap across zero rows and reported a pass. An empty table now counts as a broken handoff worth
+  reporting, and the file-length check in particular can never be skipped, since counting lines
+  needs no tooling at all. The same hole was still open one column across. A table can arrive with a
+  row per file and the word `n/a` in every function column, which is exactly what a documentation
+  diff genuinely produces and also what a failed build produces on a diff full of code. The reviewer
+  now tells those two apart by looking at which files the diff touched rather than by taking the
+  table's word for it, and the checklist item can no longer be answered yes over an all-`n/a` table
+  when the diff carries even one source file.
+- **The ban on loose type definitions now covers all eight kinds of file it was written for.** The
+  rule names routers, services, middleware, guards, controllers, components, pages and routes. Four
+  places in the agent prompts stopped at the first three, including the only reviewer that checks
+  this at all, so five kinds of file went unchecked. One prompt listed three in one place and all
+  eight in another, contradicting itself. Every one of those now carries the full list. A stray
+  description of the rule as a "glob list" was corrected too; it is a plain sentence, and matching
+  on filenames was never what it asked for.
+- **Three agents can now refuse a handoff that arrived broken.** The contract has always said an
+  agent handed an unfilled blank must stop and say so, and six of the nine did. Security review,
+  the double-checking agent and the plan reviewer had no such rule anywhere in them. The plan
+  reviewer was the worst of the three, because its checklist sends any failed answer back to the
+  start and there was no way out of that: with a missing project path it could never answer yes,
+  and it would circle forever instead of saying what was missing. All three now check their inputs
+  before doing anything, and each one names the inputs where a written "none" is a real answer so
+  the new rule cannot fire on a legitimate one.
+- **The contract itself stopped saying "should" and "must" about the same rule.** One page said an
+  agent handed an unfilled blank "should refuse" and, eighty lines later, that it "MUST refuse to
+  proceed". Every fix above is written against that page, and "should" is exactly the wording a
+  literal reader satisfies by doing nothing. Both lines now say must. The first attempt at that fix
+  also left a sentence behind describing the line as still saying "should". That page's whole
+  premise is that a literal reader parses what is written and nothing else, so a sentence that
+  describes its own text wrongly is a defect there rather than a footnote. It is gone, and the line
+  ends where the rule ends.
+
+- **A design review with a spec and no reference pictures can now answer its own last question.** The
+  report has to list the steps it skipped, and the checklist said that list is empty whenever a
+  design spec exists. But the step that compares the screen against reference pictures is skipped
+  whenever there are no reference pictures, which has nothing to do with whether a spec exists, so a
+  reviewer in that ordinary situation had to either lie or report a step it dropped without
+  permission. The item now names both reasons a step can be skipped and spells out the four lists
+  that are allowed, so a skipped step stays visible either way.
+
 ## [0.17.1] - 2026-08-28
 
 > **Phase 3 had two implementer agents doing one job, and now it has one.** Which one a wave got
