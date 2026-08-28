@@ -331,7 +331,7 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 # under its length resolves. A citation that survives every edit while pointing at
 # the wrong paragraph is worse than a dangling one: it reads as verified. The block
 # head is a string the file either carries or does not, so it goes stale loudly.
-for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+for f in "agents/implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"
 done
@@ -347,7 +347,7 @@ done
 # other two and the parent cannot tell what survived, so it re-dispatches the whole
 # wave instead of the handful actually missing. The reporting half is pinned over
 # both mirror sides by [40] in 73-implementer-rename.sh.
-for f in "agents/wave-implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
+for f in "agents/implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present 'STOP there' "$f"
 done
 

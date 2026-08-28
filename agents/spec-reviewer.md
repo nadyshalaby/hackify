@@ -436,18 +436,18 @@ loosest. Use this exact report skeleton:
 ````
 ## Proposed wave plan
 One line per wave, one dispatched implementer each, tasks in run order,
-each line NAMING the implementer type that wave takes. Foundation and
-assembly waves and a single-track round take `hackify:wave-implementer`,
-because with nothing running beside them the blind-sibling machinery
-protects nothing and only costs context; two or more concurrent tracks
-take `hackify:module-implementer`, one per track.
+each line NAMING the implementer type that wave takes. Every wave takes
+`hackify:implementer`, and what changes is `sibling_tracks`: `none` on a
+foundation wave, an assembly wave and a single-track round, because with
+nothing beside them the blind-sibling machinery protects nothing and only
+costs context, and the OTHER track IDs when two or more run at once.
 Close each line with `[concurrency candidate]` when all three
 partition-test conditions hold for that wave, or `[serial: <the condition
 that fails>]` when any one of them does not. Wave 1 is the foundation
 wave whenever the backlog holds a contended write.
-Wave 1: T<a> | hackify:wave-implementer | [serial: foundation, holds every contended write]
-Wave 2: T<b> + T<c> | hackify:module-implementer | [concurrency candidate]
-Wave 3: T<d> + T<e> | hackify:wave-implementer | [serial: holds <resource>, genuinely exclusive]
+Wave 1: T<a> | hackify:implementer, sibling_tracks=none | [serial: foundation, holds every contended write]
+Wave 2: T<b> + T<c> | hackify:implementer, sibling_tracks=<the other tracks> | [concurrency candidate]
+Wave 3: T<d> + T<e> | hackify:implementer, sibling_tracks=none | [serial: holds <resource>, genuinely exclusive]
 (…)
 
 ## Serial resources

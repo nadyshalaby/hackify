@@ -21,11 +21,12 @@ RAV_FILE="skills/hackify/references/review-and-verify.md"
 # are excluded from checks [9]/[10]/[11]/[12]/[15].
 PA_NON_TEMPLATE=(README.md template-contract.md phase-5-aggregation.md)
 
-# Single-template files: each file body IS one sub-agent template.
+# Single-template files: each file body IS one sub-agent template. Both lists
+# below carry a hand-written size bound under the [9] header, for the reason
+# argued there; add or retire a template here and that number moves with it.
 PA_BUILD_FILES=(
   "$PA_DIR/investigation.md"
   "$PA_DIR/phase-3-implementation.md"
-  "$PA_DIR/phase-3-module-implementation.md"
   "$PA_DIR/phase-4-cross-package-verification.md"
 )
 PA_REVIEW_SINGLE_FILES=(
@@ -104,6 +105,26 @@ check_severity_presence() {
 }
 
 yellow "[9] template structural conformance (per-file in $PA_DIR)"
+
+# THE SIZES ARE HAND-WRITTEN BESIDE THE LISTS, the shape [40], [74], [77] and
+# [80] all use and the one this file was the odd one out on: a bound read back
+# out of a list cannot police that list, so the number is written a SECOND time
+# and moving it is the deliberate act that records a template arriving or
+# retiring. THIS FILE IS WHY THE CONVENTION EXISTS RATHER THAN AN ILLUSTRATION
+# OF IT. 0.17.1 dropped one entry from PA_BUILD_FILES, correctly, because the
+# template had been deleted, and FOUR checks left the run with it: every one of
+# [9], [10], [12] and [15] iterates these arrays, so a file that stops being
+# listed stops being checked by all four at once. The [0b] ok-line total went
+# 1377 to 1371 and only the floor's slack absorbed the drop, which is exactly
+# what a WRONG deletion would have looked like from the outside.
+#
+# THE COUNTS SIT UNDER THIS HEADER RATHER THAN AT THE ARRAYS, which is the one
+# place this diverges from [74]. Nothing prints a per-fragment banner, so an ok
+# line emitted where the arrays are defined would file itself under [8], the
+# SKILL.md frontmatter check, and a reader chasing a red would look in the wrong
+# block. The arrays carry a pointer comment instead.
+check_list_size "${#PA_BUILD_FILES[@]}" 3 "the [9]/[10]/[12]/[15] build-template set"
+check_list_size "${#PA_REVIEW_SINGLE_FILES[@]}" 8 "the [9]/[10]/[11]/[12]/[15] review-template set"
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
   check_template_anchors "$(cat "$f")" "$(basename "$f")"
 done
@@ -271,7 +292,7 @@ for f in agents/*.md; do
   check_template_anchors "$agent_body" "$agent_label"
   check_role "$agent_body" "$agent_label"
   # SEVERITY is required on reviewer-role agents only; spec-reviewer-* and
-  # wave-implementer are governed by their own template files' [10] modes.
+  # implementer are governed by their own template files' [10] modes.
   case "$(basename "$f")" in
     code-reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
   esac

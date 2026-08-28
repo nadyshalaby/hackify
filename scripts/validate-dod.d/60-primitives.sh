@@ -22,8 +22,7 @@ AGENTS_EXPECTED=(
   "code-reviewer-coherence"
   "design-conformance-reviewer"
   "finding-refuter"
-  "wave-implementer"
-  "module-implementer"
+  "implementer"
 )
 yellow "[30] agents/ directory contains all ${#AGENTS_EXPECTED[@]} expected hackify agent definitions"
 for name in "${AGENTS_EXPECTED[@]}"; do

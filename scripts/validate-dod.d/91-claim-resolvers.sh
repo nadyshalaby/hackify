@@ -79,14 +79,18 @@
 # document's contents would be arbitrary code execution by editing that document.
 yellow "[91] every 'check [NN]' claim in a live file names a check id the validator declares"
 
-# WHY LIVE PATHS AND NOT THE WHOLE TREE. Same three-part pathspec
-# 73-implementer-rename.sh:100 uses, and for its stated reasons. dist/ is
-# generated. docs/work/ is the sprint record, and a record has to be able to
-# quote the wrong claim it was written to describe; this sprint's own
+# WHY LIVE PATHS AND NOT THE WHOLE TREE. A three-part pathspec, ':(top)' plus
+# two exclusions, for the reasons 73-implementer-rename.sh's WI_LIVE_PATHS
+# states about the same two directories. It is NOT that whole pathspec and no
+# longer claims to be: [40] bans literals it necessarily contains itself and
+# waives CHANGELOG.md release notes that must quote a retired name, so it
+# carries further exclusions this check has no reason to.
+# dist/ is generated. docs/work/ is the sprint record, and a record has to be
+# able to quote the wrong claim it was written to describe; this sprint's own
 # retrospective has to name the id that did not exist, and a check that reddens
 # on the document explaining why it exists is unusable. ':(top)' is the positive
-# half and is not decoration: an exclusion-only pathspec is one reading away from
-# resolving to no files, and a scan over no files is green forever.
+# half and is not decoration: an exclusion-only pathspec is one reading away
+# from resolving to no files, and a scan over no files is green forever.
 #
 # THE FLOOR IS WHAT STOPS A VACUOUS PASS. If the pathspec resolves to nothing, if
 # the reference grammar stops matching, or if git ls-files fails, the reference
@@ -108,7 +112,7 @@ cr_fail() {
 # one line that explains them under 32 false accusations. Measured, not feared:
 # the first draft printed the whole wall. A scan that cannot be trusted names
 # itself and says nothing about the claims it read, which is the same tie-break
-# 73-implementer-rename.sh:174-195 makes between a broken scan and its hits.
+# 73-implementer-rename.sh's wi_absent makes between a broken scan and its hits.
 #
 # AND NO GREEN PRINTS BESIDE A RED. The first tamper run reported one unresolved
 # claim and then said all 33 resolved, on adjacent lines. A summary that
@@ -142,7 +146,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   cr_fail "[91] needs python3 to resolve check-id claims, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
+  # 73-implementer-rename.sh's wi_absent. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this block
   # to read an empty result as "no unresolved claims". A FAIL-CLOSED BRANCH
   # OUTRANKS A HIT REPORT: a scan that could not finish tells the reader nothing
@@ -187,7 +191,7 @@ def declared_ids():
 
 
 def live_files():
-    """Tracked paths under the same pathspec 73-implementer-rename.sh:100 scans."""
+    """Tracked paths under LIVE: ':(top)' minus dist/ and docs/work/."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

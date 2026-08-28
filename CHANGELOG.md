@@ -5,6 +5,41 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.1] - 2026-08-28
+
+> **Phase 3 had two implementer agents doing one job, and now it has one.** Which one a wave got
+> depended on whether other tracks were running beside it, and the two prompts drifted apart with
+> nothing keeping them honest, so a rule written into one was simply missing from the other. There
+> is now a single implementer, and the thing that used to pick between two agents is now a single
+> input telling that agent whether anybody else is writing the same tree right now. Told nobody is,
+> it works as the only writer. Told who is, it loads the extra rules for staying out of their way.
+> Nothing was dropped in the merge: every rule either agent carried is still enforced, and the
+> side-by-side half is a file the agent opens only when it is told it needs it.
+
+### Changed
+
+- **`hackify:wave-implementer` and `hackify:module-implementer` are gone, replaced by one
+  `hackify:implementer`.** **If you have a saved dispatch, a script, a snippet or a note that names
+  either old type, update it to `hackify:implementer`.** A dispatch naming a retired type does not
+  fail validation, it fails at dispatch time, when there is no such agent to run. The new agent
+  takes 21 inputs, nine of which accept the literal `none` (`work_doc_path` is one of them, for
+  quick mode, which writes no work-doc), and it serves every shape a Phase 3
+  dispatch comes in: a solo foundation wave, concurrent module tracks, a solo assembly wave, a
+  single-track round, and a quick-mode change.
+- **The rules for building beside other agents moved to their own file,
+  `skills/hackify/references/sibling-track-rules.md`, and load only when siblings are actually
+  named.** The `sibling_tracks` input is the switch. Set to `none` it stays shut, and a solo wave
+  never reads a line written for a concurrent one, which is what used to make the wrong half of the
+  old module prompt apply to work that had no siblings at all. Naming the other tracks opens it, and
+  the agent then applies all of it on top of its always-on contract: its own database, cross-module
+  type errors that are expected and not its own, reporting a defect in shared code instead of
+  fixing it, its own track file instead of the shared work-doc, no registrar mounting, no command
+  that discards working-tree state, and the eight-item handoff the assembly wave mounts from.
+- **Every dispatch site, the workflow prose and the plan review now name the one type.** The
+  hackify skill, quick mode, the Phase 3 protocol, the dispatch catalog, the contention doctrine,
+  the work-doc template and the spec reviewer's own wave-plan skeleton all say the same thing, and
+  the counts they quote were re-measured against the tree rather than carried forward.
+
 ## [0.17.0] - 2026-08-27
 
 > **The full workflow now plans around what genuinely has to happen one at a time, and runs

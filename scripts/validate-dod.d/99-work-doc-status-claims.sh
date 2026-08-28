@@ -207,11 +207,11 @@ if ! command -v python3 > /dev/null 2>&1; then
   ws_fail "[99] needs python3 to parse work-doc frontmatter, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and writes to
-  # stderr, and a bare $(...) capture swallows both, leaving this block to read an
-  # empty result as "no work-doc is out of step". A FAIL-CLOSED BRANCH OUTRANKS A HIT
-  # REPORT: a scan that could not finish says nothing trustworthy about what it did
-  # print.
+  # 73-implementer-rename.sh's wi_absent. A python traceback exits non-zero and
+  # writes to stderr, and a bare $(...) capture swallows both, leaving this
+  # block to read an empty result as "no work-doc is out of step". A FAIL-CLOSED
+  # BRANCH OUTRANKS A HIT REPORT: a scan that could not finish says nothing
+  # trustworthy about what it did print.
   ws_err=$(mktemp 2>/dev/null) || ws_err=''
   if [ -z "$ws_err" ]; then
     ws_fail "[99] could not create the stderr capture file, so the work-doc scan never ran"

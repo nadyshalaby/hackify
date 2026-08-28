@@ -237,7 +237,7 @@ fi
 # a template with an H1, so there is no mirrored region for a marker to bound and
 # both branches above are silent there by construction
 # (scripts/sync_agent_mirrors.py, "WHAT THE HEAD IS NOT"). That silence cost
-# nothing until the wave-implementer pair began restating the SAME dispatch rule
+# nothing until the implementer pair began restating the SAME dispatch rule
 # in both heads. Measured before this block existed: 1230 characters on the
 # mirror against 1276 on the template, already divergent, compared by nothing.
 #
@@ -255,7 +255,7 @@ fi
 # the list below. Every clause that IS below was measured at exactly one
 # occurrence per file, in the head, on both sides.
 head_above_fence() { awk '/^```$/{exit} {print}' "$1"; }
-WI_HEAD_FILES='agents/wave-implementer.md
+WI_HEAD_FILES='agents/implementer.md
 skills/hackify/references/parallel-agents/phase-3-implementation.md'
 WI_HEAD_CLAUSES='One agent takes a wave whose tasks share a read surface
 no task is ever split off by a module hunch

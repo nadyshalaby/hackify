@@ -223,23 +223,42 @@ Six obligations, each one earned in the build this came from rather than assumed
 
 ## Dispatching a concurrent round, and keeping its progress on disk
 
-**Module briefs.** `hackify:module-implementer` refuses on any of its fifteen
-INPUTS arriving unfilled, and eight of them have no producer anywhere else: the
+**Module briefs.** `hackify:implementer` refuses on any of its twenty-one INPUTS
+arriving unfilled, and eight of them have no producer anywhere else: the
 Phase 2.5 wave plan emits wave numbers, task IDs, an agent type and a
 concurrency mark, and stops. So the parent fills a `### Module briefs` block in
-the work-doc before dispatching two or more tracks, one per track, carrying
-`module_id`, `module_plan_path`, `folder_allowlist`, `owned_elsewhere`,
-`mandatory_reading`, `sharp_invariants`, `database_name` and
-`handoff_contract`. The skeleton lives in
-[work-doc-template.md](work-doc-template.md). Derive `folder_allowlist` from the
-`## Serial resources` table rather than by intuition: a folder two tracks would
+the work-doc before it dispatches, one block per track when a round holds two or
+more, carrying `track_id`, `sibling_tracks`, `owned_elsewhere`,
+`mandatory_reading`, `sharp_invariants`, `database_name`, `exclusive_resources`
+and `handoff_contract`. The skeleton lives in
+[work-doc-template.md](work-doc-template.md). A solo wave fills the same block,
+and four of those are `none` on every solo wave because nothing runs beside it:
+`track_id`, `sibling_tracks`, `owned_elsewhere` and `database_name`. The other
+four are decided per wave and are `none` only when the wave truly has nothing to
+put there, `exclusive_resources` included, since a solo wave can hold a shared
+test database or a generated sequence exactly as a concurrent one can. `none` is
+a decision and an empty line is the absence of one. Those eight are a SUBSET of
+the nine the agent accepts at `none`: the ninth is `work_doc_path`, `none` in
+quick mode alone, and quick writes no work-doc for the block to live in.
+`file_allowlist` is not on that list because each task carries its own allowlist
+in the Sprint Backlog text, and the union is the wave's bound. Derive both from the
+`## Serial resources` table rather than by intuition: a file two tracks would
 both write is a contended write and belongs to the foundation wave.
+
+**`sibling_tracks` is what turns the side-by-side rules on.** Naming the other
+tracks makes the agent read
+[sibling-track-rules.md](sibling-track-rules.md) in full and apply every rule in
+it on top of its always-on contract: its own database, cross-module type errors
+that are expected and not its, report-don't-fix on shared code, a track file
+instead of Daily Updates, no registrar mounting, no command that discards
+working-tree state, and the eight-item handoff report the assembly wave mounts
+from. A solo dispatch passes `none` and never opens that file.
 
 **Track progress.** A concurrent track never writes the work-doc. Four tracks
 appending to one markdown file is exactly the shared-file contention this
 document exists to remove, and an append has no lock, no merge and no error when
 a write is lost. Each track writes its own
-`docs/work/<slug>.tracks/<module-id>.md`, disjoint by construction, updated as
+`docs/work/<slug>.tracks/<track_id>.md`, disjoint by construction, updated as
 each unit goes green rather than once at the end; the parent merges them into
 `## 6. Daily Updates` at round end and drops the folder when the round closes.
 

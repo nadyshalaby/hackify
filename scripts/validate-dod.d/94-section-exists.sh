@@ -117,12 +117,13 @@ yellow "[94] every instruction naming a work-doc section names one the template 
 # Narrowing the grammar so code data does not read as an instruction is the
 # actual fix and it is NOT bought here.
 #
-# THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 73-implementer-rename.sh:102
-# takes the identical way out for the identical cause, a banned-wording scanner
-# that must hold the banned wording. 91-claim-resolvers.sh deliberately does NOT
-# self-exclude, and the difference is the whole test: every `check [NN]` it
-# names resolves to a real declared id, so naming them commits no defect. These
-# two files do commit one, in the literal sense the check measures.
+# THE PRECEDENT IS IN THIS DIRECTORY, BOTH WAYS. 73-implementer-rename.sh's
+# WI_LIVE_PATHS self-exclusion takes the identical way out for the identical
+# cause, a banned-wording scanner that must hold the banned wording.
+# 91-claim-resolvers.sh deliberately does NOT self-exclude, and the difference
+# is the whole test: every `check [NN]` it names resolves to a real declared id,
+# so naming them commits no defect. These two files do commit one, in the
+# literal sense the check measures.
 #
 # THE COST IS REAL, SO IT IS NAMED RATHER THAN GLOSSED: a genuine bad
 # instruction written into either file is invisible to this check. That is
@@ -250,7 +251,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   se_fail "[94] needs python3 to parse the template's headings, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
+  # 73-implementer-rename.sh's wi_absent. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this
   # block to read an empty result as "no unresolved instructions". A FAIL-CLOSED
   # BRANCH OUTRANKS A HIT REPORT: a scan that could not finish tells the reader
@@ -362,7 +363,7 @@ def control():
 
 
 def live_files():
-    """Tracked paths under the same pathspec 73-implementer-rename.sh:100 scans."""
+    """Tracked paths under WI_LIVE_PATHS, 73-implementer-rename.sh's pathspec."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

@@ -12,11 +12,15 @@
 #
 # MEASURED ON THE TREE THAT SHIPPED THIS CHECK, not imagined: at the commit this
 # block was written, 68 of the 791 compared files were stale, carrying 13 source
-# files as they read four hours and three commits earlier. dist/claude-code/agents/
-# wave-implementer.md was 3,114 bytes behind, still telling a wave agent the
-# round-end scout scope was the allowlist union after the tree had stopped saying
-# so. A runtime installing from dist/ got the pre-fix contract. The sprint's own
-# task for re-syncing was ticked.
+# files as they read four hours and three commits earlier. The worst of them was
+# the Phase 3 implementer mirror, then shipped as
+# dist/claude-code/agents/wave-implementer.md and 3,114 bytes behind, still
+# telling a wave agent the round-end scout scope was the allowlist union after
+# the tree had stopped saying so. A runtime installing from dist/ got the pre-fix
+# contract. The sprint's own task for re-syncing was ticked. That mirror is now
+# agents/implementer.md, which changes the path in the story and nothing about
+# what the story is evidence for: this check discovers every pair from the sync
+# plan and the manifest, so it followed the rename with no edit.
 #
 # WHY NOT RE-RUN THE SYNC INTO A TEMPORARY ROOT AND DIFF THAT. It was the first
 # design and it does not exist to build: sync-runtimes.sh takes no destination

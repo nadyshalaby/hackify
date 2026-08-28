@@ -168,40 +168,57 @@ Append one entry per task as you complete (or get stuck on) it.
 ### T2 ([task name], in progress)
 - ...
 
-### Module briefs (concurrent rounds only)
+### Module briefs (every round)
 
-**Fill this before dispatching a round that holds two or more concurrent tracks,
-or the dispatch fails.** `hackify:module-implementer` refuses on any of its
-fifteen INPUTS arriving unfilled, and eight of them have no other producer: the
-Phase 2.5 wave plan emits wave numbers, task IDs, an agent type and a
-concurrency mark, and nothing else names them. One block per track. A round with
-one track needs none of this, because a single-track round takes
-`hackify:wave-implementer`.
+**Fill this before you dispatch anything, or the dispatch fails.**
+`hackify:implementer` refuses on any of its twenty-one INPUTS arriving unfilled,
+and eight of them have no other producer: the Phase 2.5 wave plan emits wave
+numbers, task IDs, an agent type and a concurrency mark, and nothing else names
+them. One block per track when the round holds two or more, one block for the
+wave when it holds one. A solo wave still fills the block. FOUR of its fields
+are `none` on every solo wave, because nothing runs beside it: `track_id`,
+`sibling_tracks`, `owned_elsewhere` and `database_name`. The other four are
+decided per wave and are `none` only when that wave genuinely has nothing to put
+there, `exclusive_resources` included, since a solo wave can hold a shared test
+database or a generated sequence as easily as a concurrent one. `none` is a
+decision and a blank is the absence of one, which is what makes the agent refuse.
+
+These eight are a SUBSET of what the agent accepts at `none`, not the whole set.
+It takes nine, and the ninth is `work_doc_path`, which is `none` in quick mode
+alone; quick writes no work-doc for this block to live in.
 
 ```
 #### M<n> <module name>  (tasks T<a>, T<b>)
-- module_id:        M<n>
-- module_plan_path: <this doc>#m<n>-<module-name>
-- folder_allowlist: <one absolute folder per line; disjoint from every sibling's>
-- owned_elsewhere:  <shared surface> -> owned by <M<k>|the foundation wave|the assembly wave>
-- mandatory_reading: <the architecture-contract sections this module must honour>
-- sharp_invariants: <the 2-3 places THIS module is most likely to get wrong>
-- database_name:    <the database THIS track creates and owns; never the shared one>
-- handoff_contract: <what the assembly wave needs back: registrar to mount, exported names>
+- track_id:         M<n>, or `none` on a solo wave
+- sibling_tracks:   <the OTHER track IDs building this same tree right now>, or `none` on a solo wave
+- owned_elsewhere:  <shared surface> -> owned by <M<k>|the foundation wave|the assembly wave>, or `none`
+- mandatory_reading: <the architecture-contract sections this dispatch must honour>, or `none` when the dispatch crosses none
+- sharp_invariants: <the 2-3 places THIS dispatch is most likely to get wrong>, or `none`, which it rarely should be
+- database_name:    <the database THIS track creates and owns; never the shared one>, or `none` on a solo wave
+- exclusive_resources: <every resource THIS dispatch holds that two processes cannot hold at once: a shared test database, a shared fixture, a generated sequence>, one per line, or `none`
+- handoff_contract: <what the wave that follows needs back: registrar to mount, exported names>, or `none`
 ```
 
-`folder_allowlist` is where the partition becomes real, so derive it from the
-`## Serial resources` table rather than by intuition: any folder two tracks would
-both write is a contended write and belongs to the foundation wave instead.
-`database_name` is the standard lifting move for a single shared test database,
-which is conventionally serial rather than genuinely exclusive.
+`sibling_tracks` is the mode switch and the only field that changes what the
+agent does. Naming the other tracks makes it read
+[sibling-track-rules.md](sibling-track-rules.md) in full and apply every rule in
+it on top of its always-on contract; `none` means it never opens that file.
+`sharp_invariants` earns its line on a solo wave too, because it is the
+highest-leverage value in the block and nothing else in the workflow produces
+it. The file allowlist is deliberately not here: each task carries its own in
+the Sprint Backlog text and the wave is bounded by their union. That is where
+the partition becomes real, so derive it from the `## Serial resources` table
+rather than by intuition: any file two tracks would both write is a contended
+write and belongs to the foundation wave instead. `database_name` is the
+standard lifting move for a single shared test database, which is conventionally
+serial rather than genuinely exclusive.
 
 ### Track progress (concurrent rounds only)
 
 A concurrent track does NOT write this file. Four tracks appending to one
 markdown file is the shared-file contention the partition exists to remove, and
 an append has no lock, no merge and no error when a write is lost. Each track
-writes its own `docs/work/<slug>.tracks/<module-id>.md` instead, disjoint by
+writes its own `docs/work/<slug>.tracks/<track_id>.md` instead, disjoint by
 construction, updated as each unit goes green rather than once at the end. The
 parent merges them into `## 6. Daily Updates` at round end and deletes the
 folder when the round closes.

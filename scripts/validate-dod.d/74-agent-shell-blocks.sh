@@ -14,9 +14,17 @@
 # full validator, a 159-test tamper battery and the ban-token suite were green
 # over it for the entire sprint. A Phase 5 reviewer found it by reading.
 #
-# The check parses rather than runs: running would execute `{{gate_commands}}`,
-# which is arbitrary shell by design. Placeholders are substituted with inert
-# text first, because `{{x}}` is not valid shell and would red every template.
+# THAT FILE IS GONE AND THE LESSON IS NOT. 0.17.1 merged its prompt into
+# `phase-3-implementation.md`, which is still listed below and still carries a
+# fenced VERIFICATION block with a `case` in it. The incident is kept here rather
+# than deleted with the file, because it is the answer to "why does a markdown
+# validator parse shell", and a check whose reason has been edited out of it is
+# the next check somebody deletes as unexplained.
+#
+# The check parses rather than runs: running would execute a template's project
+# gate, which is arbitrary shell by design. Placeholders are substituted with
+# inert text first, because `{{x}}` is not valid shell and would red every
+# template.
 yellow "[74] every fenced shell block in a dispatchable agent template parses under /bin/bash"
 
 ASB_DIR="skills/hackify/references/parallel-agents"
@@ -25,7 +33,6 @@ ASB_DIR="skills/hackify/references/parallel-agents"
 # glob makes that silent. The count below is written a second time on purpose.
 ASB_FILES=(
   "$ASB_DIR/phase-3-implementation.md"
-  "$ASB_DIR/phase-3-module-implementation.md"
   "$ASB_DIR/phase-2.5-spec-reviewer.md"
   "$ASB_DIR/investigation.md"
   "$ASB_DIR/phase-5-refute.md"
@@ -36,7 +43,7 @@ ASB_FILES=(
   "$ASB_DIR/phase-5-multi-review-e-design.md"
   "$ASB_DIR/phase-5-multi-review-f-coherence.md"
 )
-ASB_EXPECTED=11
+ASB_EXPECTED=10
 
 check_list_size "${#ASB_FILES[@]}" "$ASB_EXPECTED" "the [74] template set"
 

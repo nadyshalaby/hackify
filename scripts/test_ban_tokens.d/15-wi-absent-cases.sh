@@ -131,7 +131,10 @@ TB_WI_SRC="scripts/validate-dod.d/73-implementer-rename.sh"
 # correct instead of fail-open, and the cases would prove nothing about the
 # branch they are named for. Same reason tb_case_unreadable_single seals a file
 # that carries its token instead of an empty one.
-TB_WI_LIT='hackify:wave-implementer'
+# IT MOVED IN 0.17.1 and the role above did not: this read the then-live
+# wave-implementer type until that merge BANNED it, and a banned literal is one
+# [40] pins ABSENT. Its `hackify:` prefix is left off here for that same reason.
+TB_WI_LIT='hackify:implementer'
 
 # The decoy the loader's probe carries beside TB_WI_LIT, and it has to be absent
 # from the fixture: what the probe reads back is that ONE of the two literals was

@@ -40,8 +40,14 @@ yellow "[40] the Phase 3 implementer rename, live name present and dead name abs
 # skills/, commands/ and agents/, which is where a reviewer type gets named. An
 # implementer type is also named in prose that teaches the dispatch, so this one
 # reads the whole tracked tree minus the paths allowed to carry the old words.
-# Its roots are a strict superset, which is why the retired implementer type is
+# Its roots are a strict superset, which is why the retired implementer types are
 # banned here instead of being added to that regex.
+#
+# WHICH RENAME IS POLICED NOW. 0.17.1 merged `hackify:wave-implementer` and
+# `hackify:module-implementer` into the one `hackify:implementer`, so the live
+# name below is that one and BOTH merged types joined the dead list. The block's
+# job did not change with them: it is still one rename pinned from both ends, and
+# the 0.15.0 incident recorded above is still why it exists.
 
 # BOTH LISTS IN THIS BLOCK ARE ARRAYS, never space-separated strings looped
 # unquoted. That shape word-splits on any path carrying a space and leaves
@@ -51,13 +57,25 @@ yellow "[40] the Phase 3 implementer rename, live name present and dead name abs
 # [40] follows and these two were the odd pair out.
 WI_TYPE_SITES=('skills/hackify/SKILL.md' 'skills/quick/SKILL.md')
 WI_TYPE_SITES+=('skills/hackify/references/parallel-agents/README.md')
+# FOUR MORE SITES, and they were named unpinned for a release. The three above
+# are where a dispatcher is TOLD which type to use; these four TEACH the same
+# dispatch, and a rename that reached the first group while missing the second
+# leaves a reader following prose to a type that no longer resolves, which is
+# the 0.15.0 incident this block was built for. Each was measured to carry the
+# literal before it was added, rather than assumed to: 1 occurrence each in the
+# three references and 4 in the spec reviewer, which names the type in its own
+# wave-plan skeleton.
+WI_TYPE_SITES+=('skills/hackify/references/phases/phase-3-implement.md')
+WI_TYPE_SITES+=('skills/hackify/references/contention-dispatch.md')
+WI_TYPE_SITES+=('skills/hackify/references/work-doc-template.md')
+WI_TYPE_SITES+=('agents/spec-reviewer.md')
 # The size is hand-written beside the list, the shape [77] and [80] both use: a
 # bound read back out of a list cannot police that list. Drop a site from the
 # array and the element count drops with it, so that site's own check leaves the
 # run and the run stays green one check shorter, which is the failure this whole
 # block exists to stop.
-check_list_size "${#WI_TYPE_SITES[@]}" 3 "the [40] dispatch-site file set"
-for f in "${WI_TYPE_SITES[@]}"; do check_token_present 'hackify:wave-implementer' "$f"; done
+check_list_size "${#WI_TYPE_SITES[@]}" 7 "the [40] dispatch-site file set"
+for f in "${WI_TYPE_SITES[@]}"; do check_token_present 'hackify:implementer' "$f"; done
 
 # THE #11-A REPORTING HALF, ON BOTH MIRROR SIDES. [38f](2) already pins the
 # STOPPING half, 'STOP there'. The half that says what to REPORT after the stop
@@ -65,7 +83,13 @@ for f in "${WI_TYPE_SITES[@]}"; do check_token_present 'hackify:wave-implementer
 # wider blast radius. This sprint spent it: two implementers died mid-wave, and
 # a report naming which task IDs were already on disk is what made the
 # re-dispatch a handful of tasks instead of the whole wave over again.
-WI_MIRRORS=('agents/wave-implementer.md')
+#
+# THE PARENT SIDE MOVED IN 0.17.1 and the template side did not. The merge
+# rewrote `phase-3-implementation.md` in place, since there is exactly one Phase
+# 3 implementation prompt again, and gave it a new mirror at
+# `agents/implementer.md`. Both pinned phrases were checked in the merged text
+# rather than assumed to have survived it.
+WI_MIRRORS=('agents/implementer.md')
 WI_MIRRORS+=('skills/hackify/references/parallel-agents/phase-3-implementation.md')
 check_list_size "${#WI_MIRRORS[@]}" 2 "the [40] implementer mirror pair"
 for f in "${WI_MIRRORS[@]}"; do
@@ -80,18 +104,43 @@ done
 # REAL OCCURRENCE, deliberately: 0.15.0's own release note has to quote the
 # retired type verbatim, prefix and all, to describe what the rename replaced,
 # and a release note that cannot name the old name cannot describe the change.
+# 0.17.1's entry does the same for the two types that merged, so the row waives
+# more occurrences now than when it was written and the argument is unchanged.
 # This comment used to claim the row waived nothing and was pure
 # future-proofing, and the release note written later in the SAME sprint
 # falsified it. That is the recurring defect this fragment exists to catch, so
-# it is recorded here rather than quietly corrected. THE SELF-EXCLUSION TRAVELS
-# WITH THIS BLOCK, and whoever moves it next has to carry it again: 70 was split
-# twice at the 500-LOC cap and this block was the second thing to leave, so the
-# path below names THIS file. A [40] that moves house while that path stays
-# behind would red on its own literals in the middle of the move.
-# git grep reads TRACKED files,
-# which keeps an unsynced dist/ working tree out of the scan for free; [55]
-# already reds on an uncommitted file under skills/, agents/ and hooks/, so
-# scanning untracked paths here would buy no coverage and add false alarms.
+# it is recorded here rather than quietly corrected.
+#
+# THE parallel-agents README IS NOT EXCLUDED, and for one release it was. That
+# row went in because line 54 of that file is the retirement note recording which
+# agent types were retired in which version, and it wrote both merged types with
+# their `hackify:` prefix, which is the exact form this block bans. The row was
+# defended here as the narrower of two costs, weighed against rewording the note
+# and deleting the record to protect the instrument guarding it. That was a false
+# choice: a THIRD option was narrower than either, and this same tree already
+# demonstrated it at scripts/test_ban_tokens.d/15-wi-absent-cases.sh:135, which
+# writes a retired type with the `hackify:` prefix left off precisely so a file
+# can name one without carrying the literal. WI_BANNED pins the prefixed forms
+# only, so the unprefixed name is a legal way to write the history down.
+#
+# WHAT THE EXCLUSION ACTUALLY COST, measured rather than estimated. A pathspec
+# exclusion is WHOLE-FILE: `git ls-files -- "${WI_LIVE_PATHS[@]}"` returned that
+# README in none of its rows, so all 13 literals below were waived across the
+# whole file to license the 2 that were really in it. Worse, that file is also a
+# WI_TYPE_SITES presence pin above, which made it the only dispatch-teaching file
+# in the tree with its presence pinned and its absence unguarded, the one
+# combination the WI_BANNED comment at the foot of this block says a presence pin
+# cannot cover. The note now drops the prefix, the record still says what was
+# retired and when, and the file is back under the scan with nothing waived.
+#
+# THE SELF-EXCLUSION TRAVELS WITH THIS BLOCK, and whoever moves it next has to
+# carry it again: 70 was split twice at the 500-LOC cap and this block was the
+# second thing to leave, so the path below names THIS file. A [40] that moves
+# house while that path stays behind would red on its own literals in the middle
+# of the move. git grep reads TRACKED files, which keeps an unsynced dist/
+# working tree out of the scan for free; [55] already reds on an uncommitted file
+# under skills/, agents/ and hooks/, so scanning untracked paths here would buy
+# no coverage and add false alarms.
 #
 # ':(top)' IS THE POSITIVE HALF AND IT IS NOT DECORATION. A pathspec list made
 # of nothing but exclusions is one reading away from resolving to no files at
@@ -315,27 +364,57 @@ check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary li
 # work-doc section labels, cannot be banned outright and belongs to a different
 # instrument; putting it here would red on text that is correct on purpose.
 #
-# Measured before feeding, under the pathspec the scan uses: both return git
-# grep rc 1 with empty stdout AND empty stderr, the clean tree's face rather
+# Measured before feeding, under the pathspec the scan uses: every entry returns
+# git grep rc 1 with empty stdout AND empty stderr, the clean tree's face rather
 # than a scan that could not run. rc alone would not have settled it.
-WI_DEAD_INPUTS=('assigned_lens' 'finding_verbatim')
-check_list_size "${#WI_DEAD_INPUTS[@]}" 2 "the [40] retired dispatch INPUT name list"
+#
+# THE FIVE 0.17.1 ENTRIES ARE THE INPUTS THE MERGE COLLAPSED. `folder_allowlist`
+# folded into `file_allowlist`, `gate_commands` split back into the three scoped
+# commands, `module_plan_path` folded into `work_doc_path` plus
+# `task_descriptions`, `module_id` became `track_id`, and `framing` became
+# `sibling_tracks`. Each one is a name a dispatcher could still build a call out
+# of, which is precisely the shape this list polices.
+#
+# ONE OF THE FIVE IS PINNED WITH ITS BRACES AND THE OTHER FOUR ARE NOT, and the
+# asymmetry is deliberate rather than sloppy. The bare form is the stricter pin,
+# because it also catches the name written into an INPUTS list without
+# placeholder syntax, and four of these names are coinages that appear nowhere in
+# ordinary prose. `framing` is an ordinary English word: measured under the
+# pathspec the scan uses, it survives in 10 live lines that have nothing to do
+# with a dispatch input, from a work-doc frontmatter description to a wizard
+# contract. Banning it bare would red on correct text and the fix would be to
+# delete the ban, so the placeholder form is pinned instead. That is the narrower
+# claim this list can honestly make about that name, and `{{framing}}` is what a
+# stale dispatch actually carries.
+WI_DEAD_INPUTS=('assigned_lens' 'finding_verbatim' 'module_id' 'module_plan_path')
+WI_DEAD_INPUTS+=('folder_allowlist' 'gate_commands' '{{framing}}')
+check_list_size "${#WI_DEAD_INPUTS[@]}" 7 "the [40] retired dispatch INPUT name list"
 
-# THE DEAD TYPE IS BANNED, not merely left unpinned. A presence pin alone cannot
-# see a stale dispatch site sitting beside a corrected one, and one corrected
-# site beside one stale site is exactly the shape a half-applied rename leaves.
-# It rides in the same screen as the wording list rather than in a call of its
-# own, because a screen over one literal is just the scan it was meant to save.
+# THE DEAD TYPES ARE BANNED, not merely left unpinned. A presence pin alone
+# cannot see a stale dispatch site sitting beside a corrected one, and one
+# corrected site beside one stale site is exactly the shape a half-applied rename
+# leaves. They ride in the same screen as the wording list rather than in a call
+# of their own, because the screen batches its patterns into one walk and three
+# type literals cost it nothing over one.
+#
+# THREE TYPES NOW, NOT ONE. `hackify:wave-task-implementer` died in 0.15.0;
+# 0.17.1 merged `hackify:wave-implementer` and `hackify:module-implementer` into
+# the live `hackify:implementer` above and both joined this list. A type is
+# resolved at DISPATCH time, so a saved dispatch naming either of them fails long
+# after the validator has had its say, which is the whole reason the dead half of
+# this check exists.
 #
 # The size is hand-written beside the list, for the reason WI_TYPE_SITES gives
 # above: drop a literal and the element count drops with it, so the literal
-# leaves the run and the run stays green one check shorter. It is written as 6
+# leaves the run and the run stays green one check shorter. It is written as 13
 # rather than as an expression over WI_DEAD_WORDS and WI_DEAD_INPUTS, because a
 # bound derived from the lists it polices cannot police those lists. It moves
 # when a list gains or loses an entry, and moving it is the deliberate act that
 # records the change.
-WI_BANNED=('hackify:wave-task-implementer' "${WI_DEAD_WORDS[@]}" "${WI_DEAD_INPUTS[@]}")
-check_list_size "${#WI_BANNED[@]}" 6 "the [40] banned-wording set"
+WI_BANNED=('hackify:wave-task-implementer' 'hackify:wave-implementer')
+WI_BANNED+=('hackify:module-implementer')
+WI_BANNED+=("${WI_DEAD_WORDS[@]}" "${WI_DEAD_INPUTS[@]}")
+check_list_size "${#WI_BANNED[@]}" 13 "the [40] banned-wording set"
 
 # THE SCOPE ITSELF IS FLOORED, which the WI_LIVE_PATHS comment above argues for and
 # nothing until now measured. Measured, not feared: `git grep -qF -e hackify --

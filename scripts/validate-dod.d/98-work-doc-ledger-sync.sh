@@ -193,9 +193,9 @@ if ! command -v python3 > /dev/null 2>&1; then
   wl_fail "[98] needs python3 to parse work-doc frontmatter, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A bare $(...) capture swallows a traceback and
-  # leaves this block reading an empty result as "no work-doc is out of step". A
-  # FAIL-CLOSED BRANCH OUTRANKS A HIT REPORT.
+  # 73-implementer-rename.sh's wi_absent. A bare $(...) capture swallows a
+  # traceback and leaves this block reading an empty result as "no work-doc is
+  # out of step". A FAIL-CLOSED BRANCH OUTRANKS A HIT REPORT.
   wl_err=$(mktemp 2>/dev/null) || wl_err=''
   if [ -z "$wl_err" ]; then
     wl_fail "[98] could not create the stderr capture file, so the work-doc scan never ran"

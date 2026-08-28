@@ -11,11 +11,15 @@
 # resolves to nothing.
 #
 # THE DEFECT IT WAS WRITTEN FOR IS THIS REPO'S OWN, and it is finding M3 in
-# scripts/claim_corpus.json. agents/wave-implementer.md carried
-# `{{test_file_path}}` while declaring it in no INPUTS list. It was fixed at
-# ab5cb74, so it is not live at HEAD; scripts/claim_fixtures.json pins the blob
-# it was live in, and scripts/test_token_declarations.py replays that blob
-# through THIS fragment rather than through a copy of it.
+# scripts/claim_corpus.json. The Phase 3 implementer mirror, then
+# agents/wave-implementer.md, carried `{{test_file_path}}` while declaring it in
+# no INPUTS list. It was fixed at ab5cb74, so it is not live at HEAD;
+# scripts/claim_fixtures.json pins the blob it was live in, and
+# scripts/test_token_declarations.py replays that blob through THIS fragment
+# rather than through a copy of it. 0.17.1 merged that mirror into
+# agents/implementer.md, which retires the path and not the fixture: the pinned
+# blob is addressed by commit, so it survives the delete and that suite still
+# replays it.
 #
 # WHERE M3 ACTUALLY SAT, because it decides the whole design. The token was NOT
 # loose in the prompt body. It sat INSIDE the INPUTS block, on the continuation
@@ -48,9 +52,13 @@
 # it copies. That is the landmine behind four defects in this repo, and it is why
 # this block does NOT reuse that rule: the fence stack here is nesting-aware, so
 # a bare fence closes the innermost block of matching width and anything else
-# opens one. Measured difference on agents/wave-implementer.md: the mirror rule
-# bounds the prompt at lines 9..175 and this one at 9..236, and the OUTPUT
-# skeleton's token uses live in the 61 lines between.
+# opens one. Measured on the Phase 3 implementer mirror as it stood when this was
+# written, then agents/wave-implementer.md: the mirror rule bounds the prompt at
+# lines 9..175 and this one at 9..236, and the OUTPUT skeleton's token uses live
+# in the 61 lines between. The file is agents/implementer.md since the 0.17.1
+# merge and the numbers moved with it; they are kept as the measurement that
+# settled the design rather than re-taken, because what they demonstrate is the
+# GAP between the two rules, not either bound.
 #
 # WHERE THE ANCHOR IS NOT FENCED the prompt is the whole file, but only when the
 # file also carries `**ROLE**`, `**OBJECTIVE**` and `**OUTPUT**` at line start.
@@ -91,10 +99,12 @@
 # document's contents would be arbitrary code execution by editing that document.
 yellow "[93] every {{token}} used in a sub-agent prompt is declared in that prompt's INPUTS list"
 
-# WHY LIVE PATHS AND NOT THE WHOLE TREE. The same three-part pathspec [91] and
-# 73-implementer-rename.sh:100 use, for their stated reasons: dist/ is generated,
-# and docs/work/ is the sprint record, which has to be able to quote the broken
-# prompt it was written to describe.
+# WHY LIVE PATHS AND NOT THE WHOLE TREE. The same three-part pathspec [91] uses, ':(top)'
+# minus dist/ and docs/work/, for the reasons 73-implementer-rename.sh's WI_LIVE_PATHS states
+# about those two directories: dist/ is generated, and docs/work/ is the sprint record, which
+# has to be able to quote the broken prompt it was written to describe. WI_LIVE_PATHS itself is
+# WIDER than three parts, since [40] also excludes files that must carry the literals it bans,
+# so this is the same pathspec as [91] and a SUBSET of that one.
 #
 # THE FLOORS ARE WHAT STOP A VACUOUS PASS. If the pathspec resolves to nothing,
 # if the anchor grammar stops matching, or if the fence tokenizer stops finding
@@ -183,7 +193,7 @@ if ! command -v python3 > /dev/null 2>&1; then
   td_fail "[93] needs python3 to parse prompt regions, and it is not on PATH"
 else
   # STDERR IS CAPTURED AND WEIGHED, per the tie-breaker at
-  # 73-implementer-rename.sh:174-195. A python traceback exits non-zero and
+  # 73-implementer-rename.sh's wi_absent. A python traceback exits non-zero and
   # writes to stderr, and a bare $(...) capture swallows both, leaving this block
   # to read an empty result as "no undeclared tokens". A FAIL-CLOSED BRANCH
   # OUTRANKS A HIT REPORT: a scan that could not finish tells the reader nothing
@@ -340,7 +350,7 @@ def scan(paths, root, mode):
 
 
 def live_files():
-    """Tracked markdown under the same pathspec 73-implementer-rename.sh:100 scans."""
+    """Tracked markdown under LIVE, the same pathspec [91] scans."""
     proc = subprocess.run(['git', 'ls-files', '--'] + LIVE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:

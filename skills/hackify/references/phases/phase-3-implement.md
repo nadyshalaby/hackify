@@ -20,14 +20,16 @@ foundation wave (solo)    every contended write, at once, no business logic
 
 **Agent selection, decided per wave and recorded in the wave plan:**
 
-| Wave | Agent type | Why |
-|---|---|---|
-| Foundation (solo) | `hackify:wave-implementer` | Nothing runs beside it, so the blind-sibling rules protect nothing and only cost context. |
-| Two or more concurrent tracks | `hackify:module-implementer` | Its own database, siblings it cannot see, builds against planned contracts, and it never discards working-tree state. |
-| Assembly (solo) | `hackify:wave-implementer` | Same reason as the foundation wave: no siblings to be blind to. |
-| A single-track round | `hackify:wave-implementer` | One wave in the round means no siblings, so the blind-sibling rules buy nothing and cost context. |
+Every wave takes ONE agent type, `hackify:implementer`. What the wave's shape decides is a single input, `{{sibling_tracks}}`:
 
-Both types are dispatched by registered agent type, never by pasting a template ([../parallel-agents/README.md](../parallel-agents/README.md)).
+| Wave | `{{sibling_tracks}}` | Why |
+|---|---|---|
+| Foundation (solo) | `none` | Nothing runs beside it, so the blind-sibling rules protect nothing and only cost context. |
+| Two or more concurrent tracks | the sibling track IDs | The agent reads [../sibling-track-rules.md](../sibling-track-rules.md) in full and applies it on top of its always-on contract: its own database, siblings it cannot see, builds against planned contracts, and it never discards working-tree state. |
+| Assembly (solo) | `none` | Same reason as the foundation wave: no siblings to be blind to. |
+| A single-track round | `none` | One wave in the round means no siblings, so the blind-sibling rules buy nothing and cost context. |
+
+A `none` there is a decision the dispatcher made, never a blank, and a solo dispatch never opens the sibling-track rules. The agent is dispatched by registered agent type, never by pasting a template ([../parallel-agents/README.md](../parallel-agents/README.md)).
 
 **Ledger, at phase open.** Set `Phase 3. Implement (all waves committed)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: implementing` in the same edit, and re-print the whole block after that edit is saved. Never open it while `Phase 2.5. Spec review` is still open. Waves run INSIDE this phase; they never advance the ledger past it. Contract: [../phase-ledger.md](../phase-ledger.md).
 
@@ -294,8 +296,8 @@ sort    "$RECON/claimed_raw" | uniq -d > "$RECON/doubled"
 # --- The round's diff. `git -C "$root"` on BOTH halves: `git ls-files --others`
 # is cwd-SCOPED and cwd-RELATIVE while `git diff` is root-relative, so without it a subdirectory cwd hides a stray
 # file at the repo root AND mangles one created below into a path that does not exist. Untracked files are swept in
-# because a plain diff never lists one CREATED and not staged. $WORK_DOC is the ONLY carve-out, and it is ASSIGNED
-# below rather than assumed. The prefix is a read/printf loop and NOT `sed "s|^|$root/|"`, which interprets $root as
+# because a plain diff never lists one CREATED and not staged. $WORK_DOC and the track files derived from it are the
+# only carve-outs, ASSIGNED below rather than assumed. The prefix is a read/printf loop and NOT `sed "s|^|$root/|"`, which interprets $root as
 # part of its own script: a `|` in the path ENDS the s command outright, a `\` opens an escape and an `&` back-
 # references the match. Every one of those silently mangles the path, and every downstream `grep -qxF` then compares
 # something that was never on disk. printf interprets nothing.
@@ -322,7 +324,7 @@ else
   echo "note 0: mirror sweep over $MIRROR_ROOT, $((swept)) file(s) newer than round_start"
 fi
 
-# The ONE carve-out, ASSIGNED here rather than assumed. REQUIRED FORM: the live work-doc's ABSOLUTE path under
+# THE FIRST CARVE-OUT, ASSIGNED here rather than assumed. REQUIRED FORM: the live work-doc's ABSOLUTE path under
 # $root, since diff_raw carries absolute paths and a repo-relative value matches none of them. Unset FAILs here
 # because it fails SILENTLY everywhere else: `grep -vxF -- ""` does NOT empty the stream, -x makes the empty pattern
 # match only EMPTY lines and -v keeps every real path, so round_diff survives whole, the carve-out just stops
@@ -334,9 +336,10 @@ case "${WORK_DOC:-}" in               # and a lost initializer aborts under `set
   *) wd_why="is unset or is not an absolute path under $root" ;;
 esac
 [ -z "${wd_why:-}" ] ||
-  { echo "FAIL 0: WORK_DOC ${wd_why:-is not set}, so the ONE carve-out matches nothing"; fails=$((fails + 1)); }
+  { echo "FAIL 0: WORK_DOC ${wd_why:-is not set}, so the first carve-out matches nothing"; fails=$((fails + 1)); }
 
-sort -u "$RECON/diff_raw" | grep -vxF -- "$WORK_DOC" > "$RECON/round_diff"
+# THE SECOND CARVE-OUT is a concurrent round's track files, its directory DERIVED from WORK_DOC so there is no second <slug> to get wrong; the rule and its reason are under "Check 3 is the one that carries the round" below. It is UNGUARDED, unlike WORK_DOC, because a solo round writes no track file and that directory legitimately does not exist. index() plus a `/`-free remainder rather than a glob, since `*` matches `/` in both a shell `case` and a regex and would exempt the nested paths this never covers, measured on the first draft of this line.
+sort -u "$RECON/diff_raw" | grep -vxF -- "$WORK_DOC" | awk -v d="${WORK_DOC%.md}.tracks/" 'index($0,d)==1 { r=substr($0,length(d)+1); if (index(r,"/")==0 && r ~ /\.md$/) next } { print }' > "$RECON/round_diff"
 
 # The marker must PREDATE this round's edits, and the existence check above cannot tell. A parent who forgot it and
 # touched it afterwards passes that check while the mirror sweep just above dates from a clock later than every edit
@@ -403,10 +406,11 @@ fi
   { echo "NOT reconciled: $checks1 check-1 + $checks3 check-3 comparisons, $fails failure(s)"; exit 1; }
 ```
 
-**Check 3 is the one that carries the round**, and it is the one a loose carve-out defeats. The work-doc is the ONLY exempt path,
-because `no-parent-authored-diff` leaves the parent that file and nothing else. Any other unclaimed path is a finding, never an
-exception, and the round is not reconciled until it is claimed by a wave or explained in the wave log. A DELETION is one of those
-findings whenever no wave declared it. A DECLARED deletion differs in the one way that matters: `## Paths deleted` names the wave
+**Check 3 is the one that carries the round**, and it is the one a loose carve-out defeats. TWO path shapes are exempt and no others: the
+work-doc, because `no-parent-authored-diff` leaves the parent that file and nothing else, and `docs/work/<slug>.tracks/*.md` one level deep,
+because [../sibling-track-rules.md](../sibling-track-rules.md) sends a side-by-side track's progress there rather than into the shared work-doc,
+so a concurrent round writes them by design and no allowlist can name them. Any other unclaimed path is a finding, never an exception, and the
+round is not reconciled until it is claimed by a wave or explained in the wave log. A DELETION is one of those findings whenever no wave declared it. A DECLARED deletion differs in the one way that matters: `## Paths deleted` names the wave
 that did it, so it is claimed by authorship and bound by that wave's own allowlist in check 1, exactly like a written path. That is
 STRICTER than the allowlist-membership attribution this block used to reach for, since the allowlists holding a path say only who
 was ALLOWED to touch it, which on a file-disjoint round is one wave whether or not it deleted anything. So an undeclared deletion

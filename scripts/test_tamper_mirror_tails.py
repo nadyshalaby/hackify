@@ -71,14 +71,18 @@ FENCE = '```'
 # Written beside the lists they police rather than derived from them, on the
 # argument 00-helpers.sh makes at check_list_size: a bound taken from the list
 # drops with the list and guards nothing. TAILS_COMPARED is the pairs whose
-# mirrored region has CONTENT: eight of ten owe an empty one, so ten pass lines
-# were never ten comparisons.
-MIRROR_PAIR_COUNT = 10
+# mirrored region has CONTENT: eight of nine owe an empty one, so nine pass lines
+# were never nine comparisons.
+# All three were RE-MEASURED when 0.17.1 merged the two Phase 3 implementers and
+# the pair list went from ten to nine, never decremented by hand: `--check-tails`
+# reports 1 non-empty region and 8 empty over 9 pairs, and a marker grep over
+# PA_DIR returns 4, held because the deleted template carried no marker.
+MIRROR_PAIR_COUNT = 9
 MARKED_TEMPLATE_COUNT = 4
-TAILS_COMPARED_COUNT = 2
+TAILS_COMPARED_COUNT = 1
 
 # A marked pair and an unmarked one. The second has two empty, equal tails.
-MARKED_PAIR = ('agents/wave-implementer.md', PA_DIR + '/phase-3-implementation.md')
+MARKED_PAIR = ('agents/implementer.md', PA_DIR + '/phase-3-implementation.md')
 UNMARKED_PAIR = ('agents/code-reviewer-performance.md',
                  PA_DIR + '/phase-5-multi-review-d-performance.md')
 
