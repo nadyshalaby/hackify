@@ -5,6 +5,38 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.3] - 2026-08-28
+
+> **A review comment nobody could make sense of used to get stuck with nowhere to go.** The step
+> that double-checks review comments before anyone spends time fixing them is allowed to come back
+> with "I cannot tell what this one is claiming". Since the last release that answer keeps the
+> comment alive instead of throwing it away, which was the right call. What it never got was
+> somewhere to go next. The instructions said to reword the comment and put it through the next
+> checking round, and there is no next round: the workflow runs one review pass and one checking
+> pass and then stops, on purpose. Read literally, the comment was pulled out of the fix list and
+> then left sitting there forever. Now the rewording happens inside the round already running, the
+> reworded comment drops back into that same round's list and gets fixed along with everything
+> else, and a comment nobody can word even after a proper try is handed to you in writing rather
+> than quietly parked.
+
+### Fixed
+
+- **An unclear review finding now reaches a verdict instead of stalling.** The refuter's
+  NEEDS-RESTATEMENT outcome told the parent to put the reworded claim through "the next refuter
+  round", while four other files state that Phase 5 dispatches exactly one reviewer panel and one
+  refuter and then ends. Both could not be obeyed, and the finding was what lost: held out of the
+  fix dispatch, then never judged, which is the silent drop that outcome was added to prevent. The
+  round cap did not move to make room. The rewording now happens inside the round that is already
+  open, and since the refuter kills findings rather than certifying them, a claim it declined to
+  kill is a survivor like any other, so the reworded row reads `accept` and is fixed in the same
+  pass as the rest. That is the same call this file already makes on "I could not confirm it",
+  one step earlier in the same uncertainty. The rewrite gets one attempt and no loop, because an
+  unbounded reword is the unbounded round in miniature: a claim the parent still cannot make name
+  what breaks and where goes to the user in the written list the cap already sends unresolved rows
+  to, at its original severity and quoting the reviewer's own words. The cap's own wording in
+  `references/review-and-verify.md` and in the main skill now says outright that a reworded finding
+  is judged inside the same round, so a reader who meets the cap first is not left guessing.
+
 ## [0.17.2] - 2026-08-28
 
 > **The idea-shaping skill and the main workflow stopped stepping on each other.** Three of the
