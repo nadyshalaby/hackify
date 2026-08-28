@@ -1,12 +1,12 @@
 ---
 slug: single-implementer-agent
 title: One implementer agent for every Phase 3 dispatch
-status: finishing
+status: done
 type: refactor
 created: 2026-08-28
 project: hackify
 related: [2026-08-27-contention-first-hackify, 2026-08-23-wave-implementer-migration]
-current_task: Phase 4 verify, all 11 backlog tasks landed
+current_task: done, shipped as 0.17.1 in `eeed983`
 worktree: null
 branch: main
 sprint_goal: |
@@ -28,10 +28,10 @@ sprint_goal: |
 - [x] Phase 3b. Debug (only if stuck) (not entered: no task needed a second fix attempt)
 - [x] Phase 4. Verify (Evidence Ledger + ship gate) (9-row Evidence Ledger + ship gate in §7, every row run by the parent on the staged tree)
 - [x] Phase 5. Review (panel + refuter, decision table closed) (4-lens panel A/B/D/F, E omitted no UI; 1 refuter judged 19 findings, 16 upheld 3 refuted; 2 fix waves landed all 16)
-- [>] Phase 6a. Finish options + land choice
-- [ ] Phase 6b. Cleanup sweep (Step C.5)
-- [ ] Phase 6c. Archive work-doc to `done/` (Step D)
-- [ ] Phase 6d. Update log + HTML report (Step F)
+- [x] Phase 6a. Finish options + land choice (user chose commit-on-main; landed as `eeed983`, 37 files, no push, no AI attribution)
+- [x] Phase 6b. Cleanup sweep (Step C.5) (retired types and the five retired input tokens return 0 hits in live prose; doc links exit 0; no orphan template; the 10 TODO/HACK matches are the rule text and heredoc delimiters, 0 real markers)
+- [x] Phase 6c. Archive work-doc to `done/` (Step D) (moved to `docs/work/done/2026-08-28-single-implementer-agent.md`)
+- [x] Phase 6d. Update log + HTML report (Step F) (update log printed in chat; report at `docs/work/done/2026-08-28-single-implementer-agent.report.html`, 230 lines, renderer suite 14/14)
 
 ## 1. Original ask
 
@@ -946,9 +946,12 @@ file list rather than a hand-kept one. The two the brief flagged are confirmed a
 unchanged by this wave: `scripts/test_tamper_mirror_tails.py` 500 and
 `scripts/test_ban_tokens.d/15-wi-absent-cases.sh` 500. `README.md` is 382, inside its 250..450
 bound. `CHANGELOG.md` is 1523 and is the sole exemption. Everything else is at or under 500, with
-`phase-3-implementation.md` now at the cap at 500 (T11b), `98-work-doc-ledger-sync.sh` at 498,
+`phase-3-implementation.md` then at the cap at 500 (T11b), `98-work-doc-ledger-sync.sh` at 498,
 `phase-3-implement.md` at 498, `phase-2.5-spec-reviewer.md` at 497, `agents/implementer.md` at 493
-and `94-section-exists.sh` at 480. Three paths are deletions and have no count.
+and `94-section-exists.sh` at 480. Three paths are deletions and have no count. **Superseded by
+the fix waves**, which bought the prompt pair back off the cap: final counts are
+`phase-3-implementation.md` 493 and `agents/implementer.md` 486, and `phase-3-implement.md` rose to
+500. The two files under `scripts/` still sit at 500 and are carried below as a follow-up.
 
 *(d) The retired-name census: 151 hits, every one legitimate, zero misses.* Archived and current
 work-docs under `docs/work/` carry 99 (this sprint's own doc 32, four archived docs 66, one
@@ -962,7 +965,11 @@ recording the earlier rename. `56-dist-integrity.sh:17`, `93-token-declarations.
 `15-wi-absent-cases.sh:135` are recorded incidents whose lesson outlives the file they name; the
 last of those names the type WITHOUT the `hackify:` prefix on purpose, because the prefixed form is
 now banned. `parallel-agents/README.md:54` is the retirement note, which cannot record what was
-retired without naming it, and check [40] waives that path deliberately.
+retired without naming it. **Superseded by the fix waves**: the whole-file waiver that stood here
+was the sprint's own Critical C1, and it is gone. The note now writes both retired names WITHOUT
+the `hackify:` prefix, which records exactly the same fact, and the file is back inside the ban
+scan (`git ls-files` over the pathspec, 262 to 263) while staying a presence pin in
+`WI_TYPE_SITES`.
 
 *Wave evidence (T11a-T11d).* `bash scripts/sync-runtimes.sh` exits 0 with `OK, synced 805 files
 across 7 runtimes`. `bash scripts/validate-dod.sh` EXITS 0 with zero FAIL lines and an `[0b]`
@@ -970,3 +977,50 @@ ok-line total of 1371 against a floor of 1350, across 91 distinct check IDs. All
 0. `python3 scripts/sync_agent_mirrors.py --check` exits 0 over all nine pairs. The sprint is
 STAGED and the worktree is clean against the index; nothing was committed, no branch was created,
 nothing was pushed, and `git checkout`, `git restore` and `git stash` were never run.
+
+### Phase 6, what landed and what is carried
+
+**Landed on `main` as `eeed983`,** one commit, 37 files, +2434 / -1919. No branch, no push, and the
+commit message carries no AI attribution of any kind (the repo's own `block-ai-attribution` hook
+would have refused it otherwise, and a post-commit grep for the four banned markers returns 0).
+
+**Cleanup sweep (Step C.5) found nothing to remove.** The retired agent types return no hits in
+live prose; the five retired input tokens return none under `skills/` or `agents/`;
+`check_doc_links.py` exits 0; `parallel-agents/` holds 14 files with no orphan left by the
+deletion. The ten `TODO|FIXME|XXX|HACK` matches in the staged diff were read rather than counted:
+two are the merged prompt's own rule BANNING an unowned TODO, and eight are `HACKIFY_*_EOF`
+heredoc delimiters inside the doctrine file's gates. Zero real markers added.
+
+**Two loose ends, recorded and deliberately not fixed.** The user was asked and chose to note both
+rather than spend a wave on either. Neither blocks anything today.
+
+1. *Three files sit at exactly 500 of 500 with zero headroom.*
+   `scripts/test_tamper_mirror_tails.py`, `scripts/test_ban_tokens.d/15-wi-absent-cases.sh` and
+   `skills/hackify/references/phases/phase-3-implement.md`. The first two were already at 500
+   before this sprint and this sprint did not grow them; the third rose to 500 here when the
+   `.tracks/` allowlist exemption landed in both prose and the executable filter. The cap is a hard
+   FAIL, so the next edit to any of the three has to buy its own line back first. The prompt pair
+   shows how that is done (T11b), it just costs a wave nobody wanted to spend today.
+
+2. *One validator red that has never reproduced.* Two implementation agents each hit a single
+   `grep -qF` failure (check [9], then check [12]), both against
+   `phase-3-implementation.md`, both while that same agent was writing the tree. Twelve or more
+   clean runs followed on a quiescent tree, including the three that closed Phase 4. The reading is
+   a read racing an in-flight write rather than a defect in the check, but it is a reading, not a
+   proof: the bytes were confirmed present, the file's SHA held steady across runs, and no
+   source-mutating step exists in the validator. Left unexplained on purpose so the next person who
+   sees it has this run to compare against.
+
+**The one thing this sprint could not prove.** `ship.smoke` is PARTIAL and stays PARTIAL. Claude
+Code resolves agent types from the INSTALLED plugin copy at session start, so a live dispatch of
+`hackify:implementer` cannot happen in the session that created the type; the attempt was made and
+refused. Reinstall the plugin, dispatch one wave, and that row closes. Every wave after the first
+ran on the still-installed `hackify:wave-implementer`, which is why the merged prompt's behaviour
+under a real dispatch is argued from structure rather than from a run.
+
+**What went well, kept short.** The size Critical was caught at spec review rather than halfway
+through implementation, and escalating it to the user as Q5 instead of deciding it quietly is what
+produced the split that actually fits. The fix waves ran sequentially rather than side by side so
+the second could read the first's final text instead of matching a promise. And the refuter earned
+its keep: three of nineteen findings were wrong, and one of them (`TENTH_AGENT`) would have
+reintroduced a defect this diff had just fixed.
