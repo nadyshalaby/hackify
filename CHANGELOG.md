@@ -5,38 +5,6 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.17.3] - 2026-08-28
-
-> **A review comment nobody could make sense of used to get stuck with nowhere to go.** The step
-> that double-checks review comments before anyone spends time fixing them is allowed to come back
-> with "I cannot tell what this one is claiming". Since the last release that answer keeps the
-> comment alive instead of throwing it away, which was the right call. What it never got was
-> somewhere to go next. The instructions said to reword the comment and put it through the next
-> checking round, and there is no next round: the workflow runs one review pass and one checking
-> pass and then stops, on purpose. Read literally, the comment was pulled out of the fix list and
-> then left sitting there forever. Now the rewording happens inside the round already running, the
-> reworded comment drops back into that same round's list and gets fixed along with everything
-> else, and a comment nobody can word even after a proper try is handed to you in writing rather
-> than quietly parked.
-
-### Fixed
-
-- **An unclear review finding now reaches a verdict instead of stalling.** The refuter's
-  NEEDS-RESTATEMENT outcome told the parent to put the reworded claim through "the next refuter
-  round", while four other files state that Phase 5 dispatches exactly one reviewer panel and one
-  refuter and then ends. Both could not be obeyed, and the finding was what lost: held out of the
-  fix dispatch, then never judged, which is the silent drop that outcome was added to prevent. The
-  round cap did not move to make room. The rewording now happens inside the round that is already
-  open, and since the refuter kills findings rather than certifying them, a claim it declined to
-  kill is a survivor like any other, so the reworded row reads `accept` and is fixed in the same
-  pass as the rest. That is the same call this file already makes on "I could not confirm it",
-  one step earlier in the same uncertainty. The rewrite gets one attempt and no loop, because an
-  unbounded reword is the unbounded round in miniature: a claim the parent still cannot make name
-  what breaks and where goes to the user in the written list the cap already sends unresolved rows
-  to, at its original severity and quoting the reviewer's own words. The cap's own wording in
-  `references/review-and-verify.md` and in the main skill now says outright that a reworded finding
-  is judged inside the same round, so a reader who meets the cap first is not left guessing.
-
 ## [0.17.2] - 2026-08-28
 
 > **The idea-shaping skill and the main workflow stopped stepping on each other.** Three of the
@@ -54,8 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > anyone spends time fixing it. It had a rule saying that when it could not restate a comment as a
 > clear, testable claim, it should mark that comment wrong and drop it. But being confused by a
 > comment is not evidence the comment is wrong, and that was the one route in the whole file that
-> could kill a top-severity finding with no counter-evidence at all. Four other checks that could
-> report "all clear" without actually looking at anything were closed at the same time.
+> could kill a top-severity finding with no counter-evidence at all. Keeping the comment was the
+> right call, but on its own it left the comment with nowhere to go next. It is now reworded inside
+> the review round already running and fixed along with everything else, rather than parked waiting
+> for a round that never comes. If nobody can word it clearly even after a proper try, it comes to
+> you in writing instead of being dropped quietly. Four other checks that could report "all clear"
+> without actually looking at anything were closed at the same time.
 
 ### Added
 
@@ -144,15 +116,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   closing it: the comment keeps its severity, stays on the list, and waits for someone to write it
   more clearly. Both files call the state by the same name, and the skill says plainly where it
   differs from "defer", since that is the place the two are most likely to be confused.
-- **A review comment nobody could restate is no longer thrown away.** The double-checking agent
-  used to file it as refuted, which took it off the fix list for good, and it did that before
-  either of its two lines of attack had run. It also could not obey its own rule that every
-  refusal cites the line of code proving the comment wrong, because there was no such line to
-  cite. Those comments now get their own outcome that keeps them alive at their original severity
-  and hands them back to be written more clearly. The observation that a vague comment is itself a
-  problem was right and is kept; only the punishment changed. While that was being traced, one
-  more free kill turned up nearby: a comment aimed at a carved-out file (a test, a generated file)
-  could be dropped outside the two-attack rule entirely, and that now counts as one of the two.
+- **A review comment nobody could restate now survives, and it gets judged in the same round.** The
+  double-checking agent used to file it as refuted, which took it off the fix list for good, and it
+  did that before either of its two lines of attack had run. It also could not obey its own rule
+  that every refusal cites the line of code proving the comment wrong, because there was no such
+  line to cite. Those comments now get their own outcome that keeps them alive at their original
+  severity and hands them back to be written more clearly. The observation that a vague comment is
+  itself a problem was right and is kept; only the punishment changed. Keeping the comment was only
+  half the job, though. The new outcome told the parent to reword the claim and put it through "the
+  next refuter round", while four other files state that Phase 5 runs exactly one reviewer panel and
+  one refuter and then ends. Both could not be obeyed, and the comment was what lost: held out of
+  the fix dispatch, then never judged, which is the silent drop this outcome was added to prevent.
+  The round cap did not move to make room. The rewording now happens inside the round that is
+  already open, and since the refuter kills findings rather than certifying them, a claim it
+  declined to kill is a survivor like any other, so the reworded row reads `accept` and is fixed in
+  the same pass as the rest. That is the call this file already makes on "I could not confirm it",
+  one step earlier in the same uncertainty. The rewrite gets one attempt and no loop, because an
+  unbounded reword is the unbounded round in miniature: a claim that still cannot say what breaks
+  and where goes to the user in the written list the cap already sends unresolved rows to, at its
+  original severity and quoting the reviewer's own words. The cap's own wording, in
+  `references/review-and-verify.md` and in the main skill, now says a reworded finding is judged
+  inside the same round. While all this was being traced, one more free kill turned up nearby: a
+  comment aimed at a carved-out file (a test, a generated file) could be dropped outside the
+  two-attack rule entirely, and that now counts as one of the two.
 - **The size-cap review can no longer pass over nothing.** The reviewer is handed a table of
   measurements and told to flag every row above a cap. It knew what to do when the table was
   missing or explicitly marked unavailable, and it fell back to counting by hand. A table that
