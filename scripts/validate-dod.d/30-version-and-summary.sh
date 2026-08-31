@@ -65,7 +65,9 @@ fi
 
 yellow "[19] SKILL.md Phase 6 mentions the update log + /hackify:summary"
 phase6_body=$(awk '/^## Phase 6/{flag=1; next} flag && /^## /{flag=0} flag' skills/hackify/SKILL.md)
-if echo "$phase6_body" | grep -qF 'Update log'; then
+# `[[ == ]]` and not a pipe into `grep -q`, per check [84]. 'Update log' is
+# newline-free, so whole-string and per-line matching agree on every input.
+if [[ "$phase6_body" == *'Update log'* ]]; then
   green "  ok   SKILL.md Phase 6 contains 'Update log'"
 else
   red "  FAIL SKILL.md Phase 6 missing 'Update log'"

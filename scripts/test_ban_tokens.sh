@@ -60,11 +60,40 @@ TB_EXPECT_77=60
 TB_EXPECT_RPT=6
 # The number CHANGELOG.md stakes a claim on, "all 89 tokens in the validator's three
 # batched ban lists". THREE was prose with nothing behind it, so it is written here.
-# FOUR since 0.16.1, when [81] added the attribution ban. The changelog sentence that
-# said three is a historical entry describing the tree at ITS release and is left
-# alone; a record does not go wrong because the tree later grew.
-TB_EXPECT_CALLS=4
+# FOUR since 0.16.1, when [81] added the attribution ban, and SIX since 0.18.0, when
+# [82] added two. The changelog sentence that said three is a historical entry
+# describing the tree at ITS release and is left alone; a record does not go wrong
+# because the tree later grew.
+#
+# SEVEN SINCE THE TESTING WAVE OF 0.18.x, when [82c] traded seven per-token
+# check_no_token calls for one batched screen over nine files.
+#
+# THE SEVEN, WRITTEN OUT, because a bare number is a number the next reader bumps on
+# reflex. Each line below is a call this pin has to keep finding, so a reader who
+# reddens here can check the count by hand instead of trusting the failure message:
+#   71-release-mechanism-pins.sh   P5_BANS over $P5_FILES
+#   77-reviewer-roster.sh          RR_BANS over the six-file sweep
+#   77-reviewer-roster.sh          RR_RPT over $RR_RAV
+#   81-no-claude-attribution.sh    CA_BANS over $ca_path
+#   82-throughput-and-routing.sh   TR_BUDGET_BANS over the budget consumers
+#   82-throughput-and-routing.sh   TR_CADENCE_BANS over the cadence files
+#   82-throughput-and-routing.sh   TR_SIB_DB_BANS over $TR_SIBLING
+# THE LINE NUMBERS ARE GONE FROM THIS LIST RATHER THAN UPDATED. They were labelled a
+# reading aid, and every one of them was wrong within two waves of being written,
+# because a fragment that gains a comment moves every call below it. A pointer that
+# is wrong more often than it is right is worse than no pointer: the array name is
+# the anchor, and it is greppable.
+TB_EXPECT_CALLS=7
 TB_EXPECT_81=4
+# The three [82] lists, written out here for the same reason as every constant above
+# it: a bound derived from the list cannot police the list. They are counted apart
+# from each other because each screens a DIFFERENT file set, [82] its eleven over ten
+# budget consumers, [82c] its seven over nine cadence files and [82g] its two over one
+# named file, so they fail apart and a merged twenty would go green with any one sweep
+# pointed at the wrong array.
+TB_EXPECT_82=11
+TB_EXPECT_82C=7
+TB_EXPECT_82G=2
 
 # The two files whose ban lists this test re-reads on every run, so it always
 # tests what ships rather than a copy that can drift away from it. The names
@@ -74,6 +103,9 @@ TB_EXPECT_81=4
 TB_SRC_70="scripts/validate-dod.d/71-release-mechanism-pins.sh"
 TB_SRC_77="scripts/validate-dod.d/77-reviewer-roster.sh"
 TB_SRC_81="scripts/validate-dod.d/81-no-claude-attribution.sh"
+# The fourth fragment, and the first to ship TWO ban lists out of one file, which
+# is why tb_extract_lists takes a source per FILE and not a source per list.
+TB_SRC_82="scripts/validate-dod.d/82-throughput-and-routing.sh"
 # The harness and the cases, sourced in order. Definitions only: every one of
 # them reads TB_TMP, TB_LIST and the counters above at CALL time, so the run
 # order at the foot of this file is still the only thing that decides what runs.
@@ -198,6 +230,9 @@ tb_check_list_size "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_check_list_size "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 tb_check_list_size "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
 tb_check_list_size "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ban list"
+tb_check_list_size "$TB_TMP/tokens82.txt" "$TB_EXPECT_82" "[82] restated-budget ban list"
+tb_check_list_size "$TB_TMP/tokens82c.txt" "$TB_EXPECT_82C" "[82c] retired-cadence ban list"
+tb_check_list_size "$TB_TMP/tokens82g.txt" "$TB_EXPECT_82G" "[82g] database-refusal ban list"
 
 tb_load_list "$TB_TMP/tokens70.txt"
 tb_case_green_path
@@ -227,6 +262,28 @@ tb_plant_every_token "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-inp
 # only a real trailer carries, and a green here means the net catches the real
 # thing rather than a mention of it.
 tb_plant_every_token "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ban list"
+
+# THE TWO [82] LISTS, and the reason they are here at all. Both shipped, both run
+# inside the validator, and neither had a plant behind it: either could have
+# stopped banning anything and this suite would have stayed green over it, which
+# is the coverage hole tb_check_call_sites' third assertion exists to name.
+#
+# [82]'s tokens pair a number with the budget NOUN it has to carry to be a claim
+# at all ('20 tasks', not '20'), so planting one writes the restated budget rather
+# than a digit, and a green means the net catches the restatement rather than
+# every count in the file.
+tb_plant_every_token "$TB_TMP/tokens82.txt" "$TB_EXPECT_82" "[82] restated-budget ban list"
+
+# [82c]'s tokens are retired SENTENCE OPENINGS about when a task ticks, so planting
+# one writes the cadence claim the rule replaced rather than a word about ticking,
+# and a green means the net catches the revert rather than every mention of a round.
+tb_plant_every_token "$TB_TMP/tokens82c.txt" "$TB_EXPECT_82C" "[82c] retired-cadence ban list"
+
+# [82g] carries the retired `case` arm VERBATIM, braces and all, because a planted
+# token that is not byte-identical to the shipped one proves nothing about the
+# shipped one. It reaches grep through -F, so the braces, pipes and stars in it are
+# literal text on both sides of the comparison and there is nothing to escape.
+tb_plant_every_token "$TB_TMP/tokens82g.txt" "$TB_EXPECT_82G" "[82g] database-refusal ban list"
 
 # Ran to completion. tb_finish reads this status, so a finished run is
 # distinguishable from an exit taken anywhere above rather than being whatever

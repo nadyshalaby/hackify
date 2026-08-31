@@ -74,12 +74,12 @@
 # THE LEDGER BLOCK IS FOUND AND ENDED OUTSIDE FENCED CODE, and it ends at the next
 # `## ` heading of any name, never at `## 1.`. Both halves are measured. The groom
 # path inserts a `## Groom Provenance` section between section 0 and section 1,
-# instructed at skills/groom/SKILL.md:59 and pinned by the section-order law at
-# skills/hackify/references/work-doc-template.md:42, so a terminator keyed to the
-# section-1 heading would swallow it on every groomed doc, a fenced heading above the
-# real one would shadow it, and one inside the block would end it early. ROWS OUTSIDE
-# THE BLOCK ARE NOT SUBJECTS: the Sprint Backlog writes its tasks in the identical
-# `- [ ]` grammar and every archived doc carries one.
+# instructed by the full-mode branch at skills/groom/SKILL.md:67 and pinned by the
+# section-order law at skills/hackify/references/work-doc-template.md:42, so a
+# terminator keyed to the section-1 heading would swallow it on every groomed doc,
+# a fenced heading above the real one would shadow it, and one inside the block
+# would end it early. ROWS OUTSIDE THE BLOCK ARE NOT SUBJECTS: the Sprint Backlog
+# writes its tasks in the identical `- [ ]` grammar and every archived doc carries one.
 #
 # WHY A POSITIVE CONTROL. On a truthful tree both assertions report nothing, and that
 # silence is the SAME OUTPUT this check would print if its judging had quietly

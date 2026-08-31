@@ -23,7 +23,7 @@ prompt() { jq -nc --arg s "$1" '{session_id:$s, hook_event_name:"UserPromptSubmi
 
 expect() {
   local label="$1" haystack="$2" needle="$3"
-  if printf '%s' "$haystack" | grep -qF -- "$needle"; then
+  if [[ "$haystack" == *"$needle"* ]]; then
     printf '  ok   %s\n' "$label"; PASS=$((PASS + 1))
   else
     printf '  FAIL %s (missing: %s)\n' "$label" "$needle"; FAIL=$((FAIL + 1))
@@ -32,7 +32,7 @@ expect() {
 
 expect_not() {
   local label="$1" haystack="$2" needle="$3"
-  if printf '%s' "$haystack" | grep -qF -- "$needle"; then
+  if [[ "$haystack" == *"$needle"* ]]; then
     printf '  FAIL %s (unexpectedly present: %s)\n' "$label" "$needle"; FAIL=$((FAIL + 1))
   else
     printf '  ok   %s\n' "$label"; PASS=$((PASS + 1))

@@ -105,26 +105,40 @@ Flat checklist. One commit closes the whole round, never one per task and never 
 
 Each task SHOULD carry a `→ verify: <one-line check>` suffix stating the gate that proves it landed. The verify line is the per-task analogue of the top-level Acceptance Criteria checklist; it lets the implementer agent ship and self-confirm without waiting on the parent for cross-task confirmation.
 
-- [ ] **T1**, [task name]: [1-line description]. Files: `<path/a>`, `<path/a.test>`. → verify: `<one-line check>` (test command, grep, file existence, etc.).
+An implementation task lists the production files it writes and no test file. Test
+authoring is the testing wave's own task, and that task is the one that lists the
+test paths, per the four stages below.
+
+- [ ] **T1**, [task name]: [1-line description]. Files: `<path/a>`, `<path/b>`. → verify: `<one-line check>` (test command, grep, file existence, etc.).
 - [ ] **T2**, [task name]: ...
 - [ ] **T3**, ...
 
 After Phase 2.5 the Approach section carries an **Execution waves** block, written
 round by round: one line per wave, naming that wave's task IDs in run order. Phase 3
-runs it in three stages. A **foundation wave** goes first, on its own, and takes
+runs it in four stages. A **foundation wave** goes first, on its own, and takes
 every contended write in the round, the shared files, registries and generated
 sequences that two or more tasks would otherwise reach for at the same time. Then
 the **module tracks** run concurrently, one agent each, and a track carries its own
 tasks all the way to DONE rather than handing a half-built module on. An **assembly
-wave** closes the round, on its own again, and does the mounting, the cross-track
-reconcile and a real boot of the assembled system.
+wave** follows, on its own again, and does the mounting, the cross-track reconcile
+and a real boot of the assembled system. Then the **testing stage** closes the round
+and authors the tests for everything it landed, reading the whole tree; it runs as
+one wave by default, and it splits into concurrent testing waves under the same
+partition test as every other stage, each of them handed the other testing waves'
+IDs; implementation waves write production code and no tests at all.
 
-**The shape scales, and both ends of it are ordinary.** A round with no contended
-write has no foundation wave to run, and a round with one track has nothing to
-assemble. The stage that does not apply is marked complete with a written reason,
-the way a skipped phase is, and never dropped in silence, so a later reader can tell
-a stage that had no work from a stage nobody ran. A two-file change therefore looks
-the way it always has: one wave, one agent, no ceremony bought for it.
+**The shape scales, and every end of it is ordinary.** A round with no
+contended write has no foundation wave to run, a round with one track has
+nothing to assemble, and a round whose diff genuinely has nothing to test has
+no testing wave. The stage that does not apply is marked complete with a
+written reason, the way a skipped phase is, and never dropped in silence, so a
+later reader can tell a stage that had no work from a stage nobody ran. The
+other end is the same rule run upward: a testing stage whose count clears the
+per-agent task budget scales OUT into concurrent testing waves rather than
+running long, and the count that budget reads there is the production surface
+the stage must cover, never the one backlog task that carries it. A two-file
+change therefore looks the way it always has: one wave, one agent, no ceremony
+bought for it.
 
 Whether a round's tasks may be split across concurrent tracks at all is settled by
 the partition test in [contention-dispatch.md](contention-dispatch.md),
@@ -146,6 +160,9 @@ W2c: T6, T7
 
 Round 3 (assembly, solo)
 W3: T8
+
+Round 4 (testing, solo)
+W4: T9
 ```
 
 ## 6. Daily Updates
@@ -154,7 +171,7 @@ Append one entry per task as you complete (or get stuck on) it.
 
 ### T1 ([task name], done 2026-05-03 14:22)
 
-- **Test mode:** test-first (business logic) | test-after | manual smoke | none (rationale: ...)
+- **Test mode (a property of the WAVE, not the task):** test-authoring | test-after | manual smoke | none (rationale: ...)
 - **Notes:** [any decisions made, deviations from the plan, surprises]
 - **Self-review:** ✓ DRY  ✓ types  ✓ layering  ✓ no suppressions  ✓ edge cases  ✓ no scope creep
 - **Verification:**
@@ -220,8 +237,9 @@ markdown file is the shared-file contention the partition exists to remove, and
 an append has no lock, no merge and no error when a write is lost. Each track
 writes its own `docs/work/<slug>.tracks/<track_id>.md` instead, disjoint by
 construction, updated as each unit goes green rather than once at the end. The
-parent merges them into `## 6. Daily Updates` at round end and deletes the
-folder when the round closes.
+parent merges a track's file into `## 6. Daily Updates` as that track returns,
+rather than once the whole round has landed, and deletes the folder when the round
+closes.
 
 **A solo wave writes `## 6. Daily Updates` directly**, because a foundation
 wave, an assembly wave and a single-track round have no sibling to collide with,

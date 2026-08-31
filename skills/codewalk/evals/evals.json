@@ -36,7 +36,7 @@
       "prompt": "explain why this test fails: `expect(getUser(42)).resolves.toBeDefined()` keeps timing out",
       "assertions": [
         {"text": "codewalk skill is NOT invoked, the request is debug investigation of a failing test, not a senior-peer walkthrough of an entry-point execution path"},
-        {"text": "Routing goes to full hackify (Phase 3b debug) or quick, depending on scope cues"},
+        {"text": "Routing goes to quick, the default route for any substantive prompt, which owns the debug hunt and runs the 4-phase root-cause protocol in place; scope is not a routing signal, and full hackify runs only when the user asks for it by name"},
         {"text": "Transcript explicitly notes codewalk's scope is a chosen entry-point walkthrough, not test debugging"}
       ],
       "files": []

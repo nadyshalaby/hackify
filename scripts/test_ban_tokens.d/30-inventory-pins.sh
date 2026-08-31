@@ -8,8 +8,8 @@
 # this file exists separately from the cases it audits.
 # Split out of test_ban_tokens.sh when that file reached the 500-LOC hard cap.
 
-# Count the batched ban calls that actually SHIP, so a fourth one cannot appear in a new
-# fragment while CHANGELOG.md still says three and nothing reddens.
+# Count the batched ban calls that actually SHIP, so a new one cannot appear in a new
+# fragment while CHANGELOG.md still states an older count and nothing reddens.
 #
 # CALL SITES, NOT OCCURRENCES. The name also appears in the DEFINITION, in prose comments
 # and inside one red-message string, and counting those would inflate the number until the
@@ -32,8 +32,13 @@ print("%d %d" % (sum(sites(f) for f in sorted(glob.glob(os.path.join(d, "*.sh"))
 CALLS
 }
 
-# Pinned BOTH ways: against the hand-written three, which defends the CHANGELOG.md sentence,
-# and against the count of lists PARSED (planting is pinned separately, by tb_check_plant_total).
+# Pinned BOTH ways: against the hand-written TB_EXPECT_CALLS, which defends the CHANGELOG.md
+# sentence, and against the count of lists PARSED (planting is pinned separately, by
+# tb_check_plant_total). The second half is the COVERAGE bound and it is the one that bites:
+# a ban list can ship, run inside the validator and stop banning anything tomorrow without a
+# single assertion here noticing, unless this suite parsed and planted it. So the answer to a
+# red on that third assertion is a new list in tb_extract_lists and a new tb_plant_every_token
+# sweep, never a bumped constant.
 tb_check_call_sites() {
   local out total helpers lists
   local parsed=("$TB_TMP"/tokens*.txt)
@@ -83,6 +88,10 @@ tb_check_list_size() {
 # screened rather than what the run order implies.
 tb_check_plant_total() {
   local want=$((TB_EXPECT_70 + TB_EXPECT_77 + TB_EXPECT_RPT + TB_EXPECT_81))
+  # Summed on a second line rather than a longer first one. The list grows every
+  # time a fragment adds a ban call, and a single expression that has to be
+  # rewrapped on each of those edits is a line nobody rereads before bumping it.
+  want=$((want + TB_EXPECT_82 + TB_EXPECT_82C + TB_EXPECT_82G))
   # All three totals fire from this one EXIT-trap call, and they go FIRST so a
   # plant verdict returning early cannot take any of them out of the run.
   tb_check_failclosed_total
@@ -97,7 +106,7 @@ tb_check_plant_total() {
   # cannot change what the first one decided.
   tb_check_wi_failclosed_total
   if [ "$TB_PLANTED" -eq "$want" ]; then
-    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in all four lists"
+    tb_ok "plant total: $TB_PLANTED tokens actually planted, one per token in every parsed list"
     return
   fi
   tb_bad "plant total: $TB_PLANTED tokens actually planted, expected $want (a plant section is pointed at the wrong list, planted twice, or not running at all)"

@@ -123,7 +123,7 @@ handle_bash() {
   # Cheap pre-filter before invoking python. Portable ERE only: `\b` is a GNU
   # extension that BSD/macOS grep -E does not guarantee, so `tee` gets explicit
   # word boundaries (line start or a non-word char on each side) instead.
-  printf '%s' "$cmd" | grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)' || exit 0
+  grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)' <<<"$cmd" || exit 0
 
   findings="$(printf '%s' "$cmd" | python3 "$PLUGIN_ROOT/hooks/scan_bash.py" "$SCANNER_DIR" 2>/dev/null)" || exit 0
   [ -n "$findings" ] || exit 0

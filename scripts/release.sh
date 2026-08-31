@@ -60,7 +60,9 @@ if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
 fi
 
 # Semver shape: MAJOR.MINOR.PATCH (with optional -prerelease).
-if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+# A here-string and not a pipe, per check [84] in the validator. The test stays
+# on grep because the pattern is an anchored ERE; only the pipe is gone.
+if ! grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$' <<<"$VERSION"; then
   red "FATAL: version '$VERSION' does not match semver MAJOR.MINOR.PATCH[-prerelease]"
   exit 2
 fi

@@ -5,6 +5,135 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2026-08-30
+
+> **Your prompts now land in quick mode, and the full workflow is something you ask for by name.**
+> It used to be the other way round. Anything that looked substantive, and anything that so much as
+> mentioned auth or a migration or a schema, was pulled into the full ceremony whether the job
+> needed it or not: a plan to sign off, a spec review, a five-reviewer panel, a four-option finish
+> menu. That costs roughly three times the tokens and the waiting, and most of the time it bought
+> nothing you could point at afterwards. Quick keeps every guarantee that actually protects the
+> work, the tests, the lint and typecheck run, both scouts, the ship gate and a full review round
+> that closes before finish, and drops only the ceremony. Say *"switch to full"* or type
+> `/hackify:hackify` and you have the whole thing back.
+>
+> **Implementation got much wider.** One agent used to take one wave and that was the end of it.
+> Now a wave is packed up to a stated per-agent task budget, and a round runs up to a stated
+> concurrent-wave budget of those side by side, so a backlog that used to trickle out over several
+> rounds can land in one. The rules that make this safe have not moved: two agents never write the
+> same file, and two agents never hold the same exclusive resource such as a shared test database.
+> Where a codebase cannot go wide, because its features all touch the same few files, the round
+> comes out narrow and says so in a line rather than dressing the width up as a choice. Both budgets
+> are written as numbers in exactly one file, so changing either is one edit instead of a sweep that
+> misses a site.
+>
+> **Tests moved to the end of implementation, and there is a new trick that keeps them honest.**
+> Implementation agents write production code only. One dedicated wave afterwards writes the tests
+> for everything the round landed. The obvious objection is that a test written against code that
+> already works passes on its first run and proves nothing, so that wave has to manufacture the
+> failure it never got to see: break the production line each test protects, run the test, require a
+> red that names that test, then put the line back. The guarantee did not weaken when the tests
+> moved. The way it is earned changed.
+>
+> **The work-doc keeps up now.** It used to be brought current at the end of a round, so a session
+> that died partway through lost the record of everything the finished agents had already done. Each
+> agent's work is folded in as it reports back instead.
+>
+> **The tradeoff, said plainly, because you should read it here rather than discover it later.**
+> Quick has no auto-escalation list at all any more. Nothing about an ask pulls it up to full mode:
+> not the file count, not a cross-file refactor, not an unknown root cause, not auth, crypto, a
+> migration, a secret or a token. So a schema migration now gets quick's single reviewer instead of
+> the panel's five lenses, and the only road to that panel is asking for full mode. This was chosen
+> deliberately, with the cost on the table, because the old escalation list would have caught
+> exactly the wide multi-file work the new throughput exists for. If a change feels like it wants
+> five reviewers on it, say so and promote it.
+
+### Added
+
+- **A testing wave at the end of implementation.** It runs after the last wave of production code
+  and before verification, it is handed the same file allowlists and the same scouts every other
+  wave gets, and it owes a manufactured red plus a named mutation for every test it writes. It is
+  not a new kind of agent, it is the existing implementer told it is in test-authoring mode, which
+  is why nothing else about a dispatch had to change. Like the other stages it scales down: a diff
+  with genuinely nothing to test marks the wave complete with a written reason rather than dropping
+  it in silence. It also scales the other way: when a round lands more production code than one
+  agent can cover, the stage splits into concurrent testing waves under the same partition test
+  every other stage answers to, asked of the test files those waves would write and the production
+  files each one breaks to watch a red. A split stage's waves are siblings like any other, so each
+  is handed the others' IDs, and none of them may assume it has the tree to itself.
+- **A stated dispatch budget, with one home.** The per-agent task budget and the concurrent-wave
+  budget are written down once, as numbers, in the file that already owns the partition test.
+  Everywhere else names them instead of repeating them, so the two can be retuned in one place. Both
+  are packing targets and never quotas: they decide which of the permitted splits to take, and they
+  can never authorise one the partition test refuses.
+
+### Changed
+
+- **Routing flipped.** Quick is the default route for any substantive prompt, whatever its size and
+  whatever it touches. Full hackify fires only on an explicit request, by name or by slash command.
+  The old autopilot phrases are not such a request and never were a way past the gate.
+- **The plan-shaping conversation hands off to quick.** Groom used to graduate into the full
+  workflow with a work-doc waiting. It now graduates into whichever mode you are actually in, which
+  by default is the one that keeps no work-doc, so the shaped idea arrives as the goal anchor in
+  chat instead of a file on disk.
+- **Quick fans out on the implement side.** It uses the same per-agent and concurrent-wave budgets
+  and the same never-two-agents-on-one-file rule as full mode. The review side deliberately stays at
+  one reviewer and one refuter however wide the implementation went, which is what keeps quick cheap.
+- **Quick runs the root-cause hunt in place.** A debug ask used to be a reason to promote to full
+  mode. Since nothing auto-promotes any more, quick carries the same four-phase hunt rather than
+  pointing at a mode you may never enter.
+- **The work-doc is refreshed per returning agent.** The rule that said to persist before
+  dispatching the next round is gone, replaced by one that folds each agent's report in as it lands.
+  Agents still write their own separate track files, because a crowd of agents appending to one
+  markdown file is the collision that arrangement exists to avoid, and only the parent ever writes
+  the work-doc itself.
+
+### Fixed
+
+- **The checker that guards every release was itself unreliable, about one run in nine.** It would
+  announce that a file was missing a section the file plainly contained, name a different section each
+  time, and then pass on the next run. The cause is a plumbing detail with a nasty edge: a check would
+  push a whole 40KB file into `grep`, and `grep` stops reading the moment it finds what it wants. If the
+  writer is still pushing when the reader walks away, the shell reports that as an error, and the check
+  read the error as "not found". It only shows up under a full run's load, because an idle machine gives
+  the pipe enough room to swallow the file whole, which is why it looked like a ghost for so long.
+  Twenty-three places had the same shape. Most turned it into a false alarm, but one fed a check that asserts
+  a marker is ABSENT, so the glitch read as "confirmed absent" and passed exactly when the marker was
+  really there, which is the one input that check exists to catch. All of them now test the text directly
+  instead of piping it, and a new check refuses any new occurrence, so it cannot come back quietly.
+  Measured: three failures in thirty runs before, none in the seventy runs against the finished code.
+- **A concurrent dispatch could not say that the project has no database.** When several agents work
+  the same tree at once, each has to prove it has a database of its own, because two agents resetting
+  one shared database destroy each other's test runs with no error at either end. The rule read the
+  answer "none" as a dispatcher who had not answered at all, and refused the dispatch. In a project
+  with no database anywhere, which is a real shape and this repo's own, that refused every legitimate
+  concurrent dispatch. "none" now reaches a search instead of a refusal: the track goes looking for
+  what a database leaves behind, connection strings and database environment variables in code and
+  config, migration folders, plain SQL files and the config files the common data layers ship, opens
+  every hit before ruling it out, and proceeds only on a clean result. The three answers that really
+  do mean nobody decided, a blank line, a placeholder nobody replaced and a form left exactly as it
+  shipped, still stop the track as they did before. This is the stricter reading and not the looser
+  one. The old rule handed back the same refusal to a dispatcher who had answered correctly as to one
+  who had answered nothing, so the two were indistinguishable, and the cheapest way past it was to
+  invent a database name that named no real database, which is the thing it existed to prevent.
+- **The two files that govern concurrent work disagreed about where a track writes its progress.**
+  One told the agent to keep a progress file of its own rather than appending to the shared work-doc,
+  since a crowd of agents appending to one file lose each other's writes. The other never put that
+  file on the list of paths the agent is allowed to write, and writing outside that list is the one
+  thing a blind agent must never do. The instruction and the law cancelled out and left no legal
+  move. The dispatcher now puts the path on the list, and both files say so, so the pair only works
+  as a pair and is finally written down that way.
+- **Two of the validator's own ban lists were never tamper-tested.** A ban list is proved by planting
+  the exact wording it forbids and watching the check go red. These two shipped, ran on every
+  validator pass, and were planted by nothing, so either could have stopped banning anything
+  overnight and the suite would have stayed green. That is the check that cannot fail, shipped by the
+  same release whose new checks exist to catch it. Both lists are parsed and planted now, all eleven
+  tokens, each watched reddening by name, and the suite's plant total goes from 91 to 102.
+- **A comment restated a number that had moved twice.** It gave the pinned count of batched ban calls
+  as three. That became four in 0.16.1 and six in this release, and nothing goes red over prose,
+  which is why it sat wrong for two releases. The comment now points at the one file the number is
+  allowed to live in, instead of keeping a copy of its own.
+
 ## [0.17.2] - 2026-08-28
 
 > **The idea-shaping skill and the main workflow stopped stepping on each other.** Three of the

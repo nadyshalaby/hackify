@@ -106,7 +106,7 @@ export PYTHONIOENCODING=utf-8:strict
 # The finding must cite the second target, the one whose heredoc carries the token.
 MULTI_CMD="$(printf 'cat > two-a.ts <<EOF\nexport const ok = 1\nEOF\ncat > two-b.ts <<TAG\nthrow new Error("x")\nTAG')"
 MULTI_OUT="$(printf '%s' "$MULTI_CMD" | python3 "$ROOT/hooks/scan_bash.py" "$SCANNER_DIR" 2>/dev/null)"
-if printf '%s\n' "$MULTI_OUT" | grep -q 'two-b\.ts$' && ! printf '%s\n' "$MULTI_OUT" | grep -q 'two-a\.ts'; then
+if grep -q 'two-b\.ts$' <<<"$MULTI_OUT" && ! grep -q 'two-a\.ts' <<<"$MULTI_OUT"; then
   PASS=$((PASS + 1)); printf 'ok   multi-heredoc finding cites its own target\n'
 else
   FAIL=$((FAIL + 1)); printf 'FAIL multi-heredoc finding cites its own target: got [%s]\n' "$MULTI_OUT"

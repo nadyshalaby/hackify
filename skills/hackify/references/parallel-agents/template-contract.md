@@ -88,7 +88,7 @@ Anchored examples per level. Minimum 2 examples per level. Critical example anch
 Word cap shape depends on template type:
 
 - Review/audit/research templates: single global word cap with reasoning ("≤300 words, terse review beats long review").
-- Implementation/build templates: per-section sub-budget ("Files touched: 1 line each; RED→GREEN: 1 line per test; Deviations: ≤80 words; Self-review: compact ✓/✗ table").
+- Implementation/build templates: per-section sub-budget ("Files touched: 1 line each; Test mode + gates: 1 line per test; Deviations: ≤80 words; Self-review: compact ✓/✗ table").
 
 Exact report format with named sections. What to omit if nothing relevant (still report explicitly: "No findings.", never go silent).
 

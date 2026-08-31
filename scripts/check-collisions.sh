@@ -67,7 +67,11 @@ for slug in "${HACKIFY_SLUGS[@]}"; do
     if [ "$slug" = "$sibling_name" ]; then
       matches="${matches}    EXACT MATCH: $sibling_name (at $sibling_path)\n"
       exact_count=$((exact_count + 1))
-    elif printf '%s' "$sibling_name" | grep -qF "$slug" || printf '%s' "$slug" | grep -qF "$sibling_name"; then
+    # `[[ == ]]` and not two pipes into `grep -q`, per check [84] in the
+    # validator. BOTH RIGHT-HAND OPERANDS STAY QUOTED: unquoted, a sibling name
+    # carrying `*`, `?` or `[...]` would be read as a glob and this would stop
+    # being the literal substring test grep -F did.
+    elif [[ "$sibling_name" == *"$slug"* || "$slug" == *"$sibling_name"* ]]; then
       matches="${matches}    SUBSTRING OVERLAP: $sibling_name (at $sibling_path)\n"
       overlap_count=$((overlap_count + 1))
     fi

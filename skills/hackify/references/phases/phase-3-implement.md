@@ -1,22 +1,23 @@
-# Phase 3, Implement (foundation wave, then concurrent tracks, then assembly)
+# Phase 3, Implement (foundation wave, then concurrent tracks, then assembly, then the testing wave)
 
 Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard gates and exit artifact are stated in `SKILL.md`; this file is the protocol.
 
-**Goal.** Ship the Sprint Backlog in three stages: a solo foundation wave that lands every contended write, then N concurrent module tracks that each deliver DONE, then a solo assembly wave that mounts everything and boots it for real. Each wave goes to ONE foreground subagent that carries the whole wave. Inside a wave the saving is tokens and coherence, not wall-clock; across waves it can be both, whenever the partition test clears two waves to run at the same time.
+**Goal.** Ship the Sprint Backlog in four stages: a solo foundation wave that lands every contended write, then N concurrent module tracks that each deliver production code to DONE, then a solo assembly wave that mounts everything and boots it for real, then the testing wave that authors the tests for what landed. Each wave goes to ONE foreground subagent that carries the whole wave, packed up to the per-agent task budget, and a round runs up to the concurrent-wave budget of them at once. Both budgets are stated as digits in one place only, [../contention-dispatch.md](../contention-dispatch.md), and named rather than restated here. Inside a wave the saving is tokens and coherence, not wall-clock; across waves it can be both, whenever the partition test clears two waves to run at the same time.
 
 **The technique behind this shape, stated once and not restated here:** [../contention-dispatch.md](../contention-dispatch.md). That file is canonical for the partition test and for the three classes of serial resource; this file is the dispatch protocol that runs on them.
 
-### The three stages, and how the shape scales down
+### The four stages, and how the shape scales down and out
 
 Phase 2.5 has already named every serial resource in a `## Serial resources` section, re-tested each one for real exclusivity, and pulled every contended write into one place. Phase 3 then runs:
 
 ```
 foundation wave (solo)    every contended write, at once, no business logic
-  → N module tracks       concurrent, each under its own allowlist, each delivering DONE
+  → N module tracks       concurrent, each under its own allowlist, production code to DONE
   → assembly wave (solo)  mount every registrar, reconcile every seam, boot it for real
+  → testing stage         author the tests for everything the round landed; ONE wave, or concurrent waves when it splits
 ```
 
-**The size falls out of the partition, never out of how large the task looks.** Zero contended writes and there is no foundation wave: mark it complete with a written reason, never drop it in silence. One track and there is nothing to assemble, same treatment. A two-file change therefore dispatches one wave and looks like an ordinary hackify round. Nothing in this phase is ever inferred from apparent size, and the deliberate deviation that makes the machinery always-on is argued in [../contention-dispatch.md](../contention-dispatch.md).
+**The size falls out of the partition, never out of how large the task looks.** Zero contended writes and there is no foundation wave: mark it complete with a written reason, never drop it in silence. One track and there is nothing to assemble, same treatment. A diff with genuinely nothing to test and there is no testing wave, same treatment a third time, and "nothing to test" is a written reason that names what the diff was, never a stage quietly missing from the ledger. **The same rule runs upward.** A testing stage whose count clears the per-agent task budget scales OUT rather than down: it splits into concurrent testing waves under the same partition test every other stage is split by, and the count the budget reads there is the production surface the stage must cover, not the one backlog task that carries it. Scale down when there is nothing to test, scale out when there is too much, and both directions come from the partition rather than from how the work looks. A two-file change therefore dispatches one wave and looks like an ordinary hackify round. Nothing in this phase is ever inferred from apparent size, and the deliberate deviation that makes the machinery always-on is argued in [../contention-dispatch.md](../contention-dispatch.md), which is also canonical for what each stage owes and what moved to the testing wave.
 
 **Agent selection, decided per wave and recorded in the wave plan:**
 
@@ -27,6 +28,8 @@ Every wave takes ONE agent type, `hackify:implementer`. What the wave's shape de
 | Foundation (solo) | `none` | Nothing runs beside it, so the blind-sibling rules protect nothing and only cost context. |
 | Two or more concurrent tracks | the sibling track IDs | The agent reads [../sibling-track-rules.md](../sibling-track-rules.md) in full and applies it on top of its always-on contract: its own database, siblings it cannot see, builds against planned contracts, and it never discards working-tree state. |
 | Assembly (solo) | `none` | Same reason as the foundation wave: no siblings to be blind to. |
+| Testing stage, one wave | `none` | It runs last, over a tree nothing else is writing, which is the property that lets it test seams no single track could see. |
+| Testing stage, split into concurrent waves | the sibling testing-wave IDs | A stage over the per-agent task budget splits, and its waves write the tree at the same time as each other. They are siblings on exactly the terms every other concurrent wave is, so `none` here would send each one in blind to the others. |
 | A single-track round | `none` | One wave in the round means no siblings, so the blind-sibling rules buy nothing and cost context. |
 
 A `none` there is a decision the dispatcher made, never a blank, and a solo dispatch never opens the sibling-track rules. The agent is dispatched by registered agent type, never by pasting a template ([../parallel-agents/README.md](../parallel-agents/README.md)).
@@ -41,12 +44,16 @@ A `none` there is a decision the dispatcher made, never a blank, and a solo disp
    section, and the `[concurrency candidate]` / `[serial: <condition>]` mark on each wave line. Reading the plan is
    not re-planning it, and the line between them is drawn under "The wave is the unit of dispatch" below, in the rule
    headed "The pre-flight plan IS the dispatch plan".
-2. Pull every task that holds a serial resource into ONE solo foundation wave and run it first, and put the
-   mounting, reconciling and real-boot tasks into ONE solo assembly wave and run it last, per "The three stages"
-   above. A stage with nothing in it is marked complete with a written reason, never dropped in silence.
-3. Apply the partition test (canonical: `../contention-dispatch.md`) to every wave YOURSELF, then collect the waves
-   that may run at the same time into ROUNDS. A round holding one wave is normal. Put your verdict beside that
-   wave's mark and report any disagreement, per the two paragraphs under this block.
+2. Pull every task holding a serial resource into ONE solo foundation wave first, the mounting, reconciling and real-
+   boot tasks into ONE solo assembly wave, and the test authoring into the testing STAGE after it, per "The four
+   stages" above. That stage is one wave by default and splits into concurrent testing waves when step 3 says so. A
+   stage with nothing in it is marked complete with a written reason, never dropped in silence.
+3. Apply the partition test (canonical: `../contention-dispatch.md`) to every wave YOURSELF, the testing stage
+   INCLUDED, packing each wave up to the per-agent task budget and each round up to the concurrent-wave budget, then
+   collect the waves that may run at the same time into ROUNDS. The testing stage's count is the production surface it
+   must cover, never the one backlog task that carries it, and that is the only reason the budget reaches it at all.
+   A round holding one wave is normal. Put your verdict beside that wave's mark and report any disagreement, per the
+   two paragraphs under this block.
 4. Intersect the ROUND you just assembled, wave against wave, as its own step: step 3's test is scoped to ONE wave and
    cannot see this. A path in two waves SPLITS the round, the later wave moving to the next round or the two merging.
    Record the intersection even when it is empty. Rule: "Rounds are ASSEMBLED, and assembly is where collisions
@@ -91,26 +98,28 @@ wall-clock and lands on the safe side.
 2. Dispatch ONE subagent per wave, every wave in the round in ONE message. Each prompt is self-contained: work-doc
    path, THAT wave's task IDs in run order, each task's exact files, the wave's union allowlist, test mode, any
    exclusive resource that wave holds, rules summary, "do NOT touch any other files". Before dispatching, create
-   `$RECON` and `touch $RECON/round_start`, the clock step 3's mirror sweep reads. `$RECON` lives until step 7 ticks,
-   since step 6 scopes the scouts from it.
-3. Wait for every agent in the round. Read every report. Reconcile the round's paths three ways against what each wave
-   DECLARED under `## Paths written` and `## Paths deleted`, and check each task's hunks stay inside that task's OWN
-   allowlist; the union never widens a task's reach. Rule and form: "The round's allowlist reconciliation" below.
+   `$RECON` and `touch $RECON/round_start`, the clock step 3's mirror sweep reads. `$RECON` lives until step 7 closes
+   the round, since step 6 scopes the scouts from it.
+3. As EACH agent returns, and before waiting on the rest, update the work-doc for that agent alone: tick the task IDs
+   its `## Wave status` lists as landed and no others, and append its Daily Updates entry (Wave-end persistence below).
+   Once every agent has returned, reconcile the round's paths three ways against what each wave DECLARED under `## Paths
+   written` and `## Paths deleted`, and check each task's hunks stay inside that task's OWN allowlist. Rule and form:
+   "The round's allowlist reconciliation" below.
 4. Run full project verification (test + lint + typecheck) ONCE for the round, after every wave in it has returned.
    Any suite that needs an exclusive resource runs here and nowhere else, per the exclusive-resource clause below.
 5. On red: classify, agent failure (re-dispatch sharper prompt) vs. plan failure (drop to Phase 3b). Never paper over.
    A red belongs to the wave that caused it; the other waves in the round keep everything they landed.
 6. Run BOTH deterministic scouts over `$RECON/claimed`, what the waves DECLARED and never the union of the allowlists,
-   BEFORE ticking tasks: the perf-scout (references/perf-scout.md) and the law-scout (references/law-scout.md, the
+   BEFORE the round commits: the perf-scout (references/perf-scout.md) and the law-scout (references/law-scout.md, the
    bundled lawkeeper scanner scoped with --paths-from). This is the PARENT's run point, the second of two. Carry each
    wave's own dispositions forward unchanged, stage what only this wider scope shows or send it back out as a one-task
    wave, give every candidate exactly one disposition, never write the fix here, and append both staging tables to the
    Daily Updates entry. Why the scope is the declared set and not the union, and why there are two run points: "The
    scouts run twice".
-7. Tick ONLY the task IDs each report's `## Wave status` lists as landed, never the whole wave; append one Daily
-   Updates entry per landed task. Full rule under Wave-end persistence below.
+7. Close the round in the work-doc: confirm every ID step 3 ticked survived reconciliation, leave every not-landed ID
+   unticked, advance `current_task`, and record the exclusive-resource note. Full rule under Wave-end persistence below.
 8. Commit ONCE for the ROUND, after every wave in it has returned (conventional subject; the body names every task ID
-   in the round and marks which landed and which did not, on the same rule step 7 ticks by). A single-wave round is
+   in the round and marks which landed and which did not, on the same rule step 3 ticks by). A single-wave round is
    this rule with one wave in it.
 9. Advance to round N+1.
 ```
@@ -123,7 +132,7 @@ wall-clock and lands on the safe side.
 | Repo brief | The `### Repo Brief` block from the work-doc, verbatim, as `{{repo_brief}}`. "Treat it as given, do NOT re-derive it, spend your reads on the diff instead." Unfilled means the agent refuses. |
 | Command allowlist | "Run only these commands: `<list scoped to your files>`. The parent runs repo-wide checks." |
 | Exclusive resource | Passed as `{{exclusive_resources}}`, one resource per line, or the literal `none`. **Two values, two wordings; the `none` case gets its OWN string and is the majority case.** Wave HOLDS one: "This wave holds `<resource>`. Run scoped unit tests ONLY; do NOT run `<suite>`. The parent runs that suite once, serially, after the round lands." Value is `none`: "This wave holds no exclusive resource. Run the scoped test, lint and typecheck commands for your own files; no suite is being held back for a serial run." Never paste the first string over an empty value, which produces the nonsense "This wave holds none. Run scoped unit tests ONLY; do NOT run ." Never left empty either: an absent value means the dispatcher did not decide, so the agent refuses and says so. Full clause below. |
-| TDD | "If test mode is test-first, watch the test fail before writing impl. Refuse to ship without a watched RED." |
+| Test mode | Passed as `{{test_mode}}`. Which mode a wave gets, and what each one obliges the agent to do, is stated once in [../implement-and-test.md](../implement-and-test.md) and deliberately not restated here: a second copy is a second thing to keep in step now that test authoring has a wave of its own. |
 | Self-review | "Self-review against the checklist before reporting done. Report pass/fail per item + any Approach deviations." |
 | Word cap | ≤200 words per task in the wave report. |
 
@@ -138,29 +147,27 @@ sentences, a fixed cost that has nothing to do with how big the task is.
 
 So the WAVE is the unit, scoped to the case that earns it:
 
-1. **One agent per wave, when the wave's tasks share a read surface.** There is no cap on
-   the width of a single wave: nine tasks that share a read surface go to one agent, the
-   same as two. What is not fixed is the wave's SHAPE. A wave whose tasks do NOT share a
-   read surface may be split into concurrent waves, one agent each, when the partition
-   test passes. There is still no width valve and no split by module hunch, because
-   the partition test is the only thing that may split a wave.
-2. **The pre-flight plan IS the dispatch plan.** It is written once, from the Phase
-   2.5 spec reviewer's wave plan ([references/parallel-agents/phase-2.5-spec-reviewer.md](../parallel-agents/phase-2.5-spec-reviewer.md),
-   agent type `hackify:spec-reviewer`). The parent MAY merge consecutive waves into one
-   dispatch when no file collides inside the merged set and no dependency edge crosses the
-   merge. Merging is a throughput decision and needs no re-review: **"read the plan rather
-   than rebuild it" bans RE-PLANNING, not merging.** It is worth doing because every wave
-   pays a near-constant setup cost, its agent re-reading the project rules and quoting the
-   same rule sentences before it writes a line, so a run of narrow waves pays that toll
+1. **One agent per wave, packed up to the per-agent task budget.** Tasks that share a read surface keep going into one agent until
+   that budget is reached, and nine such tasks go to one agent the same as two do. The budget is a packing TARGET and never a quota:
+   a wave under it is not underfilled, and a wave that reaches it splits only where a real split line exists. What is not fixed is
+   the wave's SHAPE. A wave whose tasks do NOT share a read surface may be split into concurrent waves, one agent each, up to the
+   concurrent-wave budget, when the partition test passes. **The testing stage is bound by this same rule**, split by that same test
+   and no other, and counted by the production surface it must cover rather than by the one backlog task that carries it. There is
+   still no split by module hunch, because the partition test is the only thing that may split a wave, and both budgets are stated
+   as digits only in [../contention-dispatch.md](../contention-dispatch.md).
+2. **The pre-flight plan IS the dispatch plan.** It is written once, from the Phase 2.5 spec reviewer's wave plan
+   ([references/parallel-agents/phase-2.5-spec-reviewer.md](../parallel-agents/phase-2.5-spec-reviewer.md), agent type
+   `hackify:spec-reviewer`). The parent MAY merge consecutive waves into one dispatch when no file collides inside the merged set
+   and no dependency edge crosses the merge. Merging is a throughput decision and needs no re-review: **"read the plan rather than
+   rebuild it" bans RE-PLANNING, not merging.** It is worth doing because every wave pays a near-constant setup cost, its agent
+   re-reading the project rules and quoting the same rule sentences before it writes a line, so a run of narrow waves pays that toll
    over and over.
 3. **A one-task wave is normal**, and dispatches the same single agent.
-4. **Each agent runs its wave's tasks in order and stops at the first one it cannot
-   finish.** Completed tasks stay on disk and its report names which landed and which
-   did not, so a failure late in the wave costs the tasks after it, never the ones
-   before it. **This clause is PER AGENT, and concurrency does not touch it.** Every agent
-   in a round stops on its own account, keeps its own landed work on disk, and files its
-   own report; one wave stopping never stops another wave in the same round and never
-   costs that wave what it already wrote.
+4. **Each agent runs its wave's tasks in order and stops at the first one it cannot finish.** Completed tasks stay on disk and its
+   report names which landed and which did not, so a failure late in the wave costs the tasks after it, never the ones before it.
+   **This clause is PER AGENT, and concurrency does not touch it.** Every agent in a round stops on its own account, keeps its own
+   landed work on disk, and files its own report; one wave stopping never stops another wave in the same round and never costs that
+   wave what it already wrote.
 
 **The partition test is stated in [../contention-dispatch.md](../contention-dispatch.md) and is deliberately not restated here.** Read
 it there before you split anything: all three conditions, the coarse-to-fine rule that decides WHICH passing partition to take, and
@@ -184,7 +191,7 @@ never asked for. That is luck, not a control.
 
 **Where the foundation wave's task list comes from.** The Phase 2.5 spec reviewer reports a `## Serial resources` section naming
 every shared file, generated sequence and external exclusive resource the backlog touches, with an exclusivity verdict on each. The
-parent pulls the tasks holding those into the solo foundation wave of "The three stages" above. A serial resource settled there
+parent pulls the tasks holding those into the solo foundation wave of "The four stages" above. A serial resource settled there
 stops blocking condition 3 for every round after it, which is what turns a long line of forced-serial waves into a couple of rounds.
 
 **Serial resource against exclusive resource, the mapping the parent performs at every dispatch.** They are different sets and the
@@ -221,8 +228,8 @@ merging each track's own progress file after it, are both stated once in
 
 ### The round's allowlist reconciliation
 
-The parent's containment verdict, run once per ROUND at step 3 of the loop above, after every wave has returned and before anything
-ticks. This is the canonical statement; the wave contract and the walkthrough point back here rather than restating it.
+The parent's containment verdict, run once per ROUND at step 3 of the loop above, after every wave has returned and before the round
+commits. This is the canonical statement; the wave contract and the walkthrough point back here rather than restating it.
 
 **The agent declares, the parent reconciles.** Each wave reports every path it CREATED or MODIFIED under `## Paths written`, a list
 it knows because it wrote it. That declaration is the input, and what it replaced is worth writing down so nobody restores it as an
@@ -450,9 +457,9 @@ written into the wave contract as a METHOD step
 instead of needing a per-wave input.
 
 **Run point 2, the PARENT, over what the round's waves DECLARED, at round end.** The parent runs both scouts again once every wave
-has returned and before any task ticks, over `$RECON/claimed` rather than the union of the allowlists: a wave that stopped early
+has returned and before the round commits, over `$RECON/claimed` rather than the union of the allowlists: a wave that stopped early
 declares a strict subset on purpose, and the rest is files the round never touched. It is keyed to the ROUND because that is when
-tasks tick and when the parent runs its repo-wide checks, so a parent scan keyed to wave-end would run before the thing it gates.
+the round commits and when the parent runs its repo-wide checks, so a parent scan keyed to wave-end would run before what it gates.
 
 It answers three questions, and only the third needs a second wave in the round. First, **whether the agent ran its own scan at
 all**: the wave report is a claim, and this is the scan that checks it. Second, **whether a fix-in-wave regressed the file after the
@@ -480,21 +487,12 @@ violation, not a judgment call, and that rule is unchanged by there now being tw
 
 Phase 5's own scan, at review start over the whole sprint diff, is a third run point and neither of these two touches it.
 
-**Test mode per task:**
-
-| Mode | When | Discipline |
-|---|---|---|
-| **Test-first (mandatory)** | Business logic, services, validators, auth/permission, bug fixes, branching behavior | RED → GREEN → REFACTOR. Watch the test fail. *"If you didn't watch it fail, you don't know it tests the right thing."* |
-| **Test-after (acceptable)** | Integration/E2E with heavy setup, framework wiring, glue code | Test required; order is flexible. |
-| **Manual smoke (user opt-in)** | UI cosmetics, copy edits, color/spacing, doc edits, config-only | Log steps in Daily Updates. Offer an automated test; never *replace* automated tests when behavior is testable. |
-| **No tests** | Purely additive scaffolding ("create empty file") or pure documentation | Note `no test (rationale: …)` in the log. |
-
 **If stuck** (tests still red after 2 honest fix attempts, or behavior surprising), **switch to Phase 3b: Debug**. No third blind fix.
 
 **No scope creep.** No cleanup, no refactoring adjacent code, no abstractions for hypothetical futures. The plan is the contract. See `references/implement-and-test.md`.
 
 ### Wave-end persistence (mandatory)
 
-**Wave-end persistence (mandatory).** Before dispatching round N+1, the parent MUST update the work-doc: read the landed and not-landed task IDs out of the `## Wave status` section EVERY returned report opens with, tick the completed checkboxes in the Sprint Backlog and ONLY those, leave every not-landed ID unticked for the next dispatch or for Phase 3b, append a Daily Updates entry summarizing what each wave agent produced, run `bash scripts/validate-dod.sh` (or the project's verification triad), and advance frontmatter `current_task` to the upcoming round's task IDs. When the round held an exclusive resource back, the same entry carries what part 4 of the exclusive-resource clause requires. Skipping this step is an abandoned-state bug, interrupting between rounds loses no progress; interrupting mid-round-update loses the round.
+**Wave-end persistence (mandatory), and its unit is ONE RETURNING AGENT.** As each agent returns, and before the parent waits on the rest of the round, the parent MUST update the work-doc for that agent: read the landed and not-landed task IDs out of the `## Wave status` section EVERY returned report opens with, tick the completed checkboxes in the Sprint Backlog and ONLY those, leave every not-landed ID unticked for the next dispatch or for Phase 3b, append that agent's Daily Updates entry, and merge its track file where it wrote one ([../contention-dispatch.md](../contention-dispatch.md)). Then, once the whole round has returned, run `bash scripts/validate-dod.sh` (or the project's verification triad), advance frontmatter `current_task` to the upcoming round's task IDs, and where the round held an exclusive resource back carry what part 4 of the exclusive-resource clause requires in the same round's entries. **The per-return half is what the batching cost.** A round packed to the concurrent-wave budget that dies after its sixth return used to leave a work-doc naming nothing at all, because nothing was written until every agent was in; it now leaves one naming six. The round-level gates did not move: reconciliation and the repo-wide run still stand between the round and its commit, and a wave that fails either is corrected in the same doc rather than having its entry quietly withdrawn. Skipping this step is an abandoned-state bug, and only the parent ever writes the work-doc, so per-return cadence adds no second writer.
 
 **Ledger, at phase exit.** Every Sprint Backlog checkbox ticked, every round committed, both scouts dispositioned at both run points, then one line of reflection (what changed, did it pass, what is next), then tick `Phase 3. Implement` and open `Phase 4. Verify (Evidence Ledger + triad green)` in the work-doc's section 0, saved before the re-print, on the same rule Wave-end persistence states above. A task that turned out not to apply is ticked with a one-line reason, never deleted. Phase 3b is inserted as its own ledger item when a wave gets stuck, it is never a silent detour.

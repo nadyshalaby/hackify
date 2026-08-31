@@ -13,7 +13,12 @@ if [ ! -x scripts/check-collisions.sh ]; then
   FAILED=$((FAILED + 1))
 else
   collision_output=$(bash scripts/check-collisions.sh 2>&1 || true)
-  if printf '%s\n' "$collision_output" | grep -qE 'EXACT MATCH|SUBSTRING OVERLAP'; then
+  # A HERE-STRING AND NOT A PIPE, per check [84]. This one stays on grep rather
+  # than moving to `[[ == ]]`: the pattern is an ERE alternation, and rewriting a
+  # regex as a shell pattern is how an alternation gets silently retired. The
+  # `grep -E` on the next line keeps its pipe on purpose, it has no -q, so it
+  # drains its input and there is no early reader to close the pipe.
+  if grep -qE 'EXACT MATCH|SUBSTRING OVERLAP' <<<"$collision_output"; then
     yellow "  WARN sibling-plugin collisions detected (non-fatal):"
     printf '%s\n' "$collision_output" | grep -E 'WARN|EXACT MATCH|SUBSTRING OVERLAP' | sed 's/^/  /'
   else

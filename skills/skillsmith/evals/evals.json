@@ -32,7 +32,7 @@
       "prompt": "write a Python script that parses our CI logs and counts flaky tests",
       "assertions": [
         {"text": "skillsmith skill is NOT invoked, the request is a generic script, not a hackify skill (no 'hackify skill' / 'SKILL.md' / 'skills/' framing)"},
-        {"text": "Routing goes to full hackify or quick instead, depending on scope cues"},
+        {"text": "Routing goes to quick, the default route for any substantive prompt; scope is not a routing signal, and full hackify runs only when the user asks for it by name"},
         {"text": "Transcript explicitly notes that skillsmith's scope is hackify-conformant skill authoring only, not arbitrary script writing"}
       ],
       "files": []

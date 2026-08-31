@@ -367,7 +367,14 @@ done
 # prints the line) and by 'references/goal-anchor.md', which is linked twice
 # inside this very region and contains that substring.
 SENTINEL_REGION="$(awk '/^## Phase 2.5,/{f=1} /^## Phase 3, Implement/{f=0} f' skills/hackify/SKILL.md)"
-if printf '%s' "$SENTINEL_REGION" | grep -qF -- '/goal <condition>'; then
+
+# `[[ == ]]` AND NOT A PIPE INTO `grep -q`, which is what check [84] bans and
+# what this line used to be. $SENTINEL_REGION is an awk region rather than a
+# whole file, so it never grew past the smallest pipe buffer and never actually
+# flaked; it is converted anyway so the ban has nothing to except and no reader
+# copies the shape from here. The marker is newline-free, so a whole-string
+# substring test and grep -F's per-line one agree on every input.
+if [[ "$SENTINEL_REGION" == *'/goal <condition>'* ]]; then
   green "  ok   skills/hackify/SKILL.md prints the sentinel inside Phase 2.5 (the post-gate turn)"
 else
   red "  FAIL skills/hackify/SKILL.md does not print the '/goal <condition>' line in Phase 2.5; a sentinel placed under the Phase 2 gate's numbered steps is never reached"

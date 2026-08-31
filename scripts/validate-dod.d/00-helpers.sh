@@ -201,17 +201,32 @@ section_body() {
   awk -v h="$1" '$0 == h {flag=1; next} flag && (/^### / || /^## /) {flag=0} flag' "$2"
 }
 
+# NO PIPE INTO `grep -q`, for the reason check_flowed_token_present spells out
+# below and this function learned the hard way. `$body` is a whole template or
+# agent file, up to 40KB, and a macOS pipe starts at 16KB and only grows to 64KB
+# when the kernel can spare the space. Under the process load of a full validator
+# run that growth sometimes does not happen, `echo` blocks mid-write, `grep -q`
+# exits the instant it matches, and `echo` dies of SIGPIPE. The orchestrator runs
+# under `set -uo pipefail` (scripts/validate-dod.sh:186), so the pipeline hands
+# back 141 rather than grep's 0 and a marker that is present reads as missing.
+# MEASURED: 3 red runs in 30 on a clean tree, naming a different marker each time.
+#
+# The fixed-string tests are substring tests, so bash's own `==` does them with no
+# subprocess and no pipe to break. Every marker is newline-free, which is what
+# makes whole-string matching identical to grep -F's per-line matching. The regex
+# test keeps grep, on a here-string: `$ALLOWLIST` is an ERE and a here-string is
+# written through a temp file, which has no writer to signal.
 check_role() {
   local body="$1"
   local label="$2"
   local ok=1
   for marker in "You are " "You reject" "Bias to:" "Bias against:"; do
-    if ! echo "$body" | grep -qF "$marker"; then
+    if [[ "$body" != *"$marker"* ]]; then
       red "  FAIL $label missing '$marker'"
       FAILED=$((FAILED + 1)); ok=0
     fi
   done
-  if ! echo "$body" | grep -qE "$ALLOWLIST"; then
+  if ! grep -qE "$ALLOWLIST" <<<"$body"; then
     red "  FAIL $label missing framework-allowlist token"
     FAILED=$((FAILED + 1)); ok=0
   fi
@@ -308,4 +323,52 @@ check_no_tokens_in() {
   # A corrupt pattern file leaves rc at 0 on purpose, so it lands here and every
   # token is still banned the slow way. Loud, and never a loss of coverage.
   for t in "$@"; do check_no_token "$t" "$path"; done
+}
+
+# PRESENCE OF A TOKEN AFTER LINE WRAPPING IS FLATTENED, and the reason it had to
+# exist. Every matcher above is line-oriented, and the files this validator pins
+# are markdown wrapped to a column, so a sentence a reviewer quotes as one phrase
+# routinely sits across two physical lines. Asked for such a phrase, grep returns a
+# confident zero and check_token_present reds on a file that says exactly what it
+# was asked about.
+#
+# MEASURED BEFORE THIS WAS WRITTEN, not assumed. The phrase `a testing stage that
+# runs as one wave` is in skills/hackify/references/sibling-track-rules.md, and
+# `/usr/bin/grep -F` for it there returns nothing: `one` ends one line and `wave`
+# opens the next. The same is true of `A testing stage that SPLITS is not on that
+# list`, which breaks after `stage`. Both are pinned by check [82b].
+#
+# WHY NOT PIN A SHORTER FRAGMENT THAT FITS ON ONE LINE. Because the fragment that
+# fits is chosen by where the paragraph happens to wrap today, so the pin reds the
+# next time anyone reflows the file without changing a word of it. A pin that reds
+# on a reflow trains the next reader to delete it, which is worse than no pin.
+#
+# WHAT THE FLATTENING DOES AND DOES NOT DO. Every whitespace run in the file,
+# newlines included, becomes ONE space; nothing else changes, so the comparison is
+# still a literal one over the file's own words and grep -F still does the
+# matching. It reads the whole file into one shell variable, which is why it is
+# the PRESENCE side only: a token spanning a line break is a false RED here, and
+# a false red is loud. The ban side keeps the line-oriented matcher, where a
+# missed hit would be a false green.
+#
+# NO PIPE INTO grep, DELIBERATELY. Callers run under `set -o pipefail` and
+# `grep -q` exits on the first match, which leaves `tr` killed by SIGPIPE and the
+# pipeline reporting 141 instead of grep's 0. The flattening lands in a variable
+# and the match is a herestring, so the status read is grep's alone.
+check_flowed_token_present() {
+  local token="$1"
+  local path="$2"
+  local flat
+  if [ ! -r "$path" ]; then
+    red "  FAIL '$token' was never screened, $path is missing or unreadable; a miss here would be a miss of nothing"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  flat=$(tr -s '[:space:]' ' ' < "$path")
+  if grep -qF -- "$token" <<<"$flat"; then
+    green "  ok   '$token' present in $path, with line wrapping flattened first"
+  else
+    red "  FAIL '$token' missing from $path even with line wrapping flattened, so the file does not carry that sentence at all"
+    FAILED=$((FAILED + 1))
+  fi
 }

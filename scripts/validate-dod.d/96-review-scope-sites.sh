@@ -77,8 +77,12 @@ yellow "[76g] the reviewed diff excludes docs/work/, at every site that builds i
 # own PLS_XDIFF assignment does not count itself as a site.
 #
 # check_no_tokens_in is deliberately NOT used here. test_ban_tokens.sh pins the
-# number of batched ban calls shipping in this directory at TB_EXPECT_CALLS=3, so
-# a fourth would redden a file this block has no business making me touch.
+# number of batched ban calls shipping in this directory at TB_EXPECT_CALLS, so
+# adding one here would redden a file this block has no business making me touch.
+# THE VALUE IS DELIBERATELY NOT RESTATED. It said 3 here for two releases after it
+# stopped being 3 (4 in 0.16.1, 6 in 0.18.0), because a number copied into prose
+# rots in silence while the pin itself cannot. Read the current one out of
+# scripts/test_ban_tokens.sh, which is the only place it is allowed to live.
 #
 # WHERE THIS BELONGS, SETTLED. Reviewer B was right that [76g] pinned a Phase 5
 # rule inside a fragment named for the phase ledger, and the answer used to be

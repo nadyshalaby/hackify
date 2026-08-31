@@ -69,12 +69,20 @@ output_subsection() {
 }
 
 # Verify a template body carries the 6 always-required anchors.
+#
+# `[[ == ]]` AND NOT `echo "$body" | grep -qF`, the whole reason this file stopped
+# flaking. See the long note above check_role in 00-helpers.sh for the mechanism;
+# the short version is that `$body` is up to 40KB, a macOS pipe is not always big
+# enough to swallow it in one write, and `grep -q` exiting on the first match
+# leaves `echo` dead of SIGPIPE with `pipefail` reporting 141 as the pipeline's
+# status. Every anchor here is a newline-free literal, so a whole-string substring
+# test and grep -F's per-line one agree on every input.
 check_template_anchors() {
   local body="$1"
   local label="$2"
   local ok=1
   for req in "**ROLE**" "**INPUTS**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**OUTPUT**"; do
-    if ! echo "$body" | grep -qF "$req"; then
+    if [[ "$body" != *"$req"* ]]; then
       red "  FAIL $label missing $req"
       FAILED=$((FAILED + 1)); ok=0
     fi
@@ -83,11 +91,22 @@ check_template_anchors() {
 }
 
 # Assert SEVERITY presence (review template) or absence (build/research).
+#
+# THE PIPE WAS WORSE HERE THAN ANYWHERE ELSE IN THIS FILE, and it is worth saying
+# why rather than just copying the fix. Everywhere else a SIGPIPE turns a present
+# marker into a false RED, which is loud and gets looked at. This predicate reads
+# the SAME status to decide an assertion that in `build` mode expects the marker
+# to be ABSENT, so a 141 lands in the `else` branch and prints "correctly omits
+# SEVERITY". The only input that can trigger it is a build template that really
+# does carry `**SEVERITY**`, which is precisely the defect this check exists to
+# catch: the check could intermittently green over the one thing it is for. A
+# substring test has no second process and so no second exit status to confuse
+# with grep's.
 check_severity_presence() {
   local body="$1"
   local label="$2"
   local mode="$3"  # "review" or "build"
-  if echo "$body" | grep -qF "**SEVERITY**"; then
+  if [[ "$body" == *"**SEVERITY**"* ]]; then
     if [ "$mode" = "review" ]; then
       green "  ok   $label has SEVERITY (review template)"
     else
@@ -246,9 +265,17 @@ for path in '/Users/' '/home/' '/tmp/'; do
 done
 yellow "[15] OUTPUT word cap presence in every sub-agent template"
 WORD_CAP_RX='≤[0-9]+\s*word|≤\s*`?\{\{[a-z_]+\}\}`?\s*word|word cap|Total cap|Cap response at'
+# THE THREE TESTS BELOW STAY ON grep, ON A HERE-STRING, and do not become
+# `[[ "$out" =~ $WORD_CAP_RX ]]` like the fixed-string checks above did. This
+# pattern uses `\s`, which BSD grep -E reads as whitespace but bash's own `=~`
+# (regcomp, POSIX ERE) reads as a literal `s`. MEASURED on `- Cap: ≤200 words per
+# task`: grep matches, `[[ =~ ]]` does not. Switching engines here would quietly
+# retire the first two alternations and reduce this to a "word cap"/"Total cap"
+# substring check. A here-string is written through a temp file, so it kills the
+# SIGPIPE the pipe carried without touching which engine reads the pattern.
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
   out=$(output_subsection "$(cat "$f")")
-  if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
+  if grep -qE -- "$WORD_CAP_RX" <<<"$out"; then
     green "  ok   $(basename "$f") OUTPUT has word cap"
   else
     red "  FAIL $(basename "$f") OUTPUT missing word cap (looked for: ≤NN words / word cap / Total cap)"
@@ -257,7 +284,7 @@ for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
 done
 # review-and-verify.md adjudication reviewer too
 out=$(awk '/\*\*OUTPUT\*\*/{flag=1; next} flag && /^\*\*/ {flag=0} flag' "$RAV_FILE")
-if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
+if grep -qE -- "$WORD_CAP_RX" <<<"$out"; then
   green "  ok   review-and-verify.md adjudication reviewer OUTPUT has word cap"
 else
   red "  FAIL review-and-verify.md adjudication reviewer OUTPUT missing word cap"
@@ -297,7 +324,7 @@ for f in agents/*.md; do
     code-reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
   esac
   out=$(output_subsection "$agent_body")
-  if echo "$out" | grep -qE -- "$WORD_CAP_RX"; then
+  if grep -qE -- "$WORD_CAP_RX" <<<"$out"; then
     green "  ok   $agent_label OUTPUT has word cap"
   else
     red "  FAIL $agent_label OUTPUT missing word cap"

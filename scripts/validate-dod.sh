@@ -79,12 +79,59 @@
 #     Claude-Session line or generated-with footer in commits or PR bodies
 #                   primitives, and the two 500-LOC counters (wc -l and the
 #                   lawkeeper scanner) agreeing at the cap boundary ([80b])
+#   82-throughput-and-routing.sh, checks [82]-[82g], the throughput and
+#                   routing doctrine of the 0.18.x sprint, one block per
+#                   change: the dispatch budget stated as digits in one file
+#                   only, the four Phase 3 stages with the testing wave last,
+#                   the per-returning-agent work-doc cadence, quick as the
+#                   default route with full mode never auto-firing, the
+#                   settled test_mode enum, and {{concurrent_wave_target}} on
+#                   both spec-reviewer copies. Five of the six pin the live
+#                   claim AND ban the wording it replaced, because a pin alone
+#                   goes green on a file that still carries both. [82g] then
+#                   pins skills/hackify/references/sibling-track-rules.md,
+#                   which no check here had ever opened: its 'none' database
+#                   branch is verified against the tree rather than believed,
+#                   and the absolute ban on the shared database above it was
+#                   not softened by that branch
+#   83-testing-stage-shape.sh, check [83], the testing stage's shape: the
+#                   `test-authoring` wave's quiet-tree and whole-round-diff
+#                   assumptions are conditional on {{sibling_tracks}} rather
+#                   than granted, on BOTH implementer mirror copies, and the
+#                   partition the stage splits on covers the production files a
+#                   watched red mutates as well as the test files it writes.
+#                   Three comments cited this rule as `[82h]` before it existed;
+#                   they now cite `check [83]`. ONE ID AND NOT A RANGE, for the
+#                   reason the 98 and 99 rows give: this fragment declares
+#                   exactly one check and a range endpoint would assert a
+#                   maximum it does not have
+#   84-no-pipe-into-grep-q.sh, check [84], no line in scripts/ pipes an `echo`
+#                   or a `printf` into a short-circuiting reader. `grep -q`
+#                   exits on its first match, which closes the pipe while the
+#                   writer is still filling it; the writer takes SIGPIPE and
+#                   `set -o pipefail` hands back 141 instead of grep's 0, so a
+#                   marker that is present reads as missing. Load-dependent and
+#                   invisible on inspection: 3 red runs in 25 before the eight
+#                   reachable sites were converted, 0 in 100 after. The check
+#                   skips a line whose first non-blank character starts a
+#                   comment, so the three comments that document the trap
+#                   survive it. ONE ID AND NOT A RANGE, for the reason the 83,
+#                   98 and 99 rows give: this fragment declares exactly one
+#                   check and a range endpoint would assert a maximum it does
+#                   not have
 #   85-design-spec-conformance.sh, check [85], design-spec catalog conformance
 #                   (contract + WCAG AA contrast)
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
 #   91-claim-resolvers.sh, check [91], every 'check [NN]' claim in a live file
 #                   resolves to a check id the validator actually declares, so a
 #                   doc cannot cite a check that was never written
+#   92-work-doc-structure.sh, check [92], no tracked work-doc numbers two
+#                   sections the same and its numbered sections only go up, so a
+#                   second '## 6. Daily Updates' or a spliced-in Sprint Backlog
+#                   cannot sit in the source of truth a sprint resumes from. Keyed
+#                   on the section NUMBER and never on the heading text, because
+#                   both duplicates this repo has shipped carried trailing prose
+#                   and an equality check separates those happily
 #   93-token-declarations.sh, check [93], every {{token}} used in a sub-agent
 #                   prompt is declared by that prompt's own INPUTS list, so a
 #                   dispatch cannot be asked to fill a placeholder nothing names
@@ -254,9 +301,13 @@ source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
 source "$DOD_MODULES_DIR/81-no-claude-attribution.sh"
+source "$DOD_MODULES_DIR/82-throughput-and-routing.sh"
+source "$DOD_MODULES_DIR/83-testing-stage-shape.sh"
+source "$DOD_MODULES_DIR/84-no-pipe-into-grep-q.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
+source "$DOD_MODULES_DIR/92-work-doc-structure.sh"
 source "$DOD_MODULES_DIR/93-token-declarations.sh"
 source "$DOD_MODULES_DIR/94-section-exists.sh"
 source "$DOD_MODULES_DIR/95-literal-absent-claims.sh"

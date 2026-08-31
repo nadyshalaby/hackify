@@ -135,7 +135,7 @@ check 'wrong tool' 0 "$(mkwrite "$(co_trailer)")"
 REASON="$(printf '%s' "$(mkbash "git commit -m \"x
 
 $(co_trailer)\"")" | bash "$HOOK" 2>&1 >/dev/null)"
-if printf '%s' "$REASON" | grep -q 'co-author trailer naming an AI assistant'; then
+if [[ "$REASON" == *'co-author trailer naming an AI assistant'* ]]; then
   PASS=$((PASS + 1)); printf 'ok   block message names the finding\n'
 else
   FAIL=$((FAIL + 1)); printf 'FAIL block message did not name the finding: %s\n' "$REASON"

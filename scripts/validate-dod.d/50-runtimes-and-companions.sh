@@ -42,7 +42,13 @@ for f in $NEW_FILES_LIST; do
       red "  FAIL $f missing name: $slug"
       FAILED=$((FAILED + 1))
     fi
-    if [ -n "$slug" ] && echo "$slug" | grep -qE '^[a-z0-9-]{1,64}$'; then
+    # Here-string for the same reason [24] above gives, though this one was never
+    # actually at risk: `$slug` is a single word, far under the smallest pipe
+    # buffer, so `echo` always completes its write and never sees SIGPIPE. It is
+    # rewritten anyway so that no `echo "$var" | grep -q` remains in this fragment
+    # for the next reader to copy as if it were the house pattern. Same grep, same
+    # ERE, same anchors, only the pipe is gone.
+    if [ -n "$slug" ] && grep -qE '^[a-z0-9-]{1,64}$' <<<"$slug"; then
       green "  ok   $f slug '$slug' matches regex ^[a-z0-9-]{1,64}\$"
     else
       red "  FAIL $f slug '$slug' fails regex ^[a-z0-9-]{1,64}\$"
@@ -85,14 +91,18 @@ HACKIFY_SKILL="skills/hackify/SKILL.md"
 # words like `stop`/`exit` are only counted as keywords if they appear inside
 # the pause-checkpoint block.
 PAUSE_BODY=$(awk '/^### Pause checkpoint \(mid-wave exit\)/ {flag=1; next} flag && /^(##|### )/ {flag=0} flag' "$HACKIFY_SKILL")
-if printf '%s\n' "$PAUSE_BODY" | grep -qF 'pause-keyword list'; then
+# Substring tests, not pipes into `grep -qF`. `$PAUSE_BODY` measures 761 bytes,
+# so this pair was never at risk the way the 40KB template bodies in 20-templates
+# were, but every keyword here is a newline-free literal and a `==` test is the
+# same answer with no second process in it. See check_role in 00-helpers.sh.
+if [[ "$PAUSE_BODY" == *'pause-keyword list'* ]]; then
   green "  ok   $HACKIFY_SKILL Pause-checkpoint section contains 'pause-keyword list' phrase"
 else
   red "  FAIL $HACKIFY_SKILL Pause-checkpoint section missing 'pause-keyword list' phrase"
   FAILED=$((FAILED + 1))
 fi
 for kw in 'pause' 'stop' 'exit' 'later' 'tomorrow' 'come back' 'pick this up later'; do
-  if printf '%s\n' "$PAUSE_BODY" | grep -qF -- "$kw"; then
+  if [[ "$PAUSE_BODY" == *"$kw"* ]]; then
     green "  ok   Pause-checkpoint section contains pause-keyword '$kw'"
   else
     red "  FAIL Pause-checkpoint section missing pause-keyword '$kw'"

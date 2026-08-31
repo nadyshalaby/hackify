@@ -71,8 +71,8 @@ OPTS='([[:space:]]+-[^[:space:]]+([[:space:]]+[^-][^[:space:]]*)?)*'
 # it carries -m: an annotated tag with no -m opens an editor, which this cannot
 # see anyway, and a `git tag --list` carries no attribution so it never trips.
 creates_a_commit() {
-  printf '%s' "$1" | grep -qE \
-    "(^|[^[:alnum:]_-])(git${OPTS}[[:space:]]+(commit|tag)|gh${OPTS}[[:space:]]+(pr[[:space:]]+(create|edit)|release[[:space:]]+create))([^[:alnum:]_-]|\$)"
+  grep -qE \
+    "(^|[^[:alnum:]_-])(git${OPTS}[[:space:]]+(commit|tag)|gh${OPTS}[[:space:]]+(pr[[:space:]]+(create|edit)|release[[:space:]]+create))([^[:alnum:]_-]|\$)" <<<"$1"
 }
 
 # Paths named by -F / --file / --body-file, so a message written to a file is
@@ -103,7 +103,7 @@ findings_for() {
   local text="$1" regex reason report=''
   while IFS=$'\t' read -r regex reason; do
     [ -n "$regex" ] || continue
-    printf '%s' "$text" | grep -qiE -- "$regex" 2>/dev/null \
+    grep -qiE -- "$regex" <<<"$text" 2>/dev/null \
       && report="${report}  - ${reason}"$'\n'
   done <<EOF
 $PATTERNS

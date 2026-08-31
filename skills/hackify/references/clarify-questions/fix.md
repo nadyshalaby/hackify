@@ -90,10 +90,10 @@ Q6. Guard against it returning
 - Header: Guard
 - Options:
   - A. Yes, please (Recommended)
-    - What happens: I prove the check catches the bug by watching it fail before the fix, then pass after. That's how you know it's real.
+    - What happens: I prove the check really catches this bug by making it fail on purpose first, then pass with the fix in place. That's how you know it's real.
   - B. No, just fix it
     - What happens: Quicker now. Nothing stops this breaking again silently in a future change.
-- Why-this-matters: Determines whether Phase 3 starts with a watched RED test. Recommend A unconditionally unless the user prompt contains `no test`, `quick fix only`, or `can't test`.
+- Why-this-matters: Determines whether the testing wave owes a watched RED that reproduces this exact bug. The check is authored there, against the landed fix, and it is proven by reverting the fix and requiring a red that names it. Recommend A unconditionally unless the user prompt contains `no test`, `quick fix only`, or `can't test`.
 
 Q7. What "working properly" should actually look like
 - Text: `<State the wrong behaviour and the candidate right ones with real values, e.g. "an invite sent at 11pm on the 30th currently stops working at 11pm on the 7th. Should the seven days be counted from the moment it was sent, or in whole days so it always expires at midnight?">`

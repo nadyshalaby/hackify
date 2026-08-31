@@ -25,13 +25,21 @@ partition says it is.
 - Zero contended writes, so no foundation wave. It is marked complete with a written reason, never
   dropped in silence.
 - One track, so nothing to assemble. Same treatment.
+- A diff with genuinely nothing to test, so no testing wave. Same treatment again, and "nothing to
+  test" is a written reason rather than a shrug.
 - A two-file change therefore looks exactly like hackify looked before this shape landed, and a
-  nine-module build looks like the three stages below.
+  nine-module build looks like the four stages below.
 
 The speed does not come from skipping the verification. It comes from deleting the waiting. Deferred
 verification does not disappear, it moves, from the author who has the context now to a stranger three
 days later reading unfamiliar code under time pressure, and it arrives all at once at the moment there
 is least room to absorb what it finds. Parallelise the work, never dilute it.
+
+**The testing wave is not an exception to that, and it is worth saying so because it looks like one.**
+What that paragraph refuses is verification deferred OUT of the sprint, onto a reviewer who was never
+here. The testing wave runs inside Phase 3, on the same tree, against tracks that reported hours ago
+and whose handoff reports are still on disk, and Phase 4 does not open until it has landed. It defers a
+context switch. The thing being refused is a change of author.
 
 ## Contention is invisible in a plan
 
@@ -110,6 +118,36 @@ splits into two or more subsets where all three of these hold:
 When all three hold, the subsets MAY be dispatched as concurrent waves, one agent each. When any one of
 them fails, ONE agent takes the whole wave.
 
+### The dispatch budget
+
+Two numbers size a round, and **this file is the only place in the repo that carries them as digits.**
+Everywhere else names them, "the per-agent task budget" and "the concurrent-wave budget", so changing
+either is one edit here rather than a sweep that misses a site.
+
+- **Per-agent task budget: 20 tasks.** One agent carries up to twenty Sprint Backlog tasks in a single
+  wave. Under that number the packing keeps going; at it, the wave looks for a split line.
+- **Concurrent-wave budget: 10 waves.** One round dispatches up to ten waves at the same time, one
+  agent each.
+
+**Both are packing targets, never quotas.** They decide which of the PERMITTED partitions to take; they
+never permit one the three conditions above refuse. A wave that reaches the per-agent budget and cannot
+split without putting one file in two subsets stays whole and runs long, and a project whose features
+all touch the same three files comes out one wave wide with the whole concurrent-wave budget unspent.
+That is a correct round, and the wave log says so in a line rather than dressing the width up as a
+choice.
+
+**The per-agent budget counts WORK, and a stage whose work arrives as one backlog task still has to be
+counted.** Test authoring reaches Phase 3 as a single Sprint Backlog task, so a packer that counts task
+IDs sees one, never gets near the number, and never looks for a split line, while the work behind that
+one task is every module the round landed. Counting that way exempts the largest stage in the round
+from the only ceiling there is. So the testing stage is counted by the production surface it must
+cover, one unit per module the round landed, and THAT is what the per-agent budget bounds. `The testing
+stage splits like any other stage` below carries the rule, and `Which passing partition you take is
+part of the test` decides the shape it takes.
+
+The two budgets multiply rather than trade: the ceiling on a round is the per-agent budget times the
+concurrent-wave budget, and the partition is what decides how much of it a real backlog can reach.
+
 ### Which passing partition you take is part of the test
 
 The three conditions say a split is PERMITTED, never which permitted split to take, and the trivial
@@ -120,10 +158,16 @@ fine:
 
 1. **Start at the whole wave, one subset.** The default, and it always passes.
 2. **Propose something finer ONLY where the tasks do not share a read surface**, meaning the same types,
-   the same neighbouring code and the same conventions. "These two feel separable" is no proposal.
+   the same neighbouring code and the same conventions. "These two feel separable" is no proposal. A
+   subset that has reached the per-agent task budget is the one proposal that needs no read-surface
+   argument to be raised, because the packing itself raises it; it still has to find a split line the
+   read surface can live with, and it still has to pass step 3.
 3. **Test the proposal against all three conditions.** If one fails, fall back and stop.
-4. **Between two proposals that both pass, take the one with fewer subsets.** A finer split earns its
-   way past a coarser one by showing the subsets share no read surface.
+4. **Between two proposals that both pass, take the fewest subsets that keep every subset at or under
+   the per-agent budget**, and never more subsets than the concurrent-wave budget. Below the budget a
+   finer split still has to earn its way past a coarser one by showing the subsets share no read
+   surface. At the budget that argument is already made, since a subset nobody can pack further is a
+   subset the packing has stopped defending.
 
 Step 2 is load-bearing because conditions 2 and 3 cannot see a read surface at all. Condition 2's
 operative branch is a write-dependency test, one subset reading what another is rewriting, so two
@@ -160,20 +204,81 @@ track that produced it. This is what collapses a five-deep critical path into on
 
 ## What each track owes, and the small set that genuinely cannot be done yet
 
-Every track delivers a module that meets the project's own definition of done. The deferred set is not
-"the tests". It is only what cannot physically exist before assembly.
+Every track delivers production code that meets the project's own definition of done. What it does not
+deliver is its own tests, and the deferred set now splits two ways rather than one. **Some of it is
+deferred because it cannot physically exist yet**, which is everything that needs a second module,
+and that half goes to assembly. **The rest is deferred by schedule**, which is the test authoring, and
+that half goes to a testing wave that runs after the last module track and before Phase 4.
+
+What stays in the track is what only the track can settle: the type check, the lint run, and the
+module's own correctness. Those are seconds of work and they are the only cross-agent contract check
+that exists, so moving them would buy nothing and cost the round its earliest signal.
+
+**The scheduling half is a real trade, and it has two prices rather than one.** The first is context.
+The author holds it now and the testing stage has to reconstruct it, which the stage's brief pays back
+by naming what each track landed. The second price is the one this file used to leave unsaid, and it is
+the larger of the two. Moving test authoring to the last stage does not delete that work, it moves it
+BEHIND everything else, onto the serial depth that `Honest limits` names as the thing that usually does
+not fit. A stage that cannot split is a stage whose whole cost is serial, however wide the tracks ran,
+which is why the stage is packed and split like any other rather than dispatched whole by default.
+What the move buys is production waves that pack without test authoring competing for the same agents,
+and a stage that writes tests against a tree where every seam is already visible instead of N tracks
+each testing what they can see from inside. **Tests are not dropped and they are not optional. They
+move, and they still block the finish.**
 
 | Check | Where it runs | Why there |
 |---|---|---|
-| Unit tests, test-first for business logic, state transitions, money maths, authentication and authorisation | In the track | The author has the context now and nobody will have it later. This is the bulk of the work. |
-| Property-based tests on money paths | In the track | A ledger that balances is a property of the module, provable in isolation. |
-| Module integration tests | In the track | Possible the moment each track has its own database. This is the constraint worth lifting. |
-| Mutation proofs, each one named | In the track | Only the author knows which production line each test is protecting. |
+| Unit tests over business logic, state transitions, money maths, authentication and authorisation | Testing wave | The bulk of the work, and it reads best against code that has already landed. |
+| Property-based tests on money paths | Testing wave | A ledger that balances is a property of the module, provable in isolation, so it needs the module and nothing else. |
+| Module integration tests | Testing wave | Possible the moment each track has its own database, and cheaper once every track's database exists. |
+| Mutation proofs, each one named | Testing wave | They belong beside the test they judge, so they follow the tests rather than staying behind alone. |
 | Type check and lint | In the track | Seconds, and the only cross-agent contract check that exists. |
 | Cross-module integration | Assembly | The other module does not exist yet. Genuinely impossible earlier. |
 | Mounted-surface tests: route and spec drift, the permission matrix, the cross-tenant isolation sweep | Assembly | Nothing is mounted until assembly, so these would measure an empty router. |
 | Boot the service and send it real requests | Assembly | Needs the whole system. See below. |
 | Reviewer panels | Assembly | Cross-module coherence is not visible from inside one track. |
+
+### The testing stage splits like any other stage
+
+The stage keeps its place at the end. What it does not keep is a fixed width. **A testing stage whose
+count exceeds the per-agent task budget splits into concurrent testing waves, one agent each**, judged
+by `The partition test` above: the same three conditions, in the same order, asked of the union of the
+test files the stage would write AND the production files it would mutate for a watched red. Both halves
+are writes. A watched red breaks the line a test protects and restores it, so two subsets whose test
+files are disjoint still collide on a production file they each mutate, and a union drawn over the test
+files alone would call that pair partitionable while the tree says otherwise. There is no fourth
+condition for tests and no test-only variant of the test. A condition written twice is a condition that
+can drift, and a drifted copy would be least likely to be noticed here, in the one stage nothing runs
+after.
+
+The count the budget reads is the production surface the stage must cover, per `The dispatch budget`
+above, never the number of backlog tasks that carry it. `Which passing partition you take is part of
+the test` then decides the shape, coarse to fine, so a small stage stays one wave and a large one
+splits only where a real split line exists.
+
+Test files are usually file-disjoint by module, which is why this normally holds: a module's tests sit
+beside that module, name that module's symbols, and rewrite no file another subset reads. When it
+holds, the stage's serial depth stops being the whole round's test-authoring cost and becomes the cost
+of its widest subset.
+
+Worked. A round runs its production waves out to the ceiling the two budgets multiply to, so the tracks
+land many modules' worth of code and the backlog still carries ONE test-authoring task. Count task IDs
+and the stage is one; count production surface and it is the whole round. The second count is the one
+the budget reads, so it clears the per-agent budget, step 2 of the coarse-to-fine rule has its proposal
+raised by the packing itself rather than by a read-surface argument, the three conditions are asked of a
+per-module partition of the test files, and the stage dispatches as concurrent testing waves, one agent
+each, up to the concurrent-wave budget. Those waves are siblings like any other, so each one is handed
+the other testing waves' IDs and reads [sibling-track-rules.md](sibling-track-rules.md). A small round
+takes the same path and stops at step 1: its count is under the budget, no proposal is raised, and the
+stage stays one wave.
+
+**Condition 1 has real teeth here, unlike in a production wave.** There it is inherited from the wave
+plan, because a wave's tasks are file-disjoint by construction and it is satisfied before the test
+starts. The testing stage arrives as one task whose allowlist is the whole test surface, so there is no
+construction to inherit from and the subsets are drawn by hand. A suite with a shared fixture file every
+test rewrites, a single snapshot corpus, or one test harness no per-wave isolation lifts fails condition
+1 or condition 3 for real. That stage runs as one wave, long, and the wave log records WHICH condition
+refused the split rather than leaving the width to look like a preference.
 
 ### Why the boot step is mandatory rather than nice to have
 
@@ -254,13 +359,34 @@ instead of Daily Updates, no registrar mounting, no command that discards
 working-tree state, and the eight-item handoff report the assembly wave mounts
 from. A solo dispatch passes `none` and never opens that file.
 
-**Track progress.** A concurrent track never writes the work-doc. Four tracks
-appending to one markdown file is exactly the shared-file contention this
-document exists to remove, and an append has no lock, no merge and no error when
-a write is lost. Each track writes its own
+**Track progress, and the track files stay.** A concurrent track never writes the
+work-doc. Ten tracks appending to one markdown file is exactly the shared-file
+contention this document exists to remove, and an append has no lock, no merge
+and no error when a write is lost. So each track keeps writing its own
 `docs/work/<slug>.tracks/<track_id>.md`, disjoint by construction, updated as
-each unit goes green rather than once at the end; the parent merges them into
-`## 6. Daily Updates` at round end and drops the folder when the round closes.
+each unit goes green rather than once at the end. Widening the round makes that
+indirection more necessary, never less.
+
+**And the dispatcher puts that file in the track's allowlist.** The allowlist is
+the absolute bound on what a track may write, so a track ordered to write its
+progress file and handed an allowlist that does not name it has been given two
+orders that contradict each other. That is not hypothetical. One round here split
+five tracks two ways on it, two writing the file and declaring it, three refusing
+and reporting through their wave report instead: one rule, five agents, two
+behaviours, and no error at either end to say which was right. The contradiction
+is the parent's to remove, because the parent is the one who builds the list. So
+when a wave is dispatched concurrently,
+`docs/work/<slug>.tracks/<track_id>.md` goes into that track's file allowlist
+beside its source paths, every time, and a concurrent dispatch whose allowlist
+omits it is underfilled rather than merely terse.
+
+**What changed is the merge cadence.** The parent merges a track's file into
+`## 6. Daily Updates` **as that track returns**, rather than merging all of them
+once the round has landed, and drops the folder when the round closes. Only the
+parent ever writes the work-doc, so a per-return merge adds no second writer; it
+just stops the doc running a whole round behind the tree. On a round nine tracks
+wide that dies after the sixth return, the old cadence leaves a work-doc naming
+nothing and this one leaves a work-doc naming six.
 
 **A solo wave writes Daily Updates itself.** A foundation wave, an assembly wave
 and a single-track round have no sibling to collide with, so there is nothing
@@ -285,12 +411,23 @@ work-doc that still says what every track had finished.
 - **It needs a codebase that has recorded its own failure modes.** A blind agent cannot rediscover a trap
   that cost the team a day, but it avoids that trap reliably when the brief names it. The briefs are only
   as good as the traps they carry.
-- **Concurrency has a real ceiling.** Agents contend for CPU, for the filesystem and for the dispatcher's
-  own attention. Nine tracks is not automatically better than five.
+- **The budget is a ceiling, not a quota.** Agents contend for CPU, for the filesystem and for the
+  dispatcher's own attention, and the concurrent-wave budget is where that contention was judged to
+  stop paying. Packing up to it is the default; reaching it is not the goal. A round that lands at
+  four waves because four is what the partition allowed is a correct round, not a missed one.
 - **Width is a property of the codebase, not of the fleet.** A project where every feature touches the
   same three files goes one wide however many agents you own, and past that point more agents make it
   slower because they queue on each other. The first investment in compression is a cleaner partition,
   which is what the foundation wave buys.
-- **Three stages run in sequence whatever the width**, foundation then tracks then assembly, and whatever
-  they cost they cost serially. When a target does not fit, it is almost always that serial depth that
-  does not fit rather than the total work.
+- **Four stages run in sequence whatever the width**, foundation, then tracks, then assembly, then the
+  testing wave, and whatever they cost they cost serially. When a target does not fit, it is almost
+  always that serial depth that does not fit rather than the total work. Widening the tracks does not
+  shorten the other three. **Moving test authoring to the last stage lengthens that depth on purpose**,
+  and splitting the stage is the only thing that bounds what it lengthens by. An unsplittable testing
+  stage puts the whole round's test-authoring cost on the critical path, one agent deep, however wide
+  the tracks ran.
+- **A test suite that is not file-disjoint cannot be split, and nothing here makes it so.** The testing
+  stage splits on the same partition test as everything else, so a suite built around one shared
+  fixture, one snapshot corpus or one harness no isolation lifts comes out one wave wide and stays
+  there. The first investment is the same one production width needs, a cleaner partition, and here
+  that means test files that belong to a module rather than to the suite.

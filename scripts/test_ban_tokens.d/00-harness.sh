@@ -68,11 +68,11 @@ tb_drop_unreadable() {
 # a token carrying a newline is itself a defect the token guard reddens.
 # ---------------------------------------------------------------------------
 tb_extract_lists() {
-  python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_SRC_81" "$TB_TMP" <<'PY'
+  python3 - "$TB_SRC_70" "$TB_SRC_77" "$TB_SRC_81" "$TB_SRC_82" "$TB_TMP" <<'PY'
 import io, re, shlex, sys, os
-src70, src77, src81, tmp = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+src70, src77, src81, src82, tmp = sys.argv[1:6]
 
-# All three lists are shell arrays, so one parser serves all of them, and it reads
+# All seven lists are shell arrays, so one parser serves all of them, and it reads
 # bare words and quoted words alike. An empty parse exits non-zero right here
 # instead of writing an empty list, because a section handed nothing to plant
 # prints nothing and passes, which is the exact bug this suite exists to refuse.
@@ -91,10 +91,18 @@ def parse_array(path, name):
         sys.exit("no %s group parsed from %s" % (name, path))
     return toks
 
+# THE FILENAMES ARE NOT DECORATION. tb_check_call_sites globs "$TB_TMP"/tokens*.txt
+# and reads the result as the number of shipped ban lists this suite actually
+# parsed, so a name that misses that glob would leave a real list parsed, planted
+# and still counted as absent, reddening the coverage bound over a suite that is
+# doing its job. Every name below starts with `tokens` and ends with `.txt`.
 lists = (("tokens70.txt", parse_array(src70, "P5_BANS")),
          ("tokens77.txt", parse_array(src77, "RR_BANS")),
          ("tokens77rpt.txt", parse_array(src77, "RR_RPT")),
-         ("tokens81.txt", parse_array(src81, "CA_BANS")))
+         ("tokens81.txt", parse_array(src81, "CA_BANS")),
+         ("tokens82.txt", parse_array(src82, "TR_BUDGET_BANS")),
+         ("tokens82c.txt", parse_array(src82, "TR_CADENCE_BANS")),
+         ("tokens82g.txt", parse_array(src82, "TR_SIB_DB_BANS")))
 for name, toks in lists:
     with io.open(os.path.join(tmp, name), "w", encoding="utf-8") as fh:
         fh.write("".join(t + "\n" for t in toks))

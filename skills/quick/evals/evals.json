@@ -23,7 +23,7 @@
       "prompt": "small change to the README, bump the install-step example to use `bun install` instead of `npm install`",
       "assertions": [
         {"text": "quick skill is invoked (auto-discovery fires on 'small change' substring)"},
-        {"text": "At most ONE implementation sub-agent is dispatched (per quick's per-task agent budget)"},
+        {"text": "Implementation sub-agents are dispatched one per file-disjoint wave, each carrying at most the per-agent task budget and the round running at most the concurrent-wave budget of them at once; a single-file ask lands on exactly one"},
         {"text": "File allowlist for the sub-agent is exactly `[README.md]`, agent stops if it discovers another file is needed"},
         {"text": "Step F update log is printed even though no test changes apply (one block covering the prose edit)"}
       ],
@@ -31,12 +31,13 @@
     },
     {
       "id": 3,
-      "name": "non-trigger-refactor-everywhere",
+      "name": "trigger-cross-file-refactor-stays-in-quick",
       "prompt": "refactor everywhere we call `getUserById`, consolidate the 12 callsites onto a single helper",
       "assertions": [
-        {"text": "quick skill is NOT invoked, the prompt has cross-file scope keywords ('refactor everywhere', 12 callsites) that route to full hackify"},
-        {"text": "Routing decision explicitly cites the cross-file refactor non-trigger rule"},
-        {"text": "Full hackify auto-fires and opens Phase 1 Clarify"}
+        {"text": "quick skill IS invoked, auto-discovery fires on the build verb 'refactor' and the cross-file spread is not a routing signal"},
+        {"text": "Routing decision cites that quick has no non-trigger list, full hackify is reached only when the user asks for it by name"},
+        {"text": "The change is split into file-disjoint units grouped into waves, dispatched as one implementer per wave in a single message, and no two agents are given the same file"},
+        {"text": "Quick mode does NOT auto-promote to full hackify as the diff spreads across the callsites"}
       ],
       "files": []
     }
