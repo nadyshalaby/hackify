@@ -123,7 +123,16 @@ handle_bash() {
   # Cheap pre-filter before invoking python. Portable ERE only: `\b` is a GNU
   # extension that BSD/macOS grep -E does not guarantee, so `tee` gets explicit
   # word boundaries (line start or a non-word char on each side) instead.
-  grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)' <<<"$cmd" || exit 0
+  #
+  # FED BY REDIRECTION FROM A PROCESS SUBSTITUTION, NOT BY `<<<`. $cmd is a whole
+  # Bash command with its heredocs inline and routinely carries credentials, and
+  # bash 3.2 backs a here-string with a real file under /var/tmp (mode 1777,
+  # shared, kept across reboots). This form puts nothing on disk and, unlike the
+  # pipe that stood here before 51ecd00, cannot hand grep's SIGPIPE back as the
+  # hook's exit status if anyone ever adds `set -o pipefail` above. The long note
+  # over creates_a_commit in block-ai-attribution.sh carries the measurements.
+  grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)' \
+    < <(printf '%s\n' "$cmd") || exit 0
 
   findings="$(printf '%s' "$cmd" | python3 "$PLUGIN_ROOT/hooks/scan_bash.py" "$SCANNER_DIR" 2>/dev/null)" || exit 0
   [ -n "$findings" ] || exit 0

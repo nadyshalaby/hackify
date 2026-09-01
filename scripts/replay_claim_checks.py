@@ -55,6 +55,10 @@ from claim_fixture_types import FixtureError
 from claim_fixtures import replay_scope
 
 CORPUS_PATH = Path(__file__).resolve().parent / 'claim_corpus.json'
+# The helper set's ENTRY POINT. Sourcing it sources every helper fragment beside
+# it, so this runner names one path and gets the whole set; a repo_root carrying
+# fewer of them stops the run loudly rather than sourcing a short set. See the foot
+# of scripts/validate-dod.d/00-helpers.sh.
 HELPERS = 'scripts/validate-dod.d/00-helpers.sh'
 
 EXIT_OK = 0

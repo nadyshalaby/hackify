@@ -1,6 +1,6 @@
 # Phase 5, Multi-reviewer E (design conformance)
 
-The design lens, and the only conditional one on the panel. **A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**, so send E in the same parent message as A, B, D and F. Dispatch E whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome, and omit it rather than folding it when the diff has no UI surface at all. Panel table: `../phases/phase-5-review.md`.
+The design lens, and the only conditional one on the panel. **The panel is the on-request route, not the default one.** Phase 5 dispatches the merged all-lens reviewer (`hackify:reviewer`, `phase-5-multi-review-merged.md`) by default, in full mode as well as in quick; the five-agent panel stays registered and runs when a user asks for it by name. **When the panel IS the round's reviewer, A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one**, so send E in the same parent message as A, B, D and F. On such a round, dispatch E whenever the diff touches styling, components, layout, typography, color, spacing, motion, icons, or native UI chrome, and omit it rather than folding it when the diff has no UI surface at all. Panel table: `../phases/phase-5-review.md`.
 
 **Boundary against `phase-5-escalation.md`.** Reviewer E is the *standing* design lens, keyed to the project's committed `DESIGN.md`. The escalation reviewer stays for ad-hoc specialist surfaces the baseline roster does not cover (infrastructure, data migration, domain compliance, and deep accessibility audits beyond E's conformance checks). Dispatch E for design conformance; dispatch an escalation reviewer for anything else. They do not overlap, and the reviewer cap of 5 counts E.
 
@@ -10,7 +10,7 @@ The design lens, and the only conditional one on the panel. **A, B, D and F each
 
 **Spec-absent mode.** When the project has no `docs/design/DESIGN.md`, the dispatcher passes the literal `NONE` and E audits against the visual law in `skills/hackify/references/frontend-design.md` instead, reporting the missing spec as its own Important finding. `NONE` mode is not a reduced mode. It drops exactly the four checks that measure against the spec's own contents (the type ramp, component drift against a spec entry, the spec's `### Don't` list, and logical properties, METHOD steps 4, 5a, 6 and 8) and keeps everything an external standard already settles: hardcoded literals, interactive state coverage and focus, and WCAG AA contrast. That last one matters most, since a version of this prompt that jumped straight to the visual-law floor let a diff with a 3:1 body-text pair return clean.
 
-Canonical source for `agents/design-conformance-reviewer.md`, that file mirrors the fenced block below byte-for-byte; the copies are identical by design; keep them in sync.
+Canonical source for `agents/reviewer-design.md`, that file mirrors the fenced block below byte-for-byte; the copies are identical by design; keep them in sync.
 
 ```
 Subagent type: general-purpose

@@ -19,19 +19,20 @@
 #       not subjects.
 #
 # WHAT RESOLVES A DOC TO A DATE, AND THE TWO LEVERS THAT STAY OPEN. The date is read
-# off the FILENAME first, the YYYY-MM-DD prefix every work-doc is opened under per
-# skills/hackify/SKILL.md:106, and off the frontmatter created field only when the
-# name carries no prefix. It was the created field alone until a reviewer changed one
-# digit and watched an archived doc with no section 0 go green: a value a document
-# writes about itself is a value it can choose, and letting it decide whether the
-# document is a subject at all is CWE-807. Where both exist and disagree, the
-# disagreement is itself reported. NEITHER LEVER BELOW IS CLOSED, and saying so is
-# the point of this paragraph. RENAMING the file to a pre-pin prefix moves the date.
-# DROPPING the prefix falls back to the frontmatter value. No other fragment reads
-# the work-doc naming convention, so nothing else catches either one. What the change
-# buys is that both levers surface in a diff as a rename or a new path, which an edit
-# inside a file does not. A doc whose created field is missing or unreadable is
-# REPORTED, never dropped, since deleting that field would be the same escape one
+# off the FILENAME first, the YYYY-MM-DD prefix every work-doc is opened under per the
+# `Create the work-doc` step of skills/hackify/SKILL.md, NAMED BY STEP AND NOT BY LINE
+# because [57] proves only that a cited line exists, never that it still says what
+# cites it. It reads the frontmatter created field only when the name carries no
+# prefix. It was the created field alone until a reviewer changed one digit and
+# watched an archived doc with no section 0 go green: a value a document writes about
+# itself is a value it can choose, and letting it decide whether the document is a
+# subject at all is CWE-807. Where both exist and disagree, the disagreement is itself
+# reported. NEITHER LEVER BELOW IS CLOSED. RENAMING the file to a pre-pin prefix moves
+# the date. DROPPING the prefix falls back to the frontmatter value. No other fragment
+# reads the work-doc naming convention, so nothing else catches either one. What the
+# change buys is that both levers surface in a diff as a rename or a new path, which
+# an edit inside a file does not. A doc whose created field is missing or unreadable
+# is REPORTED, never dropped, since deleting that field would be the same escape one
 # level up.
 #
 # THE LETTERS ARE (b) AND (d), WITH NO (a) OR (c) IN THIS FILE, and that is a
@@ -44,16 +45,14 @@
 # skills/ finds no citation of (a) at all, which this header used to claim there was.
 #
 # WHY THE SEAM IS HERE, AND WHAT IT COSTS, is written once at the top of
-# 99-work-doc-status-claims.sh and not repeated here. Two copies of a rationale are
-# two things that drift apart, the reason 79-standing-member-invariant.sh:24 gives
-# for making the same choice.
+# 99-work-doc-status-claims.sh and not repeated here: two copies of a rationale drift
+# apart, the reason 79-standing-member-invariant.sh:24 gives for making the same choice.
 #
-# [98] KEEPS THIS ID AND THIS FILENAME. The name still describes what stayed, since
-# (b) and (d) are the two ledger assertions, and the CHANGELOG bullet that opens
-# "[98] and [99]" names this filename for the archived-sprint behaviour (b) carries.
-# IT IS ANCHORED ON THAT NAME AND NOT ON A LINE NUMBER: the line this header used to
-# cite was wrong the day it was written and turned right by accident when that entry
-# was rewritten one commit later, which is worse than plain rot because nothing about
+# [98] KEEPS THIS ID AND THIS FILENAME, since (b) and (d) are the two ledger assertions
+# and the CHANGELOG bullet that opens "[98] and [99]" names this filename for the
+# archived-sprint behaviour (b) carries. IT IS ANCHORED ON THAT NAME AND NOT ON A LINE
+# NUMBER: the line this header used to cite was wrong the day it was written and turned
+# right by accident a commit later, which is worse than plain rot because nothing about
 # it looks broken.
 #
 # WHAT ASSERTION (b) DOES NOT REACH, because silence gets read as a guarantee. A
@@ -95,36 +94,38 @@ yellow "[98] an archived work-doc closes every phase-ledger row, and one written
 # print a confident green over nothing. Tracked files only.
 #
 # THE FLOORS ARE WHAT STOP A VACUOUS PASS, judged before any per-doc red prints, the
-# order [91], [93], [94] and [95] all argue for. HOW EACH WAS DERIVED, and the
-# command that re-derives it:
+# order [91], [93], [94] and [95] argue for. NEITHER SUBJECT BOUND TAKES THE INVERSION
+# 92-work-doc-structure.sh takes at its WS_UNSECTIONED_MAX bullet, named by construct
+# for the reason above; what differs is what they count. That bound was the ONLY one
+# that could see its own collapse, where here (d) and the unreadable-date branch name a
+# doc that lost its block or date first, and an unparseable date joins neither set a
+# ceiling could be pinned on. HOW EACH WAS DERIVED, with the re-deriving command:
 #
 #   WL_DOC_FLOOR, half the work-docs tracked on 2026-08-25. Half, because docs are
 #   added most waves and none has ever been deleted, so only a collapse toward zero
 #   means the pathspec stopped matching.
 #     git ls-files -- 'docs/work/*.md' | wc -l
 #
-#   WL_LEDGER_FLOOR, the exact count of assertion (b)'s subjects today. THE FLOOR IS
-#   ON THE ARCHIVED SUBSET AND NOT ON THE TOTAL: a floor over the total would sit
-#   under a grammar break that lost only the archived doc, the half (b) judges. NO
-#   HEADROOM, because docs enter done/ and never leave. THE REASON IS NOT that every
-#   archived doc carries one: section 0 became a work-doc section on 2026-08-23 and
-#   the archives written before that do not have it, so any wave archiving another
-#   ledger-bearing doc must raise this floor.
+#   WL_LEDGER_FLOOR, a RATCHET at assertion (b)'s subject count the day it was
+#   derived, not "the exact count" this line promised over a `-lt`. It needs no raise:
+#   docs enter done/ and never leave, so another archived ledger leaves it looser, and
+#   the convention that demanded one per such doc is deleted, unobeyed. ON THE
+#   ARCHIVED SUBSET, NOT THE TOTAL, which would sit under a grammar break that lost
+#   only the archived doc, the half (b) judges; the pre-pin archives are exempt.
 #     git grep -l '^## 0\. Phase ledger' -- 'docs/work/done/*.md' | wc -l
 #
-#   WL_CREATED_FLOOR, the exact count of assertion (d)'s subjects today, a DIFFERENT
-#   SET from the line above: (b) counts archived docs that HAVE a block, (d) counts
-#   archived docs that OWE one, and the point of (d) is the second set. Counted off
-#   the filename, which is what the judge resolves against.
-#     git ls-files -- 'docs/work/done/*.md' \
-#       | awk -F/ '$NF >= "2026-08-23"' | wc -l
+#   WL_CREATED_FLOOR, the same ratchet over assertion (d)'s subjects, a DIFFERENT SET
+#   from the line above: (b) counts archived docs that HAVE a block, (d) counts archived
+#   docs that OWE one, and the point of (d) is the second set. Counted off the filename,
+#   which is what the judge resolves against.
+#     git ls-files -- 'docs/work/done/*.md' | awk -F/ '$NF >= "2026-08-23"' | wc -l
 #
 # NO COUNT IS WRITTEN INTO A COMMENT HERE. The live totals print on the pass line and
 # every floor carries the command that re-derives it, the convention
 # 57-doc-links.sh:20-26 states: an unpinned number in a comment is a rotting claim.
 WL_DOC_FLOOR=10
-WL_LEDGER_FLOOR=2
-WL_CREATED_FLOOR=2
+WL_LEDGER_FLOOR=7
+WL_CREATED_FLOOR=7
 
 WL_DOCS=0
 WL_ARCHIVED=0
@@ -231,8 +232,9 @@ LEDGER_EPOCH = '2026-08-23'
 # The shape gate on a date. An ISO date compares correctly with `<` once it has this
 # exact shape, and a created value that fails the gate is REPORTED, never dropped.
 DATE = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-# The rule assertion (d) enforces: the "No silent skip" bullet of the ordering law.
-LEDGER_LAW = 'skills/hackify/references/phase-ledger.md:110'
+# The rule assertion (d) enforces, NAMED BY BULLET AND NOT BY LINE (header, on [57]).
+LEDGER_LAW = ('the "No silent skip" bullet of the ordering law in '
+              'skills/hackify/references/phase-ledger.md')
 
 
 def read(path):

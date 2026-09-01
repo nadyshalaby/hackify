@@ -141,5 +141,60 @@ else
   FAIL=$((FAIL + 1)); printf 'FAIL block message did not name the finding: %s\n' "$REASON"
 fi
 
+
+# --- the screened text must never transit a file on disk (T44) --------------
+# `/usr/bin/env bash` is bash 3.2 here, and it backs every here-string with a
+# REAL FILE under /var/tmp: mode 1777, shared by every user on the box, kept
+# across reboots. These hooks screen a commit or PR body and a whole Bash
+# command with its heredocs inline, so `grep ... <<<"$body"` writes exactly the
+# content worth protecting onto a shared filesystem, while `< <(printf ...)`
+# writes nothing. No validator check can tell those two spellings apart, and
+# [84] actively prescribes the here-string, so THIS CASE IS THE ONLY THING IN
+# THE TREE that reddens if the hook is "tidied" back.
+#
+# It shadows `grep` on PATH with a stub reporting whether its OWN stdin is a
+# regular file, which a here-string's temp file is and a pipe or /dev/fd is not.
+DISK_LOG="$TMPD/stdin-kind.log"
+STUB="$TMPD/stub"
+export DISK_LOG
+mkdir -p "$STUB"
+cat >"$STUB/grep" <<'STUBEOF'
+#!/usr/bin/env bash
+[ -f /dev/stdin ] && printf 'DISK\n' >>"$DISK_LOG"
+exec /usr/bin/grep "$@"
+STUBEOF
+chmod +x "$STUB/grep"
+
+saw_disk() { [ -s "$DISK_LOG" ] && printf 'disk' || printf 'clean'; }
+probe() { : >"$DISK_LOG"; PATH="$STUB:$PATH" bash -c "$1" >/dev/null 2>&1; }
+say_eq() {
+  # $1 name, $2 want, $3 got.
+  if [ "$2" = "$3" ]; then
+    PASS=$((PASS + 1)); printf 'ok   %s\n' "$1"
+  else
+    FAIL=$((FAIL + 1)); printf 'FAIL %s: want %s got %s\n' "$1" "$2" "$3"
+  fi
+}
+
+# THE CONTROLS RUN FIRST, because a probe that cannot report `disk` would pass
+# this case no matter what the hook does, which is the unfalsifiable shape the
+# validator's own [0b] refuses one layer up.
+probe 'grep -q x <<<"probe body"'
+say_eq 'stdin probe control: a here-string IS a file on disk' disk "$(saw_disk)"
+probe 'grep -q x < <(printf "probe body\n")'
+say_eq 'stdin probe control: a redirected process substitution is NOT' clean "$(saw_disk)"
+
+# The hook on a payload it MUST refuse, so one run asserts both halves: the ban
+# still fires, and nothing it read to decide that reached a file.
+: >"$DISK_LOG"
+DISK_PAYLOAD="$(mkbash "git commit -m \"fix: thing
+
+$(co_trailer)\"")"
+printf '%s' "$DISK_PAYLOAD" | PATH="$STUB:$PATH" bash "$HOOK" >/dev/null 2>&1
+DISK_RC=$?
+DISK_SAW="$(saw_disk)"
+say_eq 'trailer still BLOCKED while the stdin probe watches' 2 "$DISK_RC"
+say_eq 'no screened commit body reached a file on disk' clean "$DISK_SAW"
+
 printf '\n[test_block_ai_attribution] %s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

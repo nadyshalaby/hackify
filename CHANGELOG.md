@@ -5,7 +5,7 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.18.0] - 2026-08-30
+## [0.18.0] - 2026-09-01
 
 > **Your prompts now land in quick mode, and the full workflow is something you ask for by name.**
 > It used to be the other way round. Anything that looked substantive, and anything that so much as
@@ -39,14 +39,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > that died partway through lost the record of everything the finished agents had already done. Each
 > agent's work is folded in as it reports back instead.
 >
+> **Phase 5 now sends one reviewer instead of five, and it measured weaker than the five.** Full
+> mode used to dispatch a panel of five reviewer agents, one lens each. It now dispatches a single
+> merged reviewer that carries every lens, and so does quick. We ran both instruments over the same
+> 49-file diff before deciding, and the panel won: 29 findings including 4 Critical, against the
+> merged reviewer's 16 including 1. Per lens it lost four of the five, and its only win was
+> completeness, 5 against 4. This is not written up as an improvement, because it is not one yet. It
+> shipped because one report is worth more to read than five, and the plan is to make that one
+> report stronger rather than to keep paying for the panel. The panel is still there. All five
+> agents stay registered, and asking for them by name gets them on any diff, in either mode.
+> Strengthening the merged reviewer is the next release's work, against a stated bar rather than a
+> good intention: it has to beat the panel per lens on two diffs, and one of the two has to be a
+> diff neither of them has read before. The second of those two ran before this release closed, on
+> this sprint's own diff, and the merged reviewer did not clear the bar there either. That run was
+> handicapped by our own dispatch, which handed it seven of its fourteen inputs, so it settles
+> nothing on its own. Re-running it properly is the first job of the next release. Until that
+> happens the default route is ahead of its evidence, and this entry says so rather than waiting
+> to be asked.
+>
 > **The tradeoff, said plainly, because you should read it here rather than discover it later.**
 > Quick has no auto-escalation list at all any more. Nothing about an ask pulls it up to full mode:
 > not the file count, not a cross-file refactor, not an unknown root cause, not auth, crypto, a
-> migration, a secret or a token. So a schema migration now gets quick's single reviewer instead of
-> the panel's five lenses, and the only road to that panel is asking for full mode. This was chosen
-> deliberately, with the cost on the table, because the old escalation list would have caught
-> exactly the wide multi-file work the new throughput exists for. If a change feels like it wants
-> five reviewers on it, say so and promote it.
+> migration, a secret or a token. So a schema migration now gets one reviewer carrying every lens
+> instead of the panel's five agents. This was chosen deliberately, with the cost on the table,
+> because the old escalation list would have caught exactly the wide multi-file work the new
+> throughput exists for. If a change feels like it wants five reviewers on it, ask for the panel by
+> name and you get it, in whichever mode you are already in.
 
 ### Added
 
@@ -66,6 +84,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Everywhere else names them instead of repeating them, so the two can be retuned in one place. Both
   are packing targets and never quotas: they decide which of the permitted splits to take, and they
   can never authorise one the partition test refuses.
+- **Your work-doc's own section numbering is checked now.** If a round ever leaves two sections numbered
+  the same in a file under `docs/work/`, or leaves the numbers running out of order, the bar stops and
+  names the number and every line carrying it. Nothing had ever read the shape of a work-doc before, so a
+  doc carrying two `## 6. Daily Updates` headings passed the whole run twice, once by accident and once
+  when a reviewer injected the duplicates on purpose to prove it. It is not a tidiness problem: an agent
+  told to append to section 6 appends to whichever one it finds first, so half a round's evidence lands in
+  a section nobody opens again, and two Sprint Backlogs mean two sets of ticks with no way to tell which
+  list the round ran. Check `[92]` keys on the NUMBER and not the whole heading, because both cases that
+  got through carried trailing prose that made the strings differ. Everything after the number stays free
+  text, and the eleven older docs that predate numbered sections are not subjects.
+- **The testing wave is no longer told it has the tree to itself.** The contract that agent actually reads
+  said it was dispatched once, that nothing else was writing the tree, and that its subject was the whole
+  round's diff. All three stop being true the moment the testing stage splits into concurrent waves, and
+  the middle one is the dangerous half: the same contract tells that agent to break a production line to
+  manufacture a red, and breaking a line a sibling is reading corrupts the sibling's run with nothing at
+  either end noticing. Check `[83]` pins the assumption as conditional on `{{sibling_tracks}}`, on the
+  template and its mirror both. The rule had been cited three times as `[82h]`, an id no fragment ever
+  declared, and the resolver that catches invented ids looked straight past all three, because it only
+  reads a claim written with the word "check" in front of the bracket and these three wrote a bare id.
+- **A session-start map of what this plugin actually ships.** A fresh session used to discover hackify
+  only when a skill was already firing, which left several skills and commands unadvertised for the
+  whole conversation. `rules/plugin-map.md` now loads once at the start of a session and lists the entry
+  points with the one line that says when each is the right one, the always-on rule files, and the
+  vocabulary the phases use. It POINTS at the rule files and restates none of them, on purpose: a
+  document that loads once fades as the conversation grows, and a fading copy of a law would eventually
+  contradict the injected original while still reading as authoritative. Check `[88]` reads the map from
+  both ends, so it reddens when the map names an entry point that no longer exists AND when the tree
+  ships one the map does not name. The second direction is the half a naive check leaves out, and it is
+  the half that rots on extension: a skill added next month with no row is invisible to every session
+  that reads the map instead of the directory. Reach, stated exactly rather than implied: the automatic
+  load is a `SessionStart` hook and Claude Code is the only runtime that has one. The map file itself
+  syncs into five of the other six runtime trees, so those five carry the content without the automatic
+  load, and Copilot CLI gets neither, as it gets nothing else.
+- **A slash command in prose is checked against the skills that actually ship.** This release renamed the
+  codewalk command at 25 sites by hand, and nothing in the bar could tell a finished rename from a
+  half-finished one, so the same drift could have started again the next morning. A rename you have to
+  repeat is a missing check rather than a chore. Check `[86]` reads every slash command this repo writes
+  in prose from both ends: a namespaced command has to name a skill that really exists, and a skill that
+  really exists must never be advertised in the bare spelling. The second half is the load-bearing one,
+  because every one of those 25 stale sites was bare, so a check reading only the namespaced form would
+  have printed green over the lot. The roster is discovered per run from `skills/` and `commands/` rather
+  than written into the check, so a skill added next month is covered the day it lands, and both
+  directories are read because two commands ship as command bodies with no skill directory at all. The
+  surface is every tracked text file and not markdown alone, because this repo's own rename moved a
+  JavaScript comment, a fenced block in an HTML asset and a line inside a validator fragment, none of
+  which a markdown-only scan would ever have opened. `CHANGELOG.md` and
+  `docs/work/` are skipped as frozen records: a release entry names a command as it was spelled then, and
+  a work-doc has to quote the spelling it is retiring.
+- **An agent rename is now provably finished, not just plausibly finished.** A rename is invisible to
+  every check that reads the tree's current shape, because that shape is self-consistent whether or not
+  the rename got everywhere, and an agent type is resolved by the harness at dispatch time long after the
+  bar has had its say. This project has already paid for that once: 0.13.1 fixed a quick-mode dispatch
+  line naming a reviewer type that had stopped existing three merges earlier, having gone past a green
+  validator and a tagged release. Check `[89]` scans the whole tree, tracked and untracked alike, for the
+  six dead reviewer names rather than a hand-written site list, on the argument that a rename this wide is
+  exactly where one quiet survivor hides in a file nobody thought to open. Four paths are excluded and
+  each says in writing what is really in it: `dist/` is generated and check `[56]` owns staleness there,
+  `docs/work/` is the sprint record and a doc carrying out a rename cannot describe its own task without
+  naming what it renamed, `CHANGELOG.md` has to be able to say what was renamed, and the fragment excludes
+  itself, because the ban list it carries is six of those names written out.
+- **Two documents can now be caught asserting opposite things.** Everything the bar had could tell that a
+  named thing exists. Nothing could tell that a sentence about it was false. Measured on this tree rather
+  than argued: a wave falsified two agent descriptions without touching a single token, ran every
+  fragment the validator sources plus the mirror check, and nothing moved; breaking one token in the same
+  cell raised five reds. Both falsehoods were routing claims whose negation was already written down
+  somewhere a check could read it. Check `[58]` works that opening and no wider. It mines a hand-written
+  table of routing predicates, the ones with two sides and nothing in between, auto-fires against never
+  auto-fires, default route against on request, every mode against one mode only, and reddens when a file
+  asserts not-X where a named authority asserts X. It does not ask whether a description is true, which
+  needs a reader, and it refuses the similarity-scoring version of itself for the same reason: a distance
+  is always producible, never resolves to a defect, and nobody can say which value should redden. It
+  prints both halves on every run, the entry points it has a predicate for and, by path, the ones it does
+  not, because a miner that quietly examines a handful of entry points and reports clean is the shape
+  this release keeps finding elsewhere. The uncovered list is a note and not a red, so the only way to a
+  green bar is never a table claiming predicates it does not have.
 
 ### Changed
 
@@ -87,9 +180,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Agents still write their own separate track files, because a crowd of agents appending to one
   markdown file is the collision that arrangement exists to avoid, and only the parent ever writes
   the work-doc itself.
+- **Phase 5 dispatches one merged all-lens reviewer, in every mode.** Full mode used to send a panel
+  of five reviewer agents, one lens each. It now sends `hackify:reviewer`, one agent that
+  reads the diff once and emits a complete report per lens as five gated passes. The five panel agents
+  are not retired: they stay registered and dispatchable as `hackify:reviewer-security`,
+  `hackify:reviewer-quality-plan`, `hackify:reviewer-performance`, `hackify:reviewer-coherence` and
+  `hackify:reviewer-design`, and a plain request naming the panel, or naming any one of those five,
+  gets them back on that diff in either mode. Those are new spellings as of this release and the
+  Changed bullet below has the old ones. The measurement that decided this ran both instruments over
+  `9d0961e..51ecd00`, 49 files. The panel returned 29 findings and 4 Critical; the merged reviewer
+  returned 16 and 1. Per lens: security 2 against 4, performance 1 against 2, coherence 2 against 8,
+  quality 6 against 11, completeness 5 against 4. Only the last of those is a win, so the reviewer this
+  release makes the default is the weaker of the two, and it ships that way because one report was
+  worth more to the user than five and because strengthening one prompt is cheaper than strengthening
+  five. Two of the misses are already closed rather than left for the bar. The security pass must now
+  RUN every gate the diff touches on a state where that gate has to fail, instead of reasoning about
+  whether it would, and it is bounded to the checks the project already runs in CI so it never executes
+  new code out of the diff. The coherence pass must open the unchanged far side of every seam or report
+  that seam as unaudited, because both of the misses that cost it the measurement were cases where
+  reading only the changed lines cannot see the problem. The bar has one of its two diffs behind it
+  now, and the merged reviewer did not clear it. Both instruments ran again over this sprint's own
+  diff, 101 files neither had read. Across four lenses the panel returned 3 Critical, 15 Important
+  and 10 Minor; the merged reviewer returned 1, 9 and 3 across five, and it was the only one of the
+  two that ran the design lens at all. It won security outright, and it reproduced findings by
+  mutating a copy of the tree rather than by reasoning, which is where most of its value landed. It
+  lost quality and plan clearly: the round's two worst defects were the panel's alone. That result
+  does not settle the question either, because the dispatch was defective on our side and the merged
+  reviewer is the side it shortchanged, seven of fourteen inputs missing against three missing for
+  the one panel lens that was also short. A clean re-measurement, both instruments fully supplied, on
+  a diff neither has read, is the next release's first job, and until it lands the default route is
+  running ahead of its evidence.
+- **Type `/hackify:codewalk` now. The bare `/codewalk` is gone.** Plugin commands are namespaced by the
+  plugin they ship in, and codewalk was the one command in this repo still advertised without its
+  namespace, at 25 places across 10 files: the README's feature list, its command table and its three
+  troubleshooting rows, the skill's own frontmatter and body, both of its browser assets, and the Phase 6
+  finish step that offers you a trace after a task lands. Every one of them is the namespaced spelling
+  now. Nothing about the command itself changed, only what you type to reach it, and the discovery
+  phrases it also fires on, *"walk me through"*, *"trace this flow"*, *"what happens when"*, are
+  untouched. Old release entries keep the old spelling, because that is what they were correct about.
+- **All six Phase 5 reviewer agents changed their names.** Making the merged all-lens reviewer the
+  default in every mode retired the word "merged", which only meant something while there was a panel to
+  merge from, so the whole family moved at once: `code-reviewer-merged` became `reviewer`,
+  `code-reviewer-security` became `reviewer-security`, `code-reviewer-quality-plan` became
+  `reviewer-quality-plan`, `code-reviewer-performance` became `reviewer-performance`,
+  `code-reviewer-coherence` became `reviewer-coherence`, and `design-conformance-reviewer` became
+  `reviewer-design`. This matters to you in one place: asking for a panel member by name. Ask for
+  `hackify:reviewer-security` rather than `hackify:code-reviewer-security`, and the same shape for the
+  other four. `finding-refuter` is not a reviewer and did not move, and no other agent moved either. The
+  files under `agents/` moved with the types, and check `[89]` above is what proves the rename reached
+  every site rather than most of them.
 
 ### Fixed
 
+- **A banned phrase could hide inside a line break, and the check screening for it would confirm it was
+  absent.** Every ban list in the bar is screened over markdown wrapped to a column, and the matcher
+  doing the screening asked whether the phrase sat on some single line. A phrase the wrap happened to
+  split across two lines was therefore reported clean while it sat there in plain sight. That is the
+  silent direction of the mistake and the reason it could last: a false green looks exactly like a real
+  one, and it flips back and forth as people reflow paragraphs without changing a word. The mechanism is
+  measured rather than argued. `a testing stage that runs as one wave` is a sentence in
+  `references/sibling-track-rules.md`, and a fixed-string search for it there returns nothing, because
+  `one` ends a line and `wave` opens the next; flatten the file first and the same search finds it.
+  Then the exposure, counted rather than estimated: the six ban lists that moved hold 105 banned phrases
+  between them and 90 of those carry a space, so 90 were one unlucky wrap away from being
+  unenforceable. Nothing is known to have slipped through, which is the honest way to put it rather than
+  the reassuring one, since a check that reports clean when it should not is exactly the check whose
+  history nobody can reconstruct. There is now a flattened twin of each ban matcher. It collapses every
+  whitespace run in a file to a single space before it looks, and it sits beside the line-oriented pair
+  rather than replacing it, because the two make opposite mistakes and only one of them is loud. Six of
+  the seven batched ban calls in the tree moved onto it, four fragments in all. The trade is deliberate:
+  flattening is strictly more sensitive, every hit the old matcher found survives the join, so the worst
+  it can newly do is redden on two joined lines that were never one phrase, which is a minute's work
+  against a silent hole. It flattens per file and never per tree, or a scan over a directory would
+  manufacture a match across a file boundary that exists in neither file. Check `[83]` had carried a
+  private copy of the whole idea since before any shared twin existed; the local flattener is gone and
+  its control now drives the matcher the bans really run, so a break in the real one can no longer leave
+  that control printing green over a private copy that still happens to work. Each converted list is
+  planted with the exact wording it forbids and watched reddening under the matcher it actually ships
+  with, and the split is pinned at one line-oriented call and six flattened ones, so a call site that
+  changes matcher without moving its plant sweep goes red rather than quietly being screened by something
+  the validator no longer runs.
 - **The checker that guards every release was itself unreliable, about one run in nine.** It would
   announce that a file was missing a section the file plainly contained, name a different section each
   time, and then pass on the next run. The cause is a plumbing detail with a nasty edge: a check would
@@ -97,11 +267,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   writer is still pushing when the reader walks away, the shell reports that as an error, and the check
   read the error as "not found". It only shows up under a full run's load, because an idle machine gives
   the pipe enough room to swallow the file whole, which is why it looked like a ghost for so long.
-  Twenty-three places had the same shape. Most turned it into a false alarm, but one fed a check that asserts
-  a marker is ABSENT, so the glitch read as "confirmed absent" and passed exactly when the marker was
-  really there, which is the one input that check exists to catch. All of them now test the text directly
-  instead of piping it, and a new check refuses any new occurrence, so it cannot come back quietly.
-  Measured: three failures in thirty runs before, none in the seventy runs against the finished code.
+  The same shape was spread across the validator and the hooks. Most of it turned the glitch into a
+  false alarm, but one fed a check that asserts a marker is ABSENT, so the glitch read as "confirmed
+  absent" and passed exactly when the marker was really there, which is the one input that check exists
+  to catch. All of them now test the text directly instead of piping it, and a new check refuses any new
+  occurrence, so it cannot come back quietly. There is no count in that sentence on purpose: the one
+  written here was wrong once already, nothing in the tree pins it, and the property the check now owns
+  is that none of these pipes is left. Measured by hand on 2026-08-29, in two batches against the
+  unconverted code: three failures in a twenty-five-run batch, then three more in a thirty-run one.
+  Against the converted code the same harness recorded none in a hundred runs that day. Read all three
+  as a dated one-time measurement rather than a standing fact. The harness was never committed, nothing
+  re-runs it, and a great deal of code has moved since; what holds now is the scan, which proves on
+  every run that no such pipeline is in the tree. Both pre-fix batches are written out because the
+  validator's own comments quote one number each, and a reader meeting twenty-five in one place and
+  thirty in another is entitled to think somebody miscounted.
 - **A concurrent dispatch could not say that the project has no database.** When several agents work
   the same tree at once, each has to prove it has a database of its own, because two agents resetting
   one shared database destroy each other's test runs with no error at either end. The rule read the
@@ -123,14 +302,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   thing a blind agent must never do. The instruction and the law cancelled out and left no legal
   move. The dispatcher now puts the path on the list, and both files say so, so the pair only works
   as a pair and is finally written down that way.
-- **Two of the validator's own ban lists were never tamper-tested.** A ban list is proved by planting
-  the exact wording it forbids and watching the check go red. These two shipped, ran on every
-  validator pass, and were planted by nothing, so either could have stopped banning anything
+- **Three of the validator's own ban lists were never tamper-tested.** A ban list is proved by planting
+  the exact wording it forbids and watching the check go red. These three shipped, ran on every
+  validator pass, and were planted by nothing, so any of them could have stopped banning anything
   overnight and the suite would have stayed green. That is the check that cannot fail, shipped by the
-  same release whose new checks exist to catch it. Both lists are parsed and planted now, all eleven
-  tokens, each watched reddening by name, and the suite's plant total goes from 91 to 102.
+  same release whose new checks exist to catch it. All three are parsed and planted now, all twenty
+  tokens, each watched reddening by name, and the suite's plant total goes from 91 to 111.
 - **A comment restated a number that had moved twice.** It gave the pinned count of batched ban calls
-  as three. That became four in 0.16.1 and six in this release, and nothing goes red over prose,
+  as three. That became four in 0.16.1 and seven in this release, and nothing goes red over prose,
   which is why it sat wrong for two releases. The comment now points at the one file the number is
   allowed to live in, instead of keeping a copy of its own.
 

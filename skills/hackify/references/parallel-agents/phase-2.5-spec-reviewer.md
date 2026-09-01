@@ -134,24 +134,24 @@ step needing a new file adds it here rather than reading one in place.*
    on T<n>" markers; and (d) the planned change itself, as a
    {task → file → planned change} triple.** This single read serves all three
    lenses; do not re-read the Sprint Backlog for the planning or rules steps below.
-2. Read `{{project_root}}/CLAUDE.md`. For each of the rule families checked in
-   steps 14-19 (lint suppression, non-null `!`, inline-type bans, layering
-   boundaries, bare-Error throws, security middleware), extract the first sentence
-   under each numbered subsection of CLAUDE.md containing the tokens MUST, NEVER, or
-   BANNED. Quote each rule sentence verbatim so you can cite it in findings. Then
-   read `{{user_global_rules_path}}` if it exists. For every rule that appears in
-   both files, apply the STRICTER rule on conflict (the work-doc protocol). Quote the
-   stricter rule verbatim for citations. Then load the plugin's
-   `rules/code-quality.md`, the deep doctrine behind the always-on
-   `rules/hard-caps.md`. Where no `CLAUDE.md` rule from this step overrides it, treat
-   its rule sentences as binding, and quote + cite them in findings the same way.
+2. Open all three rule files in ONE batch, `{{project_root}}/CLAUDE.md`,
+   `{{user_global_rules_path}}` if it exists, and the plugin's `rules/code-quality.md`,
+   the deep doctrine behind the always-on `rules/hard-caps.md`. Nothing in one decides
+   whether to open another, so serial reads here are two wasted round trips. Then, for
+   each rule family checked in steps 14-19 (lint suppression, non-null `!`, inline-type
+   bans, layering boundaries, bare-Error throws, security middleware), extract the first
+   sentence under each numbered subsection of CLAUDE.md containing the tokens MUST,
+   NEVER, or BANNED, and quote it verbatim so you can cite it in findings. For every rule
+   appearing in both `CLAUDE.md` files, apply the STRICTER rule on conflict (the work-doc
+   protocol) and quote the stricter one. Where no `CLAUDE.md` rule overrides it, treat
+   `rules/code-quality.md`'s sentences as binding, quoted and cited the same way.
 
    *Consistency lens, steps 3 to 8.*
-3. For each DoD bullet, grep the Sprint Backlog list for a task whose description
-   delivers that bullet. Record any DoD bullet with zero covering tasks
-   as a finding.
-4. For each Task, grep the DoD list for a bullet the task delivers.
-   Record any Task with zero covering DoD bullets as a finding.
+3. Match every DoD bullet against the step-1 index, never a fresh grep per bullet:
+   the Sprint Backlog is already in front of you. Record any DoD bullet with zero
+   covering tasks as a finding.
+4. Match every Task against that same index. Record any Task with zero covering
+   DoD bullets as a finding.
 5. For each Q&A answer, scan the Approach and Sprint Backlog sections for any
    sentence that contradicts the answer (different number, different
    scope, different file, opposite verb). Quote both sides verbatim
@@ -238,10 +238,13 @@ step needing a new file adds it here rather than reading one in place.*
    write states that instead of inventing an empty wave.
    (iv) **The LAST stage is the TESTING STAGE, counted before it is shaped.** Count it by
    the production surface it covers, one unit per module the round landed, never by the
-   one backlog task carrying it, then run (b) to (d) above over the union of the test
-   files it would write. Under `{{wave_size_target}}` it stays one wave at
-   `sibling_tracks=none`; over it, and where a split line exists, emit concurrent testing
-   waves that each carry the OTHER testing waves' IDs.
+   one backlog task carrying it, then run (b) to (d) above over the union
+   `The testing stage splits like any other stage` draws in
+   `references/contention-dispatch.md`: the test files it would write AND the production
+   files it would mutate for a watched red. That section argues it once and this is not a
+   variant of it. Under `{{wave_size_target}}` it stays one wave at `sibling_tracks=none`;
+   over it, and where a split line exists, emit concurrent testing waves that each carry
+   the OTHER testing waves' IDs.
 11. For every task, estimate effort from the description (count distinct
    files touched, count distinct verification commands). Flag any task
    whose estimate exceeds 30 minutes of focused work (request a split) or

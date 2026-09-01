@@ -156,7 +156,7 @@ Then write a 1-paragraph summary of what you tried, what you learned, what you s
 
 The hypothesis is confirmed. Don't ship the experimental change as-is. Do this:
 
-### Step 1 (write a failing regression test)
+### Step 1 (specify the failing regression test)
 
 The test should:
 
@@ -165,7 +165,7 @@ The test should:
 - Be the smallest reproduction possible.
 - Cover the **source** of the bug, not just the symptom.
 
-Run it. Watch it fail. (Same RED gate as TDD.)
+You specify it here; you do not write it. It is a code change like any other, so it goes out with the fix in Step 2's single dispatch, and the RED is watched by the agent that authored the test. What you own at this step is the spec above and the check that the returned report shows the red.
 
 ### Step 2 (apply the fix at the source)
 
@@ -173,7 +173,9 @@ ONE change. Address the root cause, not the symptom.
 
 If you patched at the symptom site during D3 to confirm the hypothesis, **revert that** and apply the real fix at the source.
 
-**Dispatch it.** The hypothesis hunt is yours to run, the fix is not: it is a code change, so it goes to an implementer agent under a file allowlist, carrying the root cause and the failing test as its inputs (the no-parent-authored-diff law in `../SKILL.md`). Same for the throwaway symptom-site patch in D3, and for reverting it.
+**Dispatch it, once, with the test.** The hypothesis hunt is yours to run, the fix is not: it is a code change, so it goes to an implementer agent under a file allowlist, carrying the root cause and the test SPEC from Step 1 as its inputs (the no-parent-authored-diff law in `../SKILL.md`). Same for the throwaway symptom-site patch in D3, and for reverting it.
+
+**The mode is `test-authoring`, and one wave writes both halves.** That is the only mode an implementer may author a test under, and its debug shape is stated in [implement-and-test.md](implement-and-test.md): the wave writes the failing regression test AND the fix that turns it green. Splitting the two across waves would need a mode that authors a test and nothing else, and it would hand the red to one agent and the green to another, which is exactly the seam a regression test exists to close.
 
 ### Step 3 (verify)
 

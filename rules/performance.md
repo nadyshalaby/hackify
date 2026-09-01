@@ -15,7 +15,7 @@ The catalog is deliberately deep, every row carries why it hurts, how to detect 
 | **perf-scout** | nothing from here at scan time; its grep table lives in `skills/hackify/references/perf-scout.md`. It cites these IDs, it does not read these rows. |
 | **Anyone else** | the always-on distillation `rules/perf-guardrails.md`, which is already in context. Come here only to cite an ID or read a fix direction. |
 
-Domain sections: Algorithmic · Memory / allocation · Data access / N+1 · Network / API · Async / concurrency · Frontend / rendering · Caching · I/O / serialization · Build / bundle · Logging / observability.
+Domain sections: Algorithmic · Memory / allocation · Data access / N+1 · Network / API · Async / concurrency · Frontend / rendering · Caching · I/O / serialization · Build / bundle · Process / subprocess · Logging / observability.
 
 ## Severity model
 
@@ -171,7 +171,8 @@ IDs are stable slugs `perf.<domain>.<slug>`. Scout grep tables, staged findings,
 
 | ID | Violation | Sev | Why it hurts | Detect (hint) | Fix direction |
 |---|---|---|---|---|---|
-| perf.process.spawn-per-item | A process spawned per item where one invocation covers the whole set | I | fork plus exec is milliseconds of pure overhead per item and it scales with the list, not the work: 360 `wc -l` spawns measured 0.33s against 0.01s for one `xargs wc -l` over the same files | a command substitution, pipe or helper binary inside a per-file / per-token / per-row loop | One invocation over the batch (`xargs`, a pattern file, a single alternation pass), a shell builtin where one exists, or a batched screen with the per-item loop kept as the fallback |
+| perf.process.spawn-per-item | A process spawned per item for work only a process can do, where one invocation covers the whole set | I | fork plus exec is milliseconds of pure overhead per item and it scales with the list, not the work: 360 `wc -l` spawns measured 0.33s against 0.01s for one `xargs wc -l` over the same files | a command substitution, pipe or helper binary inside a per-file / per-token / per-row loop, doing something the interpreter cannot do itself | One invocation over the batch (`xargs`, a pattern file, a single alternation pass), or a batched screen with the per-item loop kept as the fallback. n forks become one; batching costs a loop restructure, so reconcile the batch against the list it was built from, a short batch reports a confident green over files nobody read. Where a builtin replaces the fork outright, that is perf.process.fork-for-builtin instead |
+| perf.process.fork-for-builtin | A process spawned per item for work the interpreter already does inline | I | the same fork-plus-exec cost per item as the row above, except that all of it is waste, the answer was already in the process. Measured here, best of three, 307 `$(basename "$f")` spawns took 0.42s against 0.00s for `${f##*/}` over the same list | `$(basename`, `$(dirname`, `$(echo`, `$(expr`, `$(cat` on a single variable, or a helper binary trimming, splitting, measuring or arithmetic-ing one value, inside a per-item loop | The expansion that replaces it outright: `${v##*/}`, `${v%/*}`, `${v//a/b}`, `${#v}`, `$((...))`, `$(<file)`. n forks become ZERO, so unlike the row above the fix is local to the line, needs no batch and no loop restructure, and cannot under-read the set |
 
 ## Logging / observability
 

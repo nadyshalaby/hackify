@@ -79,10 +79,11 @@ dies only when BOTH lenses fail.
    which Verification 2 requires of every REFUTED verdict, and being
    unable to restate a claim is uncertainty, which never kills a
    finding here.
-2. From `{{project_root}}`, open the post-image of every file:line the
-   batch cites, scoping the diff to those paths
-   (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
-   reading the whole range. Read the surrounding function end-to-end,
+2. From `{{project_root}}`, collect the DISTINCT paths the whole batch
+   cites and open each post-image ONCE, in one pass, scoping the diff to
+   that path set (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`)
+   rather than reading the whole range or re-opening a file once per
+   finding that names it. Read the surrounding function end-to-end,
    not the cited line alone.
 3. Reproduction lens, on every finding in the round: trace the real
    call path to the cited line. Name the entry point, the inputs that
@@ -90,16 +91,18 @@ dies only when BOTH lenses fail.
    narrowing in between. If a guard makes the claimed failure
    unreachable, cite that guard's file:line, that is a refutation. If
    the path is reachable, cite the entry point, that is an upholding.
-4. Authority lens, on every finding in the round: open the rule,
-   standard, or catalog file the finding cites and quote the exact
-   sentence or catalog row. Confirm three things: the cited ID exists,
-   its text covers this case, and the file is not carved out from it
-   (test file, generated file, documented project exception). A cite
-   that does not exist, or that does not cover the case, is a
-   refutation, and it carries the file:line you quoted it from.
+4. Authority lens, on every finding in the round: open each DISTINCT
+   rule, standard, or catalog file the batch cites ONCE, not once per
+   finding citing it, and quote the exact sentence or catalog row from
+   that read. Confirm three things: the cited ID exists, its text covers
+   this case, and the file is not carved out from it (test file,
+   generated file, documented project exception). A cite that does not
+   exist, or that does not cover the case, is a refutation, and it
+   carries the file:line you quoted it from.
 5. Check the exemption floors before upholding anything: is the cited
    file a test, a generated artifact, a migration, or listed in the
-   project's own carve-outs? A carve-out that covers the file is
+   project's own carve-out list, which is read ONCE with step 4's batch
+   rather than once per finding? A carve-out that covers the file is
    AUTHORITY-lens counter-evidence, so record it as that lens's
    refutation with the carve-out's own file:line. It is not a fourth
    way to kill a finding outside the lenses, so on a Critical the

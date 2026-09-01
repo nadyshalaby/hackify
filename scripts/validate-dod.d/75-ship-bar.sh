@@ -89,18 +89,164 @@ else
   FAILED=$((FAILED + 1))
 fi
 
-yellow "[75f] Phase 5 closes once, and the clause that says so is intact"
+yellow "[75f] Phase 5 closes once, and the clause that says so is intact AND unqualified at every site that states it"
 # Was: the settled-diff exit condition, which policed a review LOOP. The 0.16.0
 # round cap removed the loop, so that premise is gone and writing the old phrase
 # back would leave a pin green over a doc asserting the opposite. What still
-# needs guarding is the cap's hard edge: soften "no second panel" and the loop
+# needs guarding is the cap's hard edge: soften "no second review" and the loop
 # quietly returns with nothing to notice.
+#
+# AND THE CLAUSE NAMES A DISPATCH, NOT A ROUTE, WHICH IS WHY IT MOVED OFF "panel".
+# The panel stopped being what a round dispatches when the merged all-lens reviewer
+# became the default in every mode, so a cap worded "no second panel" capped a route
+# the default no longer takes and said nothing at all about the one it does. The
+# counted unit is a whole dispatch: five panel lenses are ONE review and the merged
+# reviewer is ONE review, so "no second review" holds both routes at the same cap
+# and matches the sentence above it verbatim ("exactly ONE review and ONE refuter").
+#
+# THE SUBSTRING PIN COULD NOT SEE THE SOFTENING IT NAMED, measured rather than argued.
+# Reword the sentence as "There is normally no second review, no second refuter and no
+# re-scan, unless the fixes changed enough to warrant one" and the pinned run of words
+# survives untouched between the two qualifiers; the pin printed green and its own ok
+# line called that "without an escape hatch", so the cap was a default rather than a cap.
+#
+# THREE HALVES NOW. The pin is unchanged, a fixed-string test on the clause, because a
+# longer literal breaks on the next legitimate reword of the tail and a pin that reds on
+# correct edits gets weakened later, which is how a check dies. Beside it is a SOFTENER
+# BAN over the sentence carrying the clause, EXTRACTED from the file rather than written
+# down here, so a qualifier on either side of the clause is in scope. Both now run over
+# every site rather than one, and the third half discovers what the sites are.
+#
+# WHAT IT DOES NOT REACH, said here rather than found out later, since a comment that
+# overstates its check is the defect this block has now twice fixed in itself. The scope
+# is ONE sentence: a softening written as a NEIGHBOURING sentence sits outside it, and
+# widening to the whole numbered step would put the ban over the paragraph that
+# legitimately argues what the cap gives up. The bare word if stays off the list below
+# for the same trade pointed the other way, since "even if the fixes changed everything"
+# is a correct absolute reword. And a file that states the cap in its OWN words, the
+# phase-ledger exit row and the refuter template, carries no clause for either half to
+# read; those two point at the canonical text rather than restating it, which is why the
+# guarded set is the files that state the cap in full.
+#
+# EVERY COPY IS GUARDED, NOT THE CANONICAL ONE, and that half is a correction. Both
+# halves used to run over review-and-verify.md alone, which is the file that says the
+# reasoning is canonical SOMEWHERE ELSE, so the ban sat on the derivative statement and
+# left the canonical one open: reword the cap in phases/phase-5-review.md and the whole
+# bar printed green, measured. Canonical-only was the wrong shape whichever file it had
+# picked. A hackify run never loads one canonical doc, it loads whichever reference the
+# phase in hand needs, so the copy a reader reaches IS the instruction governing that
+# run, and a softener planted in it ships. Guarding all four costs one grep each, so no
+# budget argument chooses between them, and the argument that a copy is a summary free
+# to paraphrase is exactly what produced three wordings of one rule.
+#
+# NO COUNT IS WRITTEN INTO THIS COMMENT ANY MORE. It read "the clause is worded this way
+# in exactly one live file, measured", and phases/phase-5-review.md falsified it while
+# the pin below sat on the other copy: a check written to police claim rot shipped a
+# rotted claim as its own scope justification. The convention it broke is the one
+# 98-work-doc-ledger-sync.sh states beside its floors and scripts/tamper_harness.py
+# states above its fragment map, that an unpinned number in a comment is a rotting claim
+# and the fix is to stop writing the number rather than to refresh it. So the scope is
+# the SB_CAP_SITES list, whose size is asserted against a hand-written bound, and the
+# live answer prints on the pass lines below instead of sitting up here going stale.
+#
+# A PIN MAY FREEZE WORDING; IT MAY NOT ALSO CARRY THE SCOPE CLAIM IN PROSE BESIDE IT.
+# That seam is the answer to the objection that a verbatim pin cannot tell "this sentence
+# must stay true" from "this sentence must stay verbatim". No shell check evaluates
+# truth. Where a measurement exists, measure: the softener scan EXTRACTS the sentence
+# rather than restating it, and the site set is DISCOVERED from the tree rather than
+# written down. Where none exists a literal is what is left, and loosening it buys
+# nothing, because a fuzzy pin passes the reword that changed the meaning, which is the
+# failure it was bought to stop. A verbatim pin fails LOUDLY on a correct edit and the
+# editor moves the pin in the same commit; a loose one fails SILENTLY on a wrong edit and
+# ships. What resisted the correction here was never the literal, it was the scope claim
+# frozen in a comment nothing re-derives.
 RAV="skills/hackify/references/review-and-verify.md"
-if grep -qF 'no second panel, no second refuter and no re-scan' "$RAV"; then
-  green "  ok   $RAV states the one-panel cap without an escape hatch"
+SB_CAP_CLAUSE='no second review, no second refuter and no re-scan'
+SB_CAP_SITES=("$RAV" 'skills/hackify/references/phases/phase-5-review.md')
+SB_CAP_SITES+=('skills/hackify/references/review-scope.md' 'skills/hackify/SKILL.md')
+# Hand-written beside the list, the shape [40], [77], [80] and [89] use: a bound read
+# out of the list cannot police it. It is also the number the discovery scan below
+# compares against, so this line is what keeps that comparison from grading itself.
+check_list_size "${#SB_CAP_SITES[@]}" 4 "the [75f] cap-site list"
+
+# Every entry is a word that cannot appear in an absolute statement of the cap, so a hit
+# is a qualifier rather than a wording choice. The size is hand-written beside the list,
+# the shape [40], [77], [80] and [89] use: a bound read out of the list cannot police it.
+SB_HEDGES=('unless' 'except' 'normally' 'usually' 'typically')
+SB_HEDGES+=('generally' 'ordinarily' 'by default' 'discretion' 'warrant')
+check_list_size "${#SB_HEDGES[@]}" 10 "the [75f] cap-softener list"
+
+# NO PIPE ANYWHERE, what check [84] bans: the here-string hands tr a whole value.
+sb_softened() {
+  local hay h
+  hay=$(tr '[:upper:]' '[:lower:]' <<<"$1")
+  for h in ${SB_HEDGES[@]+"${SB_HEDGES[@]}"}; do
+    case "$hay" in *"$h"*) printf '%s' "$h"; return 0 ;; esac
+  done
+  return 1
+}
+
+# THE POSITIVE CONTROL, AND IT IS THE MEASURED EVASION ITSELF. Everything the ban can
+# print on success is an absence, worth what the scan could have found. So the sentence
+# that defeated the old pin goes through the same matcher first, and this block refuses
+# unless it comes back dirty. ONE control for the four sites, not four: the matcher is a
+# single function over a string, so a control per site would prove one fact four times.
+sb_ctl='There is normally no second review, no second refuter and no re-scan, unless the fixes changed enough to warrant one.'
+if sb_hit=$(sb_softened "$sb_ctl"); then
+  green "  ok   the [75f] softener scan catches its own planted control on '$sb_hit', so a clean verdict from it is a measurement"
 else
-  red "  FAIL $RAV missing the no-second-panel clause (softening it silently restores the review loop the cap replaced)"
+  red "  FAIL [75f] the softener scan missed the qualifier in its own planted control, so a clean verdict on the real clause would mean nothing"
   FAILED=$((FAILED + 1))
+fi
+
+# rc IS READ BEFORE THE OUTPUT, the contract check_no_token states in 00-helpers.sh:
+# grep says 1 for a clean sweep and above 1 for a scan that never ran, and an empty
+# extraction would clear all ten hedges having read nothing. Periods bound the sentence.
+sb_cap_site() {
+  local f="$1" sent rc hit
+  if ! grep -qF -- "$SB_CAP_CLAUSE" "$f"; then
+    red "  FAIL $f missing the no-second-review clause (deleting it silently restores the review loop the cap replaced)"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+  green "  ok   $f states the one-review cap clause"
+  sent=$(/usr/bin/grep -oE "[^.]*${SB_CAP_CLAUSE}[^.]*\." "$f" 2>/dev/null)
+  rc=$?
+  if [ "$rc" -gt 1 ] || [ -z "$sent" ]; then
+    red "  FAIL [75f] could not extract the sentence carrying '$SB_CAP_CLAUSE' from $f (grep exited $rc), so the softener scan would have cleared it having read nothing"
+    FAILED=$((FAILED + 1))
+  elif hit=$(sb_softened "$sent"); then
+    red "  FAIL [75f] the cap sentence in $f is qualified by '$hit', so the cap is a default rather than a cap and the review loop is back:"
+    printf '%s\n' "$sent" | sed 's/^/         /'
+    FAILED=$((FAILED + 1))
+  else
+    green "  ok   the cap sentence in $f carries none of the ${#SB_HEDGES[@]} softeners"
+  fi
+}
+for sb_f in ${SB_CAP_SITES[@]+"${SB_CAP_SITES[@]}"}; do sb_cap_site "$sb_f"; done
+
+# THE SET IS PINNED IN BOTH DIRECTIONS, which is what turns review-scope.md's claim that
+# the wording is held identical into a measurement rather than an assertion. The four
+# pins above prove every LISTED site carries the clause; this proves no UNLISTED one
+# does, discovering the carriers over the same two roots 96-review-scope-sites.sh
+# discovers the cap's opening sentence over. Discovery is the half a hand-kept list
+# cannot do, for that check's reason: the site that goes stale is the one nobody
+# remembered to list. The expected number is the list's own length, which is only
+# legitimate because check_list_size above already pinned that length to a hand-written
+# 4, so the chain ends on a number no edit to the list can move.
+sb_cap_found=$(/usr/bin/grep -rlIF -- "$SB_CAP_CLAUSE" skills agents 2>/dev/null)
+sb_cap_rc=$?
+sb_cap_n=0
+[ -n "$sb_cap_found" ] && sb_cap_n=$(printf '%s\n' "$sb_cap_found" | wc -l | tr -d ' ')
+if [ "$sb_cap_rc" -gt 1 ]; then
+  red "  FAIL [75f] could not scan skills and agents for the cap clause (grep exited $sb_cap_rc), so a count of 0 here would be a count of nothing"
+  FAILED=$((FAILED + 1))
+else
+  check_list_size "$sb_cap_n" "${#SB_CAP_SITES[@]}" "the files under skills and agents carrying the cap clause"
+fi
+if [ "$sb_cap_rc" -le 1 ] && [ "$sb_cap_n" -ne "${#SB_CAP_SITES[@]}" ]; then
+  red "  ---- the $sb_cap_n discovered file(s) were:"
+  printf '%s\n' "$sb_cap_found" | sed 's/^/        /'
 fi
 
 yellow "[75g] refuter defaults to keeping the finding (the shipping-code asymmetry)"
@@ -166,7 +312,7 @@ while IFS='|' read -r mirror canonical; do
     continue
   fi
   if diff -q <(extract_fenced "$mirror") <(extract_fenced "$canonical") > /dev/null 2>&1; then
-    green "  ok   $(basename "$mirror") is byte-identical to $(basename "$canonical")"
+    green "  ok   ${mirror##*/} is byte-identical to ${canonical##*/}"
   else
     red "  FAIL $mirror drifted from $canonical (the file claims byte-for-byte mirroring)"
     diff <(extract_fenced "$mirror") <(extract_fenced "$canonical") | head -6 | sed 's/^/         /'
@@ -223,7 +369,7 @@ if [ "$TAIL_RC" -ne 0 ] && [ "$TAIL_FAILS" -eq 0 ]; then
   FAILED=$((FAILED + 1))
 elif [ "$TAIL_RC" -ne 0 ]; then
   red "  FAIL a mirror tail drifted from the canonical tail it must carry (hand-maintained on both sides, the sync script cannot fix it)"
-  printf '%s\n' "$TAIL_REPORT" | grep -F 'FAIL' | head -6 | sed 's/^/         /'
+  printf '%s\n' "$TAIL_REPORT" | grep -F 'FAIL' | awk 'NR<=6' | sed 's/^/         /'
   FAILED=$((FAILED + 1))
 elif [ "$TAIL_VERDICTS" -ne "$AGENT_FILE_TOTAL" ]; then
   red "  FAIL the mirror tail comparison returned a verdict for $TAIL_VERDICTS pair(s) against $AGENT_FILE_TOTAL file(s) in agents/; it exited 0 over a list shorter than the set it covers, which is a green nobody measured"
@@ -282,143 +428,6 @@ while IFS= read -r wi_file; do
     fi
   done <<<"$WI_HEAD_CLAUSES"
   if [ "$wi_missing" = "0" ]; then
-    green "  ok   $(basename "$wi_file") head carries all $WI_CLAUSE_TOTAL duplicated dispatch-rule clauses"
+    green "  ok   ${wi_file##*/} head carries all $WI_CLAUSE_TOTAL duplicated dispatch-rule clauses"
   fi
 done <<<"$WI_HEAD_FILES"
-
-yellow "[75i] orchestration tier + iteration driver + completion sentinel are wired as defaults in every mode"
-# `ultracode` and `/loop` became workflow DEFAULTS in v0.9.0, `/goal` joined
-# them in v0.9.4. All three are Claude-Code-native tokens, so they live behind
-# abstract primitives in runtime-adapters.md rather than in the workflow body.
-# Four ways this can silently rot: a mode stops citing the contract, the
-# runtime mapping loses one of the native tokens, the standing authorization
-# loses its opt-out (which would make a default grant unrevocable), or the
-# sentinel drifts from "print a line the user presses" into a claim that the
-# workflow sets the goal itself (it cannot, ProposeGoal is absent from most
-# sessions and throws in agent contexts).
-ORCH_REF="skills/hackify/references/orchestration.md"
-ADAPTERS_REF="skills/hackify/references/runtime-adapters.md"
-
-if [ ! -s "$ORCH_REF" ]; then
-  red "  FAIL $ORCH_REF missing or empty"
-  FAILED=$((FAILED + 1))
-else
-  green "  ok   $ORCH_REF exists and non-empty"
-fi
-
-for m in $SHIP_BAR_MODES; do
-  if grep -qF -- 'orchestration.md' "$m"; then
-    green "  ok   $m wires the orchestration contract"
-  else
-    red "  FAIL $m does not cite orchestration.md (tier + iteration driver missing from this mode)"
-    FAILED=$((FAILED + 1))
-  fi
-done
-
-# The native tokens must resolve through the adapter table, not float free.
-for tok in 'ultracode' '/loop' '/goal <condition>'; do
-  if grep -qF -- "$tok" "$ADAPTERS_REF"; then
-    green "  ok   $ADAPTERS_REF maps '$tok' to a primitive"
-  else
-    red "  FAIL $ADAPTERS_REF does not map '$tok' (Claude Code native token has no primitive home)"
-    FAILED=$((FAILED + 1))
-  fi
-done
-for prim in 'orchestration tier' 'iteration driver' 'completion sentinel'; do
-  if grep -qF -- "$prim" "$ADAPTERS_REF"; then
-    green "  ok   $ADAPTERS_REF declares the '$prim' primitive"
-  else
-    red "  FAIL $ADAPTERS_REF missing the '$prim' primitive row"
-    FAILED=$((FAILED + 1))
-  fi
-done
-
-# A standing default grant that cannot be revoked is not a default, it is a
-# lock-in. Every mode must name at least one opt-out phrase.
-for m in $SHIP_BAR_MODES; do
-  if grep -qF -- 'light mode' "$m"; then
-    green "  ok   $m names the orchestration opt-out"
-  else
-    red "  FAIL $m does not name an opt-out for the standing ultracode grant"
-    FAILED=$((FAILED + 1))
-  fi
-done
-
-# The completion sentinel must appear in EVERY mode, and it must appear as a
-# line the parent PRINTS for the user, never as something the workflow claims
-# to set. 'paste-ready' is the honesty token; 'from a subagent' is the
-# parent-only fence the runtime enforces by throwing.
-for m in $SHIP_BAR_MODES; do
-  for tok in '/goal <condition>' 'paste-ready' 'from a subagent'; do
-    if grep -qF -- "$tok" "$m"; then
-      green "  ok   $m carries the completion sentinel token '$tok'"
-    else
-      red "  FAIL $m missing '$tok' (completion sentinel not wired, or wired as a claim the parent sets the goal)"
-      FAILED=$((FAILED + 1))
-    fi
-  done
-done
-
-# Anchor the instruction to the turn that actually runs it: Phase 2.5, the
-# first turn after the Phase 2 gate. It must NOT live under the gate's numbered
-# steps, a step placed after a blocking wait is never reached. Matching on
-# '/goal <condition>' rather than a bare '/goal' is load-bearing twice over: a
-# bare match is satisfied by the file-map row (green on a workflow that never
-# prints the line) and by 'references/goal-anchor.md', which is linked twice
-# inside this very region and contains that substring.
-SENTINEL_REGION="$(awk '/^## Phase 2.5,/{f=1} /^## Phase 3, Implement/{f=0} f' skills/hackify/SKILL.md)"
-
-# `[[ == ]]` AND NOT A PIPE INTO `grep -q`, which is what check [84] bans and
-# what this line used to be. $SENTINEL_REGION is an awk region rather than a
-# whole file, so it never grew past the smallest pipe buffer and never actually
-# flaked; it is converted anyway so the ban has nothing to except and no reader
-# copies the shape from here. The marker is newline-free, so a whole-string
-# substring test and grep -F's per-line one agree on every input.
-if [[ "$SENTINEL_REGION" == *'/goal <condition>'* ]]; then
-  green "  ok   skills/hackify/SKILL.md prints the sentinel inside Phase 2.5 (the post-gate turn)"
-else
-  red "  FAIL skills/hackify/SKILL.md does not print the '/goal <condition>' line in Phase 2.5; a sentinel placed under the Phase 2 gate's numbered steps is never reached"
-  FAILED=$((FAILED + 1))
-fi
-
-# Sentinel and iteration driver can disagree; without a stated precedence they
-# fight and the token budget loses. The contract must settle it explicitly.
-if grep -qF -- 'Precedence, when the sentinel and the driver disagree' "$ORCH_REF"; then
-  green "  ok   $ORCH_REF settles sentinel-vs-driver precedence"
-else
-  red "  FAIL $ORCH_REF does not settle precedence between the completion sentinel and the iteration driver"
-  FAILED=$((FAILED + 1))
-fi
-
-# The iteration driver must never be pointed at an intra-phase loop.
-if grep -qF 'never the iteration driver' "$ORCH_REF"; then
-  green "  ok   $ORCH_REF fences the iteration driver out of intra-phase loops"
-else
-  red "  FAIL $ORCH_REF missing the layer fence (a /loop inside Phase 5 breaks the ledger)"
-  FAILED=$((FAILED + 1))
-fi
-
-yellow "[75j] question banks obey the wizard-contract Clarity law"
-# The banks kept shipping questions the user could not answer without knowing
-# hackify's internals (task IDs, phase numbers, DoD, sub-agent). The checker
-# splits each bank by audience and polices only the user-facing half, so
-# `Why-this-matters` keeps every internal word it needs.
-if python3 scripts/check_question_clarity.py > /tmp/hackify-clarity.$$ 2>&1; then
-  green "  ok   $(tail -1 /tmp/hackify-clarity.$$)"
-else
-  red "  FAIL question banks violate the Clarity law:"
-  sed 's/^/         /' /tmp/hackify-clarity.$$
-  FAILED=$((FAILED + 1))
-fi
-rm -f /tmp/hackify-clarity.$$
-
-yellow "[75k] wizard contract states the always-wizard rule and the clarity law"
-WIZ="skills/hackify/references/clarify-questions/wizard-contract.md"
-for tok in 'Clarity law' 'every phase' 'Banned from user-facing text' 'What happens'; do
-  if grep -qF -- "$tok" "$WIZ"; then
-    green "  ok   $WIZ states '$tok'"
-  else
-    red "  FAIL $WIZ missing '$tok'"
-    FAILED=$((FAILED + 1))
-  fi
-done

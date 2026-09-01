@@ -107,11 +107,11 @@ are NOT in is skipped, not half-applied.
    `git log`, database queries restricted to SELECT statements only;
    forbid INSERT, UPDATE, DELETE, DDL, CALL, COPY) and capture stdout
    verbatim. Either way, do NOT edit source files in this dispatch.
-2. [both] Read every path listed in `{{seed_files}}` end-to-end before
-   any search, not just the symbol hits. For each one write a one-line
-   summary naming its role AND the function or symbol most relevant to
-   `{{inquiry}}`, with a `file:line` anchor for the load-bearing
-   definition.
+2. [both] Read every path listed in `{{seed_files}}` end-to-end, in ONE
+   batched call rather than one at a time, before any search and not
+   just the symbol hits. For each one write a one-line summary naming
+   its role AND the function or symbol most relevant to `{{inquiry}}`,
+   with a `file:line` anchor for the load-bearing definition.
 3. [debug] Before any search, enumerate at least two distinct ways
    `{{inquiry}}` could be FALSE (alternative hypotheses). For each,
    name the `file:line` evidence that would distinguish it from
@@ -123,13 +123,16 @@ are NOT in is skipped, not half-applied.
    noun ≥4 chars; group near-synonyms manually (treat 'auth' /
    'authentication' / 'authn' as one group); each group becomes one
    `git grep -nF` invocation. Cap at 4 groups; if more, narrow
-   `{{inquiry}}` first. Run each invocation inside `{{search_scope}}`.
+   `{{inquiry}}` first. Run every invocation inside `{{search_scope}}`,
+   and ISSUE THEM TOGETHER: no group's result decides another's, so
+   running them one at a time buys nothing and costs three round trips.
    Record every hit. Discard hits inside paths listed in
    `{{ruled_out}}`, discard hits outside `{{search_scope}}`, and note
    the scope boundary decision in your report.
-5. [both] For each surviving hit, open the file at that line, read at
-   least 30 lines around the hit, and quote the load-bearing snippet
-   (≤3 lines) inline in your notes alongside its `file:line` anchor.
+5. [both] GROUP the surviving hits BY FILE and open each file ONCE,
+   never once per hit: read at least 30 lines around every hit it
+   carries, and quote the load-bearing snippet (≤3 lines) inline in
+   your notes alongside each `file:line` anchor.
 6. [debug] Trace the value or control flow named in `{{inquiry}}`. For
    every assignment site, every read site, and every conditional that
    gates the failure path, record a `file:line` citation and a ≤3-line

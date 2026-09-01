@@ -137,16 +137,53 @@ yellow "[76e] the load-bearing phase laws survive the post-turn-1 digest"
 # prompt of a session, so a law demoted to body prose is still in the file, still
 # greps clean on its own words, and is gone from every prompt after the first.
 # Matching the bullet form is what makes these guard REACH rather than presence.
-# The scope carve-out and the injector registration are pinned at [38] already
-# and are deliberately not repeated here.
+#
+# ALL FIVE LEADS, IN FILE ORDER, AND THE COUNT AT THE BOTTOM IS WHAT KEEPS THAT
+# TRUE. This block pinned three of the file's five bullets while its banner named
+# the load-bearing laws as a set, so the banner over-claimed by two laws and
+# nothing said so. Laws 1 and 5 are pinned here now for the reason the other three
+# already were, and neither was ever special enough to have earned the omission.
+#
+# WHAT [38] COVERS FOR LAW 1, AND WHAT IT DOES NOT. [38] pins `unless it is
+# trivial or read-only`, which is law 1's carve-out CLAUSE and sits OUTSIDE the
+# bold; hooks/test_inject_context.sh then drives the real digest and asserts that
+# same clause reaches turn 2, because it is 33 chars against the injector's
+# QUALIFIER_MAX_CHARS of 34 and a two-word reword deletes it. Both guard the
+# QUALIFIER. Neither one looks at law 1's own lead, so the mandate inside the
+# asterisks could be rewritten wholesale with the carve-out untouched and both
+# checks staying green. That is the hole the first pin below closes, and the
+# carve-out stays where it is rather than being restated here.
+check_token_present '- **Every task that edits code opens the step ledger**' "$PLS_PHASE_RULES"
 check_token_present '- **Phases run in order, one open at a time.**' "$PLS_PHASE_RULES"
-check_token_present '- **Every question goes through the wizard tool.**' "$PLS_PHASE_RULES"
 # The no-silent-skip law is the most direct statement of what this sprint was
 # asked for, and it was the law this block was left without. Same bullet form,
 # same reason: de-bolded it still greps clean on its own words while reaching
 # nothing after turn 1. The trailing period sits INSIDE the asterisks in the
 # source line, so it belongs inside them here too.
 check_token_present '- **No phase is ever silently skipped.**' "$PLS_PHASE_RULES"
+check_token_present '- **Every question goes through the wizard tool.**' "$PLS_PHASE_RULES"
+# THE LONGEST LEAD IN THE FILE, AND THE ONLY ONE CARRYING TWO RULES AT ONCE. A
+# wave folded the per-returning-agent write rule and the archive-immediately rule
+# into this single bold run, so one reword takes BOTH out of every prompt after
+# the first while the body prose underneath still greps clean on their words.
+# Pinned WHOLE for that reason: a pin on a fragment of this lead leaves whichever
+# rule sits outside the fragment free to be reworded around it.
+check_token_present '- **A tick with no reflection is an untrusted tick, and a deferred write is no tick at all: checkbox and written entry land together as each agent returns, and the archive move follows the closing edit.**' "$PLS_PHASE_RULES"
+# A CLAIM ABOUT A SET IS WORTH THE COUNT WRITTEN BESIDE IT AND NOT A LINE MORE.
+# Five pins name five laws today. A SIXTH law lands in the digest with nothing
+# pinning its bullet form, this banner goes back to over-claiming in silence, and
+# the three-of-five state above is exactly what that looks like after it has sat
+# for a while. `5` is written HERE, by hand, next to the five named pins: a bound
+# READ OFF the file it polices drops with a deleted law and stays green, the
+# failure 00-helpers.sh argues above check_list_size in the words that a floor of
+# 4 once sat under a set of 6 and guarded nothing.
+#
+# THE COUNTER MATCHES THE INJECTOR'S OWN BULLET_LEAD SHAPE, not a narrower
+# `- **`. A law rewritten as `* **...**` or `1. **...**` still reaches the digest,
+# so it still has to be counted here; a narrower matcher would drop it from the
+# count and from the pins at once, and the two reds would cancel into a green.
+PLS_LAW_LEADS=$(grep -cE '^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]+\*\*' "$PLS_PHASE_RULES" 2>/dev/null) || PLS_LAW_LEADS=0
+check_list_size "$PLS_LAW_LEADS" 5 "${PLS_PHASE_RULES}'s bolded law leads, each pinned above by name"
 
 yellow "[76f] validate-dod.sh's own fragment enumeration names every fragment it sources"
 # The orchestrator's header comment is the map anyone reads to find which fragment
@@ -319,4 +356,123 @@ PLS_RANGE_EOF
   else
     green "  ok   $pls_range_n header-manifest range endpoints compared against their fragments"
   fi
+fi
+
+yellow "[76j] quick's review-phase name is the SAME name at all three sites that state it"
+# ONE PHASE, THREE SITES, AND A RENAME THAT LANDED WITH NOTHING WATCHING IT. Quick's
+# Phase 5 review step was called `Single-lens` until a wave renamed it, because ONE
+# reviewer carrying EVERY lens is close to the opposite of what the old name said. The
+# rename is coherent at all three sites today and nothing in scripts/ or hooks/ was
+# looking at any of them, so a reword in ONE file would strand the other two, leave one
+# phase called two things, and move no check. That is the defect the rename repaired,
+# which makes shipping the rename unpinned shipping it with a fuse in it.
+#
+# THE NAME IS DERIVED FROM EACH SITE AND IS NEVER WRITTEN DOWN HERE, which is exactly
+# what a presence pin does not buy. Three `check_token_present` pins on the literal name
+# do redden on a partial reword, but the obvious repair for that red is to UPDATE THE
+# LITERAL: a wave renaming the two clauses inside skills/quick/SKILL.md sees two reds
+# naming that one file, fixes the two pins, and leaves the ledger row in phase-ledger.md
+# saying the old name with the whole gate green. The pin becomes a fourth site that has
+# to agree. So each row below carries a name-AGNOSTIC anchor, the fixed frame its clause
+# is built from with the name left as its only variable run, and the check compares what
+# it lifts out of the three. A COHERENT rename passes here with no edit, which is right:
+# what is guarded is disagreement between the sites, not the vocabulary they agree on.
+#
+# ONE ANCHOR PER SITE, BECAUSE THE NAME OCCURS TWICE IN ONE FILE. skills/quick/SKILL.md
+# states it in its frontmatter description AND again as its flow-table step heading, so
+# a file-scoped pin on the bare name greens on either one alone and says nothing when
+# the other breaks. Each row is anchored on prose unique to its own site and demands
+# EXACTLY ONE match in that file, so a single break reddens and names the file it is in.
+#
+# CASE-FOLDED, DELIBERATELY. The frontmatter states the name mid-sentence in lower case
+# while the other two open a heading with it, so the three cannot agree byte for byte
+# and an exact-case comparison would redden on correct prose.
+#
+# `5-lite` IS LOAD-BEARING IN TWO OF THE THREE ANCHORS and stays that way. It is quick's
+# canonical phase name at eleven sites with nothing pinning it either, so anchoring on it
+# makes a `5-lite` rename LOUDER, two extra reds naming exactly the two files that have to
+# change, and no harder: those two are already among the eleven such a rename edits.
+#
+# /usr/bin/grep BY ABSOLUTE PATH and every exit code read, for the reasons 00-helpers.sh
+# gives above check_no_token: a bare `grep` is a shell function in at least one agent
+# harness, and a count of 0 from a search that errored is a count of nothing.
+# Written HERE, by hand, beside the three rows it stands over, never counted off them:
+# a bound read off the list it polices drops with a deleted row and stays green, the
+# failure 00-helpers.sh records above check_list_size in the words that a floor of 4
+# once sat under a set of 6 and guarded nothing.
+PLS_LENS_SITES_EXPECTED=3
+pls_lens_n=0
+pls_lens_seen=''
+# One row per site: path | extended regex whose only variable run is the name | literal
+# prefix to strip | literal suffix to strip | what the site is called in a red line.
+# Quoted heredoc delimiter so nothing in the table expands, and `read -r` so the regex
+# backslashes arrive exactly as written.
+while IFS='|' read -r pls_lp pls_lrx pls_lpre pls_lsuf pls_llabel; do
+  [ -n "$pls_lp" ] || continue
+  pls_lhit=$(/usr/bin/grep -oE -- "$pls_lrx" "$pls_lp" 2>/dev/null)
+  pls_lrc=$?
+  if [ "$pls_lrc" -gt 1 ]; then
+    red "  FAIL [76j] could not scan $pls_lp for its $pls_llabel (grep exited $pls_lrc), so a count of 0 here would be a count of nothing"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  if [ -z "$pls_lhit" ]; then
+    red "  FAIL [76j] $pls_lp carries no $pls_llabel matching the review-phase-name anchor; the clause was reworded past its own frame, or the site is gone"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  pls_lnl=${pls_lhit//[^$'\n']/}
+  pls_lcount=$(( ${#pls_lnl} + 1 ))
+  if [ "$pls_lcount" -ne 1 ]; then
+    red "  FAIL [76j] $pls_lp carries $pls_lcount $pls_llabel clauses, expected exactly 1; an anchor matching more than one site cannot redden when one of them breaks"
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+  pls_lname=${pls_lhit#"$pls_lpre"}
+  pls_lname=${pls_lname%"$pls_lsuf"}
+  case "$pls_lname" in
+    ''|*[!A-Za-z-]*)
+      red "  FAIL [76j] $pls_lp's $pls_llabel matched as '$pls_lhit' but no single-word name came out of it; the fixed frame around the name has drifted"
+      FAILED=$((FAILED + 1))
+      continue ;;
+  esac
+  pls_lfold=$(printf '%s' "$pls_lname" | tr '[:upper:]' '[:lower:]')
+  pls_lens_n=$((pls_lens_n + 1))
+  pls_lens_seen="$pls_lens_seen$pls_lfold|$pls_lp's $pls_llabel
+"
+  green "  ok   $pls_lp names quick's review phase '$pls_lname' in its $pls_llabel"
+done <<'PLS_LENS_EOF'
+skills/quick/SKILL.md|[A-Za-z][A-Za-z-]* address-all review still closes before finish|| address-all review still closes before finish|frontmatter clause
+skills/quick/SKILL.md|\*\*5-lite\. [A-Za-z][A-Za-z-]* review\*\*|**5-lite. | review**|flow-table step heading
+skills/hackify/references/phase-ledger.md|Phase 5-lite\. [A-Za-z][A-Za-z-]* address-all review|Phase 5-lite. | address-all review|quick ledger row
+PLS_LENS_EOF
+# The floor that stops the comparison below passing on nothing. Two rows that both
+# failed to resolve leave one name, one name agrees with itself, and the agreement
+# green would print with total confidence over a single surviving site.
+check_list_size "$pls_lens_n" "$PLS_LENS_SITES_EXPECTED" "the sites stating quick's review-phase name, each anchored above by its own clause"
+
+# THE FIRST RESOLVED SITE IS THE REFERENCE AND THE RED NAMES BOTH SIDES, rather than
+# adjudicating one of them wrong. Which site is the stale one is not a thing this check
+# can know: at two sites there is no majority to read it off, and a majority rule that
+# works only at three breaks the day a fourth site picks the name up.
+pls_lens_first=''
+pls_lens_ref=''
+pls_lens_bad=0
+while IFS= read -r pls_lrow; do
+  [ -n "$pls_lrow" ] || continue
+  pls_lfold=${pls_lrow%%|*}
+  pls_lwhere=${pls_lrow#*|}
+  if [ -z "$pls_lens_first" ]; then
+    pls_lens_first=$pls_lfold
+    pls_lens_ref=$pls_lwhere
+  elif [ "$pls_lfold" != "$pls_lens_first" ]; then
+    red "  FAIL [76j] $pls_lwhere calls quick's review phase '$pls_lfold', while $pls_lens_ref calls it '$pls_lens_first'; one phase with two names is a reword that stranded the sites it did not reach"
+    FAILED=$((FAILED + 1))
+    pls_lens_bad=$((pls_lens_bad + 1))
+  fi
+done <<PLS_LENS_CMP_EOF
+$pls_lens_seen
+PLS_LENS_CMP_EOF
+if [ "$pls_lens_n" -gt 1 ] && [ "$pls_lens_bad" -eq 0 ]; then
+  green "  ok   all $pls_lens_n sites call quick's review phase '$pls_lens_first' (compared case-folded)"
 fi

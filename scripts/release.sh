@@ -81,7 +81,7 @@ fi
 DIRTY="$(git status --porcelain)"
 if [ -n "$DIRTY" ]; then
   red "FATAL: working tree is dirty. Commit or stash first."
-  printf '%s\n' "$DIRTY" | head -5
+  printf '%s\n' "$DIRTY" | awk 'NR<=5'
   exit 2
 fi
 

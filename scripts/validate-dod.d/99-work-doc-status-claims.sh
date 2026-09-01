@@ -107,8 +107,20 @@ yellow "[99] every work-doc's status is one the template declares, and it agrees
 # [95] all scan with a three-part pathspec that EXCLUDES docs/work/, because for them
 # the sprint record has to be able to quote a broken doc. This check is one of the
 # two whose subjects ARE the work-docs, so copying that pathspec would collapse the
-# subject set to zero and print a confident green over nothing. Tracked files only,
-# so a half-written doc open in an editor is never judged.
+# subject set to zero and print a confident green over nothing.
+#
+# TRACKED AND UNTRACKED, WHICH REVERSES WHAT THIS PARAGRAPH USED TO SAY. It read
+# `git ls-files`, the INDEX, and this sentence called the half-written doc open in
+# an editor a doc deliberately left unjudged. That was the wrong call and the
+# measurement says so: a status is written the moment a doc is authored and is
+# corrected, if ever, long before anyone commits it, so an index-only read waits
+# out the entire window in which the defect exists and then reports on the window
+# in which it cannot. Measured on the sprint that found it: this check printed
+# "all 24 tracked work-doc(s)" on a green run without once opening the document
+# authorizing that very run, because that document was untracked.
+# `--exclude-standard` is what keeps a gitignored path out of the corpus, and
+# [89] argues the same correction to its own scan under "THE SCAN READS UNTRACKED
+# FILES TOO".
 #
 # THE FLOORS ARE WHAT STOP A VACUOUS PASS, judged before any per-doc red prints, the
 # order [91], [93], [94] and [95] all argue for: a collapsed vocabulary makes every
@@ -118,7 +130,7 @@ yellow "[99] every work-doc's status is one the template declares, and it agrees
 #   WS_DOC_FLOOR, half the work-docs tracked on 2026-08-25. Half, because docs are
 #   added most waves and none has ever been deleted, so only a collapse toward zero
 #   means the pathspec stopped matching.
-#     git ls-files -- 'docs/work/*.md' | wc -l
+#     git ls-files --cached --others --exclude-standard -- 'docs/work/*.md' | wc -l
 #
 #   WS_VOCAB_FLOOR, half the values the template row declares today. Half, for the
 #   same reason [94] floors the template's heading count at 12 against 23: the list
@@ -168,7 +180,7 @@ ws_floors_hold() {
     return 1
   fi
   if [ "$WS_DOCS" -lt "$WS_DOC_FLOOR" ]; then
-    ws_fail "[99] the work-doc scan read $WS_DOCS tracked doc(s) under docs/work/ against a floor of $WS_DOC_FLOOR; the pathspec stopped matching, and a scan over nothing measures nothing"
+    ws_fail "[99] the work-doc scan read $WS_DOCS doc(s) under docs/work/ against a floor of $WS_DOC_FLOOR; the pathspec stopped matching, and a scan over nothing measures nothing"
     return 1
   fi
   return 0
@@ -200,7 +212,7 @@ ws_verdict() {
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all $WS_DOCS tracked work-doc(s) carry a status the template's $WS_VOCAB declared value(s) allow and sit in the directory that status implies, and the positive control separated its reported docs from its clean ones before that silence was trusted"
+  green "  ok   all $WS_DOCS tracked and untracked work-doc(s) carry a status the template's $WS_VOCAB declared value(s) allow and sit in the directory that status implies, and the positive control separated its reported docs from its clean ones before that silence was trusted"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -391,20 +403,42 @@ def control(allowed):
 
 
 def work_docs():
-    """Tracked work-docs, by argv list and never through a shell.
+    """Work-docs tracked OR untracked, by argv list and never through a shell.
 
-    docs/work/ is deliberately IN scope; see the header. -z AND SPLIT ON NUL, never
-    newline: under git's default core.quotePath a path holding a non-ASCII byte, a double
-    quote or a backslash comes back C-quoted and wrapped in quote marks, so it no
-    longer ends in .md, the filter below drops it, and the doc leaves the corpus with
-    nothing said about it. A NUL record is never quoted and never escaped."""
-    proc = subprocess.run(['git', 'ls-files', '-z', '--', WORKDOCS],
+    docs/work/ is deliberately IN scope; see the header.
+
+    --cached --others --exclude-standard, never --cached alone. This read was the
+    index for its whole life, so a work-doc that had not been committed yet was
+    outside the corpus while the pass line below counted the ones that were and
+    called them all. A wrong status is written the moment a doc is authored and is
+    corrected, if ever, long before it is committed, so the pre-commit window is
+    not a gap in this check's coverage, it is where the entire defect class lives.
+    --exclude-standard keeps a gitignored path out; nothing under docs/work/ is
+    ignored today, and the flag is what keeps that true if one ever is.
+
+    DEDUPED, ORDER KEPT. --cached and --others are disjoint for a clean index but
+    not for an unmerged one, where a conflicted path is listed once per stage, and
+    a doc counted twice would inflate the SIZE total the doc floor below is read
+    against, in the direction that makes a collapsed corpus pass.
+
+    -z AND SPLIT ON NUL, never newline: under git's default core.quotePath a path
+    holding a non-ASCII byte, a double quote or a backslash comes back C-quoted and
+    wrapped in quote marks, so it no longer ends in .md, the filter below drops it,
+    and the doc leaves the corpus with nothing said about it. A NUL record is never
+    quoted and never escaped."""
+    proc = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others',
+                           '--exclude-standard', '--', WORKDOCS],
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:
         sys.stderr.write(proc.stderr.decode('utf-8', 'replace'))
         raise SystemExit('git ls-files failed with rc %d' % proc.returncode)
     names = proc.stdout.decode('utf-8', 'replace').split('\0')
-    return [p for p in names if p.endswith('.md')]
+    seen, out = set(), []
+    for p in names:
+        if p.endswith('.md') and p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
 
 
 def one_line(text):

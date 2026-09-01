@@ -3,189 +3,71 @@
 # Run from repo root. Exits 0 if all checks pass, non-zero on any failure.
 #
 # Thin orchestrator. Helper functions and check groups live in
-# scripts/validate-dod.d/*.sh and are sourced in order:
-#   00-helpers.sh, color printers + check_* helpers
+# scripts/validate-dod.d/*.sh and are sourced in the order indexed below.
+#
+# THE MANIFEST MOVED; ONLY THE INDEX STAYED. Every row's prose now lives in
+# scripts/validate-dod.d/README.md, word for word: what each fragment holds, why
+# a split was cut at one check rather than its neighbour, and the corrections
+# several rows exist to record. It left because 267 of this file's 487 lines
+# were that prose, against the 500-LOC cap check [80] enforces, and two more
+# fragments would have breached it.
+#
+# WHAT STAYED, AND WHY IT COULD NOT ALL GO. Three checks read this index here
+# rather than reading the README: [76f] requires every sourced fragment to be
+# NAMED in this header, [76i] parses each row's check-id range and compares both
+# endpoints against that fragment's own declarations, and
+# scripts/test_ban_tokens.d/40-fragment-coverage.sh matches the literal
+# `<fragment>, check [NN],` for the four fragments nothing else outside this
+# file names. So a row here is a LOOKUP, one line, never a record. The record is
+# the README, and a row added here needs its paragraph added there.
+#
+#   00-helpers.sh, color printers, the ok counter, the line-oriented absence family, and the loop that sources every other helper fragment beside it
+#   01-presence-matchers.sh, the presence matchers, both flattened matchers and the shared membership count
+#   02-file-shape-checks.sh, the whole-file shape assertions
 #   10-required-files.sh, checks [1]-[6]
 #   20-templates.sh, checks [7]-[15], [36] (template contracts incl. agents/)
-#   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match
-#                   plugin.json (stable ref, edge ref, versions)
+#   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match plugin.json
 #   30-version-and-summary.sh, checks [16]-[20]
 #   40-quick-skill.sh, checks [21]-[23], [35]
 #   50-runtimes-and-companions.sh, checks [24]-[26], [28]
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
-#   56-dist-integrity.sh, check [56], every file the sync COPIES into
-#                   dist/<runtime>/ is byte-identical to the canonical source it
-#                   came from. Sits beside [55] because the two are halves of one
-#                   question and neither is the other: [55] asks whether a
-#                   canonical file is NAMED in the sync manifest, this asks
-#                   whether the bytes that shipped are the bytes on disk. A
-#                   fresh clone has no built tree and gets a printed skip
+#   56-dist-integrity.sh, check [56], every file the sync COPIES into dist/<runtime>/ is byte-identical to the canonical source
 #   57-doc-links.sh, check [57], every cited .md link and prose path resolves to a real file
+#   58-contradiction-miner.sh, check [58], a routing predicate table mined for a file asserting not-X where a named authority asserts X
 #   60-primitives.sh, checks [29]-[32]
-#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the
-#                   structural invariants (excised files stay excised, skill
-#                   frontmatter, hook command targets, always-on injection,
-#                   perf surfaces)
-#   71-release-mechanism-pins.sh, checks [38c]-[38d] and [38f]-[38g], one block
-#                   per shipped saving, each pinning the guard rail that keeps
-#                   the saving from becoming a silent loss of rigor. Split out
-#                   of 70 at the 500-LOC cap; the check IDs moved with the
-#                   blocks. TWO RUNS AND NOT ONE, because this file does not
-#                   declare [38e] and never has: 72 does. Written as one run
-#                   the row read as [38c]-[38g], which sent a reader looking
-#                   for [38e] here to a fragment that has no such block
-#   72-diff-slicing-pins.sh, checks [38e] and [38h], the v0.11.0 diff-slicing
-#                   and carry-over mechanism, plus the settle-echo contract's
-#                   own FILE SET ([38h]), which sits beside [38e] because [38e]
-#                   is the block it guards. Split out of 71 at the same 500-LOC
-#                   cap, IDs and all; the cut was taken here rather than at
-#                   [38f] so that every line 71 keeps stays at the number a
-#                   live citation already names. TWO SINGLE IDS AND NOT A
-#                   RANGE, for the reason the row above gives pointed the other
-#                   way: [38f] and [38g] sit in 71, so a run of [38e]-[38h]
-#                   claimed two blocks this file does not hold
-#   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned
-#                   from both ends, the live agent type present at every
-#                   dispatch site and the dead one absent from the whole
-#                   tracked tree. Split out of 70 at the 500-LOC cap, where it
-#                   was two thirds of the file on its own
-#   74-agent-shell-blocks.sh, check [74], every fenced shell block in a
-#                   dispatchable agent template parses under /bin/bash. Added
-#                   after a `case` pattern's `)` closed its enclosing `$(` in
-#                   bash 3.2 and made a whole VERIFICATION block dead code that
-#                   nothing else in this validator ever opened
-#   75-ship-bar.sh, check [75], the always-on ship bar (law-scout, ship gate,
-#                   coherence reviewer, refute + settled-diff exit) wired in every mode
-#   76-phase-ledger-substrate.sh, checks [76]-[76f], [76i], where the phase
-#                   ledger lives, the per-phase tick lines, the always-on phase
-#                   laws, this orchestrator's own fragment enumeration ([76f]),
-#                   and this row's own range endpoints checked against the
-#                   fragments they describe ([76i]). The row is written as a
-#                   range plus a single id rather than [76]-[76i], because
-#                   [76g] and [76h] are no longer here and a closing range
-#                   endpoint would claim they were
-#   77-reviewer-roster.sh, check [77], reviewer-roster drift in COUNT grammar,
-#                   count bans over six files (two no other check reaches, a
-#                   wider token set on the four shared with [38g]) plus the
-#                   adjudication reviewer's report input
-#   78-dispatch-mandate.sh, check [78], no parent-authored diffs + orchestration
-#                   that is a tool call rather than a description
-#   79-standing-member-invariant.sh, check [79], the ROSTER-CLAIM half of the
-#                   roster guard, every 'standing member' claim must name B,
-#                   over a file set the check discovers rather than lists.
-#                   Split out of 77 at the 500-LOC cap
-#   80-file-size-caps.sh, checks [80] and [80b], file-size ≤ 500 LOC across
-#   81-no-claude-attribution.sh, check [81], no Co-Authored-By trailer,
-#     Claude-Session line or generated-with footer in commits or PR bodies
-#                   primitives, and the two 500-LOC counters (wc -l and the
-#                   lawkeeper scanner) agreeing at the cap boundary ([80b])
-#   82-throughput-and-routing.sh, checks [82]-[82g], the throughput and
-#                   routing doctrine of the 0.18.x sprint, one block per
-#                   change: the dispatch budget stated as digits in one file
-#                   only, the four Phase 3 stages with the testing wave last,
-#                   the per-returning-agent work-doc cadence, quick as the
-#                   default route with full mode never auto-firing, the
-#                   settled test_mode enum, and {{concurrent_wave_target}} on
-#                   both spec-reviewer copies. Five of the six pin the live
-#                   claim AND ban the wording it replaced, because a pin alone
-#                   goes green on a file that still carries both. [82g] then
-#                   pins skills/hackify/references/sibling-track-rules.md,
-#                   which no check here had ever opened: its 'none' database
-#                   branch is verified against the tree rather than believed,
-#                   and the absolute ban on the shared database above it was
-#                   not softened by that branch
-#   83-testing-stage-shape.sh, check [83], the testing stage's shape: the
-#                   `test-authoring` wave's quiet-tree and whole-round-diff
-#                   assumptions are conditional on {{sibling_tracks}} rather
-#                   than granted, on BOTH implementer mirror copies, and the
-#                   partition the stage splits on covers the production files a
-#                   watched red mutates as well as the test files it writes.
-#                   Three comments cited this rule as `[82h]` before it existed;
-#                   they now cite `check [83]`. ONE ID AND NOT A RANGE, for the
-#                   reason the 98 and 99 rows give: this fragment declares
-#                   exactly one check and a range endpoint would assert a
-#                   maximum it does not have
-#   84-no-pipe-into-grep-q.sh, check [84], no line in scripts/ pipes an `echo`
-#                   or a `printf` into a short-circuiting reader. `grep -q`
-#                   exits on its first match, which closes the pipe while the
-#                   writer is still filling it; the writer takes SIGPIPE and
-#                   `set -o pipefail` hands back 141 instead of grep's 0, so a
-#                   marker that is present reads as missing. Load-dependent and
-#                   invisible on inspection: 3 red runs in 25 before the eight
-#                   reachable sites were converted, 0 in 100 after. The check
-#                   skips a line whose first non-blank character starts a
-#                   comment, so the three comments that document the trap
-#                   survive it. ONE ID AND NOT A RANGE, for the reason the 83,
-#                   98 and 99 rows give: this fragment declares exactly one
-#                   check and a range endpoint would assert a maximum it does
-#                   not have
-#   85-design-spec-conformance.sh, check [85], design-spec catalog conformance
-#                   (contract + WCAG AA contrast)
+#   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the structural invariants
+#   71-release-mechanism-pins.sh, checks [38c]-[38d] and [38f]-[38g], one block per shipped saving
+#   72-diff-slicing-pins.sh, checks [38e] and [38h], the diff-slicing and carry-over mechanism plus the settle-echo file set
+#   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned from both ends
+#   74-agent-shell-blocks.sh, check [74], every fenced shell block in a dispatchable agent template parses under /bin/bash
+#   75-ship-bar.sh, check [75], the always-on ship bar wired in every mode
+#   751-orchestration-tier.sh, check [75i], the orchestration tier, iteration driver and completion sentinel wired as defaults in every mode
+#   752-wizard-contract.sh, checks [75j]-[75k], the wizard contract and the question banks it governs
+#   76-phase-ledger-substrate.sh, checks [76]-[76f], [76i], the phase-ledger substrate and this header's own rows
+#   761-manifest-readme-sync.sh, check [76j], the index above and scripts/validate-dod.d/README.md name the same fragments, in both directions
+#   77-reviewer-roster.sh, check [77], reviewer-roster drift in COUNT grammar
+#   78-dispatch-mandate.sh, check [78], no parent-authored diffs, and orchestration that is a tool call rather than a description
+#   79-standing-member-invariant.sh, check [79], the ROSTER-CLAIM half of the roster guard
+#   80-file-size-caps.sh, checks [80] and [80b], file-size ≤ 500 LOC across primitives, and the two counters agreeing at the cap boundary
+#   81-no-claude-attribution.sh, check [81], no Co-Authored-By trailer, Claude-Session line or generated-with footer
+#   82-throughput-and-routing.sh, checks [82]-[82g], the throughput and routing doctrine of the 0.18.x sprint
+#   83-testing-stage-shape.sh, check [83], the testing stage's shape
+#   84-no-pipe-into-grep-q.sh, check [84], nothing in scripts/, in hooks/, or in a fenced shell block in an agent template pipes into a short-circuiting reader
+#   85-design-spec-conformance.sh, check [85], design-spec catalog conformance (contract + WCAG AA contrast)
+#   86-skill-command-namespace.sh, check [86], every slash command written in prose is read from both ends
+#   87-agent-roster-rows.sh, check [87], the dispatch roster in parallel-agents/README.md read from both ends against agents/
+#   88-plugin-map.sh, check [88], the orientation map rules/plugin-map.md read from both ends against the tree it describes
+#   89-reviewer-rename.sh, check [89], the 0.18.0 Phase 5 reviewer rename pinned from both ends
 #   90-collisions.sh, check [90], sibling-plugin slug collision (soft)
-#   91-claim-resolvers.sh, check [91], every 'check [NN]' claim in a live file
-#                   resolves to a check id the validator actually declares, so a
-#                   doc cannot cite a check that was never written
-#   92-work-doc-structure.sh, check [92], no tracked work-doc numbers two
-#                   sections the same and its numbered sections only go up, so a
-#                   second '## 6. Daily Updates' or a spliced-in Sprint Backlog
-#                   cannot sit in the source of truth a sprint resumes from. Keyed
-#                   on the section NUMBER and never on the heading text, because
-#                   both duplicates this repo has shipped carried trailing prose
-#                   and an equality check separates those happily
-#   93-token-declarations.sh, check [93], every {{token}} used in a sub-agent
-#                   prompt is declared by that prompt's own INPUTS list, so a
-#                   dispatch cannot be asked to fill a placeholder nothing names
-#   94-section-exists.sh, check [94], every instruction naming a work-doc
-#                   section names one the template's headings actually declare,
-#                   so a doc cannot send a writer to a section that was retired
-#   95-literal-absent-claims.sh, check [95], every claim that a quoted phrase is
-#                   not pinned is checked by looking the phrase up, so a comment
-#                   cannot call a literal unpinned while another fragment bans it
-#   96-review-scope-sites.sh, checks [76g]-[76h], the docs/work/ exclusion on
-#                   the reviewed diff, and the FULL-round gate wording stated
-#                   identically at every site that states it plus Reviewer B's
-#                   round marker, both over a file set the check DISCOVERS
-#                   rather than lists. Split out of 76 at the 500-LOC cap, IDs
-#                   and all
-#   97-test-suites-reachable.sh, check [97], every tracked test suite is
-#                   reachable from .github/workflows/ci.yml, either named by a
-#                   step directly or imported by a file that is, so a suite
-#                   cannot sit green-on-demand and absent from every automated
-#                   run. Same shape as [0] one layer up: [0] catches a fragment
-#                   nothing sources, this catches a suite nothing runs
-#   98-work-doc-ledger-sync.sh, check [98], an archived work-doc closes every row
-#                   of its section 0 phase ledger, and an archived doc created on
-#                   or after the day section 0 became a work-doc section carries
-#                   that block at all, so deleting the block is not a way to turn
-#                   a red green. ONE ID AND NOT A RANGE, because this fragment
-#                   declares exactly one check and a range endpoint would assert a
-#                   maximum it does not have
-#   99-work-doc-status-claims.sh, check [99], every tracked work-doc's frontmatter
-#                   status is one the template's own row declares, and a doc
-#                   outside done/ does not claim it was finished. Split out of 98
-#                   at the 500-LOC cap, where the created-date rule above would not
-#                   fit. THE ASSERTION LETTERS (a) AND (c) MOVED WITH THE BLOCKS
-#                   while the id did not: [98] is a single check, its CHANGELOG
-#                   entry binds that id to 98-work-doc-ledger-sync.sh by name, and
-#                   phase-ledger.md cites assertion (c) by letter. That entry is
-#                   cited by NAME and not by line on purpose: the first version of
-#                   this comment cited a line, the entry was rewritten one commit
-#                   later, and the citation went stale while [57] stayed green,
-#                   because [57] proves a line EXISTS and never that it still says
-#                   what cites it. ONE ID AND NOT A RANGE, for 98's reason
-#
-# HOW THE 71 AND 72 ROWS ABOVE WENT WRONG AT ONCE, recorded here rather than in
-# either row because it is a property of the row FORMAT and not of those two
-# fragments. Both were written as a single range and both had the right
-# endpoints: 71 read [38c]-[38g] while declaring no [38e], and 72 read
-# [38e]-[38h] while declaring neither [38f] nor [38g]. [76i] compares a row's
-# range endpoints against the fragment's lowest and highest declared check, so
-# it read both rows and agreed with both. What no endpoint comparison can be
-# asked about is the ids in the MIDDLE of a run, which is where both errors sat,
-# and a reader looking up [38e] was sent to 71 where it does not exist. Set
-# membership in both directions, every id a row names is declared by that
-# fragment and every id that fragment declares is named by that row, is the
-# rule that reaches them; it is [76i]'s to widen and is not bought here.
+#   91-claim-resolvers.sh, check [91], every 'check [NN]' claim in a live file resolves to a check the validator declares
+#   92-work-doc-structure.sh, check [92], no tracked work-doc numbers two sections the same
+#   93-token-declarations.sh, check [93], every {{token}} in a sub-agent prompt is declared by that prompt's own INPUTS list
+#   94-section-exists.sh, check [94], every instruction naming a work-doc section names one the template declares
+#   95-literal-absent-claims.sh, check [95], every claim that a quoted phrase is not pinned is checked by looking the phrase up
+#   96-review-scope-sites.sh, checks [76g]-[76h], the docs/work/ exclusion on the reviewed diff and the FULL-round gate wording
+#   97-test-suites-reachable.sh, check [97], every tracked test suite is reachable from .github/workflows/ci.yml
+#   98-work-doc-ledger-sync.sh, check [98], an archived work-doc closes every row of its section 0 phase ledger
+#   99-work-doc-status-claims.sh, check [99], every tracked work-doc's frontmatter status is one the template's own row declares
 #
 # Two checks do NOT live in a fragment and are written out below instead:
 #   [0]  the wiring guard, disk and source list must agree in both directions
@@ -278,7 +160,15 @@ elif [ "$DOD_WIRING_BAD" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "  ok   all $DOD_DISK_N fragments in scripts/validate-dod.d/ are sourced, and all $DOD_LINE_N source lines name a readable fragment"
 fi
 
+# THE THREE HELPER LINES ARE THE WIRING [0] READS, and they stay named one per
+# line for that reason. Sourcing 00-helpers.sh also sources the other two through
+# the loop at the foot of that file, which is what lets a fragment run in isolation
+# outside this orchestrator reach every helper from one source line; the argument is
+# written there. Re-sourcing a definition-only fragment redefines its functions and
+# touches no counter, so what the redundancy costs a full run is two file reads.
 source "$DOD_MODULES_DIR/00-helpers.sh"
+source "$DOD_MODULES_DIR/01-presence-matchers.sh"
+source "$DOD_MODULES_DIR/02-file-shape-checks.sh"
 source "$DOD_MODULES_DIR/10-required-files.sh"
 source "$DOD_MODULES_DIR/20-templates.sh"
 source "$DOD_MODULES_DIR/27-marketplace-ref-pin.sh"
@@ -288,6 +178,7 @@ source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
 source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
 source "$DOD_MODULES_DIR/56-dist-integrity.sh"
 source "$DOD_MODULES_DIR/57-doc-links.sh"
+source "$DOD_MODULES_DIR/58-contradiction-miner.sh"
 source "$DOD_MODULES_DIR/60-primitives.sh"
 source "$DOD_MODULES_DIR/70-invariants-and-new.sh"
 source "$DOD_MODULES_DIR/71-release-mechanism-pins.sh"
@@ -295,7 +186,10 @@ source "$DOD_MODULES_DIR/72-diff-slicing-pins.sh"
 source "$DOD_MODULES_DIR/73-implementer-rename.sh"
 source "$DOD_MODULES_DIR/74-agent-shell-blocks.sh"
 source "$DOD_MODULES_DIR/75-ship-bar.sh"
+source "$DOD_MODULES_DIR/751-orchestration-tier.sh"
+source "$DOD_MODULES_DIR/752-wizard-contract.sh"
 source "$DOD_MODULES_DIR/76-phase-ledger-substrate.sh"
+source "$DOD_MODULES_DIR/761-manifest-readme-sync.sh"
 source "$DOD_MODULES_DIR/77-reviewer-roster.sh"
 source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
@@ -305,6 +199,10 @@ source "$DOD_MODULES_DIR/82-throughput-and-routing.sh"
 source "$DOD_MODULES_DIR/83-testing-stage-shape.sh"
 source "$DOD_MODULES_DIR/84-no-pipe-into-grep-q.sh"
 source "$DOD_MODULES_DIR/85-design-spec-conformance.sh"
+source "$DOD_MODULES_DIR/86-skill-command-namespace.sh"
+source "$DOD_MODULES_DIR/87-agent-roster-rows.sh"
+source "$DOD_MODULES_DIR/88-plugin-map.sh"
+source "$DOD_MODULES_DIR/89-reviewer-rename.sh"
 source "$DOD_MODULES_DIR/90-collisions.sh"
 source "$DOD_MODULES_DIR/91-claim-resolvers.sh"
 source "$DOD_MODULES_DIR/92-work-doc-structure.sh"

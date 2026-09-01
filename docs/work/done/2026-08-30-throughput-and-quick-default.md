@@ -102,20 +102,20 @@ Follow-up, same session:
 
 ## 3. Acceptance Criteria
 
-- [ ] The per-agent task budget and the concurrent-wave budget are stated once, canonically, in `references/contention-dispatch.md` and NOWHERE else carries the digits; every other file names the rule.
-- [ ] Every file the backlog touches ends at or under 500 lines (check `[80]`), and each task reports its final `wc -l`.
-- [ ] The coarse-to-fine partition rule packs each subset up to the per-agent budget and only then splits, up to the concurrent-agent budget, with all three partition conditions still hard.
-- [ ] `{{wave_size_target}}` is a packing target with the new default, and its "bounds nothing" wording is replaced everywhere it appears, including the `agents/spec-reviewer.md` mirror.
-- [ ] Implementation waves write production code only; one dedicated testing wave runs after the last module wave and before Phase 4, and is marked complete with a written reason when a diff genuinely has nothing to test.
-- [ ] The RED-gate and `test_mode` wording is rewritten consistently across the implementer template, its mirror and `implement-and-test.md`, with no surviving sentence that tells an implementer to watch a test fail.
-- [ ] The work-doc is updated as each agent returns, and the rule says so in the canonical place with the old round-end wording gone.
-- [ ] Quick is the default route in all three `description:` fields, in hackify's "When to invoke", in quick's own sections and in the `README.md` routing table, with NO auto-escalation list anywhere; full mode is reached only by explicit user request.
-- [ ] `skills/quick/evals/evals.json` case 3 is inverted (a cross-file refactor now stays in quick) and its case-2 single-implementer assertion is replaced by the budget.
-- [ ] Quick dispatches parallel implementers under the same budget and the same file-disjointness rule.
-- [ ] `bash scripts/validate-dod.sh` exits 0.
-- [ ] Every CI test script in `.github/workflows/ci.yml` exits 0.
-- [ ] `bash scripts/sync-runtimes.sh` runs clean; `python3 scripts/sync_agent_mirrors.py --check` reports all pairs in sync.
-- [ ] `README.md` stays inside its 250..450 line bound and the version badge matches `plugin.json`.
+- [x] The per-agent task budget and the concurrent-wave budget are stated once, canonically, in `references/contention-dispatch.md` and NOWHERE else carries the digits; every other file names the rule.
+- [x] Every file the backlog touches ends at or under 500 lines (check `[80]`), and each task reports its final `wc -l`.
+- [x] The coarse-to-fine partition rule packs each subset up to the per-agent budget and only then splits, up to the concurrent-agent budget, with all three partition conditions still hard.
+- [x] `{{wave_size_target}}` is a packing target with the new default, and its "bounds nothing" wording is replaced everywhere it appears, including the `agents/spec-reviewer.md` mirror.
+- [x] Implementation waves write production code only; one dedicated testing wave runs after the last module wave and before Phase 4, and is marked complete with a written reason when a diff genuinely has nothing to test.
+- [x] The RED-gate and `test_mode` wording is rewritten consistently across the implementer template, its mirror and `implement-and-test.md`, with no surviving sentence that tells an implementer to watch a test fail.
+- [x] The work-doc is updated as each agent returns, and the rule says so in the canonical place with the old round-end wording gone.
+- [x] Quick is the default route in all three `description:` fields, in hackify's "When to invoke", in quick's own sections and in the `README.md` routing table, with NO auto-escalation list anywhere; full mode is reached only by explicit user request.
+- [x] `skills/quick/evals/evals.json` case 3 is inverted (a cross-file refactor now stays in quick) and its case-2 single-implementer assertion is replaced by the budget.
+- [x] Quick dispatches parallel implementers under the same budget and the same file-disjointness rule.
+- [x] `bash scripts/validate-dod.sh` exits 0.
+- [x] Every CI test script in `.github/workflows/ci.yml` exits 0.
+- [x] `bash scripts/sync-runtimes.sh` runs clean; `python3 scripts/sync_agent_mirrors.py --check` reports all pairs in sync.
+- [x] `README.md` stays inside its 250..450 line bound and the version badge matches `plugin.json`.
 
 ## 4. Approach
 
@@ -1044,9 +1044,9 @@ That changes the risk rather than removing it. These files are one `set -o pipef
 
 **Shipped.** Phase 3 packs about twenty tasks into one implementer and runs up to ten of those side by side; test authoring moved to a dedicated stage at the end that can itself split; the work-doc is written as each agent returns rather than once at round end; and quick is now the mode a prompt lands in unless the ask names full hackify. Version 0.18.0.
 
-**Scope.** 33 files changed plus 5 new, 1521 insertions against 747 deletions. Three new validator fragments: `82-throughput-and-routing.sh`, `92-work-doc-structure.sh`, `83-testing-stage-shape.sh`.
+**Scope.** Measured over `9d0961e..51ecd00` excluding `docs/work/`: 49 files, 45 changed plus 4 new, 3013 insertions against 772 deletions. Four new validator fragments: `82-throughput-and-routing.sh`, `83-testing-stage-shape.sh`, `84-no-pipe-into-grep-q.sh`, `92-work-doc-structure.sh`.
 
-**The bar, run at the parent rather than accepted from an agent.** All 18 CI commands exit 0, enumerated from `.github/workflows/ci.yml` itself. The first enumeration returned 13 and a vacuity guard aborted the run before it could report a green; the regex had missed the `hooks/` and `skills/lawkeeper/` commands. `validate-dod.sh` prints 1698 ok lines; `test_ban_tokens.sh` passes 187; `test_tamper_battery.py` passes 163.
+**The bar, run at the parent rather than accepted from an agent.** All 18 CI commands exit 0, enumerated from `.github/workflows/ci.yml` itself. The first enumeration returned 13 and a vacuity guard aborted the run before it could report a green; the regex had missed the `hooks/` and `skills/lawkeeper/` commands. `validate-dod.sh` prints 1700 ok lines; `test_ban_tokens.sh` passes 187; `test_tamper_battery.py` passes 163.
 
 **Panel baseline, and this is the number the merged-reviewer entry in `## 6. Daily Updates` points at.** The five-agent panel returned **27 findings on one large real diff**: Reviewer A 8, Reviewer B 6, Reviewer D 2, Reviewer F 11, of which **7 were Critical**. That per-lens split is what the merged all-lens reviewer must match on the same diff next sprint, and Reviewer F's 11 is the load-bearing one, since coherence is the lens a merge is most likely to dilute.
 
@@ -1061,6 +1061,10 @@ That changes the risk rather than removing it. These files are one `set -o pipef
 **What went wrong, and the shape it kept taking.** Vacuous verification. Fourteen-plus scans this sprint returned a clean result the method could never have made dirty: line-oriented greps against wrapped markdown, a `mapfile` that does not exist in zsh, a shimmed `grep` that silently skips ignored paths, and case-sensitive matches on prose that had been reworded. My own CI enumeration did it once more today and only the guard caught it. The rule that keeps earning its place is that an absence is only as good as the method's ability to have found the thing present, and it needs a planted control every time, not an argument.
 
 **The near miss.** The sprint's headline change was safe everywhere except the one file the testing agent actually reads. It survived four review passes because the ban targets a phrase and the file said the same thing in other words. Pinning a wording rather than a meaning is a real limit, and the answer here was to give the new check a control plus a manufactured red rather than to write more phrases.
+
+**The backlog stopped at Phase 3 and the release ran past it.** Section 5 was written before implementation and never extended once Phase 5 started dispatching fix waves. Those waves were real work with real diffs and not one of them got a task. Measured over `9d0961e..51ecd00` excluding `docs/work/`, 24 of the 49 shipped files carry no task in section 5 that names them: the five `hooks/` files, `scripts/release.sh` and `scripts/check-collisions.sh`, three files of the ban-token suite, twelve validator fragments including all four the sprint added, and both scout files. The backlog is what a reviewer checks a diff against, so one that stops at the last planned wave leaves half the release with no stated authority behind it. A fix wave needs its task appended when it is dispatched, not a Daily Updates entry written after it lands.
+
+**The goal anchor excluded something the release then shipped a gate on.** Out-of-Scope lists "the scouts" among the non-goals, and the shipped diff edits `skills/hackify/references/law-scout.md` and `skills/hackify/references/perf-scout.md`, four lines each. The sharper half is that `[82c]` now pins both files by name (`82-throughput-and-routing.sh:215-216` as shipped at `51ecd00`), so a check this sprint wrote enforces cadence wording inside files the same sprint declared out of scope. That is not a stale exclusion, it is one a running gate contradicts on every validator pass. When a fix wave has to reach into an excluded file, the anchor gets amended in the same round or the guardrail stops meaning anything.
 
 **Deferred to next sprint, all carried rather than dropped:**
 

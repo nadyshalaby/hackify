@@ -37,6 +37,7 @@ PA_REVIEW_SINGLE_FILES=(
   "$PA_DIR/phase-5-multi-review-d-performance.md"
   "$PA_DIR/phase-5-multi-review-e-design.md"
   "$PA_DIR/phase-5-multi-review-f-coherence.md"
+  "$PA_DIR/phase-5-multi-review-merged.md"
   "$PA_DIR/phase-5-refute.md"
 )
 
@@ -143,17 +144,24 @@ yellow "[9] template structural conformance (per-file in $PA_DIR)"
 # SKILL.md frontmatter check, and a reader chasing a red would look in the wrong
 # block. The arrays carry a pointer comment instead.
 check_list_size "${#PA_BUILD_FILES[@]}" 3 "the [9]/[10]/[12]/[15] build-template set"
-check_list_size "${#PA_REVIEW_SINGLE_FILES[@]}" 8 "the [9]/[10]/[11]/[12]/[15] review-template set"
+check_list_size "${#PA_REVIEW_SINGLE_FILES[@]}" 9 "the [9]/[10]/[11]/[12]/[15] review-template set"
+# `$(<"$f")` AND `${f##*/}`, NOT `cat` AND `basename`, which is the rule [13]
+# already records at its own globs further down and the reason it is worth
+# repeating here: these four loops run over the same two arrays, so every element
+# added to them costs two more forks in each. Both spellings are bash's own and
+# both sit on the same line the fork sat on, so nothing here trades a line of the
+# 500-LOC budget for the saving. Catalog `perf.process.fork-for-builtin`,
+# rules/performance.md:175.
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
-  check_template_anchors "$(cat "$f")" "$(basename "$f")"
+  check_template_anchors "$(<"$f")" "${f##*/}"
 done
 
 yellow "[10] SEVERITY conditional (review templates have it; build/research don't)"
 for f in "${PA_REVIEW_SINGLE_FILES[@]}"; do
-  check_severity_presence "$(cat "$f")" "$(basename "$f")" "review"
+  check_severity_presence "$(<"$f")" "${f##*/}" "review"
 done
 for f in "${PA_BUILD_FILES[@]}"; do
-  check_severity_presence "$(cat "$f")" "$(basename "$f")" "build"
+  check_severity_presence "$(<"$f")" "${f##*/}" "build"
 done
 # Also the adjudication reviewer in review-and-verify.md
 for req in "**ROLE**" "**INPUTS**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**SEVERITY**" "**OUTPUT**"; do
@@ -168,9 +176,9 @@ done
 yellow "[11] canonical SEVERITY phrase in every review template"
 for f in "${PA_REVIEW_SINGLE_FILES[@]}"; do
   if grep -qF -- "$CANONICAL_SEVERITY" "$f"; then
-    green "  ok   $(basename "$f") has canonical SEVERITY line"
+    green "  ok   ${f##*/} has canonical SEVERITY line"
   else
-    red "  FAIL $(basename "$f") missing canonical SEVERITY line"
+    red "  FAIL ${f##*/} missing canonical SEVERITY line"
     FAILED=$((FAILED + 1))
   fi
 done
@@ -183,9 +191,9 @@ fi
 
 yellow "[12] ROLE substance check (5 elements per template)"
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
-  check_role "$(cat "$f")" "$(basename "$f")"
+  check_role "$(<"$f")" "${f##*/}"
 done
-check_role "$(cat "$RAV_FILE")" "review-and-verify.md"
+check_role "$(<"$RAV_FILE")" "review-and-verify.md"
 
 yellow "[13] no leaked absolute paths in template/bank bodies (PA_DIR/*.md, CQ_DIR/*.md, review-and-verify.md)"
 # Skip non-template files (README, the contract itself, aggregation guidance)
@@ -274,11 +282,11 @@ WORD_CAP_RX='≤[0-9]+\s*word|≤\s*`?\{\{[a-z_]+\}\}`?\s*word|word cap|Total ca
 # substring check. A here-string is written through a temp file, so it kills the
 # SIGPIPE the pipe carried without touching which engine reads the pattern.
 for f in "${PA_BUILD_FILES[@]}" "${PA_REVIEW_SINGLE_FILES[@]}"; do
-  out=$(output_subsection "$(cat "$f")")
+  out=$(output_subsection "$(<"$f")")
   if grep -qE -- "$WORD_CAP_RX" <<<"$out"; then
-    green "  ok   $(basename "$f") OUTPUT has word cap"
+    green "  ok   ${f##*/} OUTPUT has word cap"
   else
-    red "  FAIL $(basename "$f") OUTPUT missing word cap (looked for: ≤NN words / word cap / Total cap)"
+    red "  FAIL ${f##*/} OUTPUT missing word cap (looked for: ≤NN words / word cap / Total cap)"
     FAILED=$((FAILED + 1))
   fi
 done
@@ -296,16 +304,16 @@ for f in "${CQ_BANK_FILES[@]}"; do
   ok=1
   for req in "**SCENARIO**" "**COMPOSITION**" "**QUESTIONS**" "**EXIT CRITERIA**"; do
     if ! grep -qF "$req" "$f"; then
-      red "  FAIL $(basename "$f") missing $req"
+      red "  FAIL ${f##*/} missing $req"
       FAILED=$((FAILED + 1)); ok=0
     fi
   done
-  [ "$ok" = "1" ] && green "  ok   $(basename "$f") wizard structure conforms"
+  [ "$ok" = "1" ] && green "  ok   ${f##*/} wizard structure conforms"
 done
 
 # === Agent-catalog contract conformance (agents/*.md) ===
 
-yellow "[36] agents/*.md template contract (anchors + ROLE substance + OUTPUT word cap; SEVERITY on code-reviewer-*)"
+yellow "[36] agents/*.md template contract (anchors + ROLE substance + OUTPUT word cap; SEVERITY on reviewer.md and reviewer-*)"
 # Agent files carry YAML frontmatter before **ROLE**, the anchor checks grep
 # the whole body, so frontmatter passes through harmlessly. The file list is
 # the live glob: a new agent is contract-checked the moment it lands, and an
@@ -314,14 +322,30 @@ AGENT_FILES_FOUND=0
 for f in agents/*.md; do
   [ -f "$f" ] || continue
   AGENT_FILES_FOUND=$((AGENT_FILES_FOUND + 1))
-  agent_body=$(cat "$f")
-  agent_label="agents/$(basename "$f")"
+  agent_body=$(<"$f")
+  agent_label="agents/${f##*/}"
   check_template_anchors "$agent_body" "$agent_label"
   check_role "$agent_body" "$agent_label"
-  # SEVERITY is required on reviewer-role agents only; spec-reviewer-* and
-  # implementer are governed by their own template files' [10] modes.
-  case "$(basename "$f")" in
-    code-reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
+  # SEVERITY is required on reviewer-role agents only; spec-reviewer.md,
+  # finding-refuter.md, codebase-investigator.md and implementer.md are governed by
+  # their own template files' [10] modes.
+  #
+  # THE PATTERN IS THE LIVE FAMILY AND WAS NOT. It read `code-reviewer-*` from
+  # v0.9.0 until this wave, and the 0.18.0 rename moved all six reviewer agents onto
+  # the bare `reviewer` stem, so from that commit the arm matched NOTHING while the
+  # banner above still advertised it: six review templates could drop their SEVERITY
+  # section and [36] would print its OUTPUT-cap green over every one of them. [89]
+  # bans the six retired NAMES from every live file and cannot see a retired GLOB,
+  # which is how this survived the rename that made it dead.
+  #
+  # BOTH HALVES ARE NEEDED, and `reviewer*` is not the answer to that: it would also
+  # swallow nothing today but would silently start judging any future `reviewer`-
+  # prefixed file, while `reviewer-*` alone misses agents/reviewer.md, the merged
+  # all-lens reviewer that is Phase 5's default route. Counted rather than assumed:
+  # the two patterns together match exactly the 6 files on disk that carry a
+  # **SEVERITY** section, and the four they skip carry none.
+  case "${f##*/}" in
+    reviewer.md|reviewer-*) check_severity_presence "$agent_body" "$agent_label" "review" ;;
   esac
   out=$(output_subsection "$agent_body")
   if grep -qE -- "$WORD_CAP_RX" <<<"$out"; then
@@ -360,9 +384,9 @@ for f in agents/*.md; do
     esac
   done
   if [ -z "$unknown" ]; then
-    green "  ok   $(basename "$f") declares only known tools"
+    green "  ok   ${f##*/} declares only known tools"
   else
-    red "  FAIL $(basename "$f") declares unknown tool(s):$unknown"
+    red "  FAIL ${f##*/} declares unknown tool(s):$unknown"
     FAILED=$((FAILED + 1))
   fi
 done
@@ -380,8 +404,8 @@ done
 # verdict over an empty set, the shape [27c] and [79] already use rather than the one
 # [91] and [93] carry over sets big enough to shrink. The live total is PRINTED on
 # the pass line every run instead of written down here, for the reason
-# 93-token-declarations.sh:105-108 gives: a count in a comment goes stale on the next
-# wave, and this file has neighbours whose whole job is catching exactly that.
+# 93-token-declarations.sh's "the defect wearing the uniform" sentence gives: a count
+# in a comment goes stale, and this file has neighbours whose job is catching that.
 TOOLS_DECLARED_FLOOR=1
 if [ "$TOOLS_DECLARED" -lt "$TOOLS_DECLARED_FLOOR" ]; then
   red "  FAIL [36b] parsed a 'tools:' line out of only $TOOLS_DECLARED agent file(s), against a floor of $TOOLS_DECLARED_FLOOR; the frontmatter key stopped matching rather than the agents losing their tools, so every declared tool went unscreened against the allowlist and this check found nothing to object to because it read nothing"
@@ -399,8 +423,8 @@ if [ ! -f "$INVESTIGATOR" ]; then
   red "  FAIL $INVESTIGATOR missing, the read-oriented tool surface cannot be checked"
   FAILED=$((FAILED + 1))
 elif grep -m1 '^tools:' "$INVESTIGATOR" | grep -qE '(^|[ ,:])(Edit|Write|NotebookEdit)([ ,]|$)'; then
-  red "  FAIL $(basename "$INVESTIGATOR") is read-oriented but declares a file-writing tool"
+  red "  FAIL ${INVESTIGATOR##*/} is read-oriented but declares a file-writing tool"
   FAILED=$((FAILED + 1))
 else
-  green "  ok   $(basename "$INVESTIGATOR") declares no file-writing tool"
+  green "  ok   ${INVESTIGATOR##*/} declares no file-writing tool"
 fi

@@ -26,7 +26,7 @@ GENERATED_GLOBS = (
   '*.gen.ts', '*.gen.tsx', '*.generated.*', 'routeTree.gen.ts', '*.d.ts',
   '*/migrations/*', '*/migrations/**/*',
   # The lawkeeper recall corpus is deliberately-violating test fixtures, not real
-  # code, exempt it from a self-audit (`/lawkeeper` on this repo) so a contributor
+  # code, exempt it from a self-audit (`/hackify:lawkeeper` on this repo) so a contributor
   # is not handed a pile of planted false-positives. run_corpus.py roots its scan
   # INSIDE corpus/project, where rel-paths don't contain this segment, so the
   # corpus's own scoring is unaffected.

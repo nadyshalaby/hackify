@@ -46,8 +46,8 @@ TRACKED_SORTED=$( { git ls-files skills/ commands/ rules/ agents/ hooks/ 2>/dev/
   | sort -u)
 MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 
-# THE FLOOR IS WHAT STOPS A VACUOUS PASS, the same one 91-claim-resolvers.sh:84-88
-# carries and for its stated reason. The two sides of the comparison below are not
+# THE FLOOR IS WHAT STOPS A VACUOUS PASS, the same one 91-claim-resolvers.sh's
+# CR_REF_FLOOR carries and for its stated reason. The two sides below are not
 # symmetric: an empty MANIFEST_SORTED leaves every canonical file unmirrored and
 # this block shouts, while an empty TRACKED_SORTED leaves `comm -23` nothing on its
 # left and prints "ok every ... file is in MIRROR_SOURCES/CLAUDE_CODE_EXTRA" over a
@@ -62,8 +62,8 @@ MANIFEST_SORTED=$(printf '%s\n' "$MANIFEST_LIST" | sort -u)
 # the discovery broke. Set at roughly half of what the tree measured when this floor
 # was written, so a whole runtime's worth of files can retire without a red. The
 # live total is PRINTED on the pass line rather than restated here, for the reason
-# 93-token-declarations.sh:105-108 gives: a count written into a comment goes stale
-# on the next wave that adds a file.
+# 93-token-declarations.sh's "the defect wearing the uniform" sentence gives: a
+# count written into a comment goes stale on the next wave that adds a file.
 MC_TRACKED_FLOOR=70
 
 # Counted with a here-doc loop rather than `wc -l`, matching the stale-entry loop
@@ -80,8 +80,8 @@ MC_TRACKED_EOF
 # THE FLOOR IS JUDGED BEFORE THE COMPARISON RUNS, not after it, and the order is
 # load-bearing rather than tidy. `comm` over a collapsed left side has nothing to
 # say, so letting it speak first would print a verdict about the manifest when the
-# defect is in the discovery. Same tie-break 91-claim-resolvers.sh:98-104 makes: a
-# scan that cannot be trusted names itself and says nothing about what it read.
+# defect is in the discovery. Same tie-break as 91-claim-resolvers.sh's cr_verdict:
+# a scan that cannot be trusted names itself and says nothing about what it read.
 if [ "$MC_TRACKED_N" -lt "$MC_TRACKED_FLOOR" ]; then
   red "  FAIL [55] discovered only $MC_TRACKED_N canonical file(s) under skills/ commands/ rules/ agents/ hooks/ against a floor of $MC_TRACKED_FLOOR; the discovery collapsed rather than the manifest going right, so nothing below was ever compared against the sync manifest"
   FAILED=$((FAILED + 1))

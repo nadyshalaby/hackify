@@ -50,7 +50,13 @@
 #                                             every non-trivial diff"
 #   phase-5-multi-review-a-security.md:174   "Reviewers D ... and F ... **are
 #                                             standing members of every wave**"
-#   references/review-and-verify.md:384      "dispatch two reviewers in parallel"
+#   review-and-verify.md's "two specialist lenses, not an adjudication"
+#                                            sentence, which said "dispatch
+#                                            two reviewers in parallel"
+#                                            before it was repaired
+# The third row is cited by PHRASE rather than by line on purpose. It carried
+# that file's line 384 until a reword moved the sentence one line down and left
+# 384 blank, which is the rot a line number takes and an anchor does not.
 # The first two name the wrong LETTER, not the wrong number, so no count ban
 # could ever have reached them. The third is a claim [77] already bans
 # ("two parallel reviewers") with its words in the other order. So the guard

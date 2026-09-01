@@ -59,7 +59,7 @@ CAP_APPEND_ONLY_EXPECTED=1
 
 # THE SCANNER CARRIES THE SAME LIST, AND THE TWO ARE CHECKED RATHER THAN TRUSTED TO
 # MATCH. skills/lawkeeper/scripts/exemptions.py waives `cap.file-lines` on the same
-# basenames, so a `/lawkeeper` run stops reporting the one file this check stops failing
+# basenames, so a `/hackify:lawkeeper` run stops reporting the one file this check stops failing
 # on. Two enforcers of one 500-line cap have already drifted apart by one in this repo,
 # which is the whole reason [80b] below exists; an exemption list is the same shape of
 # agreement and earns the same treatment, a check instead of prose. python3 is not a new
@@ -90,17 +90,67 @@ CAP_NL='
 
 yellow "[80] File-size cap, every tracked primitive file ≤ ${CAP_MAX_LOC} LOC"
 
+# ONE `wc -l` OVER THE WHOLE SET, NOT TWO FORKS PER FILE. The retired loop body
+# read `loc=$(wc -l < "$f" | tr -d ' ')`, which is a fork for wc plus a fork for
+# tr on EVERY scanned file: 500 processes over the 250 files this repo ships
+# today, scaling with the tree rather than with the work. rules/performance.md's
+# perf.process.spawn-per-item cites this very line as its worked example, so the
+# plugin's own pre-commit gate was standing as the catalog's counter-example.
+# MEASURED on this tree at 250 files, isolated loop, best of five: 0.45s for the
+# per-file form against 0.03s for this one.
+#
+# `tr -d ' '` LEFT WITH IT, and that is the second fork rather than a tidy-up.
+# `wc -l < file` right-aligns its count, which is the only reason the retired
+# form had to strip spaces at all; `read` splits on IFS whitespace and hands back
+# an already-bare number, so there is nothing left for a `tr` to do.
+#
+# NUL-DELIMITED, so a path carrying a space survives the hand-off. The `tr` here
+# runs ONCE over the whole list, not once per path. A path carrying a NEWLINE
+# would break this, and it broke the retired form too, which read the same list
+# a line at a time; neither shape ever supported one.
+#
+# `xargs -a` IS NOT AVAILABLE HERE, which is why the list arrives on stdin. BSD
+# and macOS xargs have no `-a`/`--arg-file`, so the GNU spelling would fail on
+# the platform this validator is developed on. Nothing in this pipeline
+# short-circuits either: the `while` below reads to EOF and never breaks, so no
+# upstream stage can be signalled and hand `pipefail` a 141. That is the defect
+# [84] bans, and this is deliberately not it.
+cap_files=$(cap_file_list | sort)
+cap_expected=0
+[ -n "$cap_files" ] && cap_expected=$(printf '%s\n' "$cap_files" | wc -l | tr -d ' ')
+
+# The guard is not decoration: on an empty list `printf '%s\n' ""` still emits a
+# newline, so xargs would hand `wc` one empty operand and the run would open with
+# an error about a file nobody asked for. An empty list means zero rows, and the
+# `cap_total` floor below is what turns that into the loud failure it already was.
+cap_loc_list() {
+  [ -n "$cap_files" ] || return 0
+  printf '%s\n' "$cap_files" | tr '\n' '\0' | xargs -0 wc -l
+}
+
 cap_total=0
 cap_root=0
 cap_oversize=0
 cap_exempt=0
 cap_witness=0
-while IFS= read -r f; do
+# `IFS=' '` RATHER THAN THE DEFAULT, and rather than the `IFS=` every other loop
+# in this fragment uses. This one MUST split, because each row is wc's count and
+# then the path. Space is an IFS whitespace character, so the padding wc puts in
+# front of the count is stripped and the run between the two fields collapses,
+# while a tab inside a filename is left alone the way the default IFS would not.
+while IFS=' ' read -r loc f; do
   [ -n "$f" ] || continue
+  # `total` IS WC'S SUMMARY ROW AND CANNOT COLLIDE WITH A REAL ENTRY. wc appends
+  # one per invocation carrying more than one operand, and xargs may split a long
+  # list across several invocations, so there can be more than one. Skipping the
+  # row by name is EXACT here rather than approximate: cap_file_list filters on
+  # `-name '*.md' -o '*.sh' -o '*.json' -o '*.py'` and nothing else, so every path
+  # it can emit ends in one of those four suffixes and none of them spells
+  # `total`. A file actually named `total.md` arrives as `total.md` and is scanned.
+  [ "$f" = total ] && continue
   cap_total=$((cap_total + 1))
   case "$f" in */*) ;; *) cap_root=$((cap_root + 1)) ;; esac
   [ "$f" = "$CAP_ROOT_WITNESS" ] && cap_witness=1
-  loc=$(wc -l < "$f" | tr -d ' ')
   [ "$loc" -gt "$CAP_MAX_LOC" ] || continue
   case "$CAP_NL$CAP_APPEND_ONLY$CAP_NL" in
     *"${CAP_NL}${f}${CAP_NL}"*) cap_exempt=$((cap_exempt + 1)); continue ;;
@@ -108,7 +158,20 @@ while IFS= read -r f; do
   red "  FAIL ${f} is ${loc} LOC (cap: ${CAP_MAX_LOC})"
   FAILED=$((FAILED + 1))
   cap_oversize=$((cap_oversize + 1))
-done < <(cap_file_list | sort)
+done < <(cap_loc_list)
+
+# THE BATCH IS RECONCILED AGAINST THE LIST IT WAS BUILT FROM. Batching moved the
+# measurement out of the loop, and with it the guarantee that every listed file
+# was actually opened: `wc` reports an unreadable operand on stderr and carries
+# on with the rest, so a short batch produces a confident green over a set nobody
+# screened. That is the same shape every other block in this fragment refuses,
+# and it is new here only because the retired form could not have it, one file
+# per fork. Counting the list costs one fork, not one per file. Silent when the
+# two agree, so a healthy tree's output is byte-for-byte what it always was.
+if [ "$cap_total" -ne "$cap_expected" ]; then
+  red "  FAIL the batched wc -l returned $cap_total row(s) for the $cap_expected file(s) cap_file_list found, so the cap was applied to fewer files than the scan reached and every count below would be about a set that was never fully read"
+  FAILED=$((FAILED + 1))
+fi
 
 # An exemption whose file has been split, or renamed, or deleted takes no branch
 # above and would outlive its reason in silence. Same shape as [27d]'s mrp_stale.

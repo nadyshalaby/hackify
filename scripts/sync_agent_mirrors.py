@@ -143,12 +143,13 @@ MIRROR_PAIRS = (
     ("agents/codebase-investigator.md", f"{PA}/investigation.md"),
     ("agents/spec-reviewer.md", f"{PA}/phase-2.5-spec-reviewer.md"),
     ("agents/implementer.md", f"{PA}/phase-3-implementation.md"),
-    ("agents/code-reviewer-security.md", f"{PA}/phase-5-multi-review-a-security.md"),
-    ("agents/code-reviewer-quality-plan.md", f"{PA}/phase-5-multi-review-b-quality-plan.md"),
-    ("agents/code-reviewer-performance.md", f"{PA}/phase-5-multi-review-d-performance.md"),
-    ("agents/design-conformance-reviewer.md", f"{PA}/phase-5-multi-review-e-design.md"),
-    ("agents/code-reviewer-coherence.md", f"{PA}/phase-5-multi-review-f-coherence.md"),
+    ("agents/reviewer-security.md", f"{PA}/phase-5-multi-review-a-security.md"),
+    ("agents/reviewer-quality-plan.md", f"{PA}/phase-5-multi-review-b-quality-plan.md"),
+    ("agents/reviewer-performance.md", f"{PA}/phase-5-multi-review-d-performance.md"),
+    ("agents/reviewer-design.md", f"{PA}/phase-5-multi-review-e-design.md"),
+    ("agents/reviewer-coherence.md", f"{PA}/phase-5-multi-review-f-coherence.md"),
     ("agents/finding-refuter.md", f"{PA}/phase-5-refute.md"),
+    ("agents/reviewer.md", f"{PA}/phase-5-multi-review-merged.md"),
 )
 
 FENCE = "```"

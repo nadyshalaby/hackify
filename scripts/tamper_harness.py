@@ -35,18 +35,30 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from replay_claim_checks import strip_ansi
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+# THE HELPER SET'S ENTRY POINT, NOT ONE HELPER FILE. Sourcing this file sources
+# every helper fragment beside it, so a fragment run in isolation here reaches the
+# same matchers a full validator run does and no list of helper files is kept at
+# this address. The set, its floor and the argument for both are at the foot of
+# scripts/validate-dod.d/00-helpers.sh.
 HELPERS = REPO_ROOT / 'scripts' / 'validate-dod.d' / '00-helpers.sh'
 FRAGMENT_DIR = REPO_ROOT / 'scripts' / 'validate-dod.d'
 TEMPLATE = 'skills/hackify/references/work-doc-template.md'
 CI_YML = '.github/workflows/ci.yml'
 
-# The fragments this sprint built, keyed by the check id they declare. NO COUNT IS
+# The fragments the battery tampers, keyed by the check id they declare. NO COUNT IS
 # WRITTEN IN THIS SENTENCE ANY MORE: it read "the five fragments" while six were
 # listed below it for as long as it took to add one, which is the stale claim the
 # whole sprint is about, committed inside the sprint's own machinery.
+#
+# IT NO LONGER SAYS "THIS SPRINT" EITHER, and that edit is the same class of fix.
+# 76-phase-ledger-substrate.sh shipped in v0.14.0 and joined this map only when it
+# got tamper rows of its own, so the sentence had become a claim about when the
+# fragments were written rather than about what the battery drives.
 FRAGMENTS = {
+  '76': FRAGMENT_DIR / '76-phase-ledger-substrate.sh',
   '81': FRAGMENT_DIR / '81-no-claude-attribution.sh',
   '91': FRAGMENT_DIR / '91-claim-resolvers.sh',
+  '92': FRAGMENT_DIR / '92-work-doc-structure.sh',
   '93': FRAGMENT_DIR / '93-token-declarations.sh',
   '94': FRAGMENT_DIR / '94-section-exists.sh',
   '95': FRAGMENT_DIR / '95-literal-absent-claims.sh',
@@ -335,3 +347,145 @@ def hostile_values(mark):
     'backtick': chr(96) + fire + chr(96),
     'redos': '(a+)+$',
   }
+
+
+# --- work-doc structure fixtures, for the suite that tampers check [92] --------
+#
+# BESIDE THE OTHER TWO CORPUS BUILDERS rather than inside the suite that uses it,
+# so there stays one place a work-doc corpus is constructed, and because the suite
+# holding [92]'s rows does not fit under the 500-line cap with it inline.
+#
+# Check [92] judges three bounds before any per-doc red prints, so a corpus short of
+# any one of them never reaches the assertion a row meant to test and looks exactly
+# like a pass. Twelve docs of ten ascending headings clear its heading floor, and
+# STRUCT_LEGACY docs carrying none sit AT its ceiling, so one more is the regression.
+STRUCT_SECTIONS = 10
+STRUCT_SECTIONED = 12
+STRUCT_LEGACY = 11
+STRUCT_DOCS = STRUCT_SECTIONED + STRUCT_LEGACY
+STRUCT_HEADINGS = STRUCT_SECTIONED * STRUCT_SECTIONS
+
+SECTIONED_DOC = ('# t\n\n'
+                 + '\n\n'.join('## %d. s' % n for n in range(STRUCT_SECTIONS)) + '\n')
+UNSECTIONED_DOC = '# t\n\n## Primary Goal\n\nbody\n'
+
+
+def struct_counts(docs, unsectioned):
+  """The three counts check [92] prints on its pass line. Asserted rather than the
+  bare prefix, because a pass line with no numbers reads the same whether the scan
+  judged every doc or none of them."""
+  return ('(%d sectioned doc(s), %d carrying no numbered section, %d numbered '
+          'heading(s) judged)' % (docs - unsectioned, unsectioned, STRUCT_HEADINGS))
+
+
+def structure_tree(extra=None):
+  """A throwaway git tree above every bound check [92] carries, `extra` on top."""
+  root = temp_dir('structure-')
+  for n in range(STRUCT_SECTIONED):
+    write(root, 'docs/work/done/sectioned-%d.md' % n, SECTIONED_DOC)
+  for n in range(STRUCT_LEGACY):
+    write(root, 'docs/work/done/legacy-%d.md' % n, UNSECTIONED_DOC)
+  for rel, body in (extra or {}).items():
+    write(root, rel, body)
+  git(root, 'init', '-q')
+  git(root, 'add', '-A')
+  return root
+
+
+# --- the check [76] corpus and its measurement, shared by two suites -----------
+#
+# TWO SUITES READ THIS, NOT ONE. test_tamper_phase_laws.py drives [76e]'s five
+# injected laws and test_tamper_lens_sites.py drives [76j]'s three review-phase
+# sites; they split when the file holding both crossed the 500-LOC cap. The corpus
+# and the measurement below are the state that seam cost, so they live in the one
+# module every part imports and nothing imports back.
+#
+# BESIDE THE OTHER CORPUS BUILDERS rather than inside the suite that reads it, the
+# call the work-doc structure builder above makes for itself: there stays one place
+# a corpus is constructed, and the suite holding [76]'s rows has the same 500-line
+# cap to live under that pushed those builders here.
+#
+# EVERY PATH CHECK [76] READS COMES ALONG, not just the file the rows edit. The
+# fragment greens only when all of them are there, so a tree missing one would put
+# a red in both halves of a row's measurement for a reason that is not the row's,
+# and the builder-completeness row in that suite is what proves this list is whole.
+# The two directories come whole because [76b] counts the per-phase protocol files
+# against a floor of 6, and [76f] and [76i] parse the orchestrator's header
+# manifest against every fragment it names.
+#
+# NO GIT INIT, unlike the builders above. [76] runs find, grep and python3 over the
+# working directory and asks git for nothing, so staging a tree here would be
+# ceremony that slows every row down and proves nothing.
+
+PHASE_RULES = 'rules/phase-discipline.md'
+
+# skills/quick/SKILL.md is here for [76j] alone, which is the check that reads a file
+# no other part of the fragment opens: it lifts quick's review-phase name out of three
+# sites, TWO of them in that file and one in phase-ledger.md above. It was missing for
+# exactly as long as it took [76j] to ship, and the pristine-corpus row below reddened
+# on a working check because grep exited 2 on a path that was not there. A path this
+# tuple omits is not a gap in the corpus alone, it is a red in BOTH halves of every
+# delta row, where it cancels and says nothing.
+SUBSTRATE_FILES = (PHASE_RULES,
+                   'skills/hackify/SKILL.md',
+                   'skills/hackify/references/runtime-adapters.md',
+                   'skills/hackify/references/phase-ledger.md',
+                   'skills/quick/SKILL.md',
+                   TEMPLATE,
+                   'scripts/validate-dod.sh')
+SUBSTRATE_DIRS = ('skills/hackify/references/phases', 'scripts/validate-dod.d')
+
+
+def substrate_tree():
+  """A throwaway copy of every path check [76] reads, ready for a row to edit."""
+  root = temp_dir('substrate-')
+  for rel in SUBSTRATE_FILES:
+    target = root / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(REPO_ROOT / rel, target)
+  for rel in SUBSTRATE_DIRS:
+    shutil.copytree(REPO_ROOT / rel, root / rel)
+  return root
+
+
+def substrate_run(root, fragment=None):
+  """Check [76] over a corpus tree: the shipped fragment, or a tampered copy of it
+  when one is given. The one place either suite sources that fragment."""
+  if fragment is None:
+    return run_check('76', cwd=root)
+  return run_fragment(fragment, cwd=root)
+
+
+def substrate_delta(transforms, fragment=None):
+  """Run check [76] twice over ONE corpus tree and return (extra reds, output).
+
+  The first run is pristine and the second carries `transforms`, a {repo-relative
+  path: text transform} map, applied to the corpus copy, so the two differ in exactly
+  the edit the row names. Returning the DIFFERENCE keeps a row honest when some other
+  file the fragment reads is broken: that red is in both halves and subtracts out.
+
+  A MAP RATHER THAN ONE PATH, because [76j]'s coherent-rename row edits two files
+  between the same pair of runs, and a second runner would be a second copy of this
+  measurement drifting from the first."""
+  root = substrate_tree()
+  before = substrate_run(root, fragment)[0]
+  for rel, transform in transforms.items():
+    path = root / rel
+    path.write_text(transform(path.read_text(encoding='utf-8')), encoding='utf-8')
+  after, out = substrate_run(root, fragment)
+  return after - before, out
+
+
+def text_edit(*pairs):
+  """A transform applying literal (old, new) replacements, each exactly once."""
+  return lambda text: apply_edits(text, pairs)
+
+
+def size_fail(label, got, want):
+  """check_list_size's red, worded as the helper words it. Both hand-written bounds in
+  check [76] route through this builder, and they now sit in different suites: a
+  second copy of that sentence is a second thing to drift the day the helper is
+  reworded."""
+  return ('  FAIL %s carries %d entries, expected exactly %d (an entry was added or '
+          'dropped without updating the expected size written beside the list)'
+          % (label, got, want))

@@ -5,10 +5,10 @@
 # SHAPE OF A WORK-DOC, and the hole was proved twice in one sprint. The full bar
 # stayed green over a work-doc carrying a duplicate Sprint Backlog and a duplicate
 # `## 6. Daily Updates` heading, and an adversarial refuter re-proved it by
-# injecting two headings and getting ALL CHECKS PASSED. [98] says so about itself
-# at 98-work-doc-ledger-sync.sh:81, "ROWS OUTSIDE THE BLOCK ARE NOT SUBJECTS": it
-# judges the rows inside section 0 and nothing about the section headings around
-# it. [94] reads the TEMPLATE's headings to resolve instructions that name a
+# injecting two headings and getting ALL CHECKS PASSED. [98] says so in its "ROWS
+# OUTSIDE THE BLOCK ARE NOT SUBJECTS" paragraph, named and not numbered for [56]'s
+# reason: it judges the rows inside section 0, never the section headings around
+# them. [94] reads the TEMPLATE's headings to resolve instructions that name a
 # section. Neither one opens a work-doc and asks whether its sections make sense.
 #
 # WHY THIS COSTS SOMETHING REAL. A work-doc is the single source of truth a
@@ -53,10 +53,21 @@
 # carved out, and a carve-out written on day one is a check nobody trusts on day
 # two. Section numbering beyond the template is a real shape this repo uses.
 #
-# SUBJECTS ARE TRACKED docs/work/*.md, ARCHIVE INCLUDED. Eleven of the twenty-three
-# tracked work-docs predate the numbered-section convention entirely and carry no
-# `## <n>.` heading at all; they are not subjects and are not findings, which is
-# what the sectioned-doc floor below exists to keep honest.
+# SUBJECTS ARE docs/work/*.md, TRACKED OR NOT, ARCHIVE INCLUDED. A good half of
+# them predate the numbered-section convention entirely and carry no `## <n>.`
+# heading at all; they are not subjects and are not findings, and the ceiling
+# below is pinned on exactly that set, which is what keeps the distinction honest.
+#
+# THE UNTRACKED HALF ARRIVED LATE AND IS THE HALF THAT MATTERED. This scan read
+# `git ls-files`, the INDEX, for its whole life, so an uncommitted work-doc was
+# never opened while the pass line counted the committed ones and called them all.
+# Measured on the sprint that found it: this check printed "all 24 tracked
+# work-doc(s)" on a green run without once opening the document authorizing that
+# very run, because that document had not been committed. A duplicated section
+# heading is written while a doc is being edited and is repaired, if ever, before
+# anyone commits it, so the pre-commit window is not a gap in the coverage, it is
+# where the whole defect class lives. [89] made the same correction to its own
+# scan and argues it under "THE SCAN READS UNTRACKED FILES TOO".
 #
 # NOTHING SOURCED FROM A REPO FILE BECOMES A PATTERN, [98]'s rule verbatim: every
 # pattern here is a literal in this file, and no path is opened until it resolves
@@ -68,33 +79,70 @@
 # judging. So it is earned first: a synthetic eight-doc corpus built from source
 # literals here goes through the SAME judge the live scan uses, in BOTH
 # directions, four reported and four not.
-yellow "[92] no tracked work-doc numbers two sections the same, and its numbered sections only go up"
-# THE FLOORS, judged before any per-doc red prints, the order [91], [94], [95] and
-# [98] all argue for. Each carries the command that re-derives it, the convention
-# 57-doc-links.sh:20-26 states, and no live count is written into a comment.
+yellow "[92] no work-doc numbers two sections the same, and its numbered sections only go up"
+# THE BOUNDS, judged before any per-doc red prints, the order [91], [94], [95] and
+# [98] all argue for. Each carries the command that re-derives it and writes no live
+# count, per 57-doc-links.sh's "No count is written here, deliberately" sentence.
 #
-#   WS_DOC_FLOOR, half the work-docs tracked today. Half, because docs are added
-#   most waves and none has ever been deleted, so only a collapse toward zero
-#   means the pathspec stopped matching.
-#     git ls-files -- 'docs/work/*.md' | wc -l
+# TWO FLOORS AND A CEILING, AND THE CEILING IS THE ARGUMENT. A floor over a count
+# that only grows cannot see a drop of one, so it has to be re-derived every wave to
+# stay tight, and that maintenance convention had already failed inside this very
+# file: two of these bounds went stale within one sprint of being written, each
+# sitting a few short of the count it was derived from, under comments calling a
+# `-lt` bound "the exact count" so the shortfall read as an equality nobody owed an
+# edit. A count that only a REGRESSION can move needs no such maintenance, so the
+# subject-set bound is inverted onto the docs that FAIL to carry a numbered section
+# and compared as a ceiling.
 #
-#   WS_SECTIONED_FLOOR, the exact count of docs that HAVE a numbered section, which
-#   is the subject set both assertions judge. A floor over the total would sit
-#   happily under a heading grammar that broke and matched nothing, because the
-#   total would not move.
-#     git ls-files -- 'docs/work/*.md' | xargs grep -lE '^## [0-9]+\.' | wc -l
+#   WS_DOC_FLOOR, a floor at half the work-docs tracked today. Half, because docs
+#   are added most waves and none has ever been deleted, so only a collapse toward
+#   zero means the pathspec stopped matching.
+#     git ls-files --cached --others --exclude-standard -- 'docs/work/*.md' | wc -l
 #
-#   WS_HEADING_FLOOR, the exact count of numbered headings judged. This is the one
-#   that catches a fence mask that started blanking the whole file: the doc count
-#   and the sectioned count both survive that, and the heading count goes to zero.
-#     git ls-files -- 'docs/work/*.md' | xargs grep -cE '^## [0-9]+\.' \
-#       | awk -F: '{s+=$NF} END {print s}'
-WS_DOC_FLOOR=11
-WS_SECTIONED_FLOOR=12
-WS_HEADING_FLOOR=100
+#   WS_UNSECTIONED_MAX, a CEILING on the docs carrying NO numbered section, derived
+#   as the count of them today. Those are the legacy docs above, nothing since has
+#   been written without numbered sections and none of them grows one back, so this
+#   number is stable where the sectioned count is not. A grammar break empties the
+#   subject set and lands every doc here, one doc losing its headings lands one
+#   here, and both red; a doc ADDED leaves it alone and a legacy doc retro-fitted
+#   with sections lowers it, so neither reds. It replaced a floor on the sectioned
+#   count, which could only see a grammar break wide enough to push that count under
+#   the floor, and went blind to one the moment the corpus grew past it.
+#     git ls-files --cached --others --exclude-standard -- 'docs/work/*.md' \
+#       | xargs grep -LE '^## [0-9]+\.' | wc -l
+#
+#   WS_HEADING_FLOOR, A FLOOR AT THE TRACKED HEADING COUNT, AND DELIBERATELY NOT AT
+#   THE LIVE ONE. The corpus now includes uncommitted docs, whose heading totals
+#   move while a sprint is running: an author splits section 6 in two and the count
+#   jumps, a round folds two sections together and it falls. Pinning this floor on a
+#   number a live document can lower would make it red on ordinary authoring, which
+#   is how a check gets deleted. So it is derived over --cached alone, 113 against a
+#   live total of 122 at the time of writing, and the 9 headings of the uncommitted
+#   doc are slack rather than coverage. The command below is the one that re-derives
+#   it, and it is the only bound in this file whose pathspec deliberately differs
+#   from the scan's.
+#   A floor is all it can
+#   be: headings only accumulate and there is no inverse set to pin, so any bound
+#   here is a ratchet, tightest the day it is derived and looser every wave after. A
+#   per-doc multiple was measured and rejected: a short work-doc with two numbered
+#   sections is legitimate, and a check that reds on a correct document is how a
+#   check gets deleted. The ratchet is tolerable because this is not what stands
+#   under a fence mask blanking whole documents, the case the ceiling above catches
+#   exactly; what is left to this floor is the PARTIAL mask that thins a doc's
+#   headings without emptying it.
+#     git ls-files -- 'docs/work/*.md' \
+#       | xargs grep -cE '^## [0-9]+\.' | awk -F: '{s+=$NF} END {print s}'
+#
+# THE PASS LINE PRINTS ALL FOUR LIVE TOTALS, and those are what to re-derive from:
+# the greps above do not mask fenced code, so a heading quoted in a fence makes them
+# over-count where the scan does not.
+WS_DOC_FLOOR=12
+WS_UNSECTIONED_MAX=11
+WS_HEADING_FLOOR=113
 
 WS_DOCS=0
 WS_SECTIONED=0
+WS_UNSECTIONED=0
 WS_HEADINGS=0
 WS_CONTROL=none
 
@@ -111,19 +159,23 @@ ws_read_size() {
       'CONTROL '*) WS_CONTROL=${line#CONTROL } ;;
     esac
   done <<<"$1"
+  # DERIVED, NEVER COUNTED A SECOND TIME. The scan already separates the docs it
+  # read from the docs that carried a section, and a second walk to count the
+  # difference is a second grammar that could disagree with the judge's.
+  WS_UNSECTIONED=$((WS_DOCS - WS_SECTIONED))
 }
 
 ws_floors_hold() {
   if [ "$WS_DOCS" -lt "$WS_DOC_FLOOR" ]; then
-    ws_fail "[92] the work-doc scan read $WS_DOCS tracked doc(s) under docs/work/ against a floor of $WS_DOC_FLOOR; the pathspec stopped matching, and a scan over nothing measures nothing"
+    ws_fail "[92] the work-doc scan read $WS_DOCS doc(s) under docs/work/ against a floor of $WS_DOC_FLOOR; the pathspec stopped matching, and a scan over nothing measures nothing"
     return 1
   fi
-  if [ "$WS_SECTIONED" -lt "$WS_SECTIONED_FLOOR" ]; then
-    ws_fail "[92] the scan found $WS_SECTIONED doc(s) carrying a numbered section against a floor of $WS_SECTIONED_FLOOR; the heading grammar stopped matching, so both assertions judged an empty subject set and their silence means nothing"
+  if [ "$WS_UNSECTIONED" -gt "$WS_UNSECTIONED_MAX" ]; then
+    ws_fail "[92] the scan read $WS_DOCS doc(s) of which $WS_UNSECTIONED carry no numbered section at all, against a ceiling of $WS_UNSECTIONED_MAX; a doc that had sections has left the subject set both assertions judge, so their silence over it means nothing. If a work-doc was legitimately written without numbered sections, raise the ceiling; if the heading grammar stopped matching, this is the red it exists for"
     return 1
   fi
   if [ "$WS_HEADINGS" -lt "$WS_HEADING_FLOOR" ]; then
-    ws_fail "[92] the scan judged $WS_HEADINGS numbered heading(s) against a floor of $WS_HEADING_FLOOR; a fence mask that blanks whole documents leaves the doc counts intact and takes this one to zero"
+    ws_fail "[92] the scan judged $WS_HEADINGS numbered heading(s) against a floor of $WS_HEADING_FLOOR; headings only accumulate here, so a total that fell is a fence mask thinning documents it should not have touched, and it thinned them without emptying any, which is the one shape the unsectioned ceiling above cannot see"
     return 1
   fi
   return 0
@@ -150,7 +202,7 @@ ws_verdict() {
     esac
   done <<<"$1"
   [ "$bad" -eq 0 ] || return
-  green "  ok   all $WS_DOCS tracked work-doc(s) under docs/work/ number each section once and number them in ascending order ($WS_SECTIONED sectioned doc(s), $WS_HEADINGS numbered heading(s) judged), and the positive control separated its reported docs from its clean ones before that silence was trusted"
+  green "  ok   all $WS_DOCS tracked and untracked work-doc(s) under docs/work/ number each section once and number them in ascending order ($WS_SECTIONED sectioned doc(s), $WS_UNSECTIONED carrying no numbered section, $WS_HEADINGS numbered heading(s) judged), and the positive control separated its reported docs from its clean ones before that silence was trusted"
 }
 
 if ! command -v python3 > /dev/null 2>&1; then
@@ -339,17 +391,39 @@ def control():
 
 
 def work_docs():
-    """Tracked work-docs, by argv list and never through a shell. -z AND SPLIT ON
-    NUL: under git's default core.quotePath a path holding a non-ASCII byte, a
-    double quote or a backslash comes back C-quoted, stops ending in .md and drops
-    out of the corpus unseen."""
-    proc = subprocess.run(['git', 'ls-files', '-z', '--', WORKDOCS],
+    """Work-docs tracked OR untracked, by argv list and never through a shell.
+
+    --cached --others --exclude-standard, never --cached alone. This read was the
+    index for its whole life, so a work-doc that had not been committed yet was
+    outside the corpus while the pass line below counted the ones that were and
+    called them all. The doc authorizing the sprint that found this was itself
+    untracked, so this check had never once opened the document it was running
+    under. --exclude-standard keeps a gitignored path out; nothing under
+    docs/work/ is ignored today, and the flag is what keeps that true if one ever
+    is.
+
+    DEDUPED, ORDER KEPT. --cached and --others are disjoint for a clean index but
+    not for an unmerged one, where a conflicted path is listed once per stage, and
+    a doc counted twice would inflate the SIZE total the floors below are read
+    against. That inflation runs toward a floor that passes, which is the wrong
+    direction for a bound whose whole job is to refuse a collapsed corpus.
+
+    -z AND SPLIT ON NUL: under git's default core.quotePath a path holding a
+    non-ASCII byte, a double quote or a backslash comes back C-quoted, stops
+    ending in .md and drops out of the corpus unseen."""
+    proc = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others',
+                           '--exclude-standard', '--', WORKDOCS],
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:
         sys.stderr.write(proc.stderr.decode('utf-8', 'replace'))
         raise SystemExit('git ls-files failed with rc %d' % proc.returncode)
     names = proc.stdout.decode('utf-8', 'replace').split('\0')
-    return [p for p in names if p.endswith('.md')]
+    seen, out = set(), []
+    for p in names:
+        if p.endswith('.md') and p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
 
 
 def one_line(text):

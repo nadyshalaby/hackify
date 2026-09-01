@@ -13,7 +13,7 @@ The skill is fully self-contained. It does not call other skills.
 
 Two trigger paths, both end in the same output table.
 
-**Path A. Phase 5 internal.** Triggered automatically inside the full hackify workflow once the Phase 5 parallel-reviewer dispatch returns. The parent has just received one report per lens on the Phase 5 panel. Reviewer B covers quality, layering, engineering law, plan consistency and scope. Security & correctness, performance and cross-module coherence run alongside it on every non-trivial diff, and design conformance joins on a UI-bearing one. Before the parent decides what to fix, what to push back on, and what to defer to the Retrospective, this skill produces the structured per-finding response. The Critical / Important / Minor severity tags from the reviewers are mirrored into the table's Severity column verbatim.
+**Path A. Phase 5 internal.** Triggered automatically inside the full hackify workflow once the Phase 5 review dispatch returns. The parent has just received one report from `hackify:reviewer`, the one agent every mode dispatches, carrying all five lenses as gated passes over a single read of the diff. Lens B covers quality, layering, engineering law, plan consistency and scope. Security & correctness, performance and cross-module coherence run beside it on every non-trivial diff, and design conformance runs too, its pass answering `not UI-bearing` where the diff has no UI surface. When the user asks for the five-agent panel by name instead, the same findings arrive as one report per lens and nothing below changes. Before the parent decides what to fix, what to push back on, and what to defer to the Retrospective, this skill produces the structured per-finding response. The Critical / Important / Minor severity tags from the reviewers are mirrored into the table's Severity column verbatim.
 
 **Path B. External paste.** Triggered when the user pastes external review feedback into chat and asks for a response. Detection rule, the most recent user message contains a review-shaped paste, where a paste is review-shaped if it has multiple bullet or numbered items AND each item has either a `file:line` anchor OR a normative verb (`should`, `must`, `consider`, `recommend`, `prefer`, `avoid`). Common sources. GitHub PR comments, Slack quotes, email review, reviewer DM.
 
@@ -66,7 +66,7 @@ Every row picks exactly one of four Decisions. The semantics are not interchange
 
 ## Worked example
 
-Reviewer findings batch (from a Phase 5 multi-reviewer dispatch on a small auth-token refactor):
+Reviewer findings batch (from a Phase 5 review dispatch on a small auth-token refactor, one merged report whose lens letters below are its gated passes):
 
 1. Reviewer A: `src/auth/token.service.ts:67`, token expiry check uses `Date.now()` directly; should inject a clock for testability.
 2. Reviewer A: `src/auth/token.service.ts:142`, refresh-token rotation path does not invalidate the old token before issuing the new one. Critical.
@@ -109,7 +109,7 @@ These thoughts mean STOP and apply the listed reality.
 SKILL.md                                ← this file (the response-table engine)
 ```
 
-This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the adjudication reviewer template, `skills/hackify/references/parallel-agents/README.md` for the Phase 5 multi-reviewer dispatch table that feeds this skill on Path A.
+This skill has no `references/` directory. Cross-references point into the main hackify skill, `skills/hackify/references/review-and-verify.md` for the pushback response pattern and the adjudication reviewer template, `skills/hackify/references/parallel-agents/README.md` for the Phase 5 reviewer dispatch table that feeds this skill on Path A.
 
 ## One-line summary
 

@@ -109,7 +109,7 @@ DI_PLAN_RC=0
 DI_PLAN=$(bash scripts/sync-runtimes.sh --dry-run 2>&1) || DI_PLAN_RC=$?
 if [ "$DI_PLAN_RC" -ne 0 ]; then
   red "  FAIL [56] scripts/sync-runtimes.sh --dry-run exited $DI_PLAN_RC, so the destination plan this check reads is a partial one and nothing below it is a verdict about dist/; the defect is in the planner, not in the shipped trees"
-  printf '%s\n' "$DI_PLAN" | grep -vF 'WOULD WRITE: ' | grep -v '^$' | head -4 | sed 's/^/         - /'
+  printf '%s\n' "$DI_PLAN" | grep -vF 'WOULD WRITE: ' | grep -v '^$' | awk 'NR<=4' | sed 's/^/         - /'
   FAILED=$((FAILED + 1))
   DI_READY=0
 fi
@@ -141,8 +141,23 @@ DI_PAIRS=$(awk 'FNR == NR { if (NF) src[$0] = 1; next }
 # BASH 3.2 IS THE FLOOR, not bash 4. macOS still ships 3.2.57 and this validator
 # runs on developer machines as well as on the CI image, so `mapfile`/`readarray`
 # are out and `arr+=("$x")` is the portable append. The other 3.2 trap is that
-# validate-dod.sh:149 sets `-u`, under which "${arr[@]}" on an EMPTY array is a
-# fatal unbound-variable error rather than an empty expansion (fixed in 4.4).
+# scripts/validate-dod.sh sets `-u` in its `set -uo pipefail` line, under which
+# "${arr[@]}" on an EMPTY array is a fatal unbound-variable error rather than an
+# empty expansion (fixed in 4.4).
+#
+# CITED BY CONSTRUCT AND NOT BY LINE, and the correction is worth more than the
+# number it replaces. This pointer used to name line 149 of that file. The line
+# it meant had moved twice in one session and was sitting at 237 by the time
+# anyone opened it, and check [57] never noticed. Its content tier reads a cited
+# location only where the citing text quotes a phrase behind a verb, or where the
+# location has gone vacant; an UNPINNED number, which is nearly every citation in
+# this tree, is still judged for existence alone, so any number inside a
+# four-hundred-line file passes and [57]'s own coverage line is where the live
+# split is printed. Worse, the target sits below that file's hand-written header
+# manifest, so every fragment anyone adds moves it again and a corrected number
+# goes stale on the next wave. The 99-work-doc-status-claims.sh row in that same
+# header records the identical lesson about a CHANGELOG entry and reaches the
+# same answer. A construct name cannot drift that way.
 # DI_LIVE_PAIRS and DI_MISSING_LIST are both legitimately empty on a healthy
 # tree, so every expansion below carries the ${arr[@]+"${arr[@]}"} guard. Dropping
 # one aborts the whole validator mid-run rather than failing this check.
@@ -341,8 +356,8 @@ if [ "$DI_READY" -eq 1 ]; then
     # the sync it is reporting on, editing the tree it audits at the moment it
     # decides that tree is wrong.
     red "  FAIL dist/ ships $DI_BAD file(s) that differ from the canonical source they were copied from and $DI_MISSING the sync plans but never wrote, out of $DI_COMPARED compared; the shipped trees are stale or hand-edited, and running scripts/sync-runtimes.sh is what repairs them"
-    printf '%s\n' "$DI_REPORT" | grep -E '^(DRIFT|UNREAD)\|' | head -6 | sed 's/^[A-Z]*|/         - /'
-    [ ${#DI_MISSING_LIST[@]} -gt 0 ] && printf '%s\n' "${DI_MISSING_LIST[@]}" | head -6
+    printf '%s\n' "$DI_REPORT" | grep -E '^(DRIFT|UNREAD)\|' | awk 'NR<=6' | sed 's/^[A-Z]*|/         - /'
+    [ ${#DI_MISSING_LIST[@]} -gt 0 ] && printf '%s\n' "${DI_MISSING_LIST[@]}" | awk 'NR<=6'
     FAILED=$((FAILED + 1))
   fi
 fi

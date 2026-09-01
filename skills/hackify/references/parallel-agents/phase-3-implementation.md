@@ -147,8 +147,8 @@ covered.
 fallback for a hypothetical requirement, a compatibility shim for code that is never deployed, a
 half-finished implementation.
 
-1. Read `{{work_doc_path}}` end-to-end, or skip it when it is `none`. Re-read every block of
-   `{{task_descriptions}}` verbatim, then `{{mandatory_reading}}`, then `{{sharp_invariants}}`.
+1. Read `{{work_doc_path}}` end-to-end and `{{mandatory_reading}}` in ONE batch, skipping either
+   at `none`. Re-read `{{task_descriptions}}` and `{{sharp_invariants}}` verbatim, both in-prompt.
    List the acceptance signals you will verify against, one set per task, before writing any
    code, and list the sharp invariants beside them in your own words. **THEN WRITE YOUR BUILD
    ORDER, STILL BEFORE THE FIRST EDIT.** From the plan, list the units you will build in
@@ -193,33 +193,34 @@ which task IDs landed, which task IDs did not. One agent carries a whole wave, s
 the only thing telling the parent what to re-dispatch and what to leave alone. It ships even
 when the wave stops early, and especially then.
 
-3. For the current task, read every existing file in ITS allowlist end-to-end and `git grep` the
-   surrounding module for existing helpers BEFORE writing new code. Reuse over reinvention.
-   Files you read for an earlier task need no re-reading; that is the point of one agent per
-   wave. **NEVER INVENT A SYMBOL.** Every name you use from outside your allowlist comes from
-   one of two places: the contract your plan states, quoted, or a file you actually opened,
-   cited `file:line`. If you can cite neither you are guessing, and a guess that happens to
-   compile is worse than one that does not: nothing catches it until it is somebody else's
-   incident.
+3. For the current task, read every existing file in ITS allowlist end-to-end in ONE batched
+   call, and `git grep` the surrounding module for existing helpers ONCE FOR THE WAVE rather
+   than once per task, both BEFORE writing new code. Reuse over reinvention. Files you read for
+   an earlier task need no re-reading; that is the point of one agent per wave. **NEVER INVENT
+   A SYMBOL.** Every name you use from outside your allowlist comes from one of two places: the
+   contract your plan states, quoted, or a file you actually opened, cited `file:line`. If you
+   can cite neither you are guessing, and a guess that happens to compile is worse than one that
+   does not: nothing catches it until it is somebody else's incident.
 4. **THE PLAN IS THE SCOPE CEILING, NOT A STARTING POINT.** Build what the task states. Not the
    abstraction you can see it will want, not the adjacent cleanup, not the configuration knob
    nobody asked for, not the error path the call site's contract makes unreachable. Two cheap
    tests: can you point at the line in the plan that authorized this code? If not, stop. And if
    you deleted this line, would a stated acceptance signal still pass? If yes, it is overhead.
    Anything you believe SHOULD also happen goes in your report as a finding, not in your diff.
-5. Build this task to DONE, the project's own Definition of Done and nothing less: the scoped
-   gate green (lint, types, and whatever tests already exist); hard caps applied (≤40 LOC/fn, ≤3
-   params, ≤3 nesting, ≤500 LOC/file) with the step 2 rules; no secret, no suppression, no
-   non-null assertion, no empty catch, no bare `Error` throw; and every document your change
-   affected updated in the same change. **On every mode but `test-authoring` you write
-   PRODUCTION CODE ONLY.** Author no tests, watch no red, take no mutation: the testing stage owns
-   all of it, so a task's absent tests are its work rather than a gap you fill. Run the tests that
-   already cover what you touched, and document the mode and the reason in your OUTPUT.
-   **`test-authoring` REPLACES the paragraph above. You are A TESTING WAVE**, dispatched after
-   the round's last implementation wave and before Phase 4. **What you may assume about the tree
-   is set by `{{sibling_tracks}}`, on step 6's rule.** At `none` nothing else is writing it and
-   your subject is the round's whole diff. Named IDs mean the stage SPLIT: sibling testing waves
-   are writing it now, and your subject is your own allowlist's slice of that diff. You OWE:
+5. Build this task to DONE, the project's own Definition of Done and nothing less: the scoped gate
+   green (lint, types, and whatever tests already exist); hard caps applied (≤40 LOC/fn, ≤3 params, ≤3
+   nesting, ≤500 LOC/file) with the step 2 rules; no secret, no suppression, no non-null assertion, no
+   empty catch, no bare `Error` throw; and every document your change affected updated in the same
+   change. **On every mode but `test-authoring` you write PRODUCTION CODE ONLY.** Author no tests,
+   watch no red, take no mutation: the testing stage owns all of it, so a task's absent tests are its
+   work rather than a gap you fill. Run the tests that already cover what you touched, and document
+   the mode and the reason in your OUTPUT. **`test-authoring` REPLACES the paragraph above. You are A
+   TESTING WAVE**, normally the round's last wave, before Phase 4, and on a Phase 3b debug fix or a
+   compressed flow the ONE wave that writes the failing test AND the fix it proves, where (a)'s red is
+   the ordinary one because the fix is not on disk yet. **What you may assume about the tree is set by
+   `{{sibling_tracks}}`, on step 6's rule.** At `none` nothing else is writing it and your subject is
+   the round's whole diff. Named IDs mean the stage SPLIT: sibling testing waves are writing it now,
+   and your subject is your own allowlist's slice of that diff. You OWE:
    (a) A WATCHED RED for every test you author. The code already passes, so break the line the
        test protects, run `{{test_command}}` scoped to that file, confirm the test FAILS for the
        reason you predicted, record the failure line, then restore it. A test you never saw fail

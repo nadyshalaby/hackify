@@ -33,7 +33,7 @@
       "prompt": "review the diff on my current branch before I open the PR, just the changes, looking for bugs",
       "assertions": [
         {"text": "lawkeeper skill is NOT invoked, this is a single-diff review of changed code, not a full-codebase compliance sweep"},
-        {"text": "Routing goes to /code-review (or full hackify Phase 5), which review the diff rather than auditing the whole tree against the rule set"},
+        {"text": "Routing goes to /code-review, which reviews the diff rather than auditing the whole tree against the rule set; full hackify and its Phase 5 panel run only when the user asks for that mode by name"},
         {"text": "Transcript notes lawkeeper's scope is a FULL-CODEBASE audit against documented engineering laws, not a per-PR diff review"}
       ],
       "files": []

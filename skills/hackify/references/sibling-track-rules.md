@@ -68,12 +68,10 @@ them and you proceed, recording in your report what you searched and what came b
 
 **Search the filesystem, not the index.** The gate below walks the working tree with `find` and a
 recursive `grep`, and that is deliberate: `git grep` and `git ls-files` see only what is TRACKED,
-so an untracked migration and a gitignored `.env` are both invisible to them. `.env` is the single
-likeliest home of a connection string and it is gitignored in essentially every project, this
-repo's own law included, so the index-based form came back clean on the one file most worth
-reading. Measured before it was replaced: a repo carrying a gitignored `.env` with a
-`DATABASE_URL` and an untracked `migrations/001_init.sql` verified clean and exited 0, and the
-same two files force-added turned the same gate red.
+so an untracked migration and a gitignored `.env` are both invisible to them, and `.env` is the
+likeliest home of a connection string in any project. Measured before the index form was replaced:
+a repo carrying a gitignored `.env` with a `DATABASE_URL` and an untracked `migrations/001_init.sql`
+verified clean and exited 0, and the same two files force-added turned the same gate red.
 
 **The pattern set is a net, not a census, and the clean line says so.** It names what the common
 stacks leave behind, Rails, Django, SQLAlchemy, Prisma, TypeORM, Knex, Drizzle, Sequelize,
@@ -89,14 +87,20 @@ carry every one of these patterns with no database anywhere, so a path you rule 
 OPENED, and it goes in your report with the reason you ruled it out. Ruling out a path you did not
 read is how this check becomes one that cannot fail.
 
+**Two of those rulings the gate now makes for you, and they rest on different evidence.** A file
+whose every matched line pairs two of the matcher's OWN tokens across a bare `|` is QUOTING the
+pattern, which is what a validator pinning this matcher looks like, and that property lives in the
+content: a file spelling its real config that way would not configure anything. The fixture screen
+has no such luck, because a path segment and a `Fixture:` label are both one edit away for the
+track being screened, so it clears only a file that is COMMITTED and unmodified, which a track
+cannot mint for itself because a track never commits. Both drop whole files, both NAME every file
+they took, and one genuine line beats either.
+
 **This is stricter than the old refusal, not looser.** Refusing on `none` handed a dispatcher who
-had answered correctly the same FAIL as one who had left the line blank, so the two were
-indistinguishable and the informative signal was thrown away. And the hazard was never the word
-`none`, it was a track running its suite against a database a sibling is holding. The old form
-took the dispatcher's word that a database existed. This one goes and looks at the tree, so a repo
-that really has a shared database cannot come back clean, and the dangerous `none`, the one where
-a database was there all along, still stops the track. The safe `none` is the only one that now
-proceeds, and it proceeds having been checked rather than believed.
+had answered correctly the same FAIL as one who had left the line blank, throwing the informative
+signal away, and the hazard was never the word: it was a track running its suite against a database
+a sibling is holding. The old form took the dispatcher's word. This one looks at the tree, so the
+dangerous `none`, the one where a database was there all along, still stops the track.
 
 ## Cross-module type errors are expected, and they are not yours
 
@@ -180,26 +184,15 @@ into `<<`.
 # track that decides one for itself is a track running against the shared harness a sibling is
 # truncating while reporting PASS.
 #
-# `none` REACHES THE SEARCH BELOW INSTEAD OF REFUSING, and that is the half that changed. `none`
-# is on the dispatch contract's list of values where `none` is a decision the dispatcher made, and
-# it decides that the project has no database at all. Refusing it made every concurrent dispatch in
-# a database-free repo a dispatch to refuse, and worse, it returned the same FAIL to a dispatcher
-# who had answered correctly as to one who had left the line blank, so the two were
-# indistinguishable and the informative signal was thrown away.
+# `none` REACHES THE SEARCH BELOW INSTEAD OF REFUSING, and that is the half that changed. The
+# argument for it is made once and in full under "This is stricter than the old refusal, not
+# looser" above, and restating it here is how two copies of one argument drift apart. The single
+# line that belongs beside the code: the dangerous `none`, the one where a database was there all
+# along, still exits 1.
 #
-# IT STILL CATCHES WHAT THE OLD FORM CAUGHT, and it catches it closer to the hazard. The hazard was
-# never the word `none`, it was a track running its suite against a database a sibling holds. The
-# old form took the dispatcher's word that a database existed; this one goes and looks in the tree
-# for the things a database leaves behind. A repo that really has a shared database cannot come
-# back clean, so the dangerous `none`, the one where a database was there all along, still exits 1.
-# The safe `none` is the only one that proceeds, and it proceeds checked rather than believed.
-#
-# THE SKIP LIST IS A CLAIM YOU MAKE, NOT A FREE PASS. A fixture corpus, an eval project or a
-# vendored tree can carry these patterns with no database anywhere, so every line you put in it is
-# one path you OPENED and judged, and it goes in your report with the reason. Skipping a path you
-# did not read is how this gate is turned into one that cannot fail. Every entry, and every row it
-# suppresses, is echoed below for the same reason: a clean verdict nobody can audit is a clean
-# verdict nobody should trust.
+# THE SKIP LIST IS A CLAIM YOU MAKE, NOT A FREE PASS, on the rule "Read the hits before you trust
+# them" states above: every line is one path you OPENED, and it goes in your report with the
+# reason. Each entry and each row it suppresses is echoed, so the verdict can be audited.
 own_db=$(cat <<'HACKIFY_DB_EOF'
 <the database_name input as received; delete this line entirely if the input was absent>
 HACKIFY_DB_EOF
@@ -342,10 +335,8 @@ else
   # Two ways this search goes blind with no error at either end: a matcher that honours
   # `.gitignore`, and a prune list that swallowed the tree. So a probe carrying its own `.gitignore`
   # of `*` is planted, the REAL search runs over it, and the gate refuses unless both halves found
-  # it. Gitignored ON PURPOSE: a matcher that skips ignored files fails here loudly instead of
-  # passing the repo silently. The probe is invisible to `git status` for the same reason, so it
-  # cannot show up as a stray edit in a sibling's tree, and it is removed on the line after the
-  # search that reads it.
+  # it. Gitignored ON PURPOSE, which also keeps it invisible to `git status` and so out of a
+  # sibling's diff, and it is removed on the line after the search that reads it.
   db_probe=.hackify-db-probe.$$
   if [ -e "$db_probe" ]; then
     echo "FAIL: $db_probe already exists; an earlier run died mid-probe, remove it by hand"
@@ -372,10 +363,41 @@ else
        exit 1 ;;
   esac
 
+  # TWO SCREENS FOR THE TWO FALSE HITS THAT RECUR, and both fail toward KEEPING the row. db_quo IS
+  # BUILT FROM db_pat and cannot drift from it: two matcher tokens glued by a literal `|`, which
+  # nothing that CONFIGURES a database writes. ZERO matched lines is NOT a quotation, which keeps a
+  # row found by the NAME walk alone, a `.sql` file or a migrations path, out of THAT half, and a
+  # binary counts zero for the same reason.
+  #
+  # THE FIXTURE HALF NEEDS A SIGNAL THE SCREENED TRACK CANNOT WRITE, and its path and its label are
+  # not it: both are one edit away for the implementer this gate constrains, so an agent holding an
+  # inconvenient hit could mint its own dismissal with nobody else agreeing to it. The third signal
+  # is TRACKED and unmodified against HEAD. A track never commits, the parent commits the round, so
+  # a file a track created or touched this round fails here and is KEPT, a real new fixture corpus
+  # included; that one goes through the skip list above, where the track states the path and the
+  # reason in its report. The quotation half is deliberately NOT vouched this way, because its
+  # evidence is in the content and the validator pinning this matcher is edited by the very rounds
+  # that must still clear it. An exact-path allowlist was the other candidate, rejected twice over:
+  # it goes stale in silence, and a track cannot extend one without writing outside its allowlist.
+  # The label test takes a HERE-STRING, never `head ... | grep -q`, the race check [84] bans.
+  db_quo="($db_pat)[|]($db_pat)"
+  db_data() {
+    db_n=$("$db_grep" -cIE "$db_pat" -- "$1" 2>/dev/null) || db_n=0
+    if [ "$db_n" -gt 0 ] && [ "$("$db_grep" -cIE "$db_quo" -- "$1" 2>/dev/null)" = "$db_n" ]; then
+      db_why='quotes the matcher, every matched line pairs two matcher tokens across a bare |'
+      return 0
+    fi
+    case "$1" in */fixtures/*|*/__fixtures__/*|*/testdata/*|*/evals/*|*/corpus/*) ;; *) return 1 ;; esac
+    git ls-files --error-unmatch -- "$1" >/dev/null 2>&1 && git diff --quiet HEAD -- "$1" 2>/dev/null || return 1
+    "$db_grep" -qE '(^|[^A-Za-z])[Ff]ixture: ' <<<"$(head -5 "$1" 2>/dev/null)" || return 1
+    db_why='labels itself a fixture under a test-data path, committed at HEAD and untouched this round'
+  }
+
   # THE REAL RUN, over a tree the probe has already left.
   db_search || exit 1
   db_kept=''
   db_drop=0
+  db_auto=0
   while IFS= read -r db_r; do
     [ -n "$db_r" ] || continue
     db_r=${db_r#./}
@@ -386,6 +408,9 @@ else
     if [ -n "$db_m" ]; then
       db_drop=$((db_drop + 1))
       echo "note:   skip '$db_m' suppressed $db_r"
+    elif db_data "$db_r"; then
+      db_auto=$((db_auto + 1))
+      echo "note:   screened $db_r, it $db_why"
     else
       db_kept="$db_kept$db_r
 "
@@ -400,7 +425,7 @@ EOF
     exit 1
   fi
   echo "note: database_name 'none' VERIFIED against the tree, nothing a database leaves behind was found"
-  echo "note:   matcher $db_grep, control fired before the real run, ${#db_ex[@]} declared skip path(s) suppressed $db_drop row(s)"
+  echo "note:   matcher $db_grep, control fired before the real run, ${#db_ex[@]} declared skip path(s) suppressed $db_drop row(s), the two screens took $db_auto more"
   echo "note:   the named shapes are absent; that is not the same claim as 'no database exists'"
 fi
 

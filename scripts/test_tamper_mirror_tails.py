@@ -9,7 +9,7 @@ file CI names is wired.
 WHAT THIS FILE COVERS. One mechanism read from both ends. The bottom end is
 scripts/sync_agent_mirrors.py, which copies the FIRST fenced block of a template
 into its mirror and hand-maintains everything after it, so the tail is where two
-files drift while --check reports nine of nine. The top end is check [75h] in
+files drift while --check reports a pass for every pair. The top end is [75h] in
 scripts/validate-dod.d/75-ship-bar.sh, which reads that script's verdict and its
 pair list. Neither half is testable without the other's fixtures, which is why
 they sit in one file rather than beside the fragment rows for [75h]'s neighbours.
@@ -48,8 +48,8 @@ from tamper_harness import (REPO_ROOT, apply_edits, expect, refute,
 # --- the mirror tail, and the shapes a bare prefix test waves through ---------
 # WHAT WAS UNCHECKED. scripts/sync_agent_mirrors.py copies the FIRST fenced block
 # of a template into its mirror and compared nothing else, so the hand-maintained
-# region after it could drift in either direction while --check reported nine of
-# nine and exited 0, and check [75h] read the same block and inherited the blind
+# region after it could drift in either direction while --check reported a pass
+# for every pair and exited 0, and [75h] read that block and inherited the blind
 # spot. Why full equality and a bare prefix are BOTH wrong answers is argued once,
 # in that script's module docstring; the rows below plant one shape each against
 # the rule it settles on. None writes into the repository: the pair list resolves
@@ -71,19 +71,19 @@ FENCE = '```'
 # Written beside the lists they police rather than derived from them, on the
 # argument 00-helpers.sh makes at check_list_size: a bound taken from the list
 # drops with the list and guards nothing. TAILS_COMPARED is the pairs whose
-# mirrored region has CONTENT: eight of nine owe an empty one, so nine pass lines
-# were never nine comparisons.
-# All three were RE-MEASURED when 0.17.1 merged the two Phase 3 implementers and
-# the pair list went from ten to nine, never decremented by hand: `--check-tails`
-# reports 1 non-empty region and 8 empty over 9 pairs, and a marker grep over
-# PA_DIR returns 4, held because the deleted template carried no marker.
-MIRROR_PAIR_COUNT = 9
-MARKED_TEMPLATE_COUNT = 4
+# mirrored region has CONTENT: all but one owe an empty one, so a pass line per
+# pair was never a comparison per pair.
+# RE-MEASURE all three when a pair is added or dropped, never edit one by hand to
+# chase a red: `--check-tails` prints both tallies on its last line, and a `grep
+# -rl` for the marker over PA_DIR gives the third. Registering an agent reds these
+# before it reds the missing registration, and that is what the argument costs.
+MIRROR_PAIR_COUNT = 10
+MARKED_TEMPLATE_COUNT = 5
 TAILS_COMPARED_COUNT = 1
 
 # A marked pair and an unmarked one. The second has two empty, equal tails.
 MARKED_PAIR = ('agents/implementer.md', PA_DIR + '/phase-3-implementation.md')
-UNMARKED_PAIR = ('agents/code-reviewer-performance.md',
+UNMARKED_PAIR = ('agents/reviewer-performance.md',
                  PA_DIR + '/phase-5-multi-review-d-performance.md')
 
 # A sentence inside the marked mirror's region, unique in BOTH files.
@@ -162,10 +162,10 @@ def _pairs():
 
 def test_the_live_tree_carries_no_mirror_tail_drift():
   """The green the reds below are measured against, plus the marker census. Not a
-  bare exit 0: a run that compared nothing exits 0 too. And not nine pass lines
-  either, which is what this asserted while eight pairs owed their mirror an
-  EMPTY region, reading 9 over one comparison with content in it. The two are
-  counted apart, so a printer claiming more than it compared reds here."""
+  bare exit 0: a run that compared nothing exits 0 too. And not one pass line per
+  pair either, which is what this asserted while all but one pair owed its mirror
+  an EMPTY region, reading a whole census over one comparison with content in it.
+  The two are counted apart, so a printer claiming more than it compared reds."""
   rc, out = _run_sync(REPO_ROOT, '--check-tails')
   assert rc == 0, out
   assert out.count('  ok   ') == TAILS_COMPARED_COUNT, out
@@ -282,7 +282,7 @@ def test_75h_tells_a_crashing_tail_comparison_apart_from_a_drifted_tail():
 
 # --- I18, the pair-count floor, which has to keep deriving from the tree -------
 # WHAT ROUND 8 CHANGED, AND WHAT HAD BEEN PROVING IT. Check [75h] used to compare
-# the pair list against a hardcoded 9. It now compares against `find agents
+# the pair list against a hardcoded total. It compares against `find agents
 # -maxdepth 1 -type f -name '*.md'`, on the argument the fragment makes at that
 # line: a number written beside a list gets edited by the same hand that shortens
 # the list, in the same file, in the same minute, while agents/ is a SECOND source
@@ -290,8 +290,8 @@ def test_75h_tells_a_crashing_tail_comparison_apart_from_a_drifted_tail():
 # hand-plant recorded in a wave report, which is a proof that does not run again.
 #
 # THE PLANT HAS TO MOVE THE TREE, NOT THE FRAGMENT, and that is the whole reason
-# this row is shaped the way it is. A hardcoded 10 is INVISIBLE on a tree that has
-# ten agent files: the derived form and the hardcoded form print the identical
+# this row is shaped the way it is. A hardcoded total is INVISIBLE on a tree whose
+# agents/ still matches it: the derived form and the hardcoded form print identical
 # green. The defect only becomes one when the tree moves, so these two rows move
 # the tree once and run both forms over that same tree, which turns an invisible
 # difference into two verdicts that contradict each other.
@@ -305,9 +305,9 @@ def test_75h_tells_a_crashing_tail_comparison_apart_from_a_drifted_tail():
 AGENT_COUNT_DERIVATION = (
     "AGENT_FILE_TOTAL=$(find agents -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')")
 
-# A tenth file under agents/ that no pair in the list covers. Named to sort last
-# and to read as scratch in any listing.
-TENTH_AGENT = 'zzq-tenth-agent.md'
+# One more file under agents/ than the pair list covers. Named to sort last and
+# to read as scratch in any listing.
+EXTRA_AGENT = 'zzq-extra-agent.md'
 
 
 def _ship_bar_tree():
@@ -322,15 +322,15 @@ def _ship_bar_tree():
 
 def _tree_with_an_uncovered_agent():
   """A tree whose agents/ holds one more file than the pair list covers, which is
-  what a tenth agent registered without a MIRROR_PAIRS tuple looks like."""
+  what an agent registered without a MIRROR_PAIRS tuple looks like."""
   root = _ship_bar_tree()
-  shutil.copy2(REPO_ROOT / UNMARKED_PAIR[0], root / 'agents' / TENTH_AGENT)
+  shutil.copy2(REPO_ROOT / UNMARKED_PAIR[0], root / 'agents' / EXTRA_AGENT)
   return root
 
 
 def test_75h_reds_when_agents_holds_a_file_the_pair_list_does_not_cover():
-  """The regression this row exists for: a tenth agent file, nine pairs, and both
-  halves of [75h] blind to the difference. BOTH branches are asserted, because the
+  """The regression this row exists for: one agent file the pair list misses, and
+  both halves of [75h] blind to the difference. BOTH branches are asserted, because the
   derivation feeds two of them, the pair-count compare and the tail-verdict count,
   and a change that left either reading a constant would still half-work."""
   out = run_shell_fragment(REPO_ROOT / SHIP_BAR,
@@ -462,7 +462,7 @@ MISCOUNT = MIRROR_PAIR_COUNT + 2
 
 def _tree_with_non_files_named_like_agents():
   """A tree whose agents/ holds a directory and a symlink named *.md beside the
-  nine real files. `-type f` is the only thing between it and a census of 11."""
+  real files. `-type f` is the only thing between it and a census two too high."""
   root = _ship_bar_tree()
   (root / 'agents' / DIR_AGENT).mkdir()
   (root / 'agents' / LINK_AGENT).symlink_to(root / UNMARKED_PAIR[0])
@@ -487,7 +487,7 @@ def test_both_censuses_miscount_that_same_tree_once_the_flag_is_taken_away():
   """The control, and what makes the row above mean what it says. A directory named
   *.md is INVISIBLE on a tree that has none, so both forms print the identical green
   until the tree moves. Same tree, both fragments, one edit each, both now counting
-  11. A wave that drops the flag again fails HERE, in whichever half it drops it."""
+  the two non-files too. A wave that drops the flag fails HERE, in whichever half."""
   root = _tree_with_non_files_named_like_agents()
   for rel, source, needle in (
       (SHIP_BAR, AGENT_COUNT_DERIVATION,

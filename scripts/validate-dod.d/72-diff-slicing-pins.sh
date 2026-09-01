@@ -45,9 +45,9 @@ RAV_REF="skills/hackify/references/review-and-verify.md"
 # input, which costs tokens but keeps coverage; the real risk is the reverse,
 # so the pairing is what is checked. It was five until v0.13.0 folded Reviewer C
 # into B, and C's lens gave up slicing in the move because B is never sliced.
-for f in "agents/code-reviewer-security.md" \
-         "agents/code-reviewer-performance.md" "agents/design-conformance-reviewer.md" \
-         "agents/code-reviewer-coherence.md" \
+for f in "agents/reviewer-security.md" \
+         "agents/reviewer-performance.md" "agents/reviewer-design.md" \
+         "agents/reviewer-coherence.md" \
          "$PA/phase-5-multi-review-a-security.md" "$PA/phase-5-multi-review-d-performance.md" \
          "$PA/phase-5-multi-review-e-design.md" "$PA/phase-5-multi-review-f-coherence.md"; do
   check_token_present '{{review_scope}}' "$f"
@@ -56,7 +56,7 @@ done
 # (2) Reviewer B is NEVER sliced. B applies the semantic tier to every touched
 # file and re-judges every law-scout row, so any subset withheld from B is
 # coverage deleted outright. Both copies of B's prompt must stay scope-free.
-for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
+for f in "agents/reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
   if grep -qF '{{review_scope}}' "$f" 2>/dev/null; then
     red "  FAIL $f takes {{review_scope}}, Reviewer B must never be sliced"
     FAILED=$((FAILED + 1))
@@ -144,7 +144,7 @@ yellow "[38h] the retired round vocabulary is gone, proved against a positive co
 # grep wrapper would silently shrink the discovered set. Both reasons are argued in full
 # above [76g] in 96-review-scope-sites.sh and above check_no_token in 00-helpers.sh.
 RSE_ROOTS="skills agents"
-RSE_CONTROL='Phase 5 dispatches exactly ONE reviewer panel and ONE refuter'
+RSE_CONTROL='Phase 5 dispatches exactly ONE review and ONE refuter'
 # MECHANISM MARKERS ONLY, deliberately. An earlier draft of this list also banned
 # the loose prose forms ('settle round', 'FULL round', 'live verdict') and that was
 # a mistake in both directions: it reddens a file explaining what the cap RETIRED,
@@ -161,12 +161,25 @@ RSE_CONTROL='Phase 5 dispatches exactly ONE reviewer panel and ONE refuter'
 RSE_DEAD=('`settle `' 'settle all' 'Round: settle')
 check_list_size "${#RSE_DEAD[@]}" 3 "the [38h] retired-round-vocabulary ban list"
 
+#
+# THE CONTROL PRINTS NO COUNT ANY MORE, and that is the fix rather than a loss. It used
+# to end on "the scan reaches N file(s)", counted off the control hit list and checked
+# by nothing, so the number read as evidence while the branch it sat in was a plain
+# non-emptiness test. Measured: break the cap sentence at ONE of the four sites and this
+# line printed "the scan reaches 3 file(s)" and passed. The count belongs to [76h] in
+# 96-review-scope-sites.sh, which pins it at four files and four occurrences over these
+# same roots and reds on exactly that break. Pinning it a second time here would put two
+# hand-written bounds over one fact in two fragments, each free to go stale on its own
+# and each needing an edit for one legitimate reword; the argument [76g] makes about a
+# number copied into prose applies to a number copied into a second check. So this line
+# now claims only what the branch establishes, that the scan provably reached the tree,
+# and names where the count lives instead of restating it.
 rse_ctl=$(/usr/bin/grep -rlIF -- "$RSE_CONTROL" $RSE_ROOTS 2>/dev/null); rse_ctl_rc=$?
 if [ "$rse_ctl_rc" -gt 1 ] || [ -z "$rse_ctl" ]; then
   red "  FAIL [38h] the positive control '$RSE_CONTROL' matched nothing under $RSE_ROOTS (grep exited $rse_ctl_rc), so the ban below would report clean over a scan that never reached the tree"
   FAILED=$((FAILED + 1))
 else
-  green "  ok   the [38h] scan reaches $(printf '%s\n' "$rse_ctl" | wc -l | tr -d ' ') file(s) carrying the round-cap sentence, so its discovery resolves"
+  green "  ok   the [38h] positive control found the round-cap sentence under $RSE_ROOTS, so the ban scan below provably reaches the tree; how MANY files carry it is [76h]'s pin and is deliberately not restated here"
   for rse_t in ${RSE_DEAD[@]+"${RSE_DEAD[@]}"}; do
     rse_hits=$(/usr/bin/grep -rlIF -- "$rse_t" $RSE_ROOTS 2>/dev/null); rse_rc=$?
     if [ "$rse_rc" -gt 1 ]; then

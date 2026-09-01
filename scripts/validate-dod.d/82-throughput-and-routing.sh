@@ -1,16 +1,16 @@
 # shellcheck shell=bash
 
 # ---------------------------------------------------------------------------
-# THROUGHPUT AND ROUTING PINS. Six blocks, one per doctrine change the
-# throughput-and-quick-default sprint landed, each guarding that change against
-# the one way it rots back.
+# THROUGHPUT AND ROUTING PINS. Seven blocks, six per doctrine change the
+# throughput-and-quick-default sprint landed and one for the sibling-track rules
+# the round after it repaired, each guarding that change against its own rot.
 #
 # THE SEAM IS THE SAME ONE 71 DRAWS, POINTED THE OTHER WAY. 71 guards a shipped
 # SAVING against its guard rail drifting out while the prose promising the
 # saving stays. This file guards a shipped DECISION against the wording it
 # REPLACED creeping back in. Different failure, identical symptom: the prose
 # reads fine, nothing reddens, and the workflow quietly runs the retired shape
-# again. So five of the six blocks are two-sided, a pin on the live claim and a
+# again. So six of the seven blocks are two-sided, a pin on the live claim and a
 # ban on the dead one, because a pin alone goes green on a file that carries
 # both at once. That is not hypothetical here: the sprint that landed these
 # changes left a retired "three stages" sentence alive in a file no wave owned,
@@ -92,15 +92,19 @@ check_token_present 'Concurrent-wave budget: 10 waves' "$TR_CONTENTION"
 #     skills agents rules commands README.md
 # minus contention-dispatch.md, which is the canonical site and must carry the
 # digits this list bans.
+#
+# AND THE RECIPE WAS RUN AGAIN, because the wave that wrote "eleven" screened ten:
+# work-doc-template.md names the budget, was on nobody's list, and is the file every
+# work-doc is copied from. Twelve paths back, minus the canonical one, is eleven.
 TR_BUDGET_CONSUMERS=("$TR_P3" "$TR_P3_TPL" "agents/implementer.md")
 TR_BUDGET_CONSUMERS+=("skills/hackify/references/parallel-agents/README.md" "$TR_QUICK")
 TR_BUDGET_CONSUMERS+=("$TR_HACKIFY" "agents/spec-reviewer.md" "README.md")
 TR_BUDGET_CONSUMERS+=("skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md")
-TR_BUDGET_CONSUMERS+=("skills/quick/evals/evals.json")
-check_list_size "${#TR_BUDGET_CONSUMERS[@]}" 10 "the [82] budget-consumer file list"
+TR_BUDGET_CONSUMERS+=("skills/quick/evals/evals.json" "$TR_WORK_DOC_TPL")
+check_list_size "${#TR_BUDGET_CONSUMERS[@]}" 11 "the [82] budget-consumer file list"
 for tr_f in "${TR_BUDGET_CONSUMERS[@]}"; do
   check_token_present 'per-agent task budget' "$tr_f"
-  check_no_tokens_in "$tr_f" "${TR_BUDGET_BANS[@]}"
+  check_no_flowed_tokens_in "$tr_f" "${TR_BUDGET_BANS[@]}"
 done
 
 # BOTH BUDGET NAMES, AND THE SECOND ONE HAD NEVER BEEN CHECKED ANYWHERE. The
@@ -111,13 +115,13 @@ done
 # go wrong, which is the exact failure the by-name pin exists to catch on the other
 # budget.
 #
-# EIGHT OF THE TEN, AND THE TWO ABSENTEES ARE NAMED RATHER THAN ROUNDED AWAY.
-# skills/hackify/references/parallel-agents/phase-3-implementation.md and
-# agents/implementer.md carry zero occurrences of `concurrent-wave budget` today,
-# measured, so pinning it across all ten would ship a red on a healthy tree. Those
-# two owe the reference and a later wave owes them the sentence; until then this
-# list is the honest scope, a file that has the name cannot lose it silently, and
-# moving a file onto this list is a diff rather than a claim with nothing behind it.
+# EIGHT OF THE ELEVEN, AND THE THREE ABSENTEES ARE NAMED RATHER THAN ROUNDED AWAY.
+# skills/hackify/references/parallel-agents/phase-3-implementation.md,
+# agents/implementer.md and work-doc-template.md carry zero occurrences of
+# `concurrent-wave budget` today, measured, so pinning it across all eleven would
+# ship a red on a healthy tree. Those three owe the reference; until then this list
+# is the honest scope, a file that has the name cannot lose it silently, and moving
+# a file onto this list is a diff rather than a claim with nothing behind it.
 TR_WAVE_BUDGET_CONSUMERS=("$TR_P3" "skills/hackify/references/parallel-agents/README.md")
 TR_WAVE_BUDGET_CONSUMERS+=("$TR_QUICK" "$TR_HACKIFY" "agents/spec-reviewer.md")
 TR_WAVE_BUDGET_CONSUMERS+=("README.md" "skills/quick/evals/evals.json")
@@ -148,7 +152,7 @@ yellow "[82b] Phase 3 runs FOUR stages, and the fourth is the testing wave"
 TR_STAGE_FILES=("$TR_CONTENTION" "$TR_P3" "$TR_HACKIFY" "$TR_WORK_DOC_TPL")
 check_list_size "${#TR_STAGE_FILES[@]}" 4 "the [82b] stage-count file list"
 for tr_f in "${TR_STAGE_FILES[@]}"; do
-  check_no_token 'three stages' "$tr_f"
+  check_no_flowed_token 'three stages' "$tr_f"
   check_token_present 'testing wave' "$tr_f"
 done
 # The count itself, pinned per file at the case each one actually writes.
@@ -172,8 +176,9 @@ check_token_present 'four stages' "$TR_WORK_DOC_TPL"
 # returns zero on a file that says exactly what it is being asked about. Measured
 # before this block was written: `/usr/bin/grep -F` for either phrase in
 # sibling-track-rules.md returns nothing, and the flattened form finds both.
-check_flowed_token_present 'a testing stage that runs as one wave' "$TR_SIBLING"
-check_flowed_token_present 'A testing stage that SPLITS is not on that list' "$TR_SIBLING"
+check_flowed_tokens_present_in "$TR_SIBLING" \
+  'a testing stage that runs as one wave' \
+  'A testing stage that SPLITS is not on that list'
 
 # ---------------------------------------------------------------------------
 yellow "[82c] the work-doc is updated per RETURNING AGENT, not once at round end"
@@ -199,7 +204,7 @@ yellow "[82c] the work-doc is updated per RETURNING AGENT, not once at round end
 # the same class of defect and the same nine files: a retired shape whose return
 # costs nothing visible. It belongs to the stage-shape rule check [83] pins, and it
 # is screened HERE only because one batched screen over one file list is cheaper
-# than two, which is the trade check_no_tokens_in exists to make.
+# than two, which is the trade check_no_flowed_tokens_in exists to make.
 TR_CADENCE_BANS=('before ticking any task' 'BEFORE anything ticks')
 TR_CADENCE_BANS+=('before ticking anything' 'before tasks tick')
 TR_CADENCE_BANS+=('tasks tick at round end' 'Before dispatching round N+1')
@@ -217,7 +222,7 @@ TR_RETURN_FILES+=("skills/hackify/references/perf-scout.md")
 TR_RETURN_FILES+=("$TR_SIBLING" "$TR_WORK_DOC_TPL")
 check_list_size "${#TR_RETURN_FILES[@]}" 9 "the [82c] per-return cadence file list"
 for tr_f in "${TR_RETURN_FILES[@]}"; do
-  check_no_tokens_in "$tr_f" "${TR_CADENCE_BANS[@]}"
+  check_no_flowed_tokens_in "$tr_f" "${TR_CADENCE_BANS[@]}"
 done
 check_token_present 'ONE RETURNING AGENT' "$TR_P3"
 check_token_present 'As EACH agent returns' "$TR_P3"
@@ -266,8 +271,8 @@ yellow "[82d] quick is the default route and full hackify never auto-fires"
 # harness's input, so only the frontmatter line is judged, and the emptiness
 # guard below is what stops a reformatted frontmatter turning this into a check
 # over an empty string that can no longer fail.
-check_no_token 'When NOT to use quick mode' "$TR_QUICK"
-check_no_token '## When NOT to use' "$TR_QUICK"
+check_no_flowed_token 'When NOT to use quick mode' "$TR_QUICK"
+check_no_flowed_token '## When NOT to use' "$TR_QUICK"
 check_token_present 'The default route for any substantive prompt' "$TR_QUICK"
 
 TR_DESC_PINS=('THE EXPLICITLY-REQUESTED ROUTE, never the automatic one')
@@ -363,14 +368,14 @@ yellow "[82g] the sibling-track rules are pinned, and the new 'none' branch did 
 # check did, and a defect with nothing red behind it just waits for the next
 # reader to find it again.
 #
-# FOUR PINS, ON THE FOUR THINGS THAT ROT SEPARATELY. Each names its target by
-# line so the citation checker re-resolves it: scripts/check_doc_links.py sets
-# CITE_SCAN_ROOTS to include scripts/, so a `path:line` written in this fragment
-# is verified rather than decorative, and a pin whose anchor moved is reported
-# here before it is reported by a reader.
+# FIVE PINS, ON THE FIVE THINGS THAT ROT SEPARATELY, and this said FOUR while five
+# shipped. Each names its target by line, and that number is A READING AID AND
+# NOTHING MORE: scripts/check_doc_links.py resolves a `path:line` by asking whether
+# the file HAS that line, never whether it still says what the pointer claims, so
+# four anchors below were stale and nothing reddened. Re-resolved, not carried over.
 
 # PIN 1, THE DATABASE GATE'S REFUSAL PATTERN, TWO-SIDED. The live `case` at
-# skills/hackify/references/sibling-track-rules.md:168-172 refuses an EMPTY or
+# skills/hackify/references/sibling-track-rules.md:216-220 refuses an EMPTY or
 # still-templated value and lets `none` fall through to the tree search below it.
 # The retired form refused on the literal word `none` as well, which made every
 # concurrent dispatch in a database-free repo a dispatch to refuse.
@@ -388,14 +393,14 @@ yellow "[82g] the sibling-track rules are pinned, and the new 'none' branch did 
 # costs a track real work.
 TR_SIB_DB_BANS=("''|none|*'{{'*" 'no per-track database reached')
 check_list_size "${#TR_SIB_DB_BANS[@]}" 2 "the [82g] retired database-refusal ban list"
-check_no_tokens_in "$TR_SIBLING" "${TR_SIB_DB_BANS[@]}"
+check_no_flowed_tokens_in "$TR_SIBLING" "${TR_SIB_DB_BANS[@]}"
 check_token_present "''|*'{{'*|*'<the database_name'*)" "$TR_SIBLING"
 check_token_present 'FAIL: no database decision reached this track' "$TR_SIBLING"
 check_token_present "database_name is 'none' but this project has a database" "$TR_SIBLING"
 check_token_present 'VERIFIED against the tree' "$TR_SIBLING"
 
 # PIN 2, THE VERIFICATION DUTY, at
-# skills/hackify/references/sibling-track-rules.md:47. Relaxing a gate and
+# skills/hackify/references/sibling-track-rules.md:59. Relaxing a gate and
 # deleting a gate look identical one edit later, so the sentence that makes `none`
 # a value you CHECK rather than a value you accept is pinned on its own. Pin 1
 # guards the shell that discharges the duty; this guards the prose that imposes
@@ -411,15 +416,16 @@ check_token_present 'a path you rule out is a path you' "$TR_SIBLING"
 # PIN 3, THE ALLOWLIST RECONCILIATION, ON BOTH SIDES. A concurrent track is
 # ordered to write `docs/work/<slug>.tracks/<track_id>.md` and is also bound by an
 # allowlist that is absolute. Those are two contradictory orders unless the
-# dispatcher puts that path in the list, and the fix had to land in both files:
-# the track's copy at sibling-track-rules.md:133 and the dispatcher's copy at
-# skills/hackify/references/contention-dispatch.md:366-377.
+# dispatcher puts that path in the list, and the fix had to land in both files.
+# Each side is cited by the sentence it added rather than by a line number:
+#   sibling-track-rules.md's "that path IS in your file allowlist"
+#   contention-dispatch.md's "the dispatcher puts that file in the track's allowlist"
 #
-# BOTH NUMBERS WERE STALE AND NOTHING WENT RED, which is worth more than the fix.
-# scripts/check_doc_links.py resolves a `path:line` pointer by asking whether the
-# file HAS that line, never whether it still says what the pointer claims, so a
-# paragraph moving down a file takes its citation with it in silence. The tokens
-# below are the real anchors.
+# BOTH SIDES WERE ONCE CITED BY NUMBER AND BOTH NUMBERS WENT STALE, which is worth
+# more than the fix: a paragraph moving down a file takes its citation with it, and
+# the track's side had drifted onto a blank line by the time this was rewritten.
+# Numbered here means stale again next edit, and the round that edits this block
+# edits the file it cites. The tokens below are the enforced anchors.
 #
 # ONLY A PAIR WORKS HERE. Pinning one side lets the other be deleted, and the
 # contradiction is back with a green validator over it, because each surviving
@@ -437,7 +443,7 @@ check_token_present "the dispatcher puts that file in the track's allowlist" "$T
 check_token_present 'a concurrent dispatch whose allowlist' "$TR_CONTENTION"
 
 # PIN 4, THE ABSOLUTE SHARED-DATABASE BAN at
-# skills/hackify/references/sibling-track-rules.md:34-42. This one was not asked
+# skills/hackify/references/sibling-track-rules.md:46-51. This one was not asked
 # for and belongs anyway. Pins 1 and 2 both guard a RELAXATION, and a relaxation
 # guarded while the rule it relaxes is not is how the next editor reads the new
 # `none` branch as permission to touch the shared database when a track has no
@@ -490,6 +496,4 @@ TR_SIB_SEARCH_PINS+=('*"$db_probe/migrations/control.sql"*)')
 TR_SIB_SEARCH_PINS+=('db_search || exit 1')
 TR_SIB_SEARCH_PINS+=('suppressed $db_r')
 check_list_size "${#TR_SIB_SEARCH_PINS[@]}" 15 "the [82g] database-search pin list"
-for tr_tok in "${TR_SIB_SEARCH_PINS[@]}"; do
-  check_token_present "$tr_tok" "$TR_SIBLING"
-done
+check_tokens_present_in "$TR_SIBLING" "${TR_SIB_SEARCH_PINS[@]}"

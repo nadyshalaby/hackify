@@ -45,15 +45,21 @@ yellow "[81] commits and PR bodies carry no Claude attribution"
 # minute. Each token therefore carries the part only a REAL trailer has: the
 # value after the colon, the bracketed link form of the footer, the address. Do
 # not "tighten" these back to the bare names; that turns the rule text into a
-# violation of itself. Screened case-insensitively by check_no_tokens_in's
+# violation of itself. Screened case-insensitively by check_no_flowed_tokens_in's
 # grep -i, so a lower-cased or shouted variant is caught by the same entry.
 CA_BANS=('Co-Authored-By: Claude' 'Claude-Session: https' 'Generated with [Claude Code]' 'noreply@anthropic.com')
 check_list_size "${#CA_BANS[@]}" 4 "the [81] attribution ban list"
 
 # Directories, not files: grep -r walks them, so a NEW skill or agent file that
 # reintroduces the trailer is caught without this list being edited to name it.
+#
+# FLATTENED, AND FLATTENED PER FILE RATHER THAN PER TREE. Three of these four
+# tokens carry a space, and a trailer that landed at the end of a wrapped line
+# passed the line-oriented screen. Flattening a whole DIRECTORY into one blob
+# would instead manufacture a match across a file boundary; flowed_flatten emits
+# one line per file, which is what makes a directory safe to ban over here.
 for ca_path in skills agents rules commands hooks .claude-plugin README.md; do
-  check_no_tokens_in "$ca_path" "${CA_BANS[@]}"
+  check_no_flowed_tokens_in "$ca_path" "${CA_BANS[@]}"
 done
 
 # The rule itself, at each site that states it. Worded differently per site on

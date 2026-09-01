@@ -11,24 +11,63 @@
 # Count the batched ban calls that actually SHIP, so a new one cannot appear in a new
 # fragment while CHANGELOG.md still states an older count and nothing reddens.
 #
-# CALL SITES, NOT OCCURRENCES. The name also appears in the DEFINITION, in prose comments
-# and inside one red-message string, and counting those would inflate the number until the
-# pin guarded nothing. So every line has its quoted spans blanked (deleting the red message
-# outright) and its comment tail cut, and then EVERY occurrence followed by whitespace is
-# counted: the definition never qualifies, because `check_no_tokens_in() {` has none. Per
+# BOTH BATCHED MATCHERS, COUNTED APART AND THEN SUMMED. check_no_tokens_in gained a
+# wrap-aware twin, check_no_flowed_tokens_in, and six of the seven shipped calls moved
+# to it. Counting only the original name would have watched that number fall from 7 to
+# 1 and read a CONVERSION as a DELETION, so the pin would have to be bumped downward
+# on a change that removed no coverage at all, and the coverage bound below it would
+# start comparing one matcher's call count against every parsed list. The sum is what
+# the CHANGELOG sentence is about; the split is pinned separately because it is the
+# half that says which matcher each shipped list is actually screened by.
+#
+# CALL SITES, NOT OCCURRENCES. Each name also appears in its own DEFINITION, in prose
+# comments and inside one red-message string, and counting those would inflate the number
+# until the pin guarded nothing. So every line has its quoted spans blanked (deleting the red
+# message outright) and its comment tail cut, and then EVERY occurrence followed by whitespace
+# is counted: neither definition ever qualifies, because `check_no_tokens_in() {` has none. Per
 # occurrence rather than per line, because a second call fits on one line. And PROVED every
-# run: 00-helpers.sh holds the definition AND the comments AND the string, so its count is 0.
+# run: 00-helpers.sh holds both definitions AND the comments AND the strings, so its count is 0.
+# The two names cannot cross-count either: `check_no_flowed_tokens_in` does not contain
+# `check_no_tokens_in` as a substring, so `\b` keeps each regex to its own name.
+#
+# EVERY TREE THAT COULD HOLD A CALL SITE, not the validator's fragment directory
+# alone. hooks/ ships executable shell into a user's repository and can source
+# 00-helpers.sh exactly the way a fragment does, so a batched ban added there
+# would run, screen a real list, and be pinned by nothing. It carries zero such
+# calls today, which is what makes this cheap to close and is also what makes it
+# dangerous to close carelessly: the total does not move, so nothing on a clean
+# run distinguishes a scan that reached hooks/ and found nothing from one that
+# never reached it at all. THE PER-DIRECTORY EMPTINESS GUARD IS WHAT TELLS THEM
+# APART, and it is why the counter exits rather than returning a number when a
+# named directory globs to nothing: a renamed or moved tree stops being scanned
+# loudly instead of subtracting silently. It needs no pinned file count to do it,
+# so adding a fragment does not drag a constant along behind it.
+#
+# scripts/ ITSELF IS DELIBERATELY NOT HERE. test_ban_tokens.sh and its fragments
+# call both matchers directly, dozens of times, as the cases under test. Counting
+# those would swamp the shipped total with calls that ban nothing in the
+# validator, which is the opposite of what this pin is for.
+TB_CALL_SITE_DIRS=(scripts/validate-dod.d hooks)
+
 tb_count_call_sites() {
-  python3 - "$1" <<'CALLS'
+  python3 - "$@" <<'CALLS'
 import glob, io, os, re, sys
 QUOTED = re.compile(r'"(?:\\.|[^"\\])*"|\'[^\']*\'')
-CALL = re.compile(r'\bcheck_no_tokens_in\s')
-def sites(path):
-    return sum(len(CALL.findall(re.sub(r'(?:^|\s)#.*$', '', QUOTED.sub('""', line))))
+LINE = re.compile(r'\bcheck_no_tokens_in\s')
+FLOWED = re.compile(r'\bcheck_no_flowed_tokens_in\s')
+def sites(path, rx):
+    return sum(len(rx.findall(re.sub(r'(?:^|\s)#.*$', '', QUOTED.sub('""', line))))
                for line in io.open(path, encoding="utf-8"))
-d = sys.argv[1]
-print("%d %d" % (sum(sites(f) for f in sorted(glob.glob(os.path.join(d, "*.sh")))),
-                 sites(os.path.join(d, "00-helpers.sh"))))
+files = []
+for d in sys.argv[1:]:
+    found = sorted(glob.glob(os.path.join(d, "*.sh")))
+    if not found:
+        sys.exit("no .sh file under %s, so that tree was never scanned" % d)
+    files += found
+helpers = [f for f in files if os.path.basename(f) == "00-helpers.sh"]
+print("%d %d %d" % (sum(sites(f, LINE) for f in files),
+                    sum(sites(f, FLOWED) for f in files),
+                    sum(sites(h, LINE) + sites(h, FLOWED) for h in helpers)))
 CALLS
 }
 
@@ -40,23 +79,36 @@ CALLS
 # red on that third assertion is a new list in tb_extract_lists and a new tb_plant_every_token
 # sweep, never a bumped constant.
 tb_check_call_sites() {
-  local out total helpers lists
+  local out rc line_n flowed_n helpers total lists
   local parsed=("$TB_TMP"/tokens*.txt)
-  out=$(tb_count_call_sites "scripts/validate-dod.d")
-  total=${out%% *}
-  helpers=${out##* }
+  # 2>&1 so the counter's own refusal reaches the verdict line. It exits on a
+  # directory that globs to no .sh file, and that message IS the finding.
+  out=$(tb_count_call_sites "${TB_CALL_SITE_DIRS[@]}" 2>&1)
+  rc=$?
+  read -r line_n flowed_n helpers <<<"$out"
   lists=${#parsed[@]}
   [ -f "${parsed[0]}" ] || lists=0
-  if [ -z "$out" ] || [ "$helpers" != "0" ]; then
-    tb_bad "call-site pin: 00-helpers.sh reported ${helpers:-no} call sites, expected 0, so the counter is being fooled by the definition, a comment or the red-message string"
+  if [ "$rc" -ne 0 ]; then
+    tb_bad "call-site pin: the counter refused to run over ${TB_CALL_SITE_DIRS[*]}: $out"
     return
   fi
-  tb_ok "call-site pin: the definition, its comment mentions and its red-message string in 00-helpers.sh count as 0 call sites"
+  tb_ok "call-site pin: every one of ${#TB_CALL_SITE_DIRS[@]} scanned tree(s) (${TB_CALL_SITE_DIRS[*]}) held at least one .sh file to scan"
+  if [ -z "$out" ] || [ "$helpers" != "0" ]; then
+    tb_bad "call-site pin: 00-helpers.sh reported ${helpers:-no} call sites across the two batched matchers, expected 0, so the counter is being fooled by a definition, a comment or a red-message string"
+    return
+  fi
+  tb_ok "call-site pin: both definitions, their comment mentions and their red-message strings in 00-helpers.sh count as 0 call sites"
+  total=$((line_n + flowed_n))
   if [ "$total" -ne "$TB_EXPECT_CALLS" ]; then
-    tb_bad "call-site pin: $total batched ban calls ship in scripts/validate-dod.d/, expected $TB_EXPECT_CALLS (a ban list was added or removed; bump TB_EXPECT_CALLS in test_ban_tokens.sh to match, and leave old CHANGELOG entries alone)"
+    tb_bad "call-site pin: $total batched ban calls ship in ${TB_CALL_SITE_DIRS[*]} ($line_n line-oriented, $flowed_n flattened), expected $TB_EXPECT_CALLS (a ban list was added or removed; bump TB_EXPECT_CALLS in test_ban_tokens.sh to match, and leave old CHANGELOG entries alone)"
     return
   fi
   tb_ok "call-site pin: $total batched ban calls ship, matching the expected $TB_EXPECT_CALLS"
+  if [ "$line_n" -ne "$TB_EXPECT_CALLS_LINE" ] || [ "$flowed_n" -ne "$TB_EXPECT_CALLS_FLOWED" ]; then
+    tb_bad "call-site pin: the split is $line_n line-oriented and $flowed_n flattened, expected $TB_EXPECT_CALLS_LINE and $TB_EXPECT_CALLS_FLOWED (a call site changed matcher; each plant sweep in test_ban_tokens.sh names the matcher its list ships under and has to move with it, or the sweep screens that list with a matcher the validator no longer runs)"
+    return
+  fi
+  tb_ok "call-site pin: $line_n line-oriented and $flowed_n flattened batched calls ship, matching the expected split"
   if [ "$total" -ne "$lists" ]; then
     tb_bad "call-site pin: $total calls ship but this suite parsed $lists token list(s), so a shipped ban list is never planted"
     return
@@ -138,14 +190,15 @@ tb_check_failclosed_total() {
 
 # Counted apart from the fail-closed cases for the same reason it is written as a
 # separate case: a count never taken and a count read wrong are two defects, and a
-# pin that merged them would go green with either one of its cases missing. One
-# case today, and the pin is what makes a second one impossible to add silently.
-TB_EXPECT_MISCOUNT=1
+# pin that merged them would go green with either one of its cases missing. Two
+# cases today, the colon filename and two hits on one line, and the pin is what
+# makes a third one impossible to add silently.
+TB_EXPECT_MISCOUNT=2
 
 tb_check_miscount_total() {
   if [ "$TB_MISCOUNT" -eq "$TB_EXPECT_MISCOUNT" ]; then
-    tb_ok "miscount total: $TB_MISCOUNT case actually ran, matching the expected $TB_EXPECT_MISCOUNT"
+    tb_ok "miscount total: $TB_MISCOUNT cases actually ran, matching the expected $TB_EXPECT_MISCOUNT"
     return
   fi
-  tb_bad "miscount total: $TB_MISCOUNT case(s) actually ran, expected $TB_EXPECT_MISCOUNT (the colon-filename case is no longer being called, or is being called twice)"
+  tb_bad "miscount total: $TB_MISCOUNT case(s) actually ran, expected $TB_EXPECT_MISCOUNT (the colon-filename case or the two-hits-on-one-line case is no longer being called, or one is being called twice)"
 }

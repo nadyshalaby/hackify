@@ -106,6 +106,22 @@ def _red(rc, out, *needles):
   expect(out, *needles)
 
 
+def _flowed_red(token, tree, rel):
+  """The red [81] prints for a banned token still present after flattening.
+
+  Built from a format rather than spelled out at each row: the wording belongs to
+  check_no_flowed_token in 00-helpers.sh, and four inline copies would be four
+  places to edit the next time that helper's message moves. THE FILE IS PART OF
+  THE NEEDLE ON PURPOSE. The flattened matcher names the offending file where the
+  line-oriented one printed an occurrence count, and asserting on the name is
+  what proves the check pointed at this row's plant rather than at some other hit
+  the tree happened to carry. A needle trimmed back to the wording alone would
+  pass on a red about a different file, and on these two trailer rows it would
+  also match the second token the same plant reds."""
+  return "'%s' is present in %s once line wrapping is flattened, in: %s" % (
+      token, tree, rel)
+
+
 def test_the_clean_tree_passes_so_the_reds_below_are_not_wiring():
   """The baseline. Without a measured green, every red below could be a tree
   the fragment cannot read rather than a defect the fragment caught."""
@@ -122,7 +138,7 @@ def test_a_trailer_written_back_into_a_shipped_file_reds():
   write(root, IMPL, PINNED[IMPL] +
         '\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>\n')
   rc, out = run_check('81', cwd=root)
-  _red(rc, out, "'Co-Authored-By: Claude' has 1 occurrences in skills")
+  _red(rc, out, _flowed_red('Co-Authored-By: Claude', 'skills', IMPL))
 
 
 def test_the_session_line_written_back_into_a_shipped_file_reds():
@@ -131,7 +147,7 @@ def test_the_session_line_written_back_into_a_shipped_file_reds():
   root = _tree()
   write(root, IMPL, PINNED[IMPL] + '\nClaude-Session: https://claude.ai/code/session_x\n')
   rc, out = run_check('81', cwd=root)
-  _red(rc, out, "'Claude-Session: https' has 1 occurrences in skills")
+  _red(rc, out, _flowed_red('Claude-Session: https', 'skills', IMPL))
 
 
 def test_the_pr_footer_written_back_reds():
@@ -141,7 +157,7 @@ def test_the_pr_footer_written_back_reds():
   write(root, FINISH, PINNED[FINISH] +
         '\nGenerated with [Claude Code](https://claude.com/claude-code)\n')
   rc, out = run_check('81', cwd=root)
-  _red(rc, out, "'Generated with [Claude Code]' has 1 occurrences in skills")
+  _red(rc, out, _flowed_red('Generated with [Claude Code]', 'skills', FINISH))
 
 
 def test_deleting_the_rule_sentence_reds_even_with_no_banned_token_present():
@@ -189,7 +205,7 @@ def test_a_trailer_planted_in_hooks_reds_because_that_tree_is_scanned_too():
   write(root, 'hooks/placeholder.sh',
         '# inject this into every prompt\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n')
   rc, out = run_check('81', cwd=root)
-  _red(rc, out, "'Co-Authored-By: Claude' has 1 occurrences in hooks")
+  _red(rc, out, _flowed_red('Co-Authored-By: Claude', 'hooks', 'hooks/placeholder.sh'))
 
 
 def test_the_scan_list_covers_every_shipped_tree_the_size_caps_walk():

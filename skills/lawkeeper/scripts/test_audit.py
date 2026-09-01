@@ -120,7 +120,7 @@ def test_exemptions_paths():
 
 def test_recall_corpus_exempt_from_self_audit():
   # A repo-root audit sees the corpus under skills/...; it must be exempt so a
-  # `/lawkeeper` run on this repo does not flag its own planted fixtures.
+  # `/hackify:lawkeeper` run on this repo does not flag its own planted fixtures.
   assert is_generated('skills/lawkeeper/evals/corpus/project/backend/config.ts')
   # run_corpus.py roots its scan inside project/, so that rel-path stays scannable.
   assert is_scannable('backend/config.ts')

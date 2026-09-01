@@ -95,7 +95,7 @@ After PR is open: report the URL to the user.
 
 ### Option 3 (Keep the branch as-is)
 
-Do nothing. Don't push, don't tag, don't archive. Update work-doc frontmatter `status: paused` if you want, otherwise leave it. The user resumes later via `/hackify resume <slug>`.
+Do nothing. Don't push, don't tag, don't archive. Update work-doc frontmatter `status: paused` if you want, otherwise leave it. The user resumes later via `/hackify:hackify resume <slug>`.
 
 ### Option 4 (Discard)
 
@@ -244,7 +244,7 @@ Don't skip this. The Retrospective is what compounds learning across tasks. It's
 
 ## Step D.5, Codewalk follow-up (since v0.3.2)
 
-If the task touched an **entry point**, a route handler, a CLI command, a queue / Inngest function, a UI action, ask the user whether to refresh or create a `/codewalk` trace for it. Codewalk is the cheapest way to keep the team's mental model of the touched flow in sync with the change you just shipped.
+If the task touched an **entry point**, a route handler, a CLI command, a queue / Inngest function, a UI action, ask the user whether to refresh or create a `/hackify:codewalk` trace for it. Codewalk is the cheapest way to keep the team's mental model of the touched flow in sync with the change you just shipped.
 
 **Detect entry-point touches** from the work-doc's "Files changed" list (or `git diff --stat <base>..HEAD --name-only` if absent). An entry-point file matches any of:
 
@@ -261,16 +261,16 @@ Otherwise, ask the user via the `AskUserQuestion` tool (one question, wizard-sty
 
 > **Header:** Codewalk
 >
-> **Question:** This task touched `<file>` (and N other entry-point files). Update or create a `/codewalk` trace so the next reader has the current call graph?
+> **Question:** This task touched `<file>` (and N other entry-point files). Update or create a `/hackify:codewalk` trace so the next reader has the current call graph?
 >
 > Options:
-> - **Update existing trace at `.codewalk/<slug>/`** *(Recommended)*, slug already exists; re-running `/codewalk` will merge, preserve manual edits, and surface a diff callout.
+> - **Update existing trace at `.codewalk/<slug>/`** *(Recommended)*, slug already exists; re-running `/hackify:codewalk` will merge, preserve manual edits, and surface a diff callout.
 > - **Create new codewalk for `<entry>`**, slug does not exist yet; this seeds the team's catalog with this flow.
 > - **Skip, no codewalk needed**, the touched entry is internal-only / not worth tracing, or the team uses a different artifact for this.
 
 To detect the slug, derive it from the touched controller's primary route (`<method-lowercase>-<path-sanitized>` per `skills/codewalk/references/data-schema.md` "Slug convention"). If the catalog `.codewalk/_catalog.json` exists, prefer the slug from there.
 
-On "Update" or "Create", invoke `/codewalk <entry-point>` immediately. On "Skip", continue to Step F. Do not loop, this is a single ask per Finish.
+On "Update" or "Create", invoke `/hackify:codewalk <entry-point>` immediately. On "Skip", continue to Step F. Do not loop, this is a single ask per Finish.
 
 This step runs after the cleanup sweep and **before** Step F, and its ledger row sits between `6b` and `6c`.
 

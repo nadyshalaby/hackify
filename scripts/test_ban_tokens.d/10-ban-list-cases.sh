@@ -9,22 +9,37 @@
 # ---------------------------------------------------------------------------
 # 1. Every banned token, one at a time, over the real lists.
 # ---------------------------------------------------------------------------
+# THE MATCHER IS TB_MATCHER AND NOT A LITERAL, because six of the seven shipped
+# batched calls moved to check_no_flowed_tokens_in and a sweep hard-wired to the
+# other one would prove a matcher the validator no longer runs on that list. Each
+# sweep in test_ban_tokens.sh sets it to what its own list ships under, and the
+# split pin in 30-inventory-pins.sh reddens if a call site moves without it.
+#
+# THE RED WORDING DIFFERS BETWEEN THE TWO, so it is derived rather than pinned to
+# one form. The line-oriented matcher reports a COUNT of matching lines ("has 3
+# occurrences"); the flattened one leaves one line per file, where a line count
+# would read as an occurrence count while being neither, so it NAMES the files
+# instead ("is present in ... in: a.md, b.md"). Asserting the shared prefix alone
+# would let a matcher that prints the token and no verdict pass, so each form is
+# matched in full up to the token.
 tb_plant_case() {
   local token="$1"
   local before="$FAILED"
   local planted="$TB_TMP/planted.md"
+  local hit="has"
+  case "$TB_MATCHER" in *_flowed_*) hit="is present in" ;; esac
   TB_PLANTED=$((TB_PLANTED + 1))
   printf 'Reviewer prose above the plant.\n%s\nReviewer prose below it.\n' "$token" > "$planted"
-  check_no_tokens_in "$planted" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
+  "$TB_MATCHER" "$planted" "${TB_LIST[@]}" > "$TB_OUT" 2>&1
   if [ "$FAILED" -le "$before" ]; then
-    tb_bad "planted [$token] did not move FAILED, so the batched screen missed it"
+    tb_bad "planted [$token] did not move FAILED, so $TB_MATCHER's batched screen missed it"
     return
   fi
-  if ! /usr/bin/grep -qF "FAIL '$token' has" "$TB_OUT"; then
-    tb_bad "planted [$token] reddened, but no FAIL line names that token"
+  if ! /usr/bin/grep -qF "FAIL '$token' $hit" "$TB_OUT"; then
+    tb_bad "planted [$token] reddened under $TB_MATCHER, but no FAIL line names that token"
     return
   fi
-  tb_ok "planted [$token] reddens and is named"
+  tb_ok "planted [$token] reddens under $TB_MATCHER and is named"
 }
 
 # Every sweep proves its OWN coverage: this list, this many tokens, actually
@@ -60,6 +75,11 @@ tb_plant_every_token() {
 # ---------------------------------------------------------------------------
 # 2. The green path, and the proof it is not green by measuring nothing.
 # ---------------------------------------------------------------------------
+# DELIBERATELY NOT TB_MATCHER. This case and the fail-closed cases it calls assert
+# check_no_tokens_in's and check_no_token's own verdict wording, and both still
+# ship: the line-oriented batched matcher runs [77]'s report-input bans and
+# check_no_token runs every single-token ban in the validator. Pointing this at
+# the flattened twin would assert wording that twin never prints.
 tb_case_green_path() {
   local before="$FAILED"
   local clean="$TB_TMP/clean.md"
@@ -76,6 +96,7 @@ tb_case_green_path() {
   tb_run_fail_closed_cases
   tb_check_wi_failclosed_total
   tb_case_colon_filename
+  tb_case_two_hits_one_line
 }
 
 # ---------------------------------------------------------------------------
@@ -197,23 +218,29 @@ tb_case_real_file_plant() {
 }
 
 # ---------------------------------------------------------------------------
-# 2c. A MISREAD COUNT, the other way a green happens over content the check
-# never actually cleared. Not fail-closed: here grep runs, reads the file, and
-# reports the hit, and the SUM throws it away.
+# 2c. A MISREAD COUNT, the other way a green happens over content the check never
+# actually cleared. Not fail-closed: here grep runs, reads the file, and reports
+# the hit, and the COUNT throws it away. Two cases, one per way that has happened.
 #
-# `grep -rc` emits `path:count`, so a colon inside the path adds a field. The sum
-# used to read `$2`, and on `weird:name.md:1` that field is `name.md`, which awk
-# coerces to 0 and the check prints green over a live hit. `$NF` is the last field
-# whatever the filename holds.
+# THE COLON CASE. `grep -rc` emitted `path:count`, so a colon in the path added a
+# field. The sum read `$2`, which on `weird:name.md:1` is `name.md`, which awk
+# coerced to 0, and the check printed green over a live hit. `$NF` repaired it,
+# and check_no_token has since stopped parsing fields at all: it counts the lines
+# `grep -o` prints, so there is no field left to misread and no directory-only
+# branch to reach. The case is a REGRESSION GUARD now rather than a live repair,
+# and it is kept because the way back in is an edit that reintroduces parsing,
+# which nothing else in either suite would notice.
 #
-# THE DIRECTORY IS THE ARGUMENT, NOT THE FILE, and that is the entire case. Handed
-# the file itself, check_no_token takes the `${out##*:}` branch, which strips to
-# the last colon and passes whether the sum reads `$2` or `$NF`, so the case would
-# be a tautology that proves nothing about the branch it is named for. Only a
-# directory reaches awk.
+# THE TWO-HITS-ON-ONE-LINE CASE. `grep -c` counts matching LINES, so two
+# occurrences on one line reported 1: detection was right and the number was not,
+# and a red understated the regression it had correctly found. `-o` prints one
+# line per occurrence, so the count is the occurrence count. THIS CASE EXISTS
+# BECAUSE NOTHING ELSE PINNED IT. Reverting the matcher to -c was planted while
+# this case was being written and left both this suite and the whole tamper
+# battery at 0 failures, so the repair shipped guarded by nothing at all.
 #
-# THE FIXTURE SUPPLIES THE FILENAME because the scanned trees hold none, which is
-# exactly why this went unnoticed: latent, not absent.
+# THE FIXTURE SUPPLIES BOTH SHAPES because the scanned trees hold neither, which
+# is exactly why both went unnoticed: latent, not absent.
 # ---------------------------------------------------------------------------
 tb_case_colon_filename() {
   local before="$FAILED"
@@ -223,11 +250,31 @@ tb_case_colon_filename() {
   mkdir -p "$dir"
   printf 'panel is five\n' > "$dir/weird:name.md"
   check_no_token 'panel is five' "$dir" > "$TB_OUT" 2>&1
-  tb_expect_red "miscount: a hit inside a colon-carrying filename reddens instead of summing to 0" "$before"
+  tb_expect_red "miscount: a hit inside a colon-carrying filename reddens instead of counting 0" "$before"
   if /usr/bin/grep -q 'has 1 occurrences' "$TB_OUT"; then
-    tb_ok "miscount: the count reads 1, so the sum took the last field and not the filename"
+    tb_ok "miscount: the count reads 1, so no part of the path was read as a count"
   else
     tb_bad "miscount: reddened without reporting the real count of 1"
+  fi
+  rm -rf "$dir"
+}
+
+# Two occurrences on ONE physical line, which is the whole case: any fixture that
+# spreads them over two lines passes under a line counter and a hit counter
+# alike, and would prove nothing about which one is running.
+tb_case_two_hits_one_line() {
+  local before="$FAILED"
+  local dir="$TB_TMP/two-hits"
+  TB_MISCOUNT=$((TB_MISCOUNT + 1))
+  rm -rf "$dir"
+  mkdir -p "$dir"
+  printf 'panel is five and then panel is five again\n' > "$dir/a.md"
+  check_no_token 'panel is five' "$dir/a.md" > "$TB_OUT" 2>&1
+  tb_expect_red "miscount: two hits on one line redden" "$before"
+  if /usr/bin/grep -q 'has 2 occurrences' "$TB_OUT"; then
+    tb_ok "miscount: the count reads 2, so occurrences are counted and not matching lines"
+  else
+    tb_bad "miscount: two hits on one line did not report 2 occurrences, so the count is reading matching lines again"
   fi
   rm -rf "$dir"
 }

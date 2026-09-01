@@ -32,7 +32,7 @@ yellow "[38c] the v0.11.0 token-reduction changes keep their mechanism"
 # out while the prose that promises it stays. Prose nothing checks is prose
 # that drifts back, so each is pinned here to the artifact that carries it.
 P5_REVIEW="skills/hackify/references/phases/phase-5-review.md"
-REVIEWER_B_AGENT="agents/code-reviewer-quality-plan.md"
+REVIEWER_B_AGENT="agents/reviewer-quality-plan.md"
 REVIEWER_B_TPL="skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
 WORK_DOC_TPL="skills/hackify/references/work-doc-template.md"
 
@@ -230,7 +230,7 @@ trigger_body_check() {
 trigger_check hackify "use the workflow" "add, build, implement, refactor, redesign, restyle, migrate, debug, polish, audit" "auth, crypto, migration, secret, token, password" "yolo" "just do it" "don't ask me" "no questions" "fully autonomous" "auto mode" "go full auto"
 trigger_check quick "quick fix" "small change" "just fix the" "one-line fix" "tiny edit" "small fix" "small bug" "quick patch" "minor tweak" "just rename" "fix typo" "/hackify:quick" "switch to full" "promote to full"
 trigger_check lawkeeper "audit my code against our rules" "does this follow CLAUDE.md" "find all rule violations" "validate the architecture"
-trigger_check codewalk "/codewalk" "walk this code" "walk me through" "walk through this" "trace this call stack" "trace this flow" "trace from" "explain this flow" "explain how this works" "what happens when" "onboard me to" "call-stack viewer" "code walkthrough"
+trigger_check codewalk "/hackify:codewalk" "walk this code" "walk me through" "walk through this" "trace this call stack" "trace this flow" "trace from" "explain this flow" "explain how this works" "what happens when" "onboard me to" "call-stack viewer" "code walkthrough"
 trigger_check review-triage "/hackify:review-triage" "respond to the review" "respond to PR feedback" "respond to reviewer comments" "address review findings"
 trigger_check groom "/hackify:groom" "let's discuss" "let's think" "what if" "explore the idea" "what do you think" "considering" "thinking about"
 trigger_check skillsmith "/hackify:skillsmith" "author a hackify skill" "create a new skill for hackify" "make a hackify-style skill" "new hackify skill"
@@ -277,7 +277,7 @@ done
 # Code, both reviewers were auditing without it while the docs said otherwise. A
 # missing load step costs nothing visible, it just returns a thinner report.
 for f in "agents/spec-reviewer.md" "$PA/phase-2.5-spec-reviewer.md" \
-         "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
+         "agents/reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
   check_token_present 'rules/code-quality.md' "$f"
 done
 
@@ -313,7 +313,7 @@ check_token_present 'plus E on UI-bearing diffs' "$ESC_G"
 # The five agent frontmatter descriptions carry the same gating clause, and so do the
 # two templates whose prose sits outside the fence. A description is NOT in the fenced
 # block, so [75h] cannot see it, and it is the line an orchestrator reads to pick who runs.
-PANEL_AGENTS="agents/code-reviewer-security.md agents/code-reviewer-quality-plan.md agents/code-reviewer-performance.md agents/design-conformance-reviewer.md agents/code-reviewer-coherence.md $PA/phase-5-multi-review-a-security.md $PA/phase-5-multi-review-f-coherence.md"
+PANEL_AGENTS="agents/reviewer-security.md agents/reviewer-quality-plan.md agents/reviewer-performance.md agents/reviewer-design.md agents/reviewer-coherence.md $PA/phase-5-multi-review-a-security.md $PA/phase-5-multi-review-f-coherence.md"
 for f in $PANEL_AGENTS; do check_token_present 'A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one' "$f"; done
 # Every literal below encodes a panel width nobody dispatches on any more, in either
 # phase. Banned everywhere rather than per-file because a hand-kept per-file list is the
@@ -329,8 +329,10 @@ P5_BANS=('A, B, C, D and F' 'A, B, C and F' 'A, B, C and D' 'B, C, D and F' 'as 
 # Both sizes below are written a SECOND time by hand, the shape [77] already uses: a bound read back out of a list cannot police that list.
 check_list_size "$(printf '%s' "$P5_FILES" | wc -w | tr -d ' ')" 17 "the [70] panel-width file set"
 check_list_size "${#P5_BANS[@]}" 21 "the [70] count-grammar ban list"
-# One grep per file for the whole list, same verdict lines: see 00-helpers.sh.
-for f in $P5_FILES; do check_no_tokens_in "$f" "${P5_BANS[@]}"; done
+# FLATTENED, because 18 of these 21 tokens carry a space and every file below is
+# wrapped markdown, where a banned phrase straddling a line break passes a
+# line-oriented screen. One grep per file for the whole list: see 00-helpers.sh.
+for f in $P5_FILES; do check_no_flowed_tokens_in "$f" "${P5_BANS[@]}"; done
 
 # No retired agent type may be named in a live instruction, in ANY mode. A dead
 # type fails at dispatch, not at validation, and quick kept dispatching
@@ -339,7 +341,7 @@ for f in $P5_FILES; do check_no_tokens_in "$f" "${P5_BANS[@]}"; done
 # to check is precisely the thing that goes stale. Two files name the retired
 # types to record the retirement and are excluded by path, which is safe in a
 # way that an allowlist of files to check would not be. The [^-] guard catches
-# the retired type without catching the live code-reviewer-quality-plan.
+# the retired type without catching the live reviewer-quality-plan.
 RETIRED_TYPES='hackify:code-reviewer-quality([^-]|$)|hackify:code-reviewer-plan-consistency'
 RETIRED_TYPES="$RETIRED_TYPES"'|hackify:codebase-researcher|hackify:debug-evidence-gatherer'
 RETIRED_TYPES="$RETIRED_TYPES"'|hackify:spec-reviewer-(rules|dependencies|consistency)'
@@ -358,7 +360,7 @@ fi
 # addressed "Reviewer A" after the three spec reviewers became one. It is the
 # file both surviving reviewers load for their verdict wording, so a stale
 # name here is read by the agent that enforces the anchor.
-check_no_token 'Phase 2.5 Reviewer A' "skills/hackify/references/goal-anchor.md"
+check_no_flowed_token 'Phase 2.5 Reviewer A' "skills/hackify/references/goal-anchor.md"
 check_token_present 'The Phase 2.5 spec reviewer (consistency lens)' \
   "skills/hackify/references/goal-anchor.md"
 
@@ -366,7 +368,7 @@ check_token_present 'The Phase 2.5 spec reviewer (consistency lens)' \
 # ones C owned and B never had, so their absence is the signature of a merge that
 # renamed a file and dropped a lens. task_file_index in particular is the one C
 # refused to proceed without.
-for f in "agents/code-reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
+for f in "agents/reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
   check_token_present '{{task_file_index}}' "$f"
   check_token_present '{{changelog_path}}' "$f"
   check_token_present 'Primary Goal & Guardrails' "$f"
@@ -418,11 +420,18 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 #
 # CITED BY BLOCK HEAD, NOT BY LINE, and that is the fix rather than the style. This
 # read `phase-3-implementation.md:238` until 0.16.0, and by then the block had moved
-# to 252 and then to 260 as edits landed above it. Nothing reddened, because [57]
-# only asserts the cited line EXISTS, and the file is long enough that any number
-# under its length resolves. A citation that survives every edit while pointing at
-# the wrong paragraph is worse than a dangling one: it reads as verified. The block
-# head is a string the file either carries or does not, so it goes stale loudly.
+# to 252 and then to 260 as edits landed above it. Nothing reddened, and the reason
+# has since NARROWED rather than gone away, which is worth writing down because the
+# old wording here read as a permanent gap. [57] opens the cited location now, refuses
+# one that is blank or a bare marker or a shebang, and where the citing sentence quotes
+# the line behind a verb it matches that quote against what is really there. What no
+# form of it can do is judge an UNPINNED citation, one that names a line and quotes
+# nothing from it, which is what this comment used to carry: such a citation resolves
+# against any number under the file's length and says so on the coverage line rather
+# than reddening. So the advice is unchanged and its reason is smaller. A citation that
+# survives every edit while pointing at the wrong paragraph is worse than a dangling
+# one: it reads as verified, and a pin nobody quotes is the shape that gets there. The
+# block head is a string the file either carries or does not, so it goes stale loudly.
 for f in "agents/implementer.md" "skills/hackify/references/parallel-agents/phase-3-implementation.md"; do
   check_token_present '{{task_ids}}' "$f"
   check_token_present '{{task_descriptions}}' "$f"

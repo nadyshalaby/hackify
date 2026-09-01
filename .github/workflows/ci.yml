@@ -112,6 +112,9 @@ jobs:
       - name: Doc-link line-number tests (check [57] doc-link checker)
         run: python3 scripts/test_doc_link_lines.py
 
+      - name: Doc-anchor tests (check [57] heading-slug and prose anchors)
+        run: python3 scripts/test_doc_anchors.py
+
       - name: Claim-fixture replay tests (pins, manifest, replay scope)
         run: python3 scripts/test_claim_fixtures.py
 

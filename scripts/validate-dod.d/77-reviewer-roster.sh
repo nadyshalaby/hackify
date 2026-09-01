@@ -109,18 +109,21 @@
 # ("two reviewers", "six reviewers") is NOT banned, because that is where
 # legitimate prose lives. Proven by two hits inside this very file
 # set: review-and-verify.md:141 says "Two reviewers consume a deterministic
-# scout run", a correct statement about B and D, and review-scope.md:9 says
-# "Six reviewers each ran `git diff`", the historical cost that motivated
-# slicing. A ban that reddens on correct text gets deleted, so it is not bought.
+# scout run", a correct statement about B and D, and
+# review-scope.md's "Six reviewers each ran" is the historical cost that
+# motivated slicing. A ban that reddens on correct text gets deleted, so it is
+# not bought.
 # Anchor-free word ranges ("four or five") are skipped for the same reason, they
 # read as ordinary quantities. Every token here was verified absent from all six
 # files before being added.
 #
 # WORD ORDER IS PART OF THE CLAIM. "<count> parallel reviewers" was banned and
 # "<count> reviewers in parallel" was not, so the same wrong claim walked back in
-# at review-and-verify.md:384 through the other ordering. Both orders are now
-# banned at every count, word and digit. What is NOT banned is the UNCOUNTED
-# phrase "reviewers in parallel": review-and-verify.md:139 correctly reads
+# through the other ordering, into the escalation sentence that
+# review-and-verify.md's "two specialist lenses, not an adjudication" now
+# carries. Both orders are now banned at every count, word and digit. What is
+# NOT banned is the UNCOUNTED phrase "reviewers in parallel":
+# review-and-verify.md:139 correctly reads
 # "dispatches the panel as foreground reviewers in parallel in a single message",
 # which asserts the dispatch shape and no width at all. That is the sentence the
 # gate wants written, so a ban on it would redden correct prose and get deleted.
@@ -162,7 +165,7 @@
 # covered file that no longer discusses reviewers is either the wrong path or a
 # file whose ban list needs rethinking.
 
-yellow "[77] reviewer-roster drift: count grammar over 5 files (2 no other check reaches, a wider token set on the 3 shared with [38g]) plus the adjudication reviewer's report input"
+yellow "[77] reviewer-roster drift: count grammar over 6 files (3 no other check reaches, a wider token set on the 3 shared with [38g]) plus the adjudication reviewer's report input"
 
 RR_PA="skills/hackify/references/parallel-agents"
 RR_FILES="skills/quick/SKILL.md"
@@ -170,12 +173,20 @@ RR_FILES="$RR_FILES skills/hackify/references/review-scope.md"
 RR_FILES="$RR_FILES $RR_PA/phase-5-aggregation.md"
 RR_FILES="$RR_FILES skills/hackify/references/phases/phase-5-review.md"
 RR_FILES="$RR_FILES skills/hackify/references/review-and-verify.md"
+# The merged all-lens reviewer, added when it landed. It is a roster document by
+# construction: its prose argues one agent against the panel and quotes the panel's
+# width in almost every paragraph, which is exactly the surface every token below
+# bans. Nothing else in the validator bans a count over it, so it joins the NET-NEW
+# group rather than the DEEPER one. Its agents/ mirror is deliberately NOT added:
+# [75h] holds the two byte-identical, so a count planted in one has to be planted in
+# the other, and the canonical side is where an author edits.
+RR_FILES="$RR_FILES skills/hackify/references/parallel-agents/phase-5-multi-review-merged.md"
 
 # The set's SIZE, written a SECOND time. Why a hand-written number beats a bound
 # derived from the list is argued above check_list_size in 00-helpers.sh; this is
 # the set that taught it, a floor of 4 under a set of 6 printing "ok all 4 files
 # exist" while two of them had quietly left coverage.
-RR_EXPECTED=5
+RR_EXPECTED=6
 
 # Existence gate. Runs to completion before any ban, see the header.
 RR_PARSED=0
@@ -196,7 +207,8 @@ check_list_size "$RR_PARSED" "$RR_EXPECTED" "the [77] file set"
 # stays green. Named as literals rather than read back out of RR_FILES, because
 # a guard spelled from the thing it guards cannot see that thing change.
 for f in "skills/hackify/references/review-scope.md" \
-         "skills/hackify/references/parallel-agents/phase-5-aggregation.md"; do
+         "skills/hackify/references/parallel-agents/phase-5-aggregation.md" \
+         "skills/hackify/references/parallel-agents/phase-5-multi-review-merged.md"; do
   case " $RR_FILES " in
     *" $f "*)
       green "  ok   $f, banned over by no other check, is still in the [77] set" ;;
@@ -222,9 +234,10 @@ RR_BANS+=('4-reviewer' '5-reviewer' '6-reviewer' 'four-reviewer' 'five-reviewer'
 RR_BANS+=('2 parallel reviewers' '3 parallel reviewers' '4 parallel reviewers' '5 parallel reviewers' '6 parallel reviewers')
 RR_BANS+=('two parallel reviewers' 'three parallel reviewers' 'four parallel reviewers' 'five parallel reviewers' 'six parallel reviewers')
 # The same dispatch count with its words in the other order, which is how the
-# claim walked back into review-and-verify.md:384 past the two loops above.
-# The UNCOUNTED phrase 'reviewers in parallel' is deliberately not banned, see
-# WORD ORDER IS PART OF THE CLAIM in the header.
+# claim walked back past the two loops above, into the escalation sentence that
+# review-and-verify.md's "two specialist lenses, not an adjudication" now
+# carries. The UNCOUNTED phrase 'reviewers in parallel' is deliberately not
+# banned, see WORD ORDER IS PART OF THE CLAIM in the header.
 RR_BANS+=('2 reviewers in parallel' '3 reviewers in parallel' '4 reviewers in parallel' '5 reviewers in parallel' '6 reviewers in parallel')
 RR_BANS+=('two reviewers in parallel' 'three reviewers in parallel' 'four reviewers in parallel' 'five reviewers in parallel' 'six reviewers in parallel')
 # Panel identity. "The panel is five now" was the review-scope defect.
@@ -246,7 +259,11 @@ for f in $RR_FILES; do
   [ -s "$f" ] || continue
   # Relevance pin, not a matcher control: this file still talks about reviewers.
   check_token_present 'reviewer' "$f"
-  check_no_tokens_in "$f" "${RR_BANS[@]}"
+  # FLATTENED: 50 of these 60 tokens carry a space, and every file in RR_FILES is
+  # wrapped markdown, so a count claim broken across a line break passed the
+  # line-oriented screen. The report-input bans below stay line-oriented on
+  # purpose: not one of those six tokens contains a space, so nothing can wrap.
+  check_no_flowed_tokens_in "$f" "${RR_BANS[@]}"
 done
 
 # The adjudication reviewer takes ONE count-agnostic report input, never a slot

@@ -76,13 +76,25 @@ yellow "[76g] the reviewed diff excludes docs/work/, at every site that builds i
 # the check about excluding the work-doc; scripts/ is not either, so this fragment's
 # own PLS_XDIFF assignment does not count itself as a site.
 #
-# check_no_tokens_in is deliberately NOT used here. test_ban_tokens.sh pins the
-# number of batched ban calls shipping in this directory at TB_EXPECT_CALLS, so
-# adding one here would redden a file this block has no business making me touch.
-# THE VALUE IS DELIBERATELY NOT RESTATED. It said 3 here for two releases after it
-# stopped being 3 (4 in 0.16.1, 6 in 0.18.0), because a number copied into prose
-# rots in silence while the pin itself cannot. Read the current one out of
-# scripts/test_ban_tokens.sh, which is the only place it is allowed to live.
+# check_no_tokens_in is deliberately NOT used here. test_ban_tokens.sh pins the number
+# of batched ban calls shipping across the trees TB_CALL_SITE_DIRS names, this fragment's
+# own directory among them, so adding one here would redden a file this block has no
+# business making me touch.
+#
+# THE VALUE IS DELIBERATELY NOT RESTATED, AND THIS PARAGRAPH USED TO RESTATE IT ANYWAY.
+# It carried a copy reading 3 for two releases after the pin had stopped saying 3, and
+# the copy that replaced it was stale again inside the release that wrote it. Both times
+# in the very sentence arguing that a number copied into prose rots in silence while the
+# pin itself cannot. So the copy is gone rather than corrected, and what is left is the
+# address:
+#
+#   grep '^TB_EXPECT_CALLS=' scripts/test_ban_tokens.sh
+#
+# That assignment is the only place the value is allowed to live. The address is safe to
+# point at where a copy was not: 30-inventory-pins.sh reads TB_EXPECT_CALLS with `set -u`
+# in force, so renaming or deleting it takes that suite down loudly rather than leaving
+# this pointer aimed at nothing. Which is also why nothing guards this paragraph. There
+# is no number left here for a guard to be about.
 #
 # WHERE THIS BELONGS, SETTLED. Reviewer B was right that [76g] pinned a Phase 5
 # rule inside a fragment named for the phase ledger, and the answer used to be
@@ -93,8 +105,14 @@ yellow "[76g] the reviewed diff excludes docs/work/, at every site that builds i
 PLS_XDIFF="':(exclude)docs/work/*'"
 PLS_XRULE='the ruler the diff is measured against and cannot also be'
 PLS_XROOTS="skills agents"
-# Hand-written, and independent of the lists they police. Today: the pathspec sits
-# at 50 occurrences over 19 files, its stated reason at 7 over 6.
+# Hand-written, and independent of the lists they police. THE VALUES ARE NOT
+# RESTATED HERE, on the same argument this file already makes above about
+# TB_EXPECT_CALLS: the four assignments below are the only place they live, they
+# sit a dozen lines down, and the copy that used to open this paragraph is what
+# rotted. It read 50 occurrences and 7, against pins of 49 and 6, in the one file
+# whose own header argues that a number copied into prose rots in silence while
+# the pin cannot. Second time in this fragment, so the copy goes rather than
+# getting corrected into place for a third.
 #
 # MEASURE ALL FOUR TOGETHER, from one run, with the literals read out of the two
 # variables above rather than retyped. Every one of these moved by exactly +1 when
@@ -171,7 +189,7 @@ pls_x_assert "$PLS_XRULE" "$PLS_XRULE_FILES_EXPECTED" "$PLS_XRULE_OCCUR_EXPECTED
 # the exact failure [76] and [76d] were both bitten by. The sentence was reflowed
 # to fit the pin rather than the pin trimmed to fit the sentence.
 for pls_bf in "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md" \
-              "agents/code-reviewer-quality-plan.md"; do
+              "agents/reviewer-quality-plan.md"; do
   check_token_present '**You still READ the work-doc in full at step 2.**' "$pls_bf"
   check_token_present '**It stays your authority for steps 14 to 19.**' "$pls_bf"
 done
@@ -202,7 +220,7 @@ yellow "[76h] the Phase 5 round cap is worded identically at every site that sta
 #
 # grep -oF, never -c and never -E, and /usr/bin/grep by absolute path: pls_x_assert is
 # the same function and all three reasons are spelled out above [76g], unchanged here.
-PLS_CAP='Phase 5 dispatches exactly ONE reviewer panel and ONE refuter, and the phase ends when the surviving findings are fixed'
+PLS_CAP='Phase 5 dispatches exactly ONE review and ONE refuter, and the phase ends when the surviving findings are fixed'
 # Hand-written beside the check and independent of the list it polices, per the
 # argument above check_list_size in 00-helpers.sh. Today: 4 occurrences over 4 files
 # (SKILL.md, phases/phase-5-review.md, review-and-verify.md, review-scope.md), the

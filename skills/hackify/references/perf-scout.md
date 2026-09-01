@@ -1,11 +1,11 @@
 # Perf-scout (deterministic performance candidate finder)
 
-A predictable, grep-based scan that surfaces performance-violation **candidates** keyed to the stable IDs in [rules/performance.md](../../../rules/performance.md) (the canonical catalog). Run at fixed points in the workflow, by the wave agent over its own file allowlist and by the parent over the wider scopes; its output feeds the Phase 5 address-all decision table and Reviewer D (performance).
+A predictable, grep-based scan that surfaces performance-violation **candidates** keyed to the stable IDs in [rules/performance.md](../../../rules/performance.md) (the canonical catalog). Run at fixed points in the workflow, by the wave agent over its own file allowlist and by the parent over the wider scopes; its output feeds the Phase 5 address-all decision table and the round's performance lens, which is the merged reviewer's performance pass by default and Reviewer D when the user has asked for the panel.
 
 ## WHAT
 
 - **Deterministic candidate finder.** Same files in, same candidates out, plain `grep`/`awk`, no compiler, no AST, no new dependency. It maps to the shell primitive on every runtime tier.
-- **Candidates, not verdicts.** A match means "look here", never "guilty". Judgment lives in the TRIAGE rules below and with Reviewer D.
+- **Candidates, not verdicts.** A match means "look here", never "guilty". Judgment lives in the TRIAGE rules below and with the round's performance lens.
 - **Keyed to catalog IDs.** Every pattern cites a `perf.<domain>.<slug>` ID from `rules/performance.md`, so staging, default severity, and deduplication stay stable across runs. A pattern with no catalog ID is invalid, extend the catalog first.
 - **Cheap by design.** Seconds per run, run it at every mandated point without hesitation.
 
@@ -15,8 +15,8 @@ A predictable, grep-based scan that surfaces performance-violation **candidates*
 |---|---|---|
 | **Phase 3, the AGENT, before it returns** | That wave's OWN file allowlist, the files it landed | Trivial in-allowlist candidates are fixed in place (mark `fixed`); everything else is `staged` in the wave report |
 | **Phase 3, the PARENT, every round-end** | The round-touched files (what the round's waves DECLARED under `## Paths written`, never the allowlist union), before the round commits, never before a tick | Each wave's dispositions carry forward unchanged; what the wider scope newly shows is `staged` for Phase 5, or sent back out as a one-task wave, a new finding, never an un-tick. The parent never writes the fix |
-| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to Reviewer D as input; `staged` rows join the address-all decision table |
-| **quick (5-lite mirror)** | Touched files, before the single-lens review | Findings resolved in the same pass, the quick lens includes performance |
+| **Phase 5, start** | The whole sprint diff (`git diff --name-only <base>..HEAD -- . ':(exclude)docs/work/*'`) | Staging table handed to the round's reviewer as `{{perf_scout_report}}`; `staged` rows join the address-all decision table |
+| **quick (5-lite mirror)** | Touched files, before the 5-lite review | Findings resolved in the same pass; that one reviewer carries the performance lens |
 
 **Why the Phase 3 run point is BOTH the wave and the round.** The two scans answer questions the other cannot, so neither replaces it. The AGENT scan is keyed to the wave because that is the only moment fix-in-wave is possible at all: the agent is still holding its files, they sit inside its own allowlist, and a trivial fix lands in the same diff. The PARENT scan is keyed to the round because the round commits once and the parent runs its repo-wide checks once per round, so a parent scan keyed to wave-end would run before the thing it is meant to gate. Ticks are not that thing: they already landed, one at a time as each agent returned, so what this scan raises is a new finding, never an un-tick. Where a round holds two or more waves it also reaches what no agent scan can: the round's declared set is the only scope in which a defect crossing two waves is visible, because no agent can scan a file it never held. **On a single-wave round that scope reason is void**, the round's declared set IS what that one wave declared, and the mandate still holds because two questions survive the collapse. First, whether the agent ran its scan at all: the wave report is a claim, and the parent's own scan is what checks it. Second, whether a fix-in-wave regressed the file after the agent's scan had already passed: a fix-in-wave edit lands AFTER the scan that surfaced the candidate, and nothing at the agent's run point re-reads the file once it has been edited, so the agent's green grades the pre-fix state and the parent's scan is the first read of the post-fix one. Canonical statement of both run points and the loop they sit in: [phases/phase-3-implement.md](phases/phase-3-implement.md).
 
@@ -26,19 +26,111 @@ Ground rules for every pattern:
 
 - **POSIX ERE, macOS/BSD-safe.** No `\b`, no `\s`, no `\d`, use `[[:space:]]`, `[0-9]`, explicit classes. Run with `grep -E -n` or `rg -n`.
 - **SQL-ish patterns run case-insensitive** (`grep -i -E`), marked per table.
-- **Loop-window patterns** need loop context. Use the two-step helper: find loop headers, then search a 6-line window.
+- **Loop-body patterns** need loop context, and the helper that gives it is chosen by LANGUAGE, never by a single window. Shell and Python both terminate a loop unambiguously (`done`, and a dedent), so their bodies are extracted EXACTLY and no window is involved. Brace languages fall back to `loop_window`, whose size is an argument with a measured default.
 - **Scope is the diff**, never the whole user repo (lawkeeper owns full-codebase sweeps).
 
+**Why the window stopped being one number, measured rather than argued.** A fixed 6-line window is a guess about how long a loop body is, and the guess is per-language. Over the 386 shell and Python loop bodies in this plugin's own tree (`dist/` and `docs/work/` excluded), 6 lines covers 81%, p95 is 12 and the longest is 38; over its 11 JavaScript bodies, 6 covers 91% and the longest is 11. So 6 was defensible for the language it was calibrated on and lost roughly one shell loop body in three, which is how a scan reports a clean zero over a file it only partly read. Two changes follow. Shell and Python get exact-extent helpers, so their coverage is 100% by construction and the number stops existing. Everything else keeps a window, now a parameter, defaulted to **12**, the p95 of every loop body measured here. Re-derive it for another tree rather than inheriting this one: the `find`-and-`awk` pass that produced these numbers is a `done`-depth counter for shell and an indent counter for Python, and the same two helpers below run it.
+
 ```bash
-# loop_window <file> <token-ERE>, grep a token inside loop bodies (6-line window).
+# sh_loop_body <file> <token-ERE>: EXACT shell loop bodies, no window. Emits
+# "file:line:loop-header-line:depth:text" for every body line, then filters with
+# grep -E, so every pattern in the tables below stays plain POSIX ERE. `depth`
+# is the nesting level, and it is what makes perf.algorithmic.nested-loop-join
+# mechanical. Heredoc bodies are skipped so a `done` inside one cannot close a
+# loop that is still open.
+sh_loop_body() {
+  awk '
+    hd != "" { if ($0 == hd) hd = ""; next }
+    /^[[:space:]]*#/ { next }
+    { if ($0 ~ /<<-?["'"'"']?[A-Za-z_]/ && $0 !~ /<<</) {
+        t = $0; sub(/^.*<<-?["'"'"']?/, "", t); sub(/[^A-Za-z0-9_].*$/, "", t); hd = t }
+      if ($0 ~ /(^|[^[:alnum:]_])(for|while|until|select)([[:space:]]|$)/) { pend = 1; pl = FNR }
+      # `do` must END the line or follow a `;`. Prose saying "do not" opened a
+      # phantom loop until this was anchored, and two validator fragments then
+      # reported candidates that were plain assignments.
+      if (pend && FNR - pl <= 4 && $0 ~ /(^|;)[[:space:]]*do[[:space:]]*(#.*)?$/) { d++; hdr[d] = pl; pend = 0; next }
+      if ($0 ~ /^[[:space:]]*done([[:space:]]|;|<|&|\||$)/ && d > 0) { d--; next }
+      if (d > 0) printf "%s:%d:%d:%d:%s\n", FILENAME, FNR, hdr[d], d, $0
+    }' "$1" | grep -E "$2"
+}
+
+# py_loop_body <file> <token-ERE>: same contract for Python, bounded by indent.
+py_loop_body() {
+  awk '
+    /^[[:space:]]*(#|$)/ { next }
+    { ind = match($0, /[^ \t]/) - 1
+      while (n > 0 && ind <= lvl[n]) n--
+      if ($0 ~ /^[[:space:]]*(async[[:space:]]+)?(for|while)[[:space:]].*:[[:space:]]*(#.*)?$/) { n++; lvl[n] = ind; hdr[n] = FNR; next }
+      if (n > 0) printf "%s:%d:%d:%d:%s\n", FILENAME, FNR, hdr[n], n, $0
+    }' "$1" | grep -E "$2"
+}
+
+# loop_window <file> <token-ERE> [lines], the FALLBACK for brace languages.
 loop_window() {
-  grep -n -E -A 6 'for[[:space:]]*\(|while[[:space:]]*\(|for[[:space:]]+[A-Za-z_].*[[:space:]]in[[:space:]]|\.forEach\(|\.map\(' "$1" \
+  grep -n -E -A "${3:-12}" 'for[[:space:]]*\(|while[[:space:]]*\(|for[[:space:]]+[A-Za-z_].*[[:space:]]in[[:space:]]|\.forEach\(|\.map\(' "$1" \
     | grep -E "$2"
+}
+
+# sh_accum <file>: a SELF-REFERENTIAL string append inside a shell loop body,
+# perf.algorithmic.string-concat-loop. ERE has no backreference, so the same
+# name on both sides is matched in awk. `ARR+=(x)` is the FIX and is excluded;
+# `${v#x}` and `${v%x}` are trims, which shrink, and are excluded too.
+#
+# ONE `case`-ARM PREFIX IS STRIPPED BEFORE THE MATCH, and that is the whole of
+# the change. The two branches below anchor on a line that BEGINS with the
+# accumulator's name, so `*) unknown="$unknown $t" ;;` was invisible to both and
+# every accumulator written in a `case` arm was unreachable. Found by a human
+# reading `scripts/validate-dod.d/20-templates.sh:360`, not by this helper.
+# The anchor is KEPT rather than loosened: the strip demands `)` before any
+# `(`, `&` or `;` and a space after it, so `x=$(cmd a)` and `arr+=(x)` do not
+# match it, and the two branches then judge the arm's command exactly as they
+# judge a bare one. Loosening the anchor instead would fire on `ARR+=(x)`, and
+# a matcher that flags the FIX is worse than one that misses the defect.
+sh_accum() {
+  sh_loop_body "$1" '.' | awk -F: '
+    { txt = $0; sub(/^([^:]*:){4}/, "", txt)
+      sub(/^[[:space:]]*[(]?[^()&;]*\)[[:space:]]+/, "", txt)
+      if (txt ~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*\+=[^(]/) { print; next }
+      if (match(txt, /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=/)) {
+        n = substr(txt, RSTART, RLENGTH); sub(/^[[:space:]]*/, "", n); sub(/=$/, "", n)
+        rest = substr(txt, RSTART + RLENGTH)
+        if (rest ~ ("[$]" n "[^A-Za-z0-9_]") || rest ~ ("[$][{]" n "[}:]")) print } }'
+}
+
+# loop_driver <file> <loop-header-line>: the header and its matching `done`,
+# which together carry everything the bounded-or-data rule below reads.
+loop_driver() {
+  awk -v want="$2" '
+    NR == want { hdr = $0; d = 1; next }
+    hdr != "" && d > 0 {
+      if ($0 ~ /(^|;)[[:space:]]*do[[:space:]]*(#.*)?$/) d++
+      if ($0 ~ /^[[:space:]]*done([[:space:]]|;|<|&|\||$)/) { d--; if (d == 0) { print hdr; print $0; exit } }
+    }' "$1"
 }
 
 # consecutive awaits, perf.network.sequential-awaits candidates (confirm independence).
 awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev=1; next } { prev=0 }' "$file"
 ```
+
+### Bounded or data, the question every loop-body candidate answers FIRST
+
+A loop over three hand-written rows and a loop over every file in the tree look identical in the body. Only the second one is a performance finding, and a scout that cannot tell them apart makes every future report longer and less useful until agents skim it. **The discriminator is the loop's DRIVER, never its body**, and the driver is mechanical: run `loop_driver` and apply these branches in order, stopping at the first that fires.
+
+| The driver contains | Verdict | Why |
+|---|---|---|
+| `$(`, a backtick, `< <(`, or `done <` a file | **data** | The list is produced by a command or a file, so it grows with the input |
+| an unquoted glob after `in` | **data** | A directory listing grows |
+| `"${NAME[@]}"` and any assignment to `NAME` contains `$(` or a backtick | **data** | The array was filled from a command |
+| `"${NAME[@]}"` and every assignment to `NAME` is literal | **bounded** | Hand-written rows, and a `check_list_size`-style pin usually states the count |
+| `done <<'TAG'` with a QUOTED delimiter | **bounded** | A quoted heredoc expands nothing, so its body is literal text |
+| `done <<TAG` or `<<<"$VAR"` | resolve ONE level | Read the heredoc body or the here-string variable, then re-apply row 1 against its assignment |
+| `while [ "$i" -le <integer literal> ]` | **bounded** | A counter with a written bound |
+| `in` followed only by literal words | **bounded** | A fixed list |
+| anything else | **unknown** | Not a verdict, see the fail-open rule below |
+
+- **Only an explicit `bounded` suppresses. `unknown` never does.** The classification is fail-open toward the finding on purpose: a misread driver then costs one row to disposition, never a missed defect. Measured on this tree's shell, a literal list containing `**SCENARIO**` classified `data` because the glob branch cannot tell a quoted asterisk from an unquoted one. That is the direction to be wrong in.
+- **A `bounded` verdict collapses to ONE staging row per pattern**, reading `false-positive: bounded driver, <n> candidates at <file:line>, <file:line>`. This is the single carve-out from the one-row-per-candidate rule in TRIAGE, it is written here so a collapsed row is not read as a candidate that vanished, and the row still names every line it covers.
+- **A `bounded` loop whose body is genuinely expensive is still a finding**, it is just not THIS one. Fifty forks over twelve fixed files is a quarter of a second nobody will ever notice; a `sort` of the whole database inside a three-iteration loop is not. Bounded bounds the ITERATION COUNT and says nothing about the work per iteration.
 
 ### JS/TS (whole-file patterns)
 
@@ -61,7 +153,7 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 | `\.\.\.acc` | perf.algorithmic.spread-accumulator | Accumulator spread inside reduce/loop. Variants: `\.\.\.prev`, `\.\.\.result`, `\.\.\.out`. |
 | `OFFSET[[:space:]]+` (with `-i`) | perf.data.deep-offset | Also `\.offset\(` and `skip[[:space:]]*:` in ORM query builders. Fixed small offsets are fine; parametric page math is not. |
 
-### JS/TS, loop-window patterns (run through `loop_window`)
+### JS/TS, loop-body patterns (run through `loop_window`, the 12-line fallback)
 
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
@@ -79,6 +171,8 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 
 ### Python
 
+Every row marked `(loop-window)` below now runs through **`py_loop_body`** instead, which bounds the body by indentation and needs no window at all. The bounded-or-data rule applies here too, read off the `for`/`while` header: a literal list, a tuple constant or `range(<integer literal>)` is bounded; a call, a file handle, `os.walk`, a comprehension over a query, or a parameter is data.
+
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
 | `json\.loads\(json\.dumps\(` | perf.memory.json-deep-clone | Use `copy.deepcopy`, or build the new shape directly. |
@@ -95,16 +189,27 @@ awk 'index($0,"await "){ if (prev) printf "%s:%d: %s\n", FILENAME, FNR, $0; prev
 | `[[:space:]]in[[:space:]]+\[` (loop-window) | perf.algorithmic.scan-in-loop | Membership against a literal list per iteration, use a set. `x in some_list` variants need type knowledge (semantic). |
 | `global[[:space:]]+[a-z_]` | perf.memory.global-accumulator | Candidate when mutated inside request handlers; bounded module registries are fine. |
 
-### Shell / subprocess (loop-window)
+### Shell (run through `sh_loop_body`, then classify the driver)
 
 Added after a Phase 5 round found this repo spending roughly 15% of its own pre-commit gate here with
 no catalog ID to file it under. The scout's ground rule is that every pattern cites a real ID, and for
 two rounds this family had none, so findings were filed under an ID that did not exist.
 
+**These rows are derived from what this tree's own shell does at scale, not imported from a generic list.** Two families with no instance anywhere in it were considered and LEFT OUT rather than added on faith: a `>>` append redirect per item (`perf.io.unbatched-writes`, measured zero) and a `sleep` inside a condition-wait (`perf.async.sleep-poll`, measured zero). Add either the day the shape appears.
+
+**These rows did not fire before, and the reason was the loop header, not the window.** The retired `loop_window` header ERE matched `while (`, the C-style form. Shell writes `while IFS= read -r f; do`, with no parenthesis, so every `while` loop in every shell file was invisible at any window size, and in this tree the data-driven loops are almost all `while read` fed by `find` or `git ls-files`. `for x in ...` matched, which is why the retired pattern found anything at all.
+
 | Pattern (ERE) | Catalog ID | Notes / false-positive guard |
 |---|---|---|
-| `\$\((wc|basename|dirname|stat|date|cut|sed|awk)[[:space:]]` (loop-window) | perf.process.spawn-per-item | One fork per item where one invocation covers the set. `wc -l` per file becomes one `xargs wc -l`; `basename` per file becomes a parameter expansion. Bounded constant lists are fine, and a single spawn outside the loop is the fix, not the finding. |
-| `echo[[:space:]]+"\$[A-Za-z_]+"[[:space:]]*\|[[:space:]]*grep` (loop-window) | perf.process.spawn-per-item | A grep per token over the same held text. Batch the tokens into one `grep -f`, then fall back to the per-token loop only for inputs that screen dirty, so no diagnostic detail is lost. |
+| `\$\((basename\|dirname)[[:space:]]` | perf.process.fork-for-builtin | A fork for something the shell already does: `${f##*/}`, `${f%/*}`. n forks become ZERO and the fix is local to the line, which is what separates this row from the one below. `realpath` moved to that row: it resolves symlinks against the filesystem, so no expansion replaces it, but it takes many operands in one call. |
+| `\$\((cat\|wc\|grep\|git\|sed\|awk\|find\|sort\|uniq\|head\|tail\|cut\|tr\|stat\|realpath\|date\|jq\|python3\|node)[[:space:]]` | perf.process.spawn-per-item | One invocation over the batch is the fix: `xargs wc -l`, one `grep -f patternfile`, one alternation pass. Measured here, 300 files through a per-item `wc -l \| tr` loop took 0.210s against 0.025s for one `xargs wc -l` over the same list. `$(cat` reading ONE file is perf.process.fork-for-builtin instead, where `$(<file)` replaces it outright. |
+| `[|][[:space:]]*(grep\|sed\|awk\|wc\|cut\|tr\|sort\|head\|tail\|jq)[[:space:]]` | perf.process.spawn-per-item | The pipeline form of the row above, and the one the retired `echo \| grep` pattern only caught in its narrowest spelling. |
+| (via `sh_accum`) | perf.algorithmic.string-concat-loop | `X="$X..."` or `X+=...` growing a string per iteration. `''.join`-shaped fix is an ARRAY plus one `printf '%s\n' "${a[@]}"`, so `ARR+=(x)` is the fix and never the finding. The helper excludes it, and excludes `${v#x}`/`${v%x}` trims. It strips one `case`-arm prefix first, so `*) X="$X $t" ;;` is reached. |
+| same `$(...)` text twice under one loop header | perf.algorithmic.loop-invariant | Sort the `sh_loop_body` output by header and count duplicate substitutions. Exclude `$((`, which is arithmetic and forks nothing. Three `$(basename "$f")` in one body is three forks where one variable does. |
+| a spawn in the body that never mentions the loop variable | perf.algorithmic.loop-invariant | Strictly worse than a per-item spawn: the same command runs n times over the same input. Read the loop variable off `loop_driver`'s header, then check the candidate line for it. |
+| `depth` field ≥ 2 on any row above | perf.algorithmic.nested-loop-join | `sh_loop_body` prints the nesting depth, so this is a filter on output rather than a pattern. An inner loop multiplies whatever the outer one costs; judge the two drivers together, and a nested pair where BOTH are data is the shape that actually bites. |
+
+**Left out as not mechanical, deliberately.** Whether a spawn sits on a hot path or in a once-per-release script needs reading, and no ERE reaches it; that judgment stays with the disposition. Whether a `grep` per item could become one `grep -f` depends on whether the per-item diagnostic is load-bearing, which this repo has decided BOTH ways in different fragments; the row above stages the candidate and says nothing about the fix. Neither is written as a rule, because a rule only a careful human can apply is noise with a catalog ID attached.
 
 ### SQL (run with `grep -i -E`)
 
@@ -119,11 +224,39 @@ two rounds this family had none, so findings were filed under an ID that did not
 
 ### Semantic-only candidates (no reliable grep)
 
-These catalog entries need reading, not pattern-matching, the scout lists them for Reviewer D's checklist instead: perf.data.missing-index (needs EXPLAIN), perf.network.sequential-awaits (independence, the awk helper only finds adjacency), perf.network.no-timeout, perf.caching.no-invalidation, perf.caching.stampede, perf.network.duplicate-inflight, perf.frontend.missing-virtualization, perf.memory.retained-payload.
+These catalog entries need reading, not pattern-matching, the scout lists them for the performance lens's checklist instead: perf.data.missing-index (needs EXPLAIN), perf.network.sequential-awaits (independence, the awk helper only finds adjacency), perf.network.no-timeout, perf.caching.no-invalidation, perf.caching.stampede, perf.network.duplicate-inflight, perf.frontend.missing-virtualization, perf.memory.retained-payload.
 
 ### Stack extension (other languages)
 
 For Go, Rust, Java, Ruby, PHP, and anything else: derive tokens from the **Detect (hint)** column of the catalog, e.g. Go `db.Query` inside `for` → perf.data.n-plus-one; Ruby `Model.find` inside `.each` → the same ID. Keep patterns POSIX-ERE and `[[:space:]]`-safe, and every new pattern MUST cite an ID that already exists in `rules/performance.md`, no ID, no pattern.
+
+## COVERAGE, reconciled before a single finding is read
+
+**A zero from a file no table covers reads exactly like a zero from a clean file, and until this section existed nothing here told the two apart.** The scout had no coverage step at all, which is a real gap and not a theoretical one: the round that found the shell defect reported its zero honestly because the agent was careful, not because anything asked it to. Care is not a mechanism. This is.
+
+Run it BEFORE reading any candidate, over the same path list the run point handed you.
+
+```bash
+# scout_coverage <path>..., bucket the scope by what actually has a pattern table.
+scout_coverage() {
+  cov_t=0; cov_c=0; cov_u=""; cov_x=""
+  for cov_f in "$@"; do
+    cov_t=$((cov_t + 1))
+    [ -r "$cov_f" ] || { cov_x="$cov_x $cov_f"; continue; }
+    case "$cov_f" in
+      *.js|*.jsx|*.ts|*.tsx|*.mjs|*.cjs|*.py|*.sh|*.bash|*.sql) cov_c=$((cov_c + 1)) ;;
+      *) cov_u="$cov_u $cov_f" ;;
+    esac
+  done
+  echo "scope $cov_t | covered by a table $cov_c | no table:$cov_u | unreadable:$cov_x"
+}
+```
+
+- **The three buckets must add up to the scope.** `covered + no-table + unreadable = scope`. A shortfall means the path list lost entries on the way in, and that is the same class of bug the law-scout's reconcile exists to catch.
+- **`no table` is MISSING COVERAGE, never a clean result.** It names files that were in scope and had not one pattern run against them. Every such file gets its own staging row reading `no pattern table for <ext>, coverage lost`, and where the extension is a real language the fix is a new table under Stack extension, cited to an existing catalog ID.
+- **`unreadable` is missing coverage too**, and louder, because the file was in scope and expected to be read. Name it and say why (permissions, binary, generated).
+- **A markdown-only or JSON-only wave is the common honest case.** Doctrine files carry no loops and no queries, so `covered 0` is the correct answer there, and it goes in the report as `covered 0 of N, no executable file in scope` rather than as `no candidates`. Those two sentences mean opposite things and the report has to be able to say which one happened.
+- **The coverage line is MANDATORY in the staging table**, above the rows, even when the table is empty. A report whose only claim is a zero is worth exactly what its coverage line says it is worth.
 
 ## STAGING
 
@@ -132,23 +265,30 @@ Stage findings in exactly this table (the AGENT appends it to its own wave repor
 ```markdown
 ### Perf-scout (<run-point-id>, <YYYY-MM-DD>)
 
+Coverage: scope 9 | covered by a table 7 | no table: docs/api.yaml | unreadable: none
+
 | Finding | Catalog ID | file:line | Evidence | Proposed fix | Status |
 |---|---|---|---|---|---|
 | Query per task in export loop | perf.data.n-plus-one | src/export/service.ts:88 | `await repo.findOne(t.id)` inside `for (const t of tasks)` | one `findMany` with `id IN (...)` before the loop | staged |
+| `wc -l` per tracked file | perf.process.spawn-per-item | scripts/validate-dod.d/80-file-size-caps.sh:128 | retired body was `loc=$(wc -l < "$f" \| tr -d ' ')` in a `while read`, 2 forks per file; 250 files took 0.45s against 0.03s batched | one `xargs -0 wc -l` before the loop | fixed |
 | Sync read in request handler | perf.io.sync-fs | src/routes/report.ts:14 | `readFileSync(tplPath)` per request | async read once at startup, reuse | fixed |
-| `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items |, | false-positive: bounded constant list |
+| `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items | , | false-positive: bounded constant list |
+| `$(basename)` per item, 4 loops | perf.process.fork-for-builtin | scripts/validate-dod.d/20-templates.sh:149, 154, 172, 187 | drivers are `"${PA_BUILD_FILES[@]}"` and `"${PA_REVIEW_SINGLE_FILES[@]}"`, literal arrays pinned at 3 and 9 by `check_list_size` | , | false-positive: bounded driver, 4 candidates |
+| yaml has no pattern table | , | docs/api.yaml | in scope, no table for `.yaml`, nothing ran against it | add a table or declare the gap | staged: coverage lost |
 ```
 
 - **`<run-point-id>`** names the run point that produced the table, and it is what tells two tables apart where both sit in one wave log under this same heading grammar: `<wave-id>-agent` for the wave agent's own scan over the files it landed, taking the wave id the Approach's execution-wave plan already assigns (`W9c-agent`); `R<n>-round-end` for the parent's scan over what that round's waves declared (`R9-round-end`); `phase-5` for the sprint-diff scan. Without it the round scan's first question, whether the agent ran its own scan at all, has no answer a reader can read off the log. On a single-wave round the two scopes coincide by construction and the id still earns its place, because the two SCANS do not: run point 1's green graded the pre-fix-in-wave state, and run point 2 is the first read of the post-fix one.
 - **Status** is one of `staged` / `fixed` / `false-positive: <one-line reason>`.
-- **Into the Phase 5 decision table** (Finding / Severity / Decision / Evidence): Finding, file:line, and Evidence carry over; Severity is the catalog default for the Catalog ID (Reviewer D may move it one level in context); `staged` rows enter as accept-candidates.
+- **The coverage line is part of the table, not a preamble to it.** It goes above the rows on every run, including a run with no rows, and a table shipped without it is incomplete in the same way a candidate with no disposition is.
+- **Into the Phase 5 decision table** (Finding / Severity / Decision / Evidence): Finding, file:line, and Evidence carry over; Severity is the catalog default for the Catalog ID (the performance lens may move it one level in context); `staged` rows enter as accept-candidates.
 
 ## TRIAGE
 
-- **Every candidate gets exactly one disposition**, `staged`, `fixed`, or `false-positive`. A candidate that vanishes without a row is a protocol violation, not a judgment call.
+- **Every candidate gets exactly one disposition**, `staged`, `fixed`, or `false-positive`. A candidate that vanishes without a row is a protocol violation, not a judgment call. The single carve-out is the bounded-driver collapse above, which gives n candidates one shared row that names every one of them, so nothing vanishes there either.
+- **A zero is a claim about coverage before it is a claim about the code.** Report it as `covered N of M, no candidates`, never as a bare `no candidates`. The two differ by exactly the thing that went wrong the last time this protocol shipped a gap.
 - **Dismissing needs a one-line reason** tied to the pattern's false-positive guard or the run context (bounded input, cold path, test fixture).
-- **Disputed rows go to Reviewer D**, implementer says false-positive but the evidence is unclear → Reviewer D decides; that verdict is final for the sprint.
-- **Critical candidates need a co-sign.** A candidate whose catalog default is Critical cannot be dismissed by the implementer alone. Reviewer D co-signs the false-positive. In quick mode there is no Reviewer D: the dismissal carries over to the 5-lite single reviewer, whose lens includes performance, for co-sign during its review.
+- **Disputed rows go to the round's performance lens**, implementer says false-positive but the evidence is unclear → that lens decides; its verdict is final for the sprint.
+- **Critical candidates need a co-sign.** A candidate whose catalog default is Critical cannot be dismissed by the implementer alone. The round's performance lens co-signs the false-positive, and the dismissal carries over to whichever agent carries that lens: the merged reviewer's performance pass, in full mode and in 5-lite alike, or Reviewer D when the user has asked for the panel. Both modes route the same way now, so there is no route where the co-signer is missing and the rule has nobody to name.
 - **Fix-in-wave is allowed** only for trivial fixes inside the wave's file allowlist, and only at the AGENT's run point, where the agent still holds those files; mark them `fixed` with the diff in the wave report. **The parent never fixes at round-end**, it stages, or sends the work back out as a one-task wave scoped to the owning file's allowlist, because every code change is written by a dispatched agent under an allowlist. Everything else waits for the address-all loop.
 
 ## Wrong → right micro-examples (top offenders)
@@ -180,6 +320,31 @@ const results = await mapWithLimit(urls, 5, fetchJson)
 const copy = JSON.parse(JSON.stringify(state))
 // right
 const copy = structuredClone(state)
+```
+
+**perf.process.spawn-per-item**
+
+```bash
+# wrong, two forks per file, and the list grows with the tree
+while IFS= read -r f; do
+  loc=$(wc -l < "$f" | tr -d ' ')
+  check "$f" "$loc"
+done < <(find . -name '*.md')
+# right, one invocation over the whole batch
+find . -name '*.md' -print0 | xargs -0 wc -l | while read -r loc f; do check "$f" "$loc"; done
+```
+
+**perf.process.fork-for-builtin**
+
+```bash
+# wrong, two forks per item for an answer the shell already holds
+while IFS= read -r f; do
+  check "$(basename "$f")" "$(dirname "$f")"
+done < <(find . -name '*.md')
+# right, zero forks; the expansion replaces the fork on the line, no restructure
+while IFS= read -r f; do
+  check "${f##*/}" "${f%/*}"
+done < <(find . -name '*.md')
 ```
 
 **perf.algorithmic.string-concat-loop**

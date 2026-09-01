@@ -140,14 +140,25 @@ def test_98_the_wrong_block_terminator_would_red_on_a_groomed_doc():
 def test_98_an_archived_doc_created_after_the_pin_with_no_section_0_reds():
   """THE HOLE THIS ASSERTION CLOSES. Assertion (b) judges the rows of a block, so
   a doc with no block was a non-subject and deleting section 0 turned a red green.
-  The message names the law a reader has to go and read, not just the defect."""
+  The message names the law a reader has to go and read, not just the defect.
+
+  WHAT THE SECOND NEEDLE IS FOR, since it once pinned a line number and so pinned a
+  defect in place. It asks that the red still hand the reader the governing rule, and
+  the rule is named by its BULLET rather than by a line in the file that carries it: a
+  line moves under any edit to that page and [57] does not notice. Its content tier
+  reads a cited location only where the citing text quotes a phrase behind a verb, or
+  where the location has gone vacant; an UNPINNED number, which is nearly every
+  citation in this tree, is still judged for existence alone, and [57]'s own coverage
+  line prints the live split. A bullet name only stops matching when the bullet itself
+  is renamed, which is a change to the law."""
   root = work_doc_tree({'docs/work/done/planted.md':
                         work_doc('done', AFTER_LEDGER, NO_LEDGER)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'docs/work/done/planted.md is archived and '
              'resolves to %s, on or after the day section 0 became a work-doc '
              'section, yet it carries no ## 0. Phase ledger block' % AFTER_LEDGER,
-             'never deleted, per skills/hackify/references/phase-ledger.md:110')
+             'never deleted, per the "No silent skip" bullet of the ordering law '
+             'in skills/hackify/references/phase-ledger.md')
 
 
 def test_98_an_archived_doc_created_before_the_pin_needs_no_section_0():
@@ -284,7 +295,7 @@ def test_98_a_tree_with_no_work_docs_reds_on_the_doc_floor():
 
 
 def test_98_the_archived_ledger_floor_reds_on_its_own_message():
-  with tampered('98', ('WL_LEDGER_FLOOR=2', 'WL_LEDGER_FLOOR=9999')) as frag:
+  with tampered('98', ('WL_LEDGER_FLOOR=7', 'WL_LEDGER_FLOOR=9999')) as frag:
     rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'archived doc(s) carrying a section 0 phase ledger against a '
              'floor of 9999', 'assertion (b) judged nothing')
@@ -300,11 +311,11 @@ def test_98_an_archive_carrying_no_ledger_at_all_reds_on_that_floor():
                         for n in range(SCRATCH_DOCS - 1)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'the scan found 0 archived doc(s) carrying a section 0 phase '
-             'ledger against a floor of 2')
+             'ledger against a floor of 7')
 
 
 def test_98_the_created_floor_reds_on_its_own_message():
-  with tampered('98', ('WL_CREATED_FLOOR=2', 'WL_CREATED_FLOOR=9999')) as frag:
+  with tampered('98', ('WL_CREATED_FLOOR=7', 'WL_CREATED_FLOOR=9999')) as frag:
     rc, out = run_fragment(frag, cwd=work_doc_tree())
   expect_red(rc, out, 'archived doc(s) against the day section 0 became a work-doc '
              'section, against a floor of 9999', 'assertion (d) judged nothing')
@@ -320,7 +331,7 @@ def test_98_an_archive_that_all_predates_the_pin_reds_on_the_created_floor():
                         for n in range(SCRATCH_DOCS - 1)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'the scan resolved 0 archived doc(s) against the day section 0 '
-             'became a work-doc section, against a floor of 2',
+             'became a work-doc section, against a floor of 7',
              'a doc could drop its section 0 unseen')
 
 
@@ -458,7 +469,7 @@ def test_98_a_fenced_ledger_heading_does_not_count_toward_the_archived_floor():
                         for n in range(SCRATCH_DOCS - 1)})
   rc, out = run_check('98', cwd=root)
   expect_red(rc, out, 'the scan found 0 archived doc(s) carrying a section 0 phase '
-             'ledger against a floor of 2')
+             'ledger against a floor of 7')
   rc, out = _fence_blind(root)
   expect_red(rc, out, 'the positive control did not hold (control verdict: fail)')
   refute(out, 'archived doc(s) carrying a section 0 phase ledger against a floor of')

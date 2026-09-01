@@ -67,6 +67,7 @@ on every tier.)
 | Task-tracker dependency ordering | Phase-ledger items carry blocked-by edges, so a tracker that has them refuses an out-of-order start instead of leaving it to the written law, extends the ordering law in `phase-ledger.md` | Every phase (ledger-wide) | Ordering degrades to the convention-enforced law `phase-ledger.md` already specifies |
 | Batched wizard rounds | Several back-to-back wizard calls land in one turn, so the Phase 1 questionnaire flows as 4-question batches | Phase 1 | Batching degrades to sequential single batches |
 | Published report artifact | Phase 6's HTML report is also published as a hosted page, so the user ends up with a link they can send someone instead of a file path they have to open by hand | Phase 6 Step F | The report stays the self-contained file at its documented path, Step F behaves exactly as it does without the enhancement, and ledger item `6d` closes on that file alone ([html-report.md](html-report.md)) |
+| Session orientation map | A fresh session is told what this plugin ships, which entry point fits the prompt in front of it, and which rule files are the law, before it picks a route | Routing, ahead of Phase 1 | The map file still ships to the runtime, at `dist/<runtime>/rules/plugin-map.md`, so a model or a user can open it by hand; nothing reads it into the session, and routing falls back to whatever skill descriptions that runtime's own discovery surfaces. `copilot-cli` mirrors no `rules/` tree at all, so there the map is absent rather than merely unread |
 
 Per-runtime support, in the same column order as the mapping table, runtime-specific tool names stay
 inside the table cells, per this file's convention:
@@ -79,6 +80,7 @@ inside the table cells, per this file's convention:
 | Task-tracker dependency ordering | conditional, `TodoWrite` items carry blocked-by edges when the session exposes the tool; it is frequently absent, and ordering then rests on the printed ledger block plus the work-doc's `## 0. Phase ledger` section, a written law, never tool-level edges | n/a, no todo primitive | n/a, no todo primitive | n/a, no todo primitive | unknown, `todowrite` exists; dependency edges unverified | n/a, no todo primitive | n/a, no todo primitive |
 | Batched wizard rounds | native, back-to-back `AskUserQuestion` calls in one turn | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive | n/a, no batched-question primitive |
 | Published report artifact | native, the `Artifact` tool publishes the renderer's `--artifact-out` page and returns a link | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime | unknown, no page-publishing tool verified for this runtime |
+| Session orientation map | native, the `SessionStart` hook in `hooks/hooks.json` injects `rules/plugin-map.md` once per session | n/a, no session-start injection primitive; the mirrored map sits on disk unread | n/a, no session-start injection primitive; the mirrored map sits on disk unread | n/a, no session-start injection primitive; the mirrored map sits on disk unread | n/a, no session-start injection primitive; the mirrored map sits on disk unread | n/a, no session-start injection primitive; the mirrored map sits on disk unread | n/a, no session-start injection primitive, and no mirrored `rules/` tree either; the map is absent here |
 
 Six `unknown` cells and not six `n/a`, on purpose. Every `n/a` in this table is grounded in
 the primitive mapping table above it, and that table carries no publish primitive for any
@@ -88,6 +90,15 @@ unchecked claim is `unknown`. The wording is identical in all six because it is 
 unverified claim, not six separate investigations. Publishing is optional everywhere, so an
 `unknown` costs nothing: the degrade path is the file on disk, which every runtime already
 gets.
+
+The six `n/a` cells on the session orientation map row are grounded the way that sentence
+demands, in the `always-on injection` row of the mapping table. Only Claude Code carries a
+hook facility that runs plugin-supplied context into a session, and `hooks/` is mirrored into
+`dist/claude-code/` alone, so on the other six runtimes there is nothing for a `SessionStart`
+entry to attach to. That is a stated boundary rather than an invented fallback, and the
+distinction is deliberate: the map is a document, not a mechanism, so the honest degrade is
+the document arriving unread. Naming a substitute injector here would describe something this
+repo does not ship, and a fabricated cell is worse than a stated gap.
 
 ## Sync output per runtime
 

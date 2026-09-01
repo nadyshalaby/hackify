@@ -1,8 +1,10 @@
 # Phase 5 (Code-review escalation)
 
-This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond the baseline Phase 5 reviewers (A / B / D / F, plus E on UI-bearing diffs) because the diff touches a specialist surface; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
+This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond whatever reviewer the round already ran, because the diff touches a specialist surface that reviewer's lenses do not own; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
 
 Dispatch ONE escalation agent per specialist lens, all in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
+
+**What this prompt now sits beyond.** Phase 5 routes to the merged all-lens reviewer, `hackify:reviewer`, by default in every mode, and that agent carries A, D, E, F and B over one read of the diff. The panel's registered lenses (A, B, D and F, plus E on UI-bearing diffs) are still registered and still dispatchable, and they go out when somebody asks for the panel on a diff or when the two shapes are being measured against each other. Either way this file is the layer ABOVE both: a lens nobody registered, named by the dispatcher at fire-time. **If the lens you want already has an agent type in `README.md`, dispatch that type instead of pinning `{{specialist_lens}}` to its name.** Pinning it here buys a weaker second copy of a prompt that already exists, tuned by nobody, and the finding it files has to be reconciled against the registered lens's anyway.
 
 **Fires when** the diff needs findings nobody has filed yet, on a lens the dispatcher pins by name at dispatch time. That lens name is its whole review input and it never receives a reviewer report, so it cannot rule on findings another reviewer already filed. That job belongs to the adjudication reviewer written inline in `../review-and-verify.md`.
 
@@ -167,4 +169,4 @@ If a findings section has no entries, write `None.` on its own line
 under the heading, never go silent.
 ```
 
-For diffs that genuinely have **two distinct concerns** (e.g., a security/auth surface + a UX/visual surface), dispatch **two reviewers in the same message**, one with the prompt focused on the security side, one on the UX side. They'll independently catch different issues.
+For diffs that genuinely have **two distinct concerns** (e.g., a security/auth surface + a UX/visual surface), dispatch **two reviewers in the same message**, one with the prompt focused on the security side, one on the UX side. They'll independently catch different issues. Both are additive to the reviewer the round already ran, never a replacement for it, and their findings land in the same decision table as that reviewer's under the merge rules in `phase-5-aggregation.md`.

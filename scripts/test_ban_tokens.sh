@@ -35,6 +35,9 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
 FAILED=0
+# The helper set's entry point: this one source line brings in every helper
+# fragment beside it, which is how the flattened matchers this suite drives are
+# reached without naming a second file here. See the foot of that file.
 source "scripts/validate-dod.d/00-helpers.sh"
 
 TB_TMP=$(mktemp -d "${TMPDIR:-/tmp}/hackify-bantest.XXXXXX") || exit 1
@@ -47,6 +50,13 @@ TB_LIST=()
 # happened rather than plants the run order implies. Read twice: tb_plant_every_token
 # takes a delta across its own loop, tb_check_plant_total takes the grand total.
 TB_PLANTED=0
+
+# The batched matcher the next plant sweep screens with, so a sweep proves the ban that
+# actually ships rather than the one that used to. Read by tb_plant_case and set by each
+# sweep in the run order at the foot of this file; the default is the line-oriented
+# matcher, so a sweep added without a matcher line gets the older behaviour rather than
+# an unset variable under `set -u`.
+TB_MATCHER=check_no_tokens_in
 
 # Counts written a SECOND time, on purpose, the same way [77] writes RR_EXPECTED
 # next to its file list. A bound derived from the list cannot police the list: if
@@ -71,19 +81,35 @@ TB_EXPECT_RPT=6
 # THE SEVEN, WRITTEN OUT, because a bare number is a number the next reader bumps on
 # reflex. Each line below is a call this pin has to keep finding, so a reader who
 # reddens here can check the count by hand instead of trusting the failure message:
-#   71-release-mechanism-pins.sh   P5_BANS over $P5_FILES
-#   77-reviewer-roster.sh          RR_BANS over the six-file sweep
-#   77-reviewer-roster.sh          RR_RPT over $RR_RAV
-#   81-no-claude-attribution.sh    CA_BANS over $ca_path
-#   82-throughput-and-routing.sh   TR_BUDGET_BANS over the budget consumers
-#   82-throughput-and-routing.sh   TR_CADENCE_BANS over the cadence files
-#   82-throughput-and-routing.sh   TR_SIB_DB_BANS over $TR_SIBLING
+#   71-release-mechanism-pins.sh   P5_BANS over $P5_FILES                flattened
+#   77-reviewer-roster.sh          RR_BANS over the six-file sweep       flattened
+#   77-reviewer-roster.sh          RR_RPT over $RR_RAV                   line-oriented
+#   81-no-claude-attribution.sh    CA_BANS over $ca_path                 flattened
+#   82-throughput-and-routing.sh   TR_BUDGET_BANS over the consumers     flattened
+#   82-throughput-and-routing.sh   TR_CADENCE_BANS over the cadence files flattened
+#   82-throughput-and-routing.sh   TR_SIB_DB_BANS over $TR_SIBLING       flattened
+#
+# THE MATCHER COLUMN IS NEW AND IT IS LOAD-BEARING, not decoration. Six of these seven
+# moved to check_no_flowed_tokens_in, the wrap-aware twin, because their tokens carry
+# spaces and the files they screen are wrapped markdown where a banned phrase can
+# straddle a line break. RR_RPT stayed line-oriented because not one of its six tokens
+# contains a space, so nothing about it can wrap. Every plant sweep at the foot of this
+# file sets TB_MATCHER to the matcher its list actually ships under, and the split pin
+# in 30-inventory-pins.sh reddens the moment a call site changes matcher without the
+# matching sweep moving with it. Get that wrong and the sweep still passes, having
+# proved a matcher the validator no longer runs on that list.
 # THE LINE NUMBERS ARE GONE FROM THIS LIST RATHER THAN UPDATED. They were labelled a
 # reading aid, and every one of them was wrong within two waves of being written,
 # because a fragment that gains a comment moves every call below it. A pointer that
 # is wrong more often than it is right is worse than no pointer: the array name is
 # the anchor, and it is greppable.
 TB_EXPECT_CALLS=7
+# The same seven split by matcher, written out for the reason the total is: a sum alone
+# cannot see a conversion. Six sites moving from one matcher to the other leaves 7 at 7,
+# so the sum stays green while every plant sweep below could be screening its list with
+# the matcher that no longer runs it. These two are what make that visible.
+TB_EXPECT_CALLS_LINE=1
+TB_EXPECT_CALLS_FLOWED=6
 TB_EXPECT_81=4
 # The three [82] lists, written out here for the same reason as every constant above
 # it: a bound derived from the list cannot police the list. They are counted apart
@@ -115,6 +141,7 @@ source "$TB_MODULES_DIR/10-ban-list-cases.sh"
 source "$TB_MODULES_DIR/15-wi-absent-cases.sh"
 source "$TB_MODULES_DIR/20-corruption-and-wiring-cases.sh"
 source "$TB_MODULES_DIR/30-inventory-pins.sh"
+source "$TB_MODULES_DIR/40-fragment-coverage.sh"
 
 # WIRING GATE, and the reason this file has one at all. This driver became four
 # sourced fragments when the single file hit the 500-LOC cap, and five when
@@ -125,6 +152,11 @@ source "$TB_MODULES_DIR/30-inventory-pins.sh"
 # not feared. Dropping 20-corruption-and-wiring-cases.sh ran 102 assertions
 # instead of 112 and dropping 30-inventory-pins.sh ran 105, and BOTH printed ALL
 # BAN-TOKEN TAMPER TESTS PASSED and exited 0.
+#
+# SIX SINCE 40-fragment-coverage.sh, which is the fragment that closes the same
+# hole one level up: nothing outside scripts/validate-dod.sh named checks [83],
+# [84] or [92], so a fragment could leave the validator's run the way a fragment
+# here could leave this suite's. It gets a row below like every other.
 #
 # MEASURED AGAIN WHEN THE FIFTH FRAGMENT ARRIVED, and re-measured when the two
 # union cases landed in it, because the reading has to carry its own baseline:
@@ -172,6 +204,7 @@ TB_WIRING=(
   "15-wi-absent-cases.sh tb_case_wi_deleted_unstaged tb_case_wi_unmerged_index tb_check_wi_failclosed_total"
   "20-corruption-and-wiring-cases.sh tb_case_token_guard tb_run_token_guards tb_case_blank_token_end_to_end tb_case_zero_tokens tb_write_wiring_fragment tb_case_exit_wiring"
   "30-inventory-pins.sh tb_count_call_sites tb_check_call_sites tb_check_list_size tb_check_plant_total"
+  "40-fragment-coverage.sh tb_presence_pins tb_check_presence_pins tb_case_presence_pin_control tb_fragment_wired tb_check_fragment_coverage tb_case_fragment_coverage_control"
 )
 
 # Field 0 of every row is the fragment, the rest are the functions it owes.
@@ -226,6 +259,16 @@ printf '[test_ban_tokens] batched token ban, tamper tests\n'
 
 tb_extract_lists
 tb_check_call_sites
+
+# THE INVENTORY OF THE OTHER SIDE. Everything above and below plants a BANNED
+# token; these four assert that the PRESENCE pins and the fragments themselves are
+# still there, because both of those go missing without moving anything a plant
+# can see. Each is followed immediately by its planted control, so a check that
+# stopped being able to fail says so on the same two lines.
+tb_check_presence_pins
+tb_case_presence_pin_control
+tb_check_fragment_coverage
+tb_case_fragment_coverage_control
 tb_check_list_size "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_check_list_size "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 tb_check_list_size "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
@@ -248,19 +291,24 @@ tb_case_blank_token_end_to_end
 tb_case_zero_tokens
 tb_case_exit_wiring
 
+TB_MATCHER=check_no_flowed_tokens_in
 tb_plant_every_token "$TB_TMP/tokens70.txt" "$TB_EXPECT_70" "[70] ban list"
 tb_plant_every_token "$TB_TMP/tokens77.txt" "$TB_EXPECT_77" "[77] ban list"
 
-# The report-input bans, screened the way [77] screens them: check_no_tokens_in
-# takes one path and the whole array at both call sites, so the only thing that
-# differs between this section and the one above it is which array screens the
-# plant. Planting these with the RR_BANS array would prove nothing about them.
+# The report-input bans, screened the way [77] screens them, and the ONE sweep here
+# still on the line-oriented matcher: none of these six tokens contains a space, so
+# nothing about them can straddle a wrap and [77] leaves that call site alone. Both
+# batched matchers take one path and the whole array, so the only things that differ
+# between this section and the one above it are the array and the matcher. Planting
+# these with the RR_BANS array would prove nothing about them.
+TB_MATCHER=check_no_tokens_in
 tb_plant_every_token "$TB_TMP/tokens77rpt.txt" "$TB_EXPECT_RPT" "[77] report-input ban list"
 
 # [81]'s list, planted the same way. Its tokens are trailer-shaped rather than
 # bare names on purpose (the fragment says why), so planting one writes a string
 # only a real trailer carries, and a green here means the net catches the real
 # thing rather than a mention of it.
+TB_MATCHER=check_no_flowed_tokens_in
 tb_plant_every_token "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ban list"
 
 # THE TWO [82] LISTS, and the reason they are here at all. Both shipped, both run
@@ -272,17 +320,20 @@ tb_plant_every_token "$TB_TMP/tokens81.txt" "$TB_EXPECT_81" "[81] attribution ba
 # at all ('20 tasks', not '20'), so planting one writes the restated budget rather
 # than a digit, and a green means the net catches the restatement rather than
 # every count in the file.
+TB_MATCHER=check_no_flowed_tokens_in
 tb_plant_every_token "$TB_TMP/tokens82.txt" "$TB_EXPECT_82" "[82] restated-budget ban list"
 
 # [82c]'s tokens are retired SENTENCE OPENINGS about when a task ticks, so planting
 # one writes the cadence claim the rule replaced rather than a word about ticking,
 # and a green means the net catches the revert rather than every mention of a round.
+TB_MATCHER=check_no_flowed_tokens_in
 tb_plant_every_token "$TB_TMP/tokens82c.txt" "$TB_EXPECT_82C" "[82c] retired-cadence ban list"
 
 # [82g] carries the retired `case` arm VERBATIM, braces and all, because a planted
 # token that is not byte-identical to the shipped one proves nothing about the
 # shipped one. It reaches grep through -F, so the braces, pipes and stars in it are
 # literal text on both sides of the comparison and there is nothing to escape.
+TB_MATCHER=check_no_flowed_tokens_in
 tb_plant_every_token "$TB_TMP/tokens82g.txt" "$TB_EXPECT_82G" "[82g] database-refusal ban list"
 
 # Ran to completion. tb_finish reads this status, so a finished run is

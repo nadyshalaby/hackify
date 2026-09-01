@@ -16,20 +16,20 @@ The driver and the sentinel are the pair that gets conflated most often, and the
 
 ## Orchestration tier (ultracode)
 
-**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's single spec reviewer, each Phase 3 round, Phase 5's one reviewer panel plus its one refuter. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
+**Default: maximum tier at every mandatory fan-out point.** Hackify's fan-outs are already decided by the workflow, Phase 2.5's single spec reviewer, each Phase 3 round, Phase 5's one merged all-lens reviewer plus its one refuter. The orchestration tier says those fan-outs run through the heaviest orchestration the runtime offers rather than the cheapest.
 
 | Run point | What fans out |
 |---|---|
 | Phase 2.5 | 1 spec reviewer, three lenses over one read |
 | Phase 3, each round | one implementer per wave, and every wave the partition test ([contention-dispatch.md](contention-dispatch.md)) clears is dispatched in the same message |
-| Phase 5 | the reviewer panel, then one refuter for the whole batch |
+| Phase 5 | one merged all-lens reviewer, then one refuter for the whole batch |
 
 **Claude Code mapping (an action, not a mood).** `ultracode` is a keyword the *user* types, or a session setting; a skill cannot put it in scope by describing itself as running at a high tier. What the keyword actually does is opt the turn into the **Workflow tool**, so that is what hackify invokes directly:
 
 | Fan-out shape | What to do |
 |---|---|
 | Flat batch, every unit independent and same-shaped (one agent per Phase 1 research question) | Dispatch subagents in ONE message. This is correct and stays the default. |
-| Pipelined, each unit's output feeds a following stage (a reviewer panel whose findings pipeline into per-finding refutation, a loop-until-dry sweep) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
+| Pipelined, each unit's output feeds a following stage (a review round whose findings pipeline into the one refuter that judges the batch and from there into the fix waves, a Phase 3 round whose waves feed the reconciliation and the scouts behind it) | **Call the Workflow tool.** Do not simulate a pipeline with sequential flat batches. |
 
 **The Workflow tool's opt-in is satisfied here.** It may only be called when the user explicitly opted into multi-agent orchestration, and one of its accepted forms is *"the user invoked a skill whose instructions tell you to call Workflow."* Invoking hackify is that invocation, and this file is that instruction. Do not ask the user for permission a second time, and do not fall back to a flat batch just because you are unsure whether you are allowed.
 
@@ -55,7 +55,7 @@ Never quietly raise the tier back after the user has lowered it.
 
 | Loop | Layer | Driven by |
 |---|---|---|
-| Phase 5 address-all (fix → re-scan → settled diff) | inside Phase 5 | inline, never the iteration driver |
+| Phase 5 address-all (refute → fix every survivor) | inside Phase 5 | inline, never the iteration driver |
 | Phase 3b hypothesis cycle (≤3 hypotheses) | inside Phase 3b | inline, never the iteration driver |
 | Phase 3 round loop (round N → N+1) | inside Phase 3 | inline, never the iteration driver |
 | **Task continuation (phase N → N+1 until archived)** | **above the phases** | **the iteration driver** |
@@ -93,7 +93,7 @@ Never quietly raise the tier back after the user has lowered it.
 | Mode | Announce it at | Canonical condition shape |
 |---|---|---|
 | hackify | the message right after Phase 2 sign-off, as Phase 2.5 opens | `/goal docs/work/done/<date>-<slug>.md exists with status: done, every Sprint Backlog box ticked, and the evidence ledger shows test, lint and typecheck each exiting 0 plus ship.build / ship.boot / ship.smoke rows` |
-| quick | the Phase 1 goal-anchor line | `/goal the <slug> change is committed, test + lint + typecheck each exited 0 with the output shown in this session, and the single-lens review round closed with zero remaining findings` |
+| quick | the Phase 1 goal-anchor line | `/goal the <slug> change is committed, test + lint + typecheck each exited 0 with the output shown in this session, and the 5-lite review round (one reviewer, every lens) closed with zero remaining findings` |
 
 Quick mode often finishes inside one turn, and the line is still worth printing: it costs one line, and the moment a "quick" fix turns out not to be quick, the condition is already set.
 
@@ -119,7 +119,7 @@ The evaluator can say "condition not met, keep working" at the same moment the d
 |---|---|
 | "Max tier means every fan-out needs a workflow script" | No. It raises the ceiling. Three independent Phase 1 research agents are a flat parallel batch and always were. |
 | "The user did not type ultracode, so run light" | Installing and invoking hackify IS the standing grant. Announce it, honor the opt-out, do not re-litigate it per task. |
-| "The user said light mode, but this reviewer panel really needs the fan-out" | Their call, not yours. Run the panel flat and say what it cost. |
+| "The user said light mode, but this review round really needs the fan-out" | Their call, not yours. Run it flat and say what it cost. |
 | "I'll `/loop` the Phase 5 review until findings hit zero" | Wrong layer. That loop is inline inside Phase 5. The driver carries the TASK across phases, not a phase across turns. |
 | "The gate is open, I'll loop and check back" | Exit condition 2. A gate is a question for the user; looping at it burns tokens waiting for a human. |
 | "Nothing advanced this firing, one more try" | Two flat firings is the ceiling. Say what is stuck and hand back. |

@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
-"""Unit tests for the line-citation half of check_doc_links.py.
+"""Unit tests for the pointer and line-citation halves of check_doc_links.py.
 
 Run: python3 scripts/test_doc_link_lines.py
 
-Form 3 of that checker reads the `:42` in `some/file.md:42` and asks whether
-line 42 is really there. This suite covers the cases most likely to regress, and
-it drives `main` end to end rather than the internals, because the exit code is
-what the validator reads and a helper returning the right list while `main`
-returns 0 is a green that means nothing.
+Forms 1 and 2 resolve a PATH; form 3 reads the `:42` in `some/file.md:42`, asks
+whether line 42 is really there, and then asks what it says. This suite drives
+`main` end to end rather than the internals, because the exit code is what the
+validator reads and a helper returning the right list while `main` returns 0 is
+a green that means nothing.
 
-Fixtures are written into a tempdir, never into this repo, so the live scan
-never walks them. Every citation-shaped literal below names a `probe-` file that
-exists in no fixture-free tree, so this file's own text can never turn the live
-check red on itself. That is not a nicety: this file is scanned by the very
-check it tests.
+FORMS 4 AND 5 ARE NOT HERE. They moved to test_doc_anchors.py when this file
+stood at 452 of the 500-LOC cap check [80] enforces, the same seam the code
+took, and both are still reached through the one entry point every row below
+drives. Rows asserting on form 3's units reach them as `CDL.CITES.<name>`, the
+only visible trace of that move. Form 3's CONTENT tier is split the same way:
+its vacancy rows are here and its anchor-pinning rows sit beside the grammar
+they exercise, which is form 5's.
+
+THE HARNESS BELOW IS SHARED. test_doc_anchors.py imports `_build` and `_run`
+rather than copying them, so both suites drive the same loaded checker the same
+way; a second copy would be free to drift.
+
+Fixtures go to a tempdir, never into this repo. Every citation-shaped literal
+below names a `probe-` file that exists in no fixture-free tree, so this file
+cannot redden the live check on its own text. It is scanned by that check.
 """
 
 import contextlib
@@ -37,9 +47,9 @@ def _load_checker():
 
 CDL = _load_checker()
 
-# Five lines exactly, which makes 5 the last valid line and 6 the first invalid
-# one. Both edges are asserted below, because "the file has N lines" and "line N
-# exists" differ by exactly the off-by-one this check is here to get right.
+# Five lines exactly, so 5 is the last valid line and 6 the first invalid one.
+# Both edges are asserted below: "the file has N lines" and "line N exists"
+# differ by exactly the off-by-one this check is here to get right.
 FIVE_LINES = 'one\ntwo\nthree\nfour\nfive\n'
 
 
@@ -78,8 +88,8 @@ def _run_beside(files: dict, outside: dict) -> tuple:
     """(exit code, stdout) for a fixture repo with a SIBLING tree beside it.
 
     The containment rows need a real file the repo does not contain, reachable
-    only by climbing above the repo root. `_build` gives one directory, so this
-    builds two: the repo, and a sibling the pointers below try to reach.
+    only by climbing above the root. `_build` gives one directory, so this
+    builds two: the repo and a sibling the pointers below try to reach.
     """
     parent = pathlib.Path(tempfile.mkdtemp(prefix='doclinks-pair-'))
     for base, group in ((parent / 'repo', files), (parent, outside)):
@@ -102,13 +112,10 @@ def _run_beside(files: dict, outside: dict) -> tuple:
 def test_a_citation_that_escapes_the_repo_root_is_never_opened():
     """The oracle this rule closes, measured rather than argued.
 
-    `..` is inside LINE_CITE's path class, and the repo root is one of the bases
-    a pointer is resolved against, so `../outside/x.py:99` named a real file no
-    checkout contains. The checker opened it and printed its length: the finding
-    `-> ../outside/probe-secret.py:99, ../outside/probe-secret.py has 3 lines`
-    is an existence-and-length oracle for the filesystem around the repo, plus
-    an unbounded read, both reachable by committing a citation. The pointer now
-    resolves to nothing and the file is never opened.
+    `..` is inside LINE_CITE's path class and the repo root is one of the bases,
+    so `../outside/x.py:99` named a real file no checkout contains, and the
+    checker opened it and printed its length: an existence-and-length oracle
+    plus an unbounded read, reachable by committing a citation.
     """
     code, out = _run_beside(
         {'scripts/probe.sh': '# see ../outside/probe-secret.py:99 for the rule\n'},
@@ -137,12 +144,9 @@ def test_a_prose_path_out_of_the_repo_does_not_resolve():
 
 
 def test_a_dotdot_pointer_that_stays_inside_the_repo_still_resolves():
-    """The rule is CONTAINMENT, not a ban on `..`.
-
-    A sibling reference written from a subdirectory is ordinary correct prose
-    and has to keep resolving. That is the whole reason the check resolves the
-    path rather than inspecting its spelling: a lexical `..` test would redden
-    this file, which is a guard punishing correct text.
+    """The rule is CONTAINMENT, not a ban on `..`. A sibling reference from a
+    subdirectory is ordinary correct prose and has to keep resolving, which is
+    why the path is resolved rather than read: a lexical test reddens it.
     """
     files = {'docs/sub/probe-target.md': FIVE_LINES,
              'docs/sub/deep/note.md': 'see [it](../probe-target.md), '
@@ -152,10 +156,8 @@ def test_a_dotdot_pointer_that_stays_inside_the_repo_still_resolves():
 
 
 def test_the_containment_predicate_is_asserted_directly():
-    """Pins the mechanism and not only its outcome, the way
-    test_the_marker_strip_is_what_makes_the_shell_case_work does for the join.
-    An outcome test would still pass if some other path happened to drop the
-    pointer, and the containment rule is the thing that must hold.
+    """Pins the mechanism, not only its outcome. An outcome test would pass if
+    some other path dropped the pointer; containment is what must hold.
     """
     root = _build({'docs/probe-target.md': FIVE_LINES})
     try:
@@ -213,12 +215,9 @@ def test_range_ending_past_the_file_is_caught():
 
 
 def test_wrapped_citation_in_a_shell_comment_is_caught():
-    """The shape that actually occurs here: a `#` opens the continuation.
-
-    25 of this repo's 30 live citations sit in shell comments, so a wrap test
-    written only against markdown would go green while the real surface stayed
-    uncovered. Line one ends mid-token after a hyphen; line two carries the rest
-    behind a comment marker that has to come off before the halves can meet.
+    """The shape that actually occurs here: a `#` opens the continuation. Most
+    live citations sit in shell comments, so a markdown-only wrap test would go
+    green while the real surface stayed uncovered.
     """
     files = {'scripts/sub/probe-tar-get.md': FIVE_LINES,
              'scripts/probe.sh': '# the rule in sub/probe-tar-\n'
@@ -257,25 +256,23 @@ def test_the_marker_strip_is_what_makes_the_shell_case_work():
 
     Without dropping the continuation's `#` the two halves join as
     `sub/probe-tar-#get.md:6`, which matches nothing and is silently missed. The
-    outcome tests above would still pass if this were broken and some other path
-    happened to catch the citation, so the unit is asserted directly.
+    outcome tests above would still pass if some other path caught the citation,
+    so the unit is asserted directly, through CDL.CITES since form 3 moved.
     """
-    got = CDL.wrapped_cites('# the rule in sub/probe-tar-', '# get.md:6 states it')
+    got = CDL.CITES.wrapped_cites('# the rule in sub/probe-tar-', '# get.md:6 states it')
     assert [c.pointer for c in got] == ['sub/probe-tar-get.md'], got
     assert [c.last for c in got] == [6], got
 
 
 def test_a_citation_wholly_on_one_line_is_not_reported_twice():
-    got = CDL.wrapped_cites('# see sub/probe-tar-', '# get.md:6 and probe-other.md:3')
+    got = CDL.CITES.wrapped_cites('# see sub/probe-tar-', '# get.md:6 and probe-other.md:3')
     assert [c.pointer for c in got] == ['sub/probe-tar-get.md'], got
 
 
 def test_an_accidental_join_across_a_sentence_end_resolves_to_nothing():
-    """A prose line ending in `.` joins to the next, and that is fine.
-
-    The join is deliberately loose; resolution is what throws the accidents
-    away. This is the real shape from 79-standing-member-invariant.sh, where
-    "first draft." meets a citation on the following line.
+    """A prose line ending in `.` joins to the next, and that is fine: the join
+    is loose and resolution throws the accidents away. The real shape from
+    79-standing-member-invariant.sh, where "first draft." meets a citation.
     """
     files = {'scripts/probe-target.md': FIVE_LINES,
              'scripts/probe.sh': '# not in the first draft.\n'
@@ -288,10 +285,8 @@ def test_an_accidental_join_across_a_sentence_end_resolves_to_nothing():
 
 
 def test_an_unreadable_cited_file_fails_loudly():
-    """A file we cannot read is never a pass.
-
-    If it were, making a file unreadable would silence every citation into it,
-    which is a check that greens exactly when it has stopped working.
+    """A file we cannot read is never a pass: were it one, making a file
+    unreadable would silence every citation into it.
     """
     files = {'scripts/probe-broken.json': b'\xff\xfe not valid utf-8\n',
              'scripts/probe.sh': '# see probe-broken.json:1 for the rule\n'}
@@ -301,11 +296,26 @@ def test_an_unreadable_cited_file_fails_loudly():
     assert 'UnicodeDecodeError' in out, out
 
 
-def test_an_unreadable_scanned_file_fails_loudly():
+def test_an_unreadable_file_in_the_citation_scan_fails_loudly():
     files = {'scripts/probe-bad.sh': b'# \xff\xfe not valid utf-8\n'}
     code, out = _run(files)
     assert code == 1, out
     assert 'unreadable source' in out, out
+
+
+def test_an_unreadable_file_in_the_markdown_scan_fails_loudly():
+    """The half the row above could never reach, and why it is separate.
+
+    A `.sh` fixture is opened only by the citation scan. The pointer scan opens
+    `.md` files and had no guard, so a non-UTF-8 markdown file produced a
+    traceback rather than a finding. A row whose fixture cannot reach the code
+    it names is this check's own defect wearing its badge.
+    """
+    files = {'docs/probe-bad.md': b'# \xff\xfe not valid utf-8\n'}
+    code, out = _run(files)
+    assert code == 1, out
+    assert 'unreadable source' in out, out
+    assert 'docs/probe-bad.md' in out, out
 
 
 # --- staying in this half's lane ----------------------------------------------
@@ -329,12 +339,8 @@ def test_an_ambiguous_basename_passes_when_any_candidate_is_long_enough():
 
 def test_a_citation_resolved_through_a_skill_root_is_checked():
     """The branch several live citations depend on, and nothing else covers.
-
-    `references/x.md:N` written under scripts/ or agents/ resolves through no
-    ancestor directory and carries a slash, so the basename index is off too. It
-    reaches its file only through skill_roots. If that branch regressed the live
-    tree would print a smaller count and stay green, because the ok line is
-    printed and never floored.
+    `references/x.md:N` under scripts/ carries a slash, so the basename index is
+    off and no ancestor reaches it; only skill_roots does.
     """
     files = {'skills/x/references/probe-target.md': FIVE_LINES,
              'agents/prompt.md': 'the rule in references/probe-target.md:6 says\n'}
@@ -377,13 +383,58 @@ def test_the_pointer_half_still_catches_a_dead_markdown_link():
 
 def test_exactly_one_ok_line_is_printed_per_run():
     """00-helpers.sh and validate-dod.sh both document the ok-line gap as a
-    count of delegated INVOCATIONS, and a second pass here would make that
-    prose wrong in two files this wave may not touch."""
+    count of delegated INVOCATIONS; a second pass here makes that prose wrong
+    in two files."""
     _, out = _run(_cited('see probe-target.md:5 for the rule'))
     assert len([ln for ln in out.splitlines() if ln.startswith('  ok   ')]) == 1, out
 
 
+# --- the content at the cited location, not merely its existence -------------
 
+# Line 1 addresses the loader, line 2 is blank, line 3 is the claim. One target
+# reaching all three verdicts is what keeps the row below a discriminator.
+VACANCY_TARGET = '#!/usr/bin/env python3\n\nHELPERS = 1\n'
+
+
+def _points_at(line: int) -> dict:
+    """The three-line target plus a comment citing one of its lines."""
+    return {'scripts/probe-target.py': VACANCY_TARGET,
+            'scripts/probe.sh': f'#  probe-target.py:{line},177  HELPERS + more\n'}
+
+
+def test_a_citation_naming_a_shebang_or_a_blank_line_is_caught():
+    """The reproduction this whole tier was built from.
+
+    Retargeting the live `scripts/tamper_harness.py:38,177` to `:1,177` pointed
+    the claim at a shebang and the bar stayed green, existence being the only
+    thing ever read. The `,177` matters too: the tail reader steps over it, or
+    no verb can follow a multi-line citation.
+    """
+    shebang, out = _run(_points_at(1))
+    blank, blank_out = _run(_points_at(2))
+    real, real_out = _run(_points_at(3))
+    assert shebang == 1, out
+    assert 'blank, a bare marker or a shebang' in out, out
+    assert blank == 1, blank_out
+    assert real == 0, 'the content line was reddened too:\n%s' % real_out
+
+
+def test_a_range_holding_one_line_of_content_is_not_vacant():
+    """A range claims a block, so one real line inside it is a block that still
+    says something. Only a range vacant end to end names nothing at all."""
+    files = {'scripts/probe-target.md': 'one\n\n\nfour\n',
+             'scripts/probe.sh': '# see probe-target.md:2-4 for the rule\n'}
+    assert _run(files)[0] == 0
+    files['scripts/probe.sh'] = '# see probe-target.md:2-3 for the rule\n'
+    assert _run(files)[0] == 1
+
+
+def test_the_unpinned_count_rides_on_the_coverage_line():
+    """A citation nothing pins is judged for existence and vacancy and no
+    further, and says so rather than counting as verified."""
+    _, out = _run(_cited('see probe-target.md:5 for the rule'))
+    assert '0 pinned' in out, out
+    assert '1 unpinned, whose content nothing in the citing text names' in out, out
 
 
 # --- subset targets, the exemption and the strictness it must not cost -------
@@ -393,11 +444,9 @@ DEAD_WORK_POINTER = ('skills/hackify/references/note.md',
 
 
 def test_a_dead_docs_work_pointer_is_still_a_finding_where_that_tree_exists():
-    """The half the exemption must NOT cost.
-
-    A tree that ships docs/work can prove a pointer into it dead, so it still
-    has to. If this ever goes green the exemption stopped being structural and
-    became a silencer for the whole directory.
+    """The half the exemption must NOT cost. A tree that ships docs/work can
+    prove a pointer into it dead, so it still has to; a green here means the
+    exemption became a silencer for the whole directory.
     """
     code, out = _run({DEAD_WORK_POINTER[0]: DEAD_WORK_POINTER[1],
                       'docs/work/done/something-else.md': 'body\n'})
@@ -406,11 +455,9 @@ def test_a_dead_docs_work_pointer_is_still_a_finding_where_that_tree_exists():
 
 
 def test_the_same_pointer_is_exempt_where_the_tree_ships_no_docs_work():
-    """The half the exemption buys, which is the built runtime trees.
-
-    dist/claude-code ships skills but no docs, so a prose path into docs/work
-    can never resolve there. That absence is the subsetting, not a dead pointer,
-    and the source pass above is where the pointer is really judged.
+    """The half the exemption buys, the built runtime trees. dist/claude-code
+    ships skills but no docs, so a prose path into docs/work can never resolve
+    there; that absence is the subsetting, and the source pass judges it.
     """
     code, out = _run({DEAD_WORK_POINTER[0]: DEAD_WORK_POINTER[1]})
     assert code == 0, 'the subset tree reported a pointer it cannot judge:\n%s' % out

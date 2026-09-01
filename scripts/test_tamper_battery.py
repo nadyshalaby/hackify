@@ -29,6 +29,17 @@ fragment owns either. scripts/test_tamper_dist_integrity.py arrived as its own
 part rather than as rows here, for the same fixture reason: check [56] is driven
 from a whole built tree, manifest and destination plan and shipped bytes together,
 which nothing else in the battery needs and nothing else can share.
+scripts/test_tamper_phase_laws.py arrived as its own part for a third reason again:
+check [76] was not in this battery AT ALL, so the guard over every law injected into
+every prompt had no proof its detection was still wired, and its corpus is a copy of
+the paths that fragment reads, which no other part needs. NO COUNT IS WRITTEN IN THAT
+SENTENCE, and it used to say "seven" while the tuple listed eight and then nine: the
+stale claim inside the machinery built to catch stale claims, which is the call the
+FRAGMENTS comment in scripts/tamper_harness.py already made for itself.
+scripts/test_tamper_lens_sites.py then split OFF that part at the 500-LOC cap, taking
+check [76j]'s three review-phase-name sites with it and leaving [76e]'s five laws
+behind, because the two ask different questions of the same fragment; the corpus and
+its measurement moved to scripts/tamper_harness.py, which both now import.
 
 WHY THE SUITE IS SPLIT ACROSS SEVERAL FILES. The hard cap is 500 lines and the
 battery does not fit one file under it, so splitting was the instruction rather
@@ -52,6 +63,7 @@ tampered by editing a COPY, so there is no restore step and no checksum after.
 
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -62,7 +74,9 @@ import test_tamper_dist_integrity
 import test_tamper_fragments
 import test_tamper_hostile
 import test_tamper_ledger_sync
+import test_tamper_lens_sites
 import test_tamper_mirror_tails
+import test_tamper_phase_laws
 import test_tamper_status_claims
 from claim_fixture_manifest import load_manifest
 from claim_fixtures import replay_scope
@@ -72,11 +86,11 @@ from tamper_harness import (COUNT_BUMP, RED_CALL, REPO_ROOT, TEMPLATE, apply_edi
                             clean_scratch, expect, temp_dir)
 
 PARTS = (test_tamper_attribution, test_tamper_dist_integrity, test_tamper_fragments,
-         test_tamper_hostile,
-         test_tamper_ledger_sync, test_tamper_mirror_tails, test_tamper_status_claims)
+         test_tamper_hostile, test_tamper_ledger_sync, test_tamper_lens_sites,
+         test_tamper_mirror_tails, test_tamper_phase_laws, test_tamper_status_claims)
 
-HELPERS_REL = 'scripts/validate-dod.d/00-helpers.sh'
-SECTION_FRAGMENT = 'scripts/validate-dod.d/94-section-exists.sh'
+HELPER_DIR_REL = 'scripts/validate-dod.d'
+SECTION_FRAGMENT = HELPER_DIR_REL + '/94-section-exists.sh'
 
 
 def _fake_repo_root(*edits):
@@ -88,14 +102,21 @@ def _fake_repo_root(*edits):
   scope under the temp prefix, never nested inside it, because the fragment's
   replay hook refuses a root equal to the working directory. The work-doc
   template comes along because check [94] reads it from the working directory in
-  replay mode too: reference data rather than corpus."""
+  replay mode too: reference data rather than corpus.
+
+  THE WHOLE FRAGMENT DIRECTORY IS COPIED, NOT ONE HELPER FILE. Sourcing
+  00-helpers.sh sources every helper fragment beside it, and this function used to
+  copy that one file, so the loader met a set of one and refused the run rather
+  than leaving a shell without its matchers. Copying the directory is also why no
+  glob is written here: which of those files ARE the helper set is decided in one
+  place, the loop at the foot of 00-helpers.sh, and a second expression of that
+  rule at this address is the defect the loop exists to retire."""
   root = temp_dir('fake-root-')
+  shutil.copytree(str(REPO_ROOT / HELPER_DIR_REL), str(root / HELPER_DIR_REL))
   source = REPO_ROOT / SECTION_FRAGMENT
   target = root / SECTION_FRAGMENT
-  target.parent.mkdir(parents=True, exist_ok=True)
   target.write_text(apply_edits(source.read_text(encoding='utf-8'), edits),
                     encoding='utf-8')
-  (root / HELPERS_REL).write_bytes((REPO_ROOT / HELPERS_REL).read_bytes())
   template = root / TEMPLATE
   template.parent.mkdir(parents=True, exist_ok=True)
   template.write_bytes((REPO_ROOT / TEMPLATE).read_bytes())

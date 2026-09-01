@@ -321,7 +321,7 @@ Rules:
 
 ### `_traces.json` (optional)
 
-When present alongside `_catalog.json`, the builder uses it to populate rich per-slug `data.json` files in one pass. Without it, each slug folder gets a stub `data.json` that the user can deepen later via `/codewalk <entry>`.
+When present alongside `_catalog.json`, the builder uses it to populate rich per-slug `data.json` files in one pass. Without it, each slug folder gets a stub `data.json` that the user can deepen later via `/hackify:codewalk <entry>`.
 
 ```json
 {

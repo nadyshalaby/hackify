@@ -32,7 +32,7 @@
       "prompt": "review this PR diff for correctness bugs and tell me what you find",
       "assertions": [
         {"text": "review-triage skill is NOT invoked, the request is to PRODUCE a code review, not respond to one"},
-        {"text": "Routing goes to the built-in /code-review skill OR to full hackify with the review verb classified as a research/audit task"},
+        {"text": "Routing goes to the built-in /code-review skill, which owns the per-diff review; quick is the default route for any substantive prompt and full hackify runs only when the user asks for it by name, so the review verb routes to neither on its own"},
         {"text": "Transcript explicitly notes review-triage's scope is reviewer-finding RESPONSE, not review production"}
       ],
       "files": []

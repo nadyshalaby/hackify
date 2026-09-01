@@ -65,7 +65,7 @@ for mode_slug in hackify quick; do
   # printed a green nobody could ever turn red. What the loader actually reads
   # is the frontmatter value, so that is the string worth validating.
   mode_declared="$(awk -F': ' '/^name: /{print $2; exit}' "$mode_file")"
-  if printf '%s' "$mode_declared" | grep -Eq '^[a-z0-9-]{1,64}$'; then
+  if grep -Eq '^[a-z0-9-]{1,64}$' <<<"$mode_declared"; then
     green "  ok   $mode_file declares slug '$mode_declared', which matches ^[a-z0-9-]{1,64}\$"
   else
     red "  FAIL $mode_file declares slug '$mode_declared', which fails the slug regex the loader requires"
@@ -217,7 +217,7 @@ MODULE_ROLE_SITES=(
   "skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md"
   "skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
   "agents/implementer.md"
-  "agents/code-reviewer-quality-plan.md"
+  "agents/reviewer-quality-plan.md"
   "agents/spec-reviewer.md"
 )
 check_list_size "${#MODULE_ROLE_SITES[@]}" 6 "the [38i] module-role restatement site set"
@@ -270,5 +270,5 @@ else
 fi
 
 yellow "[39] performance review surfaces registered (Reviewer D agent + perf-scout wiring)"
-check_file "agents/code-reviewer-performance.md"
+check_file "agents/reviewer-performance.md"
 check_token_present "perf-scout.md" "skills/hackify/SKILL.md"

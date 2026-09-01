@@ -16,13 +16,14 @@ done
 AGENTS_EXPECTED=(
   "codebase-investigator"
   "spec-reviewer"
-  "code-reviewer-security"
-  "code-reviewer-quality-plan"
-  "code-reviewer-performance"
-  "code-reviewer-coherence"
-  "design-conformance-reviewer"
+  "reviewer-security"
+  "reviewer-quality-plan"
+  "reviewer-performance"
+  "reviewer-coherence"
+  "reviewer-design"
   "finding-refuter"
   "implementer"
+  "reviewer"
 )
 yellow "[30] agents/ directory contains all ${#AGENTS_EXPECTED[@]} expected hackify agent definitions"
 for name in "${AGENTS_EXPECTED[@]}"; do

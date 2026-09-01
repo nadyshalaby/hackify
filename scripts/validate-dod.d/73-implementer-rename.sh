@@ -231,43 +231,21 @@ WI_LIVE_PATHS+=(':(top,exclude)scripts/validate-dod.d/73-implementer-rename.sh')
 # trustworthy about the hits it did manage to print, so naming the broken scan is
 # the more actionable of the two. Every red carries the mode that produced it, so
 # the reader knows which half of the union spoke.
+# THE BODY MOVED TO 00-helpers.sh ON ITS SECOND USE, and what is left here is the
+# PROFILE: the check id, the noun the verdicts print, the empty-list noun, the
+# modes to union in order, and the pathspec. Everything the eight paragraphs above
+# argue is still what runs; rename_absent is the one implementation of it and [89]
+# is the other caller. The profile is written out in BOTH wrappers rather than set
+# by a third function, because scripts/test_ban_tokens.d/15-wi-absent-cases.sh
+# sed-lifts these two definitions out of this file by name and evals the text, so a
+# wrapper calling a setter would eval into a reference that suite cannot resolve.
+# The two modes are THIS check's, and [89]'s single --untracked mode is that
+# check's; the generalization parameterized that difference rather than erasing it.
 wi_absent() {
-  local lit="$1" mode hits rc err errtxt prev
-  err=$(mktemp 2>/dev/null) || err=''
-  if [ -z "$err" ]; then
-    red "  FAIL [40] could not create the stderr capture file, so the scan for '$lit' never ran"
-    FAILED=$((FAILED + 1))
-    return
-  fi
-  prev=$(trap -p EXIT)
-  trap 'rm -f "$err"' EXIT
-  for mode in worktree cached; do
-    if [ "$mode" = cached ]; then
-      hits=$(git grep --cached -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
-    else
-      hits=$(git grep -nF -e "$lit" -- "${WI_LIVE_PATHS[@]}" 2>"$err")
-    fi
-    rc=$?
-    errtxt=$(cat "$err")
-    { [ "$rc" -gt 1 ] || [ -n "$errtxt" ] || [ -n "$hits" ]; } && break
-  done
-  rm -f "$err"
-  if [ -n "$prev" ]; then eval "$prev"; else trap - EXIT; fi
-  if [ "$rc" -le 1 ] && [ -z "$errtxt" ] && [ -z "$hits" ]; then
-    green "  ok   '$lit' survives in no live file"
-    return
-  fi
-  FAILED=$((FAILED + 1))
-  if [ "$rc" -gt 1 ]; then
-    red "  FAIL [40] the $mode scan for '$lit' exited $rc, so finding nothing here would be finding nothing at all"
-  elif [ -n "$errtxt" ]; then
-    red "  FAIL [40] the $mode scan for '$lit' exited $rc but wrote to stderr, so a file it could not read is being counted as a file with nothing in it"
-  else
-    red "  FAIL [40] retired Phase 3 wording '$lit' survives in a live file, found by the $mode scan:"
-    printf '%s\n' "$hits" | sed 's/^/         - /'
-    return
-  fi
-  printf '%s\n' "${errtxt:-exited $rc without writing anything to stderr}" | sed 's/^/         git: /'
+  RN_ID='[40]'; RN_NOUN='retired Phase 3 wording'; RN_LIST='wording list'
+  RN_MODES=(worktree cached)
+  RN_PATHS=(${WI_LIVE_PATHS[@]+"${WI_LIVE_PATHS[@]}"})
+  rename_absent "$@"
 }
 
 # ONE SCAN PER MODE FOR THE WHOLE WORDING SET, with the per-literal loop above
@@ -306,36 +284,10 @@ wi_absent() {
 # states above, and the restore happens BEFORE the fallback loop so wi_absent's
 # own save-and-restore nests inside a table this function has already put back.
 wi_absent_all() {
-  local mode rc err errtxt prev lit
-  local -a pats=()
-  if [ "$#" -eq 0 ]; then
-    red "  FAIL [40] the batched screen was handed an empty wording list, so it would ban nothing while printing nothing"
-    FAILED=$((FAILED + 1))
-    return
-  fi
-  for lit in "$@"; do pats+=(-e "$lit"); done
-  err=$(mktemp 2>/dev/null) || err=''
-  if [ -n "$err" ]; then
-    prev=$(trap -p EXIT)
-    trap 'rm -f "$err"' EXIT
-    for mode in worktree cached; do
-      if [ "$mode" = cached ]; then
-        git grep --cached -qF "${pats[@]}" -- "${WI_LIVE_PATHS[@]}" 2>"$err"
-      else
-        git grep -qF "${pats[@]}" -- "${WI_LIVE_PATHS[@]}" 2>"$err"
-      fi
-      rc=$?
-      errtxt=$(cat "$err")
-      { [ "$rc" -ne 1 ] || [ -n "$errtxt" ]; } && break
-    done
-    rm -f "$err"
-    if [ -n "$prev" ]; then eval "$prev"; else trap - EXIT; fi
-    if [ "$rc" -eq 1 ] && [ -z "$errtxt" ]; then
-      for lit in "$@"; do green "  ok   '$lit' survives in no live file"; done
-      return
-    fi
-  fi
-  for lit in "$@"; do wi_absent "$lit"; done
+  RN_ID='[40]'; RN_NOUN='retired Phase 3 wording'; RN_LIST='wording list'
+  RN_MODES=(worktree cached)
+  RN_PATHS=(${WI_LIVE_PATHS[@]+"${WI_LIVE_PATHS[@]}"})
+  rename_absent_all "$@"
 }
 
 # The retired batching vocabulary. One implementer now takes a whole wave, so a
@@ -351,11 +303,12 @@ check_list_size "${#WI_DEAD_WORDS[@]}" 3 "the [40] retired Phase 3 vocabulary li
 # above, because each hand-written size bound should police a list whose meaning
 # does not shift under it. Both are class C5, retired vocabulary surviving in a
 # live file; that list polices a replaced fan-out, this one polices INPUT names
-# a dispatcher builds a call out of. CHANGELOG.md:19 retires `{{assigned_lens}}`
-# as an input and records the refuter row naming `finding_verbatim` where the
-# template's real name is `findings_batch`. A stale INPUT name is the sharpest
-# shape here: an agent asked to fill a placeholder nothing declares receives
-# literal text, the dispatch bug [93] resolves from the other end.
+# a dispatcher builds a call out of. The CHANGELOG's `## [0.15.0]` entry retires
+# `{{assigned_lens}}` as an input and records the refuter row naming
+# `finding_verbatim` where the template's real name is `findings_batch`. A stale
+# INPUT name is the sharpest shape here: an agent asked to fill a placeholder
+# nothing declares receives literal text, the dispatch bug [93] resolves from
+# the other end.
 #
 # WHY THIS CLASS NEEDS NO ALLOWLIST, which is the line dividing it from the
 # section-name class. Everything here must be absent from every live file with

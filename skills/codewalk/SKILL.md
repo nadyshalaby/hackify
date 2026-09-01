@@ -1,6 +1,6 @@
 ---
 name: codewalk
-description: DEEP-BY-DEFAULT browser-based interactive call-stack viewer for code the user did not write, a senior-peer walkthrough of ONE execution path from a single entry point (route, handler, CLI command, queue job, UI action), rendered as a GitHub-PR-style three-pane app under `.codewalk/<slug>/` at the repo root. Locked contract, the trace walks to the LEAVES regardless of size, every interface / type alias / class / enum / Zod schema / DTO / entity crossed on the path becomes its own hyperlinked node, and a re-invoke UPDATES the existing trace rather than overwriting it. Auto-discovery triggers (case-insensitive substring match on the user's latest prompt), `/codewalk`, `walk this code`, `walk me through`, `walk through this`, `trace this call stack`, `trace this flow`, `trace from`, `explain this flow`, `explain how this works`, `what happens when`, `onboard me to`, `call-stack viewer`, `code walkthrough`. NOT for diagnosing a specific failing test or error, that routes to the hackify workflow.
+description: DEEP-BY-DEFAULT browser-based interactive call-stack viewer for code the user did not write, a senior-peer walkthrough of ONE execution path from a single entry point (route, handler, CLI command, queue job, UI action), rendered as a GitHub-PR-style three-pane app under `.codewalk/<slug>/` at the repo root. Locked contract, the trace walks to the LEAVES regardless of size, every interface / type alias / class / enum / Zod schema / DTO / entity crossed on the path becomes its own hyperlinked node, and a re-invoke UPDATES the existing trace rather than overwriting it. Auto-discovery triggers (case-insensitive substring match on the user's latest prompt), `/hackify:codewalk`, `walk this code`, `walk me through`, `walk through this`, `trace this call stack`, `trace this flow`, `trace from`, `explain this flow`, `explain how this works`, `what happens when`, `onboard me to`, `call-stack viewer`, `code walkthrough`. NOT for diagnosing a specific failing test or error, that routes to the hackify workflow.
 ---
 
 # codewalk (interactive call-stack viewer for code you didn't write)
@@ -62,7 +62,7 @@ If the actual `nodes.length` is far below these ranges for a similar endpoint, t
 
 ## When to invoke
 
-Auto-discovery fires this skill when the user's latest prompt contains any of the substrings listed in the frontmatter description. The slash form `/codewalk` is the explicit handle.
+Auto-discovery fires this skill when the user's latest prompt contains any of the substrings listed in the frontmatter description. The slash form `/hackify:codewalk` is the explicit handle.
 
 **Invoke** when the user names an entry point and wants to see how it works end-to-end, a route, a handler, a CLI command, a queue job, a UI action. Typical phrasings: "walk me through what happens when this route fires", "trace the call stack from `POST /signup`", "explain how the migration runner works".
 
@@ -215,7 +215,7 @@ After the URL is printed, print TWO things to chat. NOT to the HTML.
 
 ### Re-run behavior (see Phase 4 Step 4.0)
 
-The default for `/codewalk <same-entry-point>` is **update**, not regenerate. Phase 4 Step 4.0 above documents the merge-and-diff contract. Only when the user explicitly types "regenerate" or "fresh" does the trace overwrite without preserving manual edits or computing `diff_vs_previous`.
+The default for `/hackify:codewalk <same-entry-point>` is **update**, not regenerate. Phase 4 Step 4.0 above documents the merge-and-diff contract. Only when the user explicitly types "regenerate" or "fresh" does the trace overwrite without preserving manual edits or computing `diff_vs_previous`.
 
 ## Playbook mode, multi-entry codewalks (since v0.3.1)
 
@@ -238,7 +238,7 @@ Phase 7' (chat handoff)
 
 **Phase 3', author `_catalog.json`** at `.codewalk/_catalog.json`. Schema is in `references/data-schema.md` § "Playbook mode". Required fields per entry: `slug`, `method`, `route`, `domain`, `summary`, `controller` (or `entry`). The `slug` derives by the same rules as single-entry mode.
 
-**Phase 4', optional `_traces.json`** at `.codewalk/_traces.json`. When present, each entry's rich nodes/edges populate that slug's `data.json` directly. When absent, the builder writes a stub per slug, the user can deepen any specific slug later with `/codewalk <entry>`.
+**Phase 4', optional `_traces.json`** at `.codewalk/_traces.json`. When present, each entry's rich nodes/edges populate that slug's `data.json` directly. When absent, the builder writes a stub per slug, the user can deepen any specific slug later with `/hackify:codewalk <entry>`.
 
 **Phase 5', materialize.** Copy `assets/build-playbook.mjs` to `.codewalk/_build.mjs`, then run it:
 
@@ -251,7 +251,7 @@ The builder copies `playbook.html` (renamed to `index.html`), `playbook.js`, `pl
 
 **Phase 6', launch.** Same `node .codewalk/serve.js` as single-entry mode, the server serves the playbook at `/` and every slug folder at `/<slug>/`.
 
-**Phase 7', chat handoff.** Print: total entries, how many got rich traces vs stubs, the playbook URL, and instructions to deepen any individual slug with `/codewalk <entry>`. Skip the 5 comprehension questions (they're per-trace, not per-playbook). Skip the decisions checklist.
+**Phase 7', chat handoff.** Print: total entries, how many got rich traces vs stubs, the playbook URL, and instructions to deepen any individual slug with `/hackify:codewalk <entry>`. Skip the 5 comprehension questions (they're per-trace, not per-playbook). Skip the decisions checklist.
 
 ### When to use playbook mode
 
@@ -340,9 +340,9 @@ In playbook mode the same `.codewalk/<slug>/` folders exist for every catalog en
 - It does not modify the traced repo's source code. Every output lives under `.codewalk/<slug>/`.
 - It does not perform code review or suggest refactors. The `risk` field flags one concern per node, it does not propose a fix.
 - It does not generate tests, types, or documentation. Those are downstream of the walk, not part of it.
-- It does not navigate cross-process call stacks (RPC, queues across services). External calls are leaves on the trace; if the user wants to follow them, that's a fresh `/codewalk` rooted in the downstream service.
+- It does not navigate cross-process call stacks (RPC, queues across services). External calls are leaves on the trace; if the user wants to follow them, that's a fresh `/hackify:codewalk` rooted in the downstream service.
 - It does not replace `Explore` or `Grep` for one-off lookups. Those tools answer `where is X`. Codewalk answers `what happens when Y fires`.
 
 ## One-line summary
 
-`/codewalk <entry-point>` → **deep depth-first walk to leaves** (controller → service → repo → external + every type/interface/DTO/Zod schema as a `layer: "type"` node) → stop-and-ask only on ambiguity → `.codewalk/<slug>/{index.html, viewer.js, viewer.css, serve.js, data.json}` → `node serve.js` → browser viewer (light or dark, toggle in header) with every `call_sites` hyperlink resolving to a real node + 5 comprehension questions + decisions checklist. **Playbook mode** (since v0.3.1): when the user asks for "all endpoints" / "index playbook", author `_catalog.json` + optional `_traces.json`, run `build-playbook.mjs`, and ship a top-level light-mode index with every entry linkable into its own viewer, every per-slug trace inherits the same deep-by-default contract.
+`/hackify:codewalk <entry-point>` → **deep depth-first walk to leaves** (controller → service → repo → external + every type/interface/DTO/Zod schema as a `layer: "type"` node) → stop-and-ask only on ambiguity → `.codewalk/<slug>/{index.html, viewer.js, viewer.css, serve.js, data.json}` → `node serve.js` → browser viewer (light or dark, toggle in header) with every `call_sites` hyperlink resolving to a real node + 5 comprehension questions + decisions checklist. **Playbook mode** (since v0.3.1): when the user asks for "all endpoints" / "index playbook", author `_catalog.json` + optional `_traces.json`, run `build-playbook.mjs`, and ship a top-level light-mode index with every entry linkable into its own viewer, every per-slug trace inherits the same deep-by-default contract.

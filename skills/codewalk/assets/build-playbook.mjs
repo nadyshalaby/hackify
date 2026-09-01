@@ -81,7 +81,7 @@ function writePlaybookEntrypoint(outDir) {
 
 function buildStubEntry(entry) {
   // Minimal data.json that satisfies the viewer's validation (≥1 node + edges array).
-  // The caller is expected to overwrite this via /codewalk <slug> later.
+  // The caller is expected to overwrite this via /hackify:codewalk <slug> later.
   return {
     version: 1,
     entry_point: entry.entry || `${entry.method || ''} ${entry.route || ''}`.trim() || entry.slug,
@@ -99,7 +99,7 @@ function buildStubEntry(entry) {
       language: entry.language || 'typescript',
       function_range: [1, 1],
       invoked_range: [1, 1],
-      source: `// Stub entry. Run /codewalk ${entry.entry || entry.route || entry.slug} to fill in the depth-first walk.`,
+      source: `// Stub entry. Run /hackify:codewalk ${entry.entry || entry.route || entry.slug} to fill in the depth-first walk.`,
       invoked_lines: [1],
       call_sites: [],
       docblock: {

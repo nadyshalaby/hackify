@@ -42,8 +42,9 @@ ASB_FILES=(
   "$ASB_DIR/phase-5-multi-review-d-performance.md"
   "$ASB_DIR/phase-5-multi-review-e-design.md"
   "$ASB_DIR/phase-5-multi-review-f-coherence.md"
+  "$ASB_DIR/phase-5-multi-review-merged.md"
 )
-ASB_EXPECTED=10
+ASB_EXPECTED=11
 
 check_list_size "${#ASB_FILES[@]}" "$ASB_EXPECTED" "the [74] template set"
 

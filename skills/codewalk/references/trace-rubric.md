@@ -139,7 +139,7 @@ For every conditional in the function body that the runtime did not take on this
 
 **Do not recurse into the branch.** The whole point is to mark the road-not-traveled so the user knows it exists, without ballooning the trace. The Diagrams tab renders all deferred branches in one place so the user can see what was skipped.
 
-If the user later wants to trace the deferred branch, that's a new `/codewalk` run with a different entry-point hint (e.g., "the admin override path of `getUser`"). New `data.json`, new viewer.
+If the user later wants to trace the deferred branch, that's a new `/hackify:codewalk` run with a different entry-point hint (e.g., "the admin override path of `getUser`"). New `data.json`, new viewer.
 
 ---
 

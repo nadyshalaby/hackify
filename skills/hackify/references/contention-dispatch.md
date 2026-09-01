@@ -266,7 +266,7 @@ land many modules' worth of code and the backlog still carries ONE test-authorin
 and the stage is one; count production surface and it is the whole round. The second count is the one
 the budget reads, so it clears the per-agent budget, step 2 of the coarse-to-fine rule has its proposal
 raised by the packing itself rather than by a read-surface argument, the three conditions are asked of a
-per-module partition of the test files, and the stage dispatches as concurrent testing waves, one agent
+per-module partition of the union above, and the stage dispatches as concurrent testing waves, one agent
 each, up to the concurrent-wave budget. Those waves are siblings like any other, so each one is handed
 the other testing waves' IDs and reads [sibling-track-rules.md](sibling-track-rules.md). A small round
 takes the same path and stops at step 1: its count is under the budget, no proposal is raised, and the

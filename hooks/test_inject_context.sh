@@ -236,5 +236,96 @@ for row in \
   expect "$NAME's pointer carries its own core" "$ISO_PTR" "$OWN_LAW"
 done
 
+echo "[13] the SessionStart branch injects the orientation map, once and in full"
+# The map is a different kind of document from the five laws, and the branch it
+# takes is different in every way that can go wrong silently.
+#
+# THE ENVELOPE IS THE FIRST THING ASSERTED, because it is the one that fails
+# without a symptom. The harness reads hookEventName to decide which event this
+# output belongs to; a SessionStart hook answering "UserPromptSubmit" is a hook
+# that runs, exits 0, prints valid JSON and delivers nothing. That is exactly
+# the defect this whole task exists to fix, one layer down, so it is checked
+# before anything about the text.
+#
+# SECOND, THAT NO PER-TURN MACHINERY REACHED IT. The session-aware path is right
+# for a law that must not fade and wrong for a map: its pointer asserts "is
+# binding verbatim", which a map is not, and its counter would turn the second
+# fire of a resumed session into a digest of a document the model has never
+# seen. So the branch is driven three times under ONE session id and required to
+# return the identical full text every time, with no pointer wording and no
+# counter file left behind.
+MAP="$ROOT/rules/plugin-map.md"
+MAP_H1="# hackify, what ships and where to go"
+session_start() { jq -nc --arg s "$1" --arg src "$2" \
+  '{session_id:$s, hook_event_name:"SessionStart", source:$src}'; }
+
+SS_RAW=$(session_start sess-map startup | "$HOOK" --event SessionStart "$MAP")
+SS_EVENT=$(printf '%s' "$SS_RAW" | jq -r '.hookSpecificOutput.hookEventName // ""')
+if [ "$SS_EVENT" = "SessionStart" ]; then
+  printf '  ok   the envelope names the event that fired (SessionStart)\n'; PASS=$((PASS + 1))
+else
+  printf '  FAIL the envelope named %s, so the harness would not treat this as SessionStart context\n' \
+    "${SS_EVENT:-<none>}"; FAIL=$((FAIL + 1))
+fi
+
+SS_ONE=$(printf '%s' "$SS_RAW" | ctx)
+expect "session start carries the map's own H1" "$SS_ONE" "$MAP_H1"
+expect "session start carries the entry-point table" "$SS_ONE" "## Entry points"
+expect "session start carries the law table" "$SS_ONE" "## The law, injected on every prompt"
+expect_not "session start is never the always-on pointer" "$SS_ONE" "[hackify always-on]"
+
+SS_TWO=$(session_start sess-map resume | "$HOOK" --event SessionStart "$MAP" | ctx)
+SS_THREE=$(session_start sess-map clear | "$HOOK" --event SessionStart "$MAP" | ctx)
+if [ "$SS_ONE" = "$SS_TWO" ] && [ "$SS_TWO" = "$SS_THREE" ]; then
+  printf '  ok   every fire of one session id returns the identical full map (no counter, no pointer)\n'
+  PASS=$((PASS + 1))
+else
+  printf '  FAIL repeated SessionStart fires diverged, so per-prompt machinery reached the map branch\n'
+  FAIL=$((FAIL + 1))
+fi
+
+MAP_STATE=$(find "${TMPDIR%/}/hackify-ctx" -name '*plugin-map*' 2> /dev/null)
+if [ -z "$MAP_STATE" ]; then
+  printf '  ok   the map branch writes no counter into the state dir\n'; PASS=$((PASS + 1))
+else
+  printf '  FAIL the map branch left state behind: %s\n' "$MAP_STATE"; FAIL=$((FAIL + 1))
+fi
+
+echo "[13b] the default branch is untouched, and the map is not on the per-prompt chain"
+# The saving this design claims is "zero cost on every prompt after the first",
+# and a claim about cost is worth what the thing that would catch its loss is
+# worth. Two ways it is lost: the flag stops being honoured, so a map dispatch
+# falls through to the session-aware path; or somebody adds the map to the
+# UserPromptSubmit array, where it would ride the pointer chain forever. The
+# first is caught by driving the default branch with no flag, the second by
+# reading the wiring rather than trusting it.
+DEF_EVENT=$(prompt sess-default | "$HOOK" "$RULES" \
+  | jq -r '.hookSpecificOutput.hookEventName // ""')
+if [ "$DEF_EVENT" = "UserPromptSubmit" ]; then
+  printf '  ok   no flag still means UserPromptSubmit, so the five laws are unaffected\n'
+  PASS=$((PASS + 1))
+else
+  printf '  FAIL the default branch named %s instead of UserPromptSubmit\n' \
+    "${DEF_EVENT:-<none>}"; FAIL=$((FAIL + 1))
+fi
+
+UPS_CMDS=$(jq -r '.hooks.UserPromptSubmit[].hooks[].command' "$ROOT/hooks/hooks.json" 2> /dev/null)
+SS_CMDS=$(jq -r '.hooks.SessionStart[].hooks[].command' "$ROOT/hooks/hooks.json" 2> /dev/null)
+expect "hooks.json wires the map on SessionStart" "$SS_CMDS" "rules/plugin-map.md"
+expect_not "hooks.json keeps the map off the per-prompt chain" "$UPS_CMDS" "rules/plugin-map.md"
+
+echo "[13c] a dead map never blocks a session"
+# Same failure contract the five laws get, on the event where blocking is worse:
+# a UserPromptSubmit hook that hangs costs one prompt, a SessionStart hook that
+# fails loudly greets every new session with an error.
+DEAD_MAP_OUT=$(session_start sess-map-dead startup | "$HOOK" --event SessionStart "$MAP.gone" 2>/dev/null)
+DEAD_MAP_RC=$?
+if [ "$DEAD_MAP_RC" -eq 0 ] && [ -z "$DEAD_MAP_OUT" ]; then
+  printf '  ok   a missing map exits 0 and injects nothing\n'; PASS=$((PASS + 1))
+else
+  printf '  FAIL missing map rc=%s output=%s (must exit 0 and emit nothing)\n' \
+    "$DEAD_MAP_RC" "${DEAD_MAP_OUT:-<empty>}"; FAIL=$((FAIL + 1))
+fi
+
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

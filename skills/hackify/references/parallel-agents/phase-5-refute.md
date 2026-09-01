@@ -140,10 +140,11 @@ dies only when BOTH lenses fail.
    which Verification 2 requires of every REFUTED verdict, and being
    unable to restate a claim is uncertainty, which never kills a
    finding here.
-2. From `{{project_root}}`, open the post-image of every file:line the
-   batch cites, scoping the diff to those paths
-   (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`) rather than
-   reading the whole range. Read the surrounding function end-to-end,
+2. From `{{project_root}}`, collect the DISTINCT paths the whole batch
+   cites and open each post-image ONCE, in one pass, scoping the diff to
+   that path set (`git diff {{base_sha}}..{{head_sha}} -- <cited paths>`)
+   rather than reading the whole range or re-opening a file once per
+   finding that names it. Read the surrounding function end-to-end,
    not the cited line alone.
 3. Reproduction lens, on every finding in the round: trace the real
    call path to the cited line. Name the entry point, the inputs that
@@ -151,16 +152,18 @@ dies only when BOTH lenses fail.
    narrowing in between. If a guard makes the claimed failure
    unreachable, cite that guard's file:line, that is a refutation. If
    the path is reachable, cite the entry point, that is an upholding.
-4. Authority lens, on every finding in the round: open the rule,
-   standard, or catalog file the finding cites and quote the exact
-   sentence or catalog row. Confirm three things: the cited ID exists,
-   its text covers this case, and the file is not carved out from it
-   (test file, generated file, documented project exception). A cite
-   that does not exist, or that does not cover the case, is a
-   refutation, and it carries the file:line you quoted it from.
+4. Authority lens, on every finding in the round: open each DISTINCT
+   rule, standard, or catalog file the batch cites ONCE, not once per
+   finding citing it, and quote the exact sentence or catalog row from
+   that read. Confirm three things: the cited ID exists, its text covers
+   this case, and the file is not carved out from it (test file,
+   generated file, documented project exception). A cite that does not
+   exist, or that does not cover the case, is a refutation, and it
+   carries the file:line you quoted it from.
 5. Check the exemption floors before upholding anything: is the cited
    file a test, a generated artifact, a migration, or listed in the
-   project's own carve-outs? A carve-out that covers the file is
+   project's own carve-out list, which is read ONCE with step 4's batch
+   rather than once per finding? A carve-out that covers the file is
    AUTHORITY-lens counter-evidence, so record it as that lens's
    refutation with the carve-out's own file:line. It is not a fourth
    way to kill a finding outside the lenses, so on a Critical the
@@ -310,7 +313,7 @@ The refuter's verdicts fill in the `Decision` and `Evidence` columns of the Phas
 
 **A Critical is never closed by the refuter.** Both lenses refuting earns that finding an escalation, not the flip: dispatch the adjudication reviewer (`review-and-verify.md`, section "Reviewer subagent prompt template") on it, hand it both lens counter-citations as its evidence, and put the conflict to the user. The row reads `push-back` only after that reviewer rules and the user signs off. Until then it reads `accept` AND is held out of the address-all loop's fix dispatch, because landing a fix while the escalation is open is the phantom fix the refuter exists to prevent. **A Critical may never reach `push-back` on a single lens**, and it never reaches `push-back` on the refuter's word alone either: one agent carrying two lenses is still one agent, and `skills/review-triage/SKILL.md` puts the cost of a missed Critical above one agent's judgment.
 
-**NEEDS-RESTATEMENT is the parent's row to fix, not the refuter's to close.** Go back to the reviewer's own text and rewrite the claim so it names what breaks and where. That rewrite happens inside the round that is already open, and the rewritten finding rejoins that same round's decision table. It never goes to a second refuter, because there is no second refuter to go to: the one-panel-one-refuter cap (`review-and-verify.md`, address-all loop step 4) holds here with no carve-out. Until the rewrite lands, the finding is held out of the fix dispatch the same way an escalated Critical is, because a fix aimed at a claim nobody could state is a guess.
+**NEEDS-RESTATEMENT is the parent's row to fix, not the refuter's to close.** Go back to the reviewer's own text and rewrite the claim so it names what breaks and where. That rewrite happens inside the round that is already open, and the rewritten finding rejoins that same round's decision table. It never goes to a second refuter, because there is no second refuter to go to: the one-review-one-refuter cap (`review-and-verify.md`, address-all loop step 4) holds here with no carve-out. Until the rewrite lands, the finding is held out of the fix dispatch the same way an escalated Critical is, because a fix aimed at a claim nobody could state is a guess.
 
 **A rewritten claim is a survivor, so its row takes `accept` and is fixed in step 3 with the rest.** The refuter kills findings, it does not certify them, and this one it did not kill; it said it could not tell. That is the same uncertainty as "I could not confirm it", which this file already settles in the finding's favour at its original severity. Bad wording only ever blocked the fix, and a claim that now names what breaks and where has stopped blocking it. The cost, stated plainly: that fix lands without a lens having run on the claim. It is the cheaper of the two mistakes on offer, because the other one is a real defect parked in a row nobody is allowed to act on.
 

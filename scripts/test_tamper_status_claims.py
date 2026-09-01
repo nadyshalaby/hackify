@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AC4 tamper rows for check [99], the work-doc status-claims fragment.
+"""AC4 tamper rows for checks [99] and [92], two work-doc fragments.
 
 Imported and run by scripts/test_tamper_battery.py. It holds no main of its own,
 the same structure scripts/test_tamper_fragments.py uses and the one check [97]
@@ -14,7 +14,7 @@ here naming assertion (a) names the same assertion it always did. Their rows mov
 with them out of scripts/test_tamper_ledger_sync.py, which was itself at 499 lines
 against the same cap and could not have held the new rows either.
 
-WHAT A ROW HERE IS. One branch of check [99], broken on purpose, with the EXPECTED
+WHAT A ROW HERE IS. One branch of one check, broken on purpose, with the EXPECTED
 FAILURE MESSAGE asserted rather than the exit status alone. A branch that reds in
 another branch's words is a branch nobody can debug, and the two failures a
 validator must never confuse, "the check looked and found the defect" and "the
@@ -31,14 +31,22 @@ happening by accident, and the two suites share it rather than keeping a copy ea
 NOTHING HERE WRITES INTO THE REPOSITORY. A fragment is tampered by editing a COPY
 in a temp file and a tree is built under a temp prefix, so a row that dies halfway
 leaves nothing behind to restore.
+
+WHY CHECK [92]'s ROWS ARE HERE TOO. It shipped with no suite of its own, so its
+bounds had nothing proving they stay wired, and a third part would have to be
+imported by scripts/test_tamper_battery.py, which another wave owns this round. They
+went to whichever suite had room under the cap the paragraph above describes, [98]'s
+sibling being at 464 lines. That section is last here and shares only the runners.
 """
 
 import os
 
 from tamper_harness import (COUNT_BUMP, PASS_PREFIX, RED_CALL, REPO_ROOT,
-                            SCRATCH_DOCS, TEMPLATE, expect, expect_red, git, refute,
+                            SCRATCH_DOCS, STRUCT_DOCS, STRUCT_LEGACY, TEMPLATE,
+                            UNSECTIONED_DOC, expect, expect_red, git, refute,
                             run_check, run_check_without_python, run_fragment,
-                            tampered, temp_dir, work_doc, work_doc_tree, write)
+                            struct_counts, structure_tree, tampered, temp_dir,
+                            work_doc, work_doc_tree, write)
 
 QUOTE = chr(39)
 TICK = chr(96)
@@ -101,9 +109,9 @@ def test_99_a_clean_tree_greens_and_names_what_it_examined():
   numbers reads the same whether the scan examined every doc or none of them."""
   rc, out = run_check('99', cwd=work_doc_tree())
   assert rc == 0, out
-  expect(out, '%sall %d tracked work-doc(s) carry a status the template%ss %d '
-         'declared value(s) allow' % (PASS_PREFIX, SCRATCH_DOCS, QUOTE,
-                                      _declared_status_count()),
+  expect(out, '%sall %d tracked and untracked work-doc(s) carry a status the '
+         'template%ss %d declared value(s) allow'
+         % (PASS_PREFIX, SCRATCH_DOCS, QUOTE, _declared_status_count()),
          'the positive control separated its reported docs from its clean ones')
 
 
@@ -154,7 +162,7 @@ def test_99_the_doc_floor_reds_before_any_doc_is_judged():
   root = work_doc_tree({'docs/work/planted.md': work_doc(BAD_STATUS)})
   with tampered('99', ('WS_DOC_FLOOR=10', 'WS_DOC_FLOOR=9999')) as frag:
     rc, out = run_fragment(frag, cwd=root)
-  expect_red(rc, out, 'tracked doc(s) under docs/work/ against a floor of 9999',
+  expect_red(rc, out, 'doc(s) under docs/work/ against a floor of 9999',
              'a scan over nothing measures nothing')
   refute(out, BAD_STATUS)
 
@@ -167,7 +175,7 @@ def test_99_a_tree_with_no_work_docs_reds_on_the_doc_floor():
   git(root, 'init', '-q')
   git(root, 'add', '-A')
   rc, out = run_check('99', cwd=root)
-  expect_red(rc, out, 'the work-doc scan read 0 tracked doc(s) under docs/work/ '
+  expect_red(rc, out, 'the work-doc scan read 0 doc(s) under docs/work/ '
              'against a floor of 10')
 
 
@@ -277,7 +285,7 @@ def test_99_the_orchestrator_sources_the_fragment_and_names_it_in_the_header():
 NON_ASCII_DOC = 'docs/work/zzq-%s-planted.md' % chr(0x3bb)
 
 # Discovery reverted to what shipped before the hardening: no -z, split on newline.
-NO_NUL_DISCOVERY = (("'git', 'ls-files', '-z', '--'", "'git', 'ls-files', '--'"),
+NO_NUL_DISCOVERY = (("'ls-files', '-z', '--cached'", "'ls-files', '--cached'"),
                     (".split('\\0')", ".split('\\n')"))
 
 # The gate refuse_read() opens a path through; blinded, it follows a link anywhere.
@@ -361,7 +369,7 @@ def test_99_discovery_without_nul_records_drops_that_doc_without_a_word():
     rc, out = run_fragment(frag, cwd=root)
   assert rc == 0, out
   refute(out, BAD_STATUS, NON_ASCII_DOC)
-  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS))
+  expect(out, '%sall %d tracked and untracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS))
 
 
 def test_99_a_symlinked_work_doc_is_reported_rather_than_followed():
@@ -388,7 +396,7 @@ def test_99_an_indented_status_inside_a_block_scalar_is_not_the_doc_status():
                                                BLOCK_SCALAR_DOC}))
   assert rc == 0, out
   refute(out, 'sets status: done while the file sits outside')
-  expect(out, '%sall %d tracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
+  expect(out, '%sall %d tracked and untracked work-doc(s)' % (PASS_PREFIX, SCRATCH_DOCS + 1))
 
 
 def test_99_a_stripped_frontmatter_read_would_accuse_that_innocent_doc():
@@ -400,3 +408,92 @@ def test_99_a_stripped_frontmatter_read_would_accuse_that_innocent_doc():
     rc, out = run_fragment(frag, cwd=root)
   expect_red(rc, out, 'docs/work/planted.md:4 sets status: done while the file sits '
              'outside docs/work/done/')
+
+
+# --- check [92], work-doc section structure ------------------------------------
+
+# Section 6 twice, at lines 5 and 7, prose on the second: an equality check on the
+# heading TEXT separates those two and reports nothing.
+PROSE_DUP = '# t\n\n## 5. Backlog\n\n## 6. Updates\n\n## 6. Updates (round 2)\n'
+# Three DISTINCT numbers out of order, so assertion (a) has nothing to say here.
+BACKWARDS = '# t\n\n## 1. Ask\n\n## 5. Backlog\n\n## 3. Acceptance\n'
+# [92] calls control() with no argument where [99] passes it the parsed vocabulary.
+CONTROL_92 = CONTROL_LINE.replace('control(allowed)', 'control()')
+# Assertion (a)'s findings; deleting them moves no count and hides no duplicate.
+REPEAT_JUDGE = 'out = judge_repeats(path, found)'
+
+
+def test_92_a_clean_tree_greens_and_names_what_it_examined():
+  rc, out = run_check('92', cwd=structure_tree())
+  assert rc == 0, out
+  expect(out, '%sall %d tracked and untracked work-doc(s)' % (PASS_PREFIX, STRUCT_DOCS),
+         struct_counts(STRUCT_DOCS, STRUCT_LEGACY))
+
+
+def test_92_a_section_number_used_twice_reds_and_names_every_line_carrying_it():
+  rc, out = run_check('92', cwd=structure_tree({'docs/work/planted.md': PROSE_DUP}))
+  expect_red(rc, out, 'docs/work/planted.md numbers section 6 at 2 separate headings '
+             '(lines 5, 7)')
+
+
+def test_92_sections_that_run_backwards_red_through_the_ordering_assertion_alone():
+  rc, out = run_check('92', cwd=structure_tree({'docs/work/planted.md': BACKWARDS}))
+  expect_red(rc, out, 'docs/work/planted.md:7 opens section 3 after section 5 at '
+             'line 5')
+  refute(out, 'numbers section')
+
+
+def test_92_a_doc_that_loses_its_numbered_sections_reds_on_the_unsectioned_ceiling():
+  """THE BOUND [92] WAS REWRITTEN FOR, and the manufactured red proving it is wired.
+  One more unsectioned doc takes the count past the ceiling while the heading total
+  stays above its floor and the per-doc walk stays silent, so the ceiling is the ONLY
+  thing between this tree and a green; raise it and the tree passes, counts and all."""
+  root = structure_tree({'docs/work/regressed.md': UNSECTIONED_DOC})
+  rc, out = run_check('92', cwd=root)
+  expect_red(rc, out, 'the scan read %d doc(s) of which %d carry no numbered '
+             'section at all, against a ceiling of %d'
+             % (STRUCT_DOCS + 1, STRUCT_LEGACY + 1, STRUCT_LEGACY),
+             'a doc that had sections has left the subject set both assertions judge')
+  with tampered('92', ('WS_UNSECTIONED_MAX=11', 'WS_UNSECTIONED_MAX=9999')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  assert rc == 0, out
+  expect(out, struct_counts(STRUCT_DOCS + 1, STRUCT_LEGACY + 1))
+
+
+def test_92_the_doc_floor_reds_before_any_doc_is_judged():
+  root = structure_tree({'docs/work/planted.md': PROSE_DUP})
+  with tampered('92', ('WS_DOC_FLOOR=12', 'WS_DOC_FLOOR=9999')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  expect_red(rc, out, 'doc(s) under docs/work/ against a floor of 9999')
+  refute(out, 'numbers section 6')
+
+
+def test_92_the_heading_floor_reds_on_its_own_message():
+  with tampered('92', ('WS_HEADING_FLOOR=113', 'WS_HEADING_FLOOR=9999')) as frag:
+    rc, out = run_fragment(frag, cwd=structure_tree())
+  expect_red(rc, out, 'numbered heading(s) against a floor of 9999',
+             'headings only accumulate here')
+
+
+def test_92_a_control_that_never_runs_cannot_green_the_check():
+  with tampered('92', (CONTROL_92, 'pass')) as frag:
+    rc, out = run_fragment(frag, cwd=structure_tree())
+  expect_red(rc, out, 'the positive control did not hold (control verdict: none)')
+
+
+def test_92_a_deleted_repeat_assertion_is_caught_only_by_the_control():
+  """THE ROW THE WHICH-ASSERTION CONTROL EXISTS FOR. Every repeat also breaks
+  ascending order, so deleting (a) leaves each duplicate reported by (b) and every
+  count where it was; only a which-assertion control notices."""
+  root = structure_tree({'docs/work/planted.md': PROSE_DUP})
+  with tampered('92', (REPEAT_JUDGE, 'out = []')) as frag:
+    rc, out = run_fragment(frag, cwd=root)
+  expect_red(rc, out, 'the positive control did not hold (control verdict: fail)',
+             'one repeating a section number with trailing prose')
+  refute(out, 'numbers section 6')
+
+
+def test_92_the_orchestrator_sources_the_fragment_and_names_it_in_the_header():
+  text = (REPO_ROOT / 'scripts' / 'validate-dod.sh').read_text(encoding='utf-8')
+  expect(text, 'source "$DOD_MODULES_DIR/92-work-doc-structure.sh"',
+         '#   92-work-doc-structure.sh, check [92],')

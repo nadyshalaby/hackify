@@ -4,65 +4,112 @@
 Invoked by scripts/validate-dod.d/57-doc-links.sh. Also runnable standalone:
 python3 scripts/check_doc_links.py [repo_root]
 
-Three pointer forms are checked, because all three have gone stale here and
-only one of them is a markdown link:
+Five pointer forms are checked, because all of them have gone stale here or can,
+and only two of them are markdown links:
 
-  1. Markdown link      [text](path.md)     resolved FILE-RELATIVE, strictly
-  2. Backticked path    `path.md`           resolved against any ancestor dir
-  3. Line citation      path.md:42          the path resolved as form 2, then
-                                            line 42 read for real
+  1. Markdown link      [text](path.md)      resolved FILE-RELATIVE, strictly
+  2. Backticked path    `path.md`            resolved against any ancestor dir
+  3. Line citation      path.md:42           the path resolved as form 2, then
+                                             line 42 read for real, and what it
+                                             SAYS judged against the claim
+  4. Anchor fragment    [t](path.md#a-head)  the path resolved as form 1, then
+                                             the fragment resolved to a heading
+  5. Prose anchor       path.sh's wi_absent  the path resolved as form 2, then
+                                             the construct or quoted phrase
+                                             found inside the file it cites
+
+THIS FILE OWNS FORMS 1 AND 2 AND NOTHING ELSE. Form 3 lives in
+check_doc_cites.py and forms 4 and 5 in check_doc_anchors.py, split out when
+this file stood at 491 of the 500-LOC cap check [80] enforces; each of those
+headers names its own seam. This file stayed the single entry point, so [57]
+runs one command and reads one `ok` line, and no check ID moved.
 
 Form 2 is the load-bearing one. Agent prompt templates cite sibling references
 as bare backticked paths, and a prompt telling an agent to read a file that no
-longer exists is a silently degraded agent, not a docs typo. Every stale
-pointer found by hand during the v0.13.0 agent merges was form 2; a link-only
-checker would have passed all of them.
+longer exists is a silently degraded agent, not a docs typo. Every stale pointer
+found by hand during the v0.13.0 agent merges was form 2; a link-only checker
+would have passed all of them.
 
 Forms 1 and 2 get different resolution rules on purpose. A markdown link is
 followed by a renderer, so only the file-relative reading is correct, and eight
 links written skill-root-relative from references/phases/ were silently broken
 until this check was added. Prose is ambiguous by long-standing convention: the
 same reference is cited as `references/goal-anchor.md` from one depth and
-`goal-anchor.md` from another, and both read fine. Rather than force one
-convention onto prose that does not need it, form 2 resolves against any
-ancestor directory up to the repo root, and a slashless pointer resolves if a
-file of that name exists anywhere. That still catches the case this check is
-for: a file that was deleted or renamed and left citations behind.
+`goal-anchor.md` from another, and both read fine. So form 2 resolves against
+any ancestor directory up to the repo root, and a slashless pointer resolves if
+a file of that name exists anywhere. That still catches the case this check is
+for: a file deleted or renamed with citations left behind.
 
-Form 3 is the newest and answers a different question. A citation carries two
-claims, that the file exists and that the line does, and only the first was ever
-read. The second rots faster: a file survives a refactor that moves every line
-in it. Form 3 checks the line number ONLY. When the path does not resolve, form
-2 owns that finding and this half stays quiet rather than printing the same
-pointer twice.
+Form 3 answers a different question. A citation carries three claims, that the
+file exists, that the line does, and that the line still says what cites it. The
+third rots fastest and went unread for the whole first life of this check:
+retargeting a live citation from `:38` to `:1` left the entire bar green. Form 3
+now opens the cited location, refuses one that is blank or a shebang, and where
+the citing text quotes the line behind a verb it matches that quote against what
+is really there; where nothing pins the content the citation is UNPINNED and
+says so on the coverage line. check_doc_cites.py carries the grammar, the
+reproduction and the reason the verb is required. When the path does not
+resolve, form 2 owns that finding and this half stays quiet.
+
+Form 5 is the one with the most live work to do. It reads prose that cites a
+file possessively and then names a construct or quotes a phrase inside it, the
+spelling eight repairs in one sprint produced when they stopped citing line
+numbers that rot. Those anchors were checked by nothing: [57] proved only that
+the PATH resolved. Its scope is form 3's citation surface, and its coverage,
+what it read and what it could not, prints on the `ok` line.
+
+Form 4 is PROSPECTIVE. It resolves the half after the `#`, which forms 1 to 3
+all discarded, against the headings of the file the link points into, using
+GitHub's own slug rules. Its scope is exactly the links form 1 already accepted,
+so one defect prints once. Measured on 2026-09-01 this repo contains ZERO anchor
+links, so it guards against the first one rotting rather than repairing
+anything, and it is the one counter the floors below deliberately omit.
 
 Every form is held to one containment rule: a pointer resolves only to a file
-INSIDE the repo root. `..` is in the path class of all three forms, so before
-this rule a citation like `../secret/private.py:99` was resolved through the
-repo-root base, opened, and its length printed in the finding. Candidates that
-escape are dropped before they are opened, which costs nothing real: a pointer
-out of the tree could never be followed by a reader of the tree either.
+INSIDE the repo root, judged before anything is opened. Resolver.inside carries
+the oracle that rule closes and the residual it does not.
 
 Out of scope, deliberately:
-  - Anchor fragments (#heading). references/finish.md describes anchor checking
-    as Phase 6 work on the USER's repo; it is not a validator concern here.
+  - Anchors on non-`.md` targets. `source.py#L10` is GitHub's line-anchor
+    mechanism, not a heading reference, and this checker's link scope has always
+    been `.md`.
   - docs/work/ and CHANGELOG.md, both frozen records of what was true then. The
     v0.13.0 entry names the very files that release deleted, correctly.
   - dist/ as a whole, because the runtime trees are deliberate subsets, not
-    copies. Only claude-code ships agents/, so a template that says its fenced
-    block is mirrored into `agents/…` names a real file there and nothing at all
-    under gemini-cli, and copilot-cli ships a MANIFEST and no docs. Flagging
-    that would flag the subsetting itself. The one tree where a dead pointer
-    actually degrades a running agent is dist/claude-code, which registers what
-    it ships, so 57-doc-links.sh checks that tree separately when it exists.
+    copies. Only claude-code ships agents/, so a template saying its fenced
+    block is mirrored into `agents/…` names a real file there and nothing under
+    gemini-cli, and copilot-cli ships a MANIFEST and no docs. Flagging that
+    would flag the subsetting itself. The one tree where a dead pointer degrades
+    a running agent is dist/claude-code, which registers what it ships, so
+    57-doc-links.sh checks it separately when it exists.
 
-Exit 0 when every pointer resolves and every cited line exists, 1 otherwise.
-Findings print one per line.
+Exit 0 when every pointer resolves, every cited line exists and carries the
+content claimed of it, every anchor still names something in the file it cites,
+and every coverage counter clears its floor; 1 otherwise. One finding per line.
 """
+import importlib.util
 import pathlib
 import re
 import sys
 from typing import NamedTuple
+
+
+def _sibling(name: str):
+    """Load a split-out half by path, since scripts/ is not a package.
+
+    A plain `import` resolves only from this directory, and the suite loads THIS
+    file by path too, so by name both halves would be unreachable from the tests.
+    """
+    spec = importlib.util.spec_from_file_location(
+        name, pathlib.Path(__file__).resolve().parent / f'{name}.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# FORM 3 lives next door, FORMS 4 AND 5 in the other half. Each names its seam.
+CITES = _sibling('check_doc_cites')
+ANCHORS = _sibling('check_doc_anchors')
 
 SCAN_ROOTS = ('skills', 'agents', 'rules', 'commands', 'hooks', 'docs')
 SCAN_FILES = ('README.md',)
@@ -76,66 +123,70 @@ USER_REPO_POINTERS = frozenset({
     'DESIGN.md', 'docs/design/DESIGN.md',
     'ARCHITECTURE.md', 'architecture.md', 'CONTRIBUTING.md',
     'docs/work/.groom-scratch.md',
-    # Reviewer B's INPUTS say "the project's CHANGELOG.md", meaning the one in
-    # the repo under review. It resolved against this repo's own changelog by
-    # pure coincidence; running the check over a built runtime, which ships no
-    # changelog, is what exposed that.
+    # Reviewer B's INPUTS say "the project's CHANGELOG.md", the repo under
+    # review. It resolved against this repo's own by coincidence; the built
+    # runtime, which ships no changelog, is what exposed that.
     'CHANGELOG.md',
 })
 
-# Directories a built runtime tree may legitimately not ship. The module
-# docstring already argues both halves of this: docs/work is a frozen record, and
-# a dist tree is a deliberate subset rather than a copy. Both arguments were
-# applied to what gets SCANNED and never to what gets pointed AT, so a prose path
-# into docs/work resolved on the source tree and failed on the built one for a
-# reason that IS the subsetting. Adding a directory here is a deliberate call.
+# Directories a built runtime tree may legitimately not ship. Both scan-side
+# arguments above were applied to what gets SCANNED and never to what gets
+# pointed AT, so a prose path into docs/work resolved on the source tree and
+# failed on the built one for a reason that IS the subsetting. Adding a
+# directory here is a deliberate call.
 SUBSET_DIRS = ('docs/work/',)
 
-# Filenames invented for worked examples inside prompt templates. They describe
-# a hypothetical finding, so they name no real file by design.
-EXAMPLE_POINTERS = frozenset({'parallel-agents.md'})
+# Filenames invented for worked examples, naming no real file by design.
+# `path.sh` is this file's own docstring naming form 5's shape. Deliberate.
+EXAMPLE_POINTERS = frozenset({'parallel-agents.md', 'path.sh'})
+
+# The prefix both suites declare, in their own headers, for a name that exists
+# in no fixture-free tree. THE EXEMPTION IS SELF-DECLARING, which is why it beats
+# a list of paths: a list goes stale in silence and the next fixture is invisible
+# again, while a fixture saying so in its own name is screened with no edit.
+FIXTURE_PREFIX = 'probe-'
+
+# WRITTEN DOWN BY HAND, NEVER DERIVED FROM THE SCAN THEY GUARD. Every counter on
+# the coverage line can fall to zero on a green line: a regressed glob, resolver
+# or exclusion each stop the scan finding anything and then print a clean count
+# of nothing. 00-helpers.sh's check_list_size argues the general form, that a
+# bound taken from the list it polices guards nothing.
+#
+# THE NUMBERS ARE ROUND AND SIT WELL UNDER THE LIVE COUNTS, by choice rather
+# than slack. Measured on 2026-09-01: 121 files, 70 line citations, 25 prose
+# anchors. A floor catches a COLLAPSE, not churn, and this repo repaired eight
+# citations out of existence in one sprint, so a floor just under today's count
+# would redden correct work and then get raised until it guarded nothing.
+#
+# FORM 4 IS DELIBERATELY ABSENT. check_doc_anchors.py's header records that this
+# tree carries ZERO heading-slug anchor links, so its honest count is nought: a
+# floor of 0 is not a floor, and any floor above it reddens an honest tree.
+SOURCE_TREE_FLOORS = (('files scanned for pointers', 100),
+                      ('line citations opened at the cited location', 40),
+                      ('prose anchors resolved into the file they cite', 12))
 
 # A pointer carrying any of these is a template or a glob, not a path on disk.
 PLACEHOLDER_CHARS = '<>{}*?|$'
 
-MD_LINK = re.compile(r'\[[^\]]*\]\(\s*([^)\s]+?\.md)(?:#[^)\s]*)?\s*\)')
+# The fragment is CAPTURED now rather than matched and dropped, which is what
+# form 4 reads. Group 1 is unchanged, so forms 1 and 2 see exactly what they saw.
+MD_LINK = re.compile(r'\[[^\]]*\]\(\s*([^)\s]+?\.md)(?:#([^)\s]*))?\s*\)')
+# A link whose whole target is a fragment, naming its own file's headings: the
+# form finish.md's Class (b) grep lists first, and the one MD_LINK cannot match.
+SELF_LINK = re.compile(r'\[[^\]]*\]\(\s*#([^)\s]+?)\s*\)')
 INLINE_CODE = re.compile(r'`([^`\n]+?)`')
 # A backticked span is a pointer only when the whole span is one path token.
 CODE_PATH = re.compile(r'^[\w./-]+\.md$')
 
-# FORM 3. `some/file.md:42` claims line 42 of that file exists, and `:302-307`
-# makes the same claim about a range, whose LAST line is the one that has to be
-# there. Nothing before this read the number half at all.
-LINE_CITE = re.compile(r'([A-Za-z0-9_./-]+\.(?:md|sh|py|json)):(\d+)(?:-(\d+))?')
-
-# WHERE CITATIONS ACTUALLY LIVE, WHICH IS NOT WHERE MARKDOWN LIVES. Measured
-# rather than assumed, and the large majority sit in shell comments under
-# scripts/ rather than in shipped markdown, so a markdown-only scan would read
-# past most of them. No count is written here on purpose: an unpinned number in a
-# comment is the rotting claim this check exists to catch. Re-derive it with
-#
-#   git ls-files '*.md' '*.sh' '*.py' | grep -v '^docs/work/' \
-#     | xargs grep -ohE '[A-Za-z0-9_./-]+\.(md|sh|py|json):[0-9]+' | sort | uniq -c
-#
-# SCAN_ROOTS is left alone on purpose, since forms 1 and 2 are markdown rules and
-# widening them would change a check that is green for reasons of its own.
-CITE_SCAN_ROOTS = SCAN_ROOTS + ('scripts',)
-CITE_SCAN_PATTERNS = ('*.md', '*.sh', '*.py')
+# FORM 3's own constants moved to check_doc_cites.py with the block that reads
+# them. Only the composition stays, because SCAN_ROOTS is form 1 and 2's.
+CITE_SCAN_ROOTS = SCAN_ROOTS + CITES.EXTRA_CITE_ROOTS
 
 # Resolution needs the non-markdown names too, since a citation into a shell
 # file is the common case here. Widening the basename index cannot move a form-2
-# verdict:
-# CODE_PATH anchors those pointers to `.md`, so no `.sh` name the index gains can
-# ever match one.
+# verdict: CODE_PATH anchors those pointers to `.md`, so no `.sh` name it gains
+# can ever match one.
 INDEX_PATTERNS = ('*.md', '*.sh', '*.py', '*.json')
-
-# The characters a hard wrap can plausibly break a path token at.
-WRAP_BREAK = ('/', '-', '.')
-
-# A continuation line's own comment or quote marker, dropped before a wrapped
-# citation is rejoined. Load-bearing, see wrapped_cites.
-CONTINUATION_MARKER = re.compile(r'^[\s#>]+')
-
 
 class Finding(NamedTuple):
     """One pointer that did not check out, and where it was written."""
@@ -147,15 +198,6 @@ class Finding(NamedTuple):
     # What the code found instead, for the forms that can say. A stale line
     # citation is unarguable only when the real line count is printed beside it.
     detail: str = ''
-
-
-class Citation(NamedTuple):
-    """One `path:line` claim, as written and as a range of claimed lines."""
-
-    pointer: str
-    text: str
-    first: int
-    last: int
 
 
 class Resolver(NamedTuple):
@@ -172,9 +214,9 @@ class Resolver(NamedTuple):
         """Every directory a prose path may sensibly be written against.
 
         The ancestor walk covers same-directory and skill-root-relative prose.
-        The skill roots cover the rest: an agent prompt under agents/ that says
-        `references/law-scout.md` means the file the agent loads at runtime from
-        its own skill, and no ancestor of agents/ ever reaches it.
+        The skill roots cover the rest: an agent prompt under agents/ saying
+        `references/law-scout.md` means the file that agent loads from its own
+        skill, and no ancestor of agents/ ever reaches it.
         """
         walked, current = [], source.parent
         while current != self.repo and self.repo in current.parents:
@@ -201,9 +243,9 @@ class Resolver(NamedTuple):
         and would still be fooled by `a/../../b`. Only the resolved path knows.
 
         The residual hole, named rather than glossed: a symlink INSIDE the repo
-        that points out of it resolves outside and is refused, which is right,
-        but a symlink outside that points back in would be accepted. This tree
-        has neither, and the check is a containment rule rather than a sandbox.
+        pointing out of it resolves outside and is refused, which is right, but
+        one outside pointing back in would be accepted. This tree has neither,
+        and the check is a containment rule rather than a sandbox.
         """
         try:
             resolved = candidate.resolve()
@@ -217,10 +259,8 @@ class Resolver(NamedTuple):
 
         Returns ALL of them rather than picking one. A slashless pointer names
         no single file by construction, and guessing which `SKILL.md` was meant
-        is how a check invents a finding nobody can act on.
-
-        Containment is tested first and existence second, so a pointer that
-        escapes the repo is never even stat-ed, let alone read.
+        is how a check invents a finding nobody can act on. Containment is
+        tested first, so a pointer that escapes is never even stat-ed.
         """
         hits = [base / pointer for base in self.bases(source)
                 if self.inside(base / pointer) and (base / pointer).is_file()]
@@ -231,11 +271,11 @@ class Resolver(NamedTuple):
     def subset_target(self, pointer: str) -> bool:
         """True when a pointer names a directory THIS checkout does not ship.
 
-        Judged structurally, by whether the directory is here at all, rather than
-        by which pass is running. That keeps the source tree strict: docs/work
-        exists there, so this returns False and a genuinely dead pointer is still
-        a finding. It only ever fires on a tree that never carried the directory,
-        where the absence proves nothing about the pointer.
+        Judged structurally, by whether the directory is here at all, rather
+        than by which pass is running. That keeps the source tree strict:
+        docs/work exists there, so a genuinely dead pointer is still a finding.
+        It fires only on a tree that never carried the directory, where the
+        absence proves nothing about the pointer.
         """
         return any(pointer.startswith(name) and not (self.repo / name).is_dir()
                    for name in SUBSET_DIRS)
@@ -255,6 +295,20 @@ class Resolver(NamedTuple):
         return self.inside(target) and target.is_file()
 
 
+class Coverage(NamedTuple):
+    """Everything the coverage line reports, and what the floors judge.
+
+    Grouped rather than passed as four arguments, over the three-parameter cap,
+    and so a counter added later reaches both without a third edit site.
+    """
+
+    label: str
+    files: int
+    # CiteTally and AnchorTally, both NamedTuples and so both really tuples.
+    cites: tuple
+    anchors: tuple
+
+
 def is_exempt(pointer: str) -> bool:
     """True for placeholders, user-repo roles, and worked-example filenames."""
     if any(char in pointer for char in PLACEHOLDER_CHARS):
@@ -262,170 +316,114 @@ def is_exempt(pointer: str) -> bool:
     return pointer in USER_REPO_POINTERS or pointer in EXAMPLE_POINTERS
 
 
+def is_fixture(pointer: str) -> bool:
+    """True for a pointer that DECLARES itself invented rather than dead."""
+    return (pointer.rsplit('/', 1)[-1].startswith(FIXTURE_PREFIX)
+            or pointer in EXAMPLE_POINTERS)
+
+
+def undeclared_anchors(anchors) -> list:
+    """A finding per prose anchor whose path nobody declared invented.
+
+    All eight that exist today are declared fixtures, which is why the rule is
+    affordable now and why waiting until one of them is real would be the
+    expensive order to do it in. AnchorTally.missing carries the rest.
+    """
+    return [Finding(row[0], row[1], f"{row[2]}'s {row[3]}", 'prose anchor',
+                    ', which names no file in this tree and declares itself '
+                    'neither a fixture nor a worked example')
+            for row in anchors.missing if not is_fixture(row[2])]
+
+
+def collapsed_floors(coverage: Coverage) -> list:
+    """Every coverage counter that fell below its hand-written floor.
+
+    SOURCE TREE ONLY. A built runtime is a deliberate subset and the suites
+    drive this entry point over two-file fixture repos, so a floor written for
+    this repo would redden both for being what they are. [57] passes `.` for
+    the pass these numbers were counted against.
+    """
+    if coverage.label != 'source tree':
+        return []
+    counts = (coverage.files, coverage.cites.checked, coverage.anchors.checked)
+    return [f'{name} is {count}, under the floor of {floor} written beside it'
+            for (name, floor), count in zip(SOURCE_TREE_FLOORS, counts)
+            if count < floor]
+
+
+def coverage_line(coverage: Coverage) -> str:
+    """The one ok line, carrying what was read AND what was not.
+
+    A checker that examines four citations of twelve and prints a clean line is
+    the defect this was built to remove, so what went unread is counted beside
+    what was read.
+    """
+    cites, anchors = coverage.cites, coverage.anchors
+    return (f'  ok   {coverage.label}, every .md link and prose path in '
+            f'{coverage.files} files resolves, {cites.checked} line citation(s) '
+            f'name a line that exists and carries content ({cites.pinned} '
+            f'pinned to a phrase the citing text quotes, {cites.unpinned} '
+            'unpinned, whose content nothing in the citing text names), and '
+            f'{anchors.checked} prose anchor(s) resolve into the file they cite '
+            f'({anchors.unparsed} named no construct or phrase and '
+            f'{anchors.unresolved} named a path that resolves nowhere, '
+            'neither checked)')
+
+
+def print_findings(findings: list, label: str) -> None:
+    """Every finding in validator format, one per line."""
+    print(f'  FAIL {len(findings)} pointer(s) in {label} do not check out:')
+    for finding in findings:
+        print(f'         - {finding.file}:{finding.line} '
+              f'({finding.form}) -> {finding.pointer}{finding.detail}')
+
+
 def pointers_in_line(line: str) -> list:
-    """Extract (pointer, form) pairs from one line of markdown."""
+    """Extract (pointer, form, fragment) triples from one line of markdown."""
     blanked = INLINE_CODE.sub(lambda m: ' ' * len(m.group(0)), line)
-    found = [(m.group(1), 'link') for m in MD_LINK.finditer(blanked)]
+    found = [(m.group(1), 'link', m.group(2) or '') for m in MD_LINK.finditer(blanked)]
     for match in INLINE_CODE.finditer(line):
         span = match.group(1).strip()
         if CODE_PATH.match(span):
-            found.append((span, 'prose path'))
+            found.append((span, 'prose path', ''))
     return found
 
 
 def scan_file(path: pathlib.Path, resolver: Resolver) -> list:
-    """Collect every unresolvable pointer in one markdown file."""
+    """Collect every unresolvable pointer and dead anchor in one markdown file.
+
+    THE READ IS GUARDED, and it was not always. A `.md` file that is not valid
+    UTF-8 under any scan root used to raise out of here and kill the process
+    with a traceback, where scan_citations next door had turned the same failure
+    into a finding since the day it was written. [57] still went red, so nothing
+    shipped broken; the operator simply got a stack trace where every other
+    failure prints one validator-format line. The suite's own row for this could
+    never have caught it: its fixture is a `.sh` file, which only the citation
+    scan opens.
+    """
+    try:
+        lines = path.read_text().splitlines()
+    except (OSError, UnicodeDecodeError) as unreadable:
+        rel = path.relative_to(resolver.repo)
+        return [Finding(rel, 1, rel.as_posix(), 'unreadable source',
+                        f', {type(unreadable).__name__}')]
     findings = []
-    for number, line in enumerate(path.read_text().splitlines(), start=1):
-        for pointer, form in pointers_in_line(line):
+    for number, line in enumerate(lines, start=1):
+        for pointer, form, fragment in pointers_in_line(line):
             if is_exempt(pointer) or resolver.subset_target(pointer):
                 continue
             ok = (resolver.resolves_link(pointer, path) if form == 'link'
                   else resolver.resolves(pointer, path))
             if not ok:
                 findings.append(Finding(path.relative_to(resolver.repo), number, pointer, form))
+            elif fragment and not ANCHORS.resolves(path.parent / pointer, fragment):
+                findings.append(Finding(path.relative_to(resolver.repo), number,
+                                        f'{pointer}#{fragment}', 'anchor'))
+        for fragment in SELF_LINK.findall(INLINE_CODE.sub(' ', line)):
+            if not ANCHORS.resolves(path, fragment):
+                findings.append(Finding(path.relative_to(resolver.repo), number,
+                                        f'#{fragment}', 'anchor'))
     return findings
-
-
-def cite_at(match) -> Citation:
-    """One LINE_CITE match read as a claim about a file's lines."""
-    first = int(match.group(2))
-    last = int(match.group(3)) if match.group(3) else first
-    return Citation(match.group(1), match.group(0), first, max(first, last))
-
-
-def cites_in_line(text: str) -> list:
-    """Every citation written wholly inside one line."""
-    return [cite_at(m) for m in LINE_CITE.finditer(text)]
-
-
-def wrapped_cites(line: str, following: str) -> list:
-    """Every citation a hard line wrap split across the boundary below `line`.
-
-    THE CHOICE, WRITTEN DOWN. Line matching plus a join step, NOT matching on a
-    normalised paragraph. Line matching is what lets a finding name the line it
-    was written on, and normalising a paragraph throws that away for the one
-    thing the reader needs to go fix it. The join buys back the only shape a
-    wrap can produce, a path token broken after a `/`, `-` or `.` with the rest
-    carried to the next line.
-
-    WHY IT IS NOT OPTIONAL. Markdown here hard-wraps near 100 columns, and a
-    purely line-based scan is blind to anything a wrap splits. That exact blind
-    spot is a recorded finding in this sprint's own corpus (M2, a line-based
-    scan missing a phrase broken by a wrap), and it is silent rather than loud.
-    Shipping it again inside the check built to stop it would be the same defect
-    wearing this check's badge.
-
-    THE CONTINUATION'S MARKER COMES OFF FIRST, and that is load-bearing rather
-    than tidy. Most citations here sit in shell comments, so a continuation line
-    starts `# ` far more often than not. `#` is outside the path character
-    class, so joining without stripping it wedges the marker into the middle of
-    the very token the join exists to repair, and the wrap case that actually
-    occurs in this repo would go on being missed while a markdown fixture went
-    green. test_doc_link_lines.py asserts the stripped join directly for that
-    reason, not only its outcome.
-
-    Only a match STRADDLING the boundary is returned. One that fits inside
-    either line is already that line's own business, so nothing is reported
-    twice. A join that fuses two ordinary words is harmless: the result still
-    has to end in `.md:N` and still has to resolve to a file on disk, and the
-    resolution step below is what throws the accidents away.
-    """
-    stem = line.rstrip()
-    if not stem.endswith(WRAP_BREAK):
-        return []
-    joined = stem + CONTINUATION_MARKER.sub('', following)
-    edge = len(stem)
-    return [cite_at(m) for m in LINE_CITE.finditer(joined)
-            if m.start() < edge < m.end()]
-
-
-def cites_in_file(lines: list) -> list:
-    """(line number, Citation) for every citation in a file, wraps included."""
-    found = []
-    for index, line in enumerate(lines):
-        following = lines[index + 1] if index + 1 < len(lines) else ''
-        for cite in cites_in_line(line) + wrapped_cites(line, following):
-            found.append((index + 1, cite))
-    return found
-
-
-def line_count(path: pathlib.Path) -> int:
-    """Lines in a file, counted the way `file:N` is read by a reader."""
-    return len(path.read_text().splitlines())
-
-
-def check_citation(cite: Citation, candidates: list, repo: pathlib.Path) -> str:
-    """Empty when the cited lines exist, else what the code says instead.
-
-    A file that cannot be read is a FINDING, never a pass. Treating an
-    unreadable file as fine would make deleting a file's readability the way to
-    silence every citation into it, which is a check that greens when broken.
-
-    Any candidate satisfying the claim is enough. A slashless pointer names
-    several real files and this check cannot know which was meant, so it asks
-    only that the claim be true of one of them. THE LIMIT THAT BUYS: a bare
-    `SKILL.md` citation goes stale in the file it meant and stays green while
-    some other `SKILL.md` is long enough. Reporting the ambiguity instead would
-    put a red on a per-commit validator for a pointer nobody can act on, which
-    costs more than the miss. Write the path out to get the stronger check.
-    """
-    counts = []
-    for candidate in candidates:
-        try:
-            counts.append((line_count(candidate), candidate))
-        except (OSError, UnicodeDecodeError) as unreadable:
-            return (f', {candidate.relative_to(repo)} could not be read '
-                    f'({type(unreadable).__name__})')
-    if cite.first >= 1 and any(count >= cite.last for count, _ in counts):
-        return ''
-    count, candidate = max(counts, key=lambda pair: pair[0])
-    where = f'{candidate.relative_to(repo)} has {count} lines'
-    # Counted first even here, so every finding carries the real length rather
-    # than making the reader go and get it.
-    return f', a file has no line 0, and {where}' if cite.first < 1 else f', {where}'
-
-
-def scan_citations(path: pathlib.Path, resolver: Resolver) -> tuple:
-    """(findings, citations checked) for one file's line citations."""
-    try:
-        lines = path.read_text().splitlines()
-    except (OSError, UnicodeDecodeError) as unreadable:
-        rel = path.relative_to(resolver.repo)
-        detail = f', {type(unreadable).__name__}'
-        return [Finding(rel, 1, rel.as_posix(), 'unreadable source', detail)], 0
-    findings, checked = [], 0
-    for number, cite in cites_in_file(lines):
-        # A path that resolves nowhere is form 2's finding. Reporting it here
-        # too would print one pointer twice and blame two checks for one defect.
-        # It is also what absorbs an accidental join, see wrapped_cites.
-        #
-        # is_exempt is NOT consulted here, and that is deliberate on both halves.
-        # PLACEHOLDER_CHARS cannot occur inside a citation at all, since none of
-        # them are in LINE_CITE's path class. USER_REPO_POINTERS is about prose
-        # naming a ROLE, "your project's CLAUDE.md", and a line number is never a
-        # role: it names one concrete file at one concrete line. Where the file
-        # really is the reader's rather than ours, it resolves to nothing here
-        # and the guard below drops it anyway.
-        candidates = resolver.locate(cite.pointer, path)
-        if not candidates:
-            continue
-        checked += 1
-        detail = check_citation(cite, candidates, resolver.repo)
-        if detail:
-            rel = path.relative_to(resolver.repo)
-            findings.append(Finding(rel, number, cite.text, 'line number', detail))
-    return findings, checked
-
-
-def scan_all_citations(files: list, resolver: Resolver) -> tuple:
-    """(findings, citations checked) across every scanned file."""
-    findings, checked = [], 0
-    for path in files:
-        found, count = scan_citations(path, resolver)
-        findings.extend(found)
-        checked += count
-    return findings, checked
 
 
 def is_excluded(path: pathlib.Path, repo: pathlib.Path) -> bool:
@@ -472,18 +470,29 @@ def main(argv: list) -> int:
     # ONE ok line per invocation, deliberately. 00-helpers.sh and validate-dod.sh
     # both document the shell-to-transcript ok-line gap as a count of delegated
     # INVOCATIONS; a second printed pass here would make that prose wrong in two
-    # files, so the citation total rides on the line that was already printed.
-    cited = collect_files(repo, CITE_SCAN_ROOTS + SCAN_FILES, CITE_SCAN_PATTERNS)
-    stale, checked = scan_all_citations(cited, resolver)
-    findings += stale
+    # files, so every other total rides on the line that was already printed.
+    cited = collect_files(repo, CITE_SCAN_ROOTS + SCAN_FILES, CITES.CITE_SCAN_PATTERNS)
+    # ANCHORS is handed to form 3 because its content tier reads form 5's anchor
+    # grammar and scripts/ is not a package, so the composition lives here.
+    stale, cites = CITES.scan_all_citations(cited, resolver, ANCHORS)
+    findings += [Finding(*row) for row in stale]
+    # Form 5 shares form 3's file list, not form 4's: a possessive citation is
+    # prose, and most of this repo's prose about its own code sits in shell
+    # comments under scripts/, which a markdown-only surface reads straight past.
+    rotted, anchors = ANCHORS.scan_all_prose_anchors(cited, resolver)
+    findings += [Finding(*row) for row in rotted] + undeclared_anchors(anchors)
     if findings:
-        print(f'  FAIL {len(findings)} pointer(s) in {label} do not check out:')
-        for finding in findings:
-            print(f'         - {finding.file}:{finding.line} '
-                  f'({finding.form}) -> {finding.pointer}{finding.detail}')
+        print_findings(findings, label)
         return 1
-    print(f'  ok   {label}, every .md link and prose path in {len(files)} files '
-          f'resolves, and {checked} line citation(s) name a line that exists')
+    coverage = Coverage(label, len(files), cites, anchors)
+    collapsed = collapsed_floors(coverage)
+    if collapsed:
+        print(f'  FAIL coverage collapsed in {label}; a clean line from a scan '
+              'that found nothing is a count of nothing:')
+        for line in collapsed:
+            print(f'         - {line}')
+        return 1
+    print(coverage_line(coverage))
     return 0
 
 

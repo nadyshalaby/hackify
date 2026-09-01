@@ -52,75 +52,79 @@
 # design of this file. The pinned prose is markdown wrapped to a column, so
 # every sentence below straddles a line break in the file that carries it and
 # every line-oriented matcher in this validator returns a confident zero on it.
-# 00-helpers.sh's check_flowed_token_present covers the PRESENCE half and is
-# used as-is. It has no ABSENCE twin, and its comment explains why: on the
-# presence side a wrapped token is a false RED, which is loud, while on the
-# absence side it is a false GREEN, which is silent. That trade is acceptable
-# for a short literal and unacceptable here, where every banned string is a full
-# retired sentence and would straddle a wrap the moment it came back. So the
-# absence half is flattened too, by tss_absent below.
+# 01-presence-matchers.sh's flowed pair covers the PRESENCE half, and
+# check_no_flowed_token now covers the ABSENCE half it once declined to build.
+# THIS FILE USED TO CARRY ITS OWN COPY OF BOTH, because neither shared twin
+# existed when it shipped; the local flattener is gone and the local verdict is
+# a two-line annotation over the shared one. That is what makes the control
+# below worth running at all: it now exercises the matcher the whole validator
+# bans with, not a private copy that could pass while the real one broke.
 yellow "[83] the testing wave's tree assumption is conditional on {{sibling_tracks}}, on both mirror copies"
 
 TSS_CANON="skills/hackify/references/parallel-agents/phase-3-implementation.md"
 TSS_MIRROR="agents/implementer.md"
 TSS_CONTENTION="skills/hackify/references/contention-dispatch.md"
 
-# 0 the token is present, 1 it is absent, 2 the path could not be read. The
-# status is RETURNED rather than judged, because two callers want opposite
-# verdicts from it and one of them is a control that must not move FAILED.
+# A CONTROL MUST NOT MOVE FAILED, and check_no_flowed_token judges rather than
+# reports: it prints a verdict and raises FAILED on a hit. That is precisely the
+# behaviour a control needs to OBSERVE and precisely what it must not leave
+# behind. So the counter is read, the shared matcher is called with its printing
+# swallowed, and the counter is restored whatever happened. Returns 0 when the
+# shared matcher reddened and 1 when it did not.
 #
-# NO PIPE INTO grep, for the reason check_flowed_token_present states about the
-# same construct: callers run under `set -o pipefail`, `grep -q` exits on the
-# first match, and the pipeline would report tr's SIGPIPE instead of grep's own
-# status. The flattening lands in a variable and the match is a herestring.
-# /usr/bin/grep and not `grep`, on this repo's standing rule that a shimmed
-# matcher on PATH can silently skip paths.
-tss_flowed_hit() {
+# THE SHIPPED MATCHER IS WHAT IS UNDER TEST, which is the whole reason the
+# control is routed through it. The control this replaces drove a local
+# flattener, so it could only ever prove the local copy worked, and a break in
+# the matcher the bans actually run would have left it printing green. Only the
+# printing is swallowed: FAILED is put back from a value read before the call, so
+# this can neither raise a red of its own nor mask one raised anywhere else.
+#
+# THE READ, SWALLOW, RESTORE SHAPE IS control_delta IN 00-helpers.sh, written once
+# for the three fragments that each had a copy of it. This one wants a yes/no
+# rather than a count, so it reads CONTROL_DELTA and returns; [87] and [88] keep
+# the number because their plants owe a known one.
+tss_control_red() {
   local token="$1"
   local path="$2"
-  local flat
-  [ -r "$path" ] || return 2
-  flat=$(tr -s '[:space:]' ' ' < "$path")
-  /usr/bin/grep -qF -- "$token" <<<"$flat"
+  control_delta check_no_flowed_token "$token" "$path"
+  [ "$CONTROL_DELTA" -gt 0 ]
 }
 
 # THE CONSEQUENCE IS A PARAMETER AND NOT A CONSTANT, because this function
 # screens two different documents. Baking the mirror pair's consequence into the
 # message made the contention-dispatch finding read as a claim about the
-# implementer contract, which is a red that misnames its own defect.
+# implementer contract, which is a red that misnames its own defect. THAT, AND
+# ONLY THAT, IS WHY THIS WRAPPER OUTLIVED THE SHARED MATCHER LANDING. The
+# flattening, the matching, the verdict wording and the fail-closed branch are
+# all check_no_flowed_token's now; the two lines below add the one thing a
+# generic helper cannot know, which is what breaks when THIS token comes back.
 tss_absent() {
   local token="$1"
   local path="$2"
   local why="$3"
-  tss_flowed_hit "$token" "$path"
-  case $? in
-    1) green "  ok   retired wording '$token' has 0 occurrences in $path, line wrapping flattened first" ;;
-    0) red "  FAIL retired wording '$token' is back in $path: $why"
-       FAILED=$((FAILED + 1)) ;;
-    *) red "  FAIL '$token' was never screened, $path is missing or unreadable; a miss here would be a miss of nothing"
-       FAILED=$((FAILED + 1)) ;;
-  esac
+  local before="$FAILED"
+  check_no_flowed_token "$token" "$path"
+  [ "$FAILED" -gt "$before" ] && red "         consequence: $why"
+  return 0
 }
 
 # THE TWO CONTROLS RUN BEFORE ANY VERDICT, on the tie-break 55, 73 and 91 all
 # make: a scan that cannot be trusted names itself and says nothing about what
 # it read. A matcher that finds nothing prints the whole ban list green having
 # measured nothing, and a matcher that cannot tell a missing file from a clean
-# one prints the same wall after a rename. Neither control moves FAILED through
-# tss_absent, so a broken matcher reddens here once instead of lying below.
+# one prints the same wall after a rename. Neither control moves FAILED, so a
+# broken matcher reddens here once instead of lying below.
 TSS_CONTROL_TOKEN='What you may assume about the tree is set by'
-tss_flowed_hit "$TSS_CONTROL_TOKEN" "$TSS_CANON"
-if [ $? -eq 0 ]; then
-  green "  ok   [83] positive control, the flattened matcher finds a phrase that is really in $TSS_CANON"
+if tss_control_red "$TSS_CONTROL_TOKEN" "$TSS_CANON"; then
+  green "  ok   [83] positive control, the shared flattened matcher finds a phrase that is really in $TSS_CANON"
 else
-  red "  FAIL [83] positive control, the flattened matcher found nothing in $TSS_CANON; either the matcher broke, in which case every absence below was measured by a matcher that finds nothing, or the conditional sentence was removed, which the pin below names"
+  red "  FAIL [83] positive control, the shared flattened matcher found nothing in $TSS_CANON; either the matcher broke, in which case every absence below was measured by a matcher that finds nothing, or the conditional sentence was removed, which the pin below names"
   FAILED=$((FAILED + 1))
 fi
-tss_flowed_hit 'anything at all' "$TSS_CANON.no-such-file"
-if [ $? -eq 2 ]; then
+if tss_control_red 'anything at all' "$TSS_CANON.no-such-file"; then
   green "  ok   [83] fail-closed control, an unreadable path is reported rather than read as a clean file"
 else
-  red "  FAIL [83] fail-closed control, an unreadable path did not report status 2, so a renamed or deleted file would print every ban green"
+  red "  FAIL [83] fail-closed control, an unreadable path did not redden, so a renamed or deleted file would print every ban green"
   FAILED=$((FAILED + 1))
 fi
 
@@ -150,9 +154,7 @@ check_list_size "${#TSS_SHAPE_BANS[@]}" 4 "the [83] retired solo-assumption ban 
 TSS_MIRROR_PAIR=("$TSS_CANON" "$TSS_MIRROR")
 check_list_size "${#TSS_MIRROR_PAIR[@]}" 2 "the [83] implementer mirror-pair list"
 for tss_f in "${TSS_MIRROR_PAIR[@]}"; do
-  for tss_t in "${TSS_SHAPE_PINS[@]}"; do
-    check_flowed_token_present "$tss_t" "$tss_f"
-  done
+  check_flowed_tokens_present_in "$tss_f" "${TSS_SHAPE_PINS[@]}"
   for tss_t in "${TSS_SHAPE_BANS[@]}"; do
     tss_absent "$tss_t" "$tss_f" "the testing wave is told again that it owns the tree, so a wave on a stage that split would break a production line a sibling is reading"
   done
@@ -168,3 +170,31 @@ done
 # so the two cannot both be true of one file.
 check_flowed_token_present 'the production files it would mutate for a watched red' "$TSS_CONTENTION"
 tss_absent 'the stage would write. There is no fourth' "$TSS_CONTENTION" "the partition is drawn over test files alone again, so two testing waves that share a production file would be declared partitionable"
+
+# THE OTHER END OF THAT SAME PARTITION, AND IT IS WHERE THE ROUND'S ONLY CRITICAL
+# LIVED. contention-dispatch.md states the rule; the spec reviewer is what draws
+# the union in practice, and its step 10(iv) drew it over the test files ALONE.
+# Two testing waves whose test files are disjoint still collide on a production
+# file they each break for a watched red, so that union called a colliding pair
+# partitionable and the dispatcher would have run them side by side. The fix
+# landed in both copies and NOTHING SCREENED EITHER OF THEM: the pair is named by
+# [82f], for one token, and by nothing else in the validator, so the same edit
+# could be reverted tomorrow with the whole bar green over it.
+#
+# THE RETIRED TAIL IS THE BAN, NOT THE WHOLE SENTENCE. What was removed read
+# `the union of the test files it would write. Under`, wrapped across two physical
+# lines in both copies. The live text continues `... it would write AND the
+# production files ...`, so the ban and the pin cannot both hold of one file: a
+# revert restores that tail and reddens, and a half-revert that keeps the pin
+# while restoring the tail reddens too, which is the state a pin alone misses.
+#
+# BOTH COPIES, for the reason the mirror pair above gives. [75h] proves the two
+# fenced blocks agree; it says nothing about what they agree ON, and this defect
+# shipped identically in both.
+TSS_SPEC_REVIEWERS=("agents/spec-reviewer.md")
+TSS_SPEC_REVIEWERS+=("skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md")
+check_list_size "${#TSS_SPEC_REVIEWERS[@]}" 2 "the [83] spec-reviewer copy list"
+for tss_f in "${TSS_SPEC_REVIEWERS[@]}"; do
+  check_flowed_token_present 'the production files it would mutate for a watched red' "$tss_f"
+  tss_absent 'the union of the test files it would write. Under' "$tss_f" "the spec reviewer draws the testing-stage partition over test files alone again, so it would report two testing waves partitionable while they collide on a production file each one breaks for a watched red"
+done
