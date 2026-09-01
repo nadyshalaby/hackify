@@ -131,8 +131,22 @@ PLS_XROOTS="skills agents"
 # section from review-scope.md, each of which restated both literals, and the
 # cap's replacement paragraph put the pathspec back once in the phase file.
 # Re-measured with the two greps below, not reasoned about.
-PLS_XFILES_EXPECTED=19
-PLS_XOCCUR_EXPECTED=49
+#
+# THE RENDERED-REPORT RETIREMENT moved these two pins 19 to 18 and 49 to 47 and
+# left the rule pair alone, which is the same composition running the other way.
+# references/html-report.md was deleted outright and it carried the pathspec
+# TWICE, on the `git diff --stat` and `git diff --numstat` rows of the table
+# that told the renderer where each of its numbers came from. One file dropping
+# out of discovery is the file total's step; that file's two sites are the
+# occurrence total's. The rule pair could not move on this edit, because that
+# file stated the two commands and never the reason for the exclusion.
+# Re-derived over the live tree with the two greps below, then cross-checked by
+# running the same pair through `git grep` at HEAD, where html-report.md is
+# still present: that read 19 files and 49 occurrences, and the deleted copy
+# carried the literal exactly twice, so the whole delta is that one file and
+# nothing else drifted underneath it.
+PLS_XFILES_EXPECTED=18
+PLS_XOCCUR_EXPECTED=47
 PLS_XRULE_FILES_EXPECTED=6
 PLS_XRULE_OCCUR_EXPECTED=6
 

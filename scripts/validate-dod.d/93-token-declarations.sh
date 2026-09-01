@@ -86,11 +86,38 @@
 # check away with it.
 #
 # ONLY snake_case TOKENS ARE IN CLASS. The contract says "All runtime values use
-# `{{snake_case}}` placeholders", so `{{UPDATE_LOG}}` in commands/summary.md is
-# not a dispatch input at all; it is a fill slot in
-# skills/hackify/assets/report-template.html and belongs to a different
-# namespace. Keying on lowercase is the contract's own rule rather than an
-# exception list, and it is what keeps that file out without naming it.
+# `{{snake_case}}` placeholders", so an UPPERCASE token is not a dispatch input at
+# all and no prompt can declare one. Uppercase braces belong to a separate
+# namespace that merely shares the notation, the fill slots a report template
+# carries, and skills/lawkeeper/assets/report-template.md carries slots of that
+# kind: `{{ROOT}}`, `{{FILES_SCANNED}}`, `{{RULESET_SOURCE}}` and four more.
+#
+# THAT TEMPLATE IS NOT AN EXAMPLE OF A FILE THE LOWERCASE KEY KEEPS OUT, and an
+# earlier draft of this paragraph said it was, in two claims that both fail the
+# moment the file is opened. It called the template's every slot uppercase, and
+# the same file carries `{{n}}`, `{{file}}`, `{{line}}`, `{{message}}`,
+# `{{rule_id}}`, `{{sev}}` and `{{summary}}`, which is precisely the class this
+# check polices; and it offered the key as the reason such a file stays out, when
+# a file whose slots are mostly lowercase would be dragged IN by that reading, not
+# kept out.
+#
+# WHAT KEEPS IT OUT IS SCAN SCOPE. Discovery below needs a line that STARTS with
+# `**INPUTS**`, and that template carries no such line, so it is refused at the
+# first gate and never becomes a prompt here at all; the fenced-region rule and
+# the three further anchors are never even reached, and the file has no fence
+# either. Its slots are therefore never read, in either case. A COMMENT IS THE ONE
+# THING IN THIS FRAGMENT NOTHING CHECKS, which is the argument its own header
+# makes at length about stale counts, so every sentence above was taken from the
+# file rather than reasoned about.
+#
+# THE KEY IS STILL THE CONTRACT'S OWN LOWERCASE WORDING AND NOT AN EXCEPTION LIST
+# OF FILES, for the files that ARE in scope: inside a discovered prompt, an
+# uppercase token asserts no dispatch input, so nothing here has to name a file to
+# excuse it. It is also why nothing in this block had to change when the rendered
+# report was retired and the template an earlier draft cited was deleted with it.
+# An exception list would have gone stale in that same edit, and a stale carve-out
+# silently takes a real prompt's check away with it, which is the failure the named
+# carve-out above guards itself against.
 #
 # NOTHING SOURCED FROM A REPO FILE IS EXECUTED OR COMPILED INTO A PATTERN. Every
 # pattern below is a literal in this file. Token names parsed out of a prompt are

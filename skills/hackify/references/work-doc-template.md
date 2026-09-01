@@ -18,6 +18,7 @@ related: []
 current_task: null
 worktree: null
 branch: null
+page_url: null
 sprint_goal: |
   One- to two-sentence sprint goal, the headline outcome the work-doc commits to.
 ---
@@ -37,7 +38,7 @@ sprint_goal: |
 - [ ] Phase 6a. Re-verify + land choice (Steps A, B, C)
 - [ ] Phase 6b. Cleanup sweep (Step C.5)
 - [ ] **Phase 6c. Archive work-doc to `done/` (Step D)**
-- [ ] Phase 6d. Update log + HTML report (Step F)
+- [ ] Phase 6d. Update log (Step F)
 
 <!-- Section-order law. This skeleton is the authority on section order, every other file agrees with it. `## 0. Phase ledger` is ALWAYS the first block of the body; nothing else takes that slot. On the groom path only, `## Groom Provenance` sits HERE, between section 0 and section 1, and holds the groom distillation and nothing else. -->
 
@@ -391,9 +392,14 @@ for. Read it as it stands and change nothing.
 | `project` | repo folder name (e.g. `my-backend`) | Anchors paths |
 | `related` | list of slugs | Cross-project linked docs |
 | `current_task` | `T<n>` or `null` | Where to resume |
-| `worktree` | absolute path or `null` | If using git worktree |
+| `worktree` | path relative to the repo root, or `null` | If using git worktree; relative rather than absolute, for the reason under the table |
 | `branch` | branch name or `null` | Git branch the work lives on |
+| `page_url` | URL of the published page, or `null` | The link the first publish returned, and the one every later republish targets. `null` until that first publish, and `null` for the life of the task on a runtime with no publish tool |
 | `sprint_goal` | YAML block scalar (`|`) or `null` | One- to two-sentence sprint goal, the headline outcome the work-doc commits to |
+
+**Why `worktree` is not an absolute path.** The work-doc is published as a page and travels to whoever the user sends it to, so a home directory written into the frontmatter goes out with it ([work-doc-artifact.md](work-doc-artifact.md), "Project-relative paths only"). A git worktree does live outside the checked-out branch, but it does not have to be named absolutely to be found. hackify's own default location is `.worktrees/<slug>` under the project root ([finish.md](finish.md), "Worktree path priority"), which is already relative to that root. A worktree parked outside the repo is written the same way, `../<sibling-dir>/<slug>`, and it still resolves, because Phase 6 Step E runs `git worktree remove` from inside the project repo and never from inside the worktree. Where something genuinely needs the absolute form, `git worktree list` prints it on demand, so storing the relative path loses nothing.
+
+**Why `page_url` is written down at all.** The promise is one link for the whole task, kept current by republishing the same doc ([work-doc-artifact.md](work-doc-artifact.md), "One link for the life of the task"). Resume reads the frontmatter, so the frontmatter is the only place that promise can survive a lost session: a sprint picked up in a new session with no URL recorded has nothing to aim the republish at, and it mints a second link the user never asked for. The first publish writes the returned URL here, and every republish after it targets this field.
 
 ## Naming conventions
 

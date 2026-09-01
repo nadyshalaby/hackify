@@ -11,14 +11,33 @@
 #
 # Write/Edit: net-new only, a banned line already present in the file (Write)
 # or the replaced old_string (Edit) is grandfathered.
-# Bash: also scans source written via a heredoc or echo/printf redirect to a
-# JS/TS file (the shell path that would otherwise bypass Write/Edit). It does
-# NOT see content produced by cp/mv/sed/awk, those are not statically
+# Bash: also scans content written via a heredoc or echo/printf redirect to a
+# screened file (the shell path that would otherwise bypass Write/Edit). It
+# does NOT see content produced by cp/mv/sed/awk, those are not statically
 # knowable and fall through.
+#
+# TWO SCOPES, TWO LENSES.
+#   JS/TS files get the full rule set above.
+#   MARKDOWN files get the hardcoded-secret rule ALONE. hackify publishes the
+#   work-doc at docs/work/<slug>.md as a shareable page, so a credential pasted
+#   into one becomes a hosted link; that is the exposure this half screens.
+#   The other two families are deliberately NOT applied to prose. Suppression
+#   tokens are spelled literally in doctrine on purpose, so the full set reports
+#   a document for DESCRIBING the ban: measured over this repo's 25 archived
+#   work-docs, it produced 26 findings, all of that shape and none a secret. And
+#   the semantic bans read lexer-masked text, where the mask is a JS/TS lexer
+#   with nothing meaningful to say about prose. The reasoning is argued once, on
+#   scan_edit.detect_secrets.
+#
+# NOT screened: the publish itself. The exposure is the moment the page is
+# hosted, and no PreToolUse matcher covers that on the six runtimes with no hook
+# facility, so this screens the WRITE instead, on every path hackify itself uses
+# to put content in the doc. A credential that arrives some other way (a human's
+# own editor, cp/mv/sed) reaches the page unscreened by this hook.
 #
 # Detection delegates to scan_edit.py / scan_bash.py, which reuse lawkeeper's
 # tested lexer + check regexes, so a token inside a string or comment never
-# false-fires. Scope is JS/TS files only.
+# false-fires.
 #
 # Per-path escape hatch: list a path (literal or glob) in
 # <project-root>/.claude/hooks/ban-allowlist to exempt it.
@@ -41,6 +60,13 @@ trap 'rm -f "$BASE_TMP" 2>/dev/null' EXIT
 is_jsts() {
   case "$1" in
     *.ts | *.tsx | *.js | *.jsx | *.mjs | *.cjs | *.mts | *.cts) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_markdown() {
+  case "$1" in
+    *.md | *.markdown) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -89,7 +115,16 @@ emit_block() {
 # Write/Edit: scan the candidate text, grandfathering lines already present.
 handle_file_edit() {
   FILE="$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)"
-  { [ -n "$FILE" ] && is_jsts "$FILE"; } || exit 0
+  [ -n "$FILE" ] || exit 0
+
+  # A lens is ALWAYS passed, never an empty shell array: bash 3.2 ships on macOS
+  # and cannot expand `"${arr[@]}"` for an empty array under `set -u`.
+  local lens='--all-rules'
+  if is_markdown "$FILE"; then
+    lens='--secrets-only'
+  elif ! is_jsts "$FILE"; then
+    exit 0
+  fi
   allowlisted "$FILE" && exit 0
 
   local text base='' findings rule lineno report_body=''
@@ -102,7 +137,7 @@ handle_file_edit() {
   fi
   [ -n "$text" ] || exit 0
 
-  findings="$(printf '%s' "$text" | python3 "$PLUGIN_ROOT/hooks/scan_edit.py" "$SCANNER_DIR" "$base" 2>/dev/null)" || exit 0
+  findings="$(printf '%s' "$text" | python3 "$PLUGIN_ROOT/hooks/scan_edit.py" "$SCANNER_DIR" "$base" "$lens" 2>/dev/null)" || exit 0
   [ -n "$findings" ] || exit 0
   while IFS=$'\t' read -r rule lineno; do
     [ -n "$rule" ] || continue
@@ -131,7 +166,11 @@ handle_bash() {
   # pipe that stood here before 51ecd00, cannot hand grep's SIGPIPE back as the
   # hook's exit status if anyone ever adds `set -o pipefail` above. The long note
   # over creates_a_commit in block-ai-attribution.sh carries the measurements.
-  grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)' \
+  #
+  # `md|markdown` is here so the shell is not a way round the Write-side
+  # markdown screen. No right boundary, so `.mdx` also reaches python and finds
+  # nothing; over-triggering a cheap pre-filter is the safe direction.
+  grep -qE '(>>?|(^|[^[:alnum:]_])tee([^[:alnum:]_]|$))[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|mts|cts|md|markdown)' \
     < <(printf '%s\n' "$cmd") || exit 0
 
   findings="$(printf '%s' "$cmd" | python3 "$PLUGIN_ROOT/hooks/scan_bash.py" "$SCANNER_DIR" 2>/dev/null)" || exit 0

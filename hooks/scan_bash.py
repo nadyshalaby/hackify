@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""Detect hackify-banned tokens in JS/TS source written by a Bash command.
+"""Detect hackify-banned tokens in files written by a Bash command.
 
-The Write/Edit hook can't see source written through the shell (a `cat`
+The Write/Edit hook can't see content written through the shell (a `cat`
 heredoc, an `echo`/`printf` redirect). This closes that bypass for the two
 common patterns by extracting the written content and scanning it with the
-SAME detector as scan_edit (lexer-masked semantic bans, raw suppressions and
-hardcoded secrets).
+SAME detectors as scan_edit, under the lens the target's file type earns:
+JS/TS takes the full set (lexer-masked semantic bans, raw suppressions and
+hardcoded secrets), markdown takes hardcoded secrets alone.
 
-Covered: a heredoc redirected to a JS/TS file, the redirect may sit on the
+Markdown is here because leaving it out reopens the hole this file exists to
+close. A published work-doc is markdown, so a Write of a secret into one is
+blocked while `cat >> docs/work/x.md <<EOF` carrying the same string would
+not be, and the second spelling is one keystroke from the first.
+
+Covered: a heredoc redirected to a screened file, the redirect may sit on the
 opening line (`cmd > file.ts <<TAG … TAG`) or after the body (`{ … } > f.ts`,
 `( … ) > f.ts`, `while …; done > f.ts`; superset pairing, see
-_heredoc_blocks), and `echo`/`printf` redirected to a JS/TS file. NOT
-covered: content produced by `cp`/`mv`/`sed`/`awk` or any other program, not
-statically knowable, so it falls through (fail-open). The hook documents this
-scope.
+_heredoc_blocks), and `echo`/`printf` redirected to one. NOT covered: content
+produced by `cp`/`mv`/`sed`/`awk` or any other program, not statically
+knowable, so it falls through (fail-open). The hook documents this scope.
 
 Usage: `scan_bash.py <lawkeeper-scripts-dir>` with the command on stdin.
 Prints one `<rule>\\t<target-path>` per finding. Exit 0 always. ANY internal
@@ -23,11 +28,17 @@ with no findings: fail open, a hook bug must never wedge editing.
 import re
 import sys
 
-JS_EXT = r'\.(?:ts|tsx|js|jsx|mjs|cjs|mts|cts)(?=[\s\'"<>|;&]|$)'
-REDIR_TARGET = re.compile(r'(?:>>?|\btee\s+(?:-a\s+)?)\s*[\'"]?([^\s\'"<>|;&]+' + JS_EXT + r')')
+JS_EXT = r'ts|tsx|js|jsx|mjs|cjs|mts|cts'
+MD_EXT = r'md|markdown'
+# Every extension this scanner screens. Which LENS a hit gets is decided per
+# target by _lens_for: JS/TS takes the full rule set, markdown takes secrets
+# only (scan_edit.detect_secrets carries the argument for that split).
+TARGET_EXT = r'\.(?:' + JS_EXT + r'|' + MD_EXT + r')(?=[\s\'"<>|;&]|$)'
+MD_TARGET = re.compile(r'\.(?:' + MD_EXT + r')$')
+REDIR_TARGET = re.compile(r'(?:>>?|\btee\s+(?:-a\s+)?)\s*[\'"]?([^\s\'"<>|;&]+' + TARGET_EXT + r')')
 HEREDOC = re.compile(r'<<-?\s*[\'"]?(\w+)[\'"]?\n(.*?)\n[ \t]*\1\b', re.DOTALL)
 ECHO_REDIR = re.compile(
-    r'\b(?:echo|printf)\b\s+(.*?)\s*>>?\s*[\'"]?([^\s\'"<>|;&]+' + JS_EXT + r')',
+    r'\b(?:echo|printf)\b\s+(.*?)\s*>>?\s*[\'"]?([^\s\'"<>|;&]+' + TARGET_EXT + r')',
     re.DOTALL,
 )
 
@@ -64,6 +75,19 @@ def _written_blocks(cmd):
     return blocks
 
 
+def _lens_for(target, scan_edit):
+    """The detector this target's file type earns: secrets only for markdown,
+    the full rule set for JS/TS.
+
+    Under the superset pairing above, a command mixing both file types on a
+    MISMATCH has every body checked against every target, so a JS body can be
+    judged by the prose lens and a prose body by the JS one. That is the same
+    deliberate over-reporting the mismatch branch already chose, kept here so no
+    arrangement of redirects bypasses the screen.
+    """
+    return scan_edit.detect_secrets if MD_TARGET.search(target) else scan_edit.detect
+
+
 def _run():
     """Read the command from stdin, print one finding per line."""
     import scan_edit  # sibling module, reuse the detector (single source of truth)
@@ -73,7 +97,7 @@ def _run():
     detectors = scan_edit.load_detectors(sys.argv[1])
     seen = set()
     for target, content in _written_blocks(cmd):
-        for rule, _line in scan_edit.detect(content, detectors):
+        for rule, _line in _lens_for(target, scan_edit)(content, detectors):
             key = (rule, target)
             if key not in seen:
                 seen.add(key)

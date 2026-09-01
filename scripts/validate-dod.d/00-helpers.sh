@@ -101,13 +101,23 @@ check_file() {
 #
 # /usr/bin/grep BY ABSOLUTE PATH, matching check_no_tokens_in below, whose comment
 # carries which shell resolves bare grep to what: this function IS that function's
-# fallback, so the two must be one binary and not two resolutions. SCOPED TO THIS
-# PAIR, and the rest of this file uses bare `grep` on purpose (check_token_present
-# and check_role, now in 01-presence-matchers.sh, are both bare). The line is WHICH
-# WAY A WRAPPER FAILS YOU: here a grep honouring ignore files skips a file and the
-# ban prints GREEN over content it never read, while in a presence check a skipped
-# file makes a present token look missing, a RED, loud and investigated at once.
-# Pin the matcher where a wrapper buys a false pass, not a false alarm.
+# fallback, so the two must be one binary and not two resolutions.
+#
+# WHICH WAY A WRAPPER FAILS YOU is still the whole of why this side was pinned
+# FIRST and why it is the side that must never be unpinned: here a grep honouring
+# ignore files skips a file and the ban prints GREEN over content it never read,
+# while in a presence check a skipped file makes a present token look missing, a
+# RED, loud and investigated at once. That asymmetry is real, it is why this was
+# never urgent on the presence side, and it is a rule about where pinning is
+# REQUIRED rather than a reason to leave the other side unpinned.
+#
+# THE ASYMMETRY IS RETIRED ANYWAY, AND check_token_present NAMES THE SAME BINARY.
+# It used to be argued for here in a paragraph, which was the entire cost of
+# keeping it: under the bash both validate-dod.sh and scripts/test_ban_tokens.sh run
+# in, bare `grep` already resolves to /usr/bin/grep, so the difference bought
+# nothing at any call site and cost one explanation forever, plus a false RED
+# waiting in any shell where it did not. One binary across the whole file is
+# cheaper to hold in the head than a correct argument for two.
 #
 # OCCURRENCES, NOT MATCHING LINES, which is what -o buys. `grep -c` reports how
 # many LINES matched, so two hits on one line reported 1 and the red understated a
@@ -162,7 +172,7 @@ check_no_token() {
 check_token_present() {
   local token="$1"
   local path="$2"
-  if grep -qF -- "$token" "$path" 2>/dev/null; then
+  if /usr/bin/grep -qF -- "$token" "$path" 2>/dev/null; then
     green "  ok   '$token' present in $path"
   else
     red "  FAIL '$token' missing from $path"

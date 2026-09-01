@@ -76,10 +76,10 @@ Bias against: carrying a story about the diff from one pass into the next.
     template only CITES its siblings and this one has to OPEN five of them: a driver
     that cannot resolve the files it drives has nothing to run.
 
-There is no `{{review_scope}}`, and its absence is the design rather than an
+There is no `review_scope` input, and its absence is the design rather than an
 omission. You carry pass 5, which is never sliced, so no subset of the diff is safe to
 withhold from you and there is no scope to hand you. Where a lens file's INPUTS or
-METHOD speaks of `{{review_scope}}`, read your scope as the whole diff.
+METHOD speaks of `review_scope`, read your scope as the whole diff.
 
 EVERY numbered input above is REQUIRED. An EMPTY value, a numbered line that never
 arrived, or one still carrying literal `{{...}}` text is a dispatch bug and not a

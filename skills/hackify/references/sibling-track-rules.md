@@ -458,7 +458,7 @@ The assembly wave reads this first, and it is the only place a track's own claim
 DONE can be checked without re-reading the whole module.
 
 ## 1. What I built
-- `<absolute path>`, <what it does>, covers plan task <id>.
+- `<path relative to the repo root>`, <what it does>, covers plan task <id>.
 
 ## 2. Gate output
 (pasted, not summarised, one block per gate command)

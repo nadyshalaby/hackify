@@ -37,7 +37,7 @@ Worked rows:
 - A ❌ row blocks Phase 5. Loop back to Phase 3 (or 3b if stuck).
 - Each deterministic scout's staging table (or its explicit "no candidates" result) is itself a ledger row. Item `scout.perf` and `scout.law`, Type `protocol`, proof sample the trimmed table or `none` ([perf-scout.md](perf-scout.md), [law-scout.md](law-scout.md)).
 - The three ship-gate rows (`ship.build`, `ship.boot`, `ship.smoke`) are mandatory in every mode, see Part 3.
-- The full ledger is saved in the work-doc Sprint Review, and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
+- The full ledger is saved in the work-doc Sprint Review, and that is the only place it lives. The work-doc is itself the published page ([work-doc-artifact.md](work-doc-artifact.md)), so the cumulative proof is already in one place and nothing has to be re-rendered to keep it there.
 
 The top-level triad still runs and appears as acceptance rows in the ledger:
 

@@ -1,19 +1,35 @@
 # shellcheck shell=bash
 
-# DIFF-SLICING AND SETTLE-ECHO PINS, split out of 71-release-mechanism-pins.sh
-# in the sprint that file reached 497 lines against the 500-LOC hard cap that
-# check [80] enforces. [38e] and [38h] came across whole and kept their check
-# IDs, the way [38c], [38d], [38g], [38f] and [38e] kept theirs when 71 was
-# itself carved out of 70-invariants-and-new.sh. A fragment is free to move; a
-# check ID that CHANGELOG.md, a work-doc or another block cites is not.
+# DIFF-SLICING, SETTLE-ECHO AND PUBLISH-CONTRACT PINS, split out of
+# 71-release-mechanism-pins.sh in the sprint that file reached 497 lines against
+# the 500-LOC hard cap that check [80] enforces. [38e] and [38h] came across
+# whole and kept their check IDs, the way [38c], [38d], [38g], [38f] and [38e]
+# kept theirs when 71 was itself carved out of 70-invariants-and-new.sh. A
+# fragment is free to move; a check ID that CHANGELOG.md, a work-doc or another
+# block cites is not.
 #
 # THE SEAM IS THE SAVING BEING GUARDED. 71 keeps the pins on the v0.11.0 token
-# reduction, on the routing triggers, and on the v0.13.0 agent merge. Both
-# blocks here guard ONE saving, the v0.11.0 diff slicing and the carry-over that
-# rides on it: [38e] pins the mechanism, and [38h] pins the FILE SET that
-# mechanism is stated over, so a new site cannot join the settle-echo contract
-# unnoticed. [38h]'s own comment already said it sat beside [38e] because that
-# is the block it guards, so the two travelled together.
+# reduction, on the routing triggers, and on the v0.13.0 agent merge. [38e] and
+# [38h] guard ONE saving between them, the v0.11.0 diff slicing and the
+# carry-over that rides on it: [38e] pins the mechanism, and [38h] pins the FILE
+# SET that mechanism is stated over, so a new site cannot join the settle-echo
+# contract unnoticed. [38h]'s own comment already said it sat beside [38e]
+# because that is the block it guards, so the two travelled together.
+#
+# [38j] IS THE SECOND SAVING, AND IT USED TO BE FILED UNDER THE FIRST. The Phase
+# 6 hand-off pins landed inside [38e] as its block (7), where the transcript line
+# a reader actually sees announced "the v0.11.0 diff-slicing and carry-over
+# changes" over four pins about publishing the work-doc as a page. Both index
+# rows, scripts/validate-dod.sh and scripts/validate-dod.d/README.md, described
+# this fragment as diff-slicing plus settle-echo and were right about the
+# fragment while [38e] was wrong about itself. Giving the publish contract its own
+# id fixes the half a reader reads, and the rows then only had to gain a third
+# name rather than a third subject. A SEPARATE FRAGMENT WAS THE OTHER CANDIDATE
+# and was refused on a measured cost, not a taste: scripts/test_ban_tokens.d/
+# 40-fragment-coverage.sh pins the directory total by hand at 47, deliberately as
+# an equality and not a floor, so a 48th fragment reddens the ban-token suite
+# until that number is bumped in the same change. A check id costs nothing there
+# and buys the same honesty in the transcript.
 #
 # THE CUT POINT WAS CHOSEN, NOT TAKEN AT THE MIDPOINT. 91-claim-resolvers.sh
 # cites 71-release-mechanism-pins.sh:287 and reads lines 283 to 293 of that file
@@ -56,8 +72,20 @@ done
 # (2) Reviewer B is NEVER sliced. B applies the semantic tier to every touched
 # file and re-judges every law-scout row, so any subset withheld from B is
 # coverage deleted outright. Both copies of B's prompt must stay scope-free.
+#
+# /usr/bin/grep BY ABSOLUTE PATH, and this is the direction where it is load
+# bearing rather than tidy. THIS TEST IS AN ABSENCE CHECK WEARING A PRESENCE
+# CHECK'S SHAPE: the green branch is the one grep takes when it finds NOTHING, so
+# a matcher that skipped the file entirely would print "is not sliced (correct)"
+# over a prompt it never opened, which is the false pass check_no_token's own
+# comment in 00-helpers.sh was written about. It reads bare `grep` for the whole
+# life of this block by inheritance from a presence-shaped idiom, and under the
+# bash the validator runs in that resolved to the same binary, so nothing was ever
+# wrong on this machine. Under the interactive zsh here, bare `grep` is a function
+# honouring ignore files, and this is the one call site in this fragment where that
+# buys a clear verdict instead of a loud red.
 for f in "agents/reviewer-quality-plan.md" "$PA/phase-5-multi-review-b-quality-plan.md"; do
-  if grep -qF '{{review_scope}}' "$f" 2>/dev/null; then
+  if /usr/bin/grep -qF '{{review_scope}}' "$f" 2>/dev/null; then
     red "  FAIL $f takes {{review_scope}}, Reviewer B must never be sliced"
     FAILED=$((FAILED + 1))
   else
@@ -107,11 +135,6 @@ check_token_present '### Scope ledger (Phase 5)' "$WORK_DOC_TPL"
 check_token_present 'Build `{{metrics_table}}` before you dispatch B' "$P5_REVIEW"
 check_token_present 'max-lines-per-function' "$P5_REVIEW"
 check_token_present 'unavailable' "$P5_REVIEW"
-
-# (7) The Phase 6 report is rendered from JSON, never typed out by hand.
-check_file "skills/hackify/scripts/render-report.py"
-check_token_present 'Do not hand-write the HTML' "skills/hackify/references/html-report.md"
-check_token_present 'render-report.py' "skills/hackify/references/finish.md"
 
 yellow "[38h] the retired round vocabulary is gone, proved against a positive control"
 # WHAT THIS CATCHES AND WHAT IT DOES NOT, stated first, because a check whose comment
@@ -194,3 +217,85 @@ else
     fi
   done
 fi
+
+yellow "[38j] the Phase 6 publish contract keeps its rules, the temp-directory one included"
+WDA_REF="skills/hackify/references/work-doc-artifact.md"
+
+# (1) THE HAND-OFF IS THE WORK-DOC ITSELF, published as a page, and nothing
+# renders a second copy of the sprint beside it. The renderer, its template, its
+# doctrine file and its test suite were deleted outright, so the three pins that
+# named them are REPLACED here rather than dropped. A doctrine saying "publish the
+# doc, never build a second representation of it" rots the moment nobody checks
+# that it still says so, and deleting a pin quietly weakens this gate by exactly
+# one check, which is the trade every block in this directory refuses.
+#
+# WHY THESE PHRASES AND NOT NEARBY ONES. Each is a RULE stated in the imperative,
+# not a description of one, so it cannot be reworded in passing without the rule
+# going with it; that is the bar a pin has to clear, and it is why none of the
+# section headings above them was taken instead. The hand-written-markup ban is
+# the direct successor of the pin that used to guard the same rule for the
+# rendered report, and it is what reddens if somebody reintroduces a rendered
+# report by typing the markup out. The hard-require ban is the never-load-bearing
+# rule: it is the one sentence a runtime with no publish tool depends on, and
+# dropping it turns an enhancement into the portability bug runtime-adapters.md
+# forbids.
+#
+# THE FINISH.MD PIN IS THE LINK, NOT A SENTENCE, and that is deliberate. What it
+# asks is whether Step F still loads the contract at all, which is the rot the
+# retired call-site pin caught; a sentence there belongs to the phase file's own
+# prose and is reworded every time that prose is tightened, while the link is
+# either present or the contract is orphaned.
+check_file "$WDA_REF"
+check_token_present 'do not hand-write markup to stand in for it' "$WDA_REF"
+check_token_present 'no phase may hard-require it' "$WDA_REF"
+check_token_present '[work-doc-artifact.md](work-doc-artifact.md)' "skills/hackify/references/finish.md"
+
+# (2) THE TEMP-DIRECTORY RULE, WHICH LOST ITS ONLY ENFORCEMENT AND GOT NO
+# REPLACEMENT. It used to be executable: the deleted renderer opened both of its
+# output paths with O_NOFOLLOW, two tests exercised that, and a named CI step ran
+# them. All three went with the renderer, legitimately, and what was left behind
+# was prose with nothing under it, so the rule could be edited away with no check
+# anywhere going red. THERE IS NO LIVE VULNERABILITY HERE and this block does not
+# claim one: `mktemp -d` picks an unguessable name and creates it mode 0700, which
+# closes the case on its own. The defect is the missing gate, and a gate is what
+# this is.
+#
+# WHAT IS PINNED IS THE MITIGATION AND ITS REASON, not the paragraph around them.
+# The call is machinery and cannot be reworded into something else; the fixed-name
+# ban is the rule in the imperative; the mode is the second half of why the
+# mitigation works, since an unguessable name nobody else can write into is what
+# makes the pre-planted symlink unreachable rather than merely unlikely; and the
+# CWE ids are identifiers rather than prose, so they survive every tightening pass
+# that a sentence about symlinks would not.
+check_token_present '$(mktemp -d)' "$WDA_REF"
+check_token_present 'never a fixed name in the shared temp directory' "$WDA_REF"
+check_token_present 'mode `0700`' "$WDA_REF"
+check_token_present 'CWE-59, CWE-377' "$WDA_REF"
+
+# (3) AND THE ONE OTHER SITE POINTS AT IT RATHER THAN RESTATING IT. quick mode
+# publishes a page too and used to carry its own copy of the temp-directory
+# sentence; it now defers to the section above instead, which is the better shape
+# and also a fragile one, because a delegation that quietly stops delegating
+# leaves quick with no rule at all and nothing to notice. Two sites name it, so
+# both halves of the arrangement are pinned: the rule lives in exactly one file,
+# and the file that gave up its copy still sends the reader there.
+# BOTH ENDS OF THE DELEGATION, which is what makes it a pin rather than a hope:
+# quick names the rule and names the heading it now lives under, and that heading
+# has to still be there in the file it points at.
+QUICK_SKILL="skills/quick/SKILL.md"
+check_token_present 'temp-directory rule' "$QUICK_SKILL"
+check_token_present 'under `## Quick mode`' "$QUICK_SKILL"
+check_token_present '## Quick mode' "$WDA_REF"
+
+# (4) THE PROJECT-RELATIVE-PATH RULE AND ITS ENFORCEMENT HALF, pinned together
+# because they are worth exactly nothing apart. [6b] in 10-required-files.sh
+# screens every live work-doc for an absolute home-directory path, and it is the
+# machinery behind this section rather than a second opinion about it. A pin on
+# the section alone would let the screen be deleted in silence; the screen alone
+# would enforce a rule the doctrine no longer states, which is how a check becomes
+# something a later reader deletes as unexplained.
+check_token_present '## Project-relative paths only' "$WDA_REF"
+# THE DECLARATION LINE AND NOT THE BARE ID, because '[6b]' on its own is
+# satisfied by any passing mention in a comment, while the header is the one line
+# whose disappearance IS the check's disappearance.
+check_token_present '[6b] no live work-doc leaks an absolute home-directory path' "scripts/validate-dod.d/10-required-files.sh"

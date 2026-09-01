@@ -142,9 +142,6 @@ jobs:
       - name: Tamper battery (fail-closed branches + hostile arguments)
         run: python3 scripts/test_tamper_battery.py
 
-      - name: Renderer suite (escaping, output modes, symlink refusal)
-        run: python3 scripts/test_render_report.py
-
       # WHY THE TREE IS BUILT BEFORE THE VALIDATOR RUNS. Check [56] compares every
       # file the sync copies into dist/<runtime>/ against the canonical source it
       # came from, and dist/ is gitignored wholesale (`*` plus `!.gitignore`), so a

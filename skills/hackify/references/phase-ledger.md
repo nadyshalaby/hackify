@@ -47,6 +47,8 @@ The count in the header is completed items over total items, then the phase the 
 
 **Ledger persistence (mandatory).** On BOTH substrates, in full hackify, **a tick is an edit to the work-doc file plus a chat re-print**. At every phase boundary, and at the end of every wave round inside a phase, you MUST rewrite the `## 0. Phase ledger` block in `docs/work/<slug>.md` so its marks match the ones you are about to print, and advance frontmatter `status` (plus `current_task` where the phase moves it) in that SAME edit. **The file edit comes before the print.** The one-line reflection may lead, but the block is never re-printed ahead of the edit that made it true, or the printed marks describe a file that does not carry them. A todo-tracker tick does not touch the file either, so the primary substrate owes this edit exactly as the fallback does. Skipping it is an abandoned-state bug: chat scrolls away, the file is what resume and archive read, and a doc that lands in `done/` still showing `- [>] Phase 5` is a false record of where the work stopped.
 
+**The republish rides that same beat**, where the runtime can publish a page. The work-doc is itself published as a page from Phase 2 step 1, so the beat is: edit the block, save, republish, print. It is not a new step and it does not open a new turn, and the link the user already holds stays current for the whole task without anyone re-printing it. A runtime with no publish tool prints exactly as before; the republish never gates a tick. Contract: [work-doc-artifact.md](work-doc-artifact.md).
+
 **On Claude Code specifically**, `TodoWrite` is frequently absent from the session tool surface, so the fallback is the NORMAL path there, not an exotic edge case. Check for the primitive at task start, and when it is not there, degrade to the printed block. A missing tool is never a reason to drop the ledger.
 
 **Name the substrate once, in one line, the first time you print the block.** It used to say to degrade *without comment*, and that was the defect: silence about a missing tool is indistinguishable from silence about a skipped step, so a user watching for a to-do list saw nothing and could not tell which had happened. One line, once, at the first print:
@@ -78,7 +80,7 @@ Create it with the **todo tracker** primitive when the runtime exposes one, othe
 7. Phase 6a. Re-verify + land choice (Steps A, B, C)
 8. Phase 6b. Cleanup sweep (Step C.5)
 9. **Phase 6c. Archive work-doc to `done/` (Step D)**
-10. Phase 6d. Update log + HTML report (Step F)
+10. Phase 6d. Update log (Step F)
 
 Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as items only when they apply, and they no longer share a slot. Neither one can sit between 6c and 6d any more, because those two tick in a single edit (**Closing the ledger** below) and leave no gap between them. **Codewalk goes between 6b and 6c**, where it runs and ticks on its own trace before 6c opens. **Worktree cleanup goes after 6d**, because `git worktree remove` has to follow the archive move: when the sprint used a worktree the live work-doc sits inside it, and removing it first takes away the path the move needs. Its row is ticked by the closing edit along with 6c and 6d, for the same reason the move itself is not separately tickable. Phase 3b (Debug) is conditional, insert it only when a wave gets stuck.
 
@@ -89,7 +91,7 @@ Codewalk (Step D.5) and worktree cleanup (Step E) are conditional, add them as i
 3. Phase 4. Verify (lite ledger + Layers 1-2)
 4. Phase 5-lite. All-lens address-all review
 5. Phase 6. Cleanup sweep (Step C.5)
-6. Phase 6. Update log + HTML report
+6. Phase 6. Update log
 
 ## The ordering law (the whole point)
 
@@ -113,7 +115,7 @@ A checkbox may flip to `completed` **only when its exit artifact exists**. No ar
 | 6a Re-verify + land choice | Verification re-run green on the pre-merge state, not Phase 4's result; the 4 options presented with no open-ended choice; the chosen option executed (commit, PR, stop, or discard) |
 | 6b Cleanup sweep | A one-line evidence record per cleanup class in the work-doc Phase 6 archive (in-chat for quick), 0 findings counts; every defect found either fixed or filed as a linked Retrospective follow-up |
 | **6c Archive** | **Frontmatter `status: done` and a fully closed ledger written into the work-doc, with `git mv docs/work/<slug>.md docs/work/done/<slug>.md` as the mechanical step that immediately follows** |
-| 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log`, **and** `<slug>.report.html` already written to `docs/work/done/<slug>.report.html`. Where the runtime can publish a page, the report is published too and the user gets the link, but that link is an extra on top of this row and never part of it: the artifact is the printed log plus the file on disk, so a runtime with no publish tool still closes 6d ([runtime-adapters.md](runtime-adapters.md)) |
+| 6d Update log | Five-field update log printed (blocks separated by `----`) and appended to the doc under `## Update log` by the closing edit, **and** that edit saved to disk. Those two are the whole artifact: the printed log plus the work-doc file. Where the runtime can publish a page, the final republish of the work-doc rides that same closing edit and the link the user has held since Phase 2 ends the sprint showing the finished doc, but the link sits on top of this row and is never part of it, so a runtime with no publish tool still closes 6d ([work-doc-artifact.md](work-doc-artifact.md), [runtime-adapters.md](runtime-adapters.md)) |
 
 The archive row is still the fix for the "forgot to archive" bug, but it does its work from the other end now: the edit that closes the ledger is the same edit that writes `status: done`, so a doc cannot be marked finished with a phase left open.
 
@@ -122,15 +124,15 @@ The archive row is still the fix for the "forgot to archive" bug, but it does it
 Phase 6 ends in a fixed order, and it is the only point in the workflow where two rows tick in the same edit.
 
 1. **6b closes, 6c opens** as `- [>]`. The doc is still at its live path, `docs/work/<slug>.md`.
-2. **Step F's work runs at that live path.** Print the five-field update log and render the HTML report straight to its final `docs/work/done/<slug>.report.html` path. Both of 6d's artifacts now exist. Publishing that report as a shareable link, where the runtime can, happens here too and is not one of them: a link that never gets made leaves the row closeable, which is what keeps a non-publishing runtime able to finish a sprint at all.
-3. **One edit closes both rows.** Append the update log to the doc under `## Update log`, tick 6c AND 6d `- [x]` (plus a conditional worktree row, when the sprint has one), and write frontmatter `status: done`. This is the last content change the doc ever receives.
+2. **Step F's work runs at that live path.** Print the five-field update log. That print is the first of 6d's two artifacts; the second is the work-doc itself, which step 3 finishes. Nothing is rendered here, because the page the user holds is the work-doc, not a second copy of it ([work-doc-artifact.md](work-doc-artifact.md)).
+3. **One edit closes both rows.** Append the update log to the doc under `## Update log`, tick 6c AND 6d `- [x]` (plus a conditional worktree row, when the sprint has one), and write frontmatter `status: done`. This is the last content change the doc ever receives, so the republish riding it is the last one too: the user's link now shows the finished sprint. On a runtime with no publish tool, say the path in one line instead and carry on, because the row closes on the printed log plus this file either way.
 4. **`git mv docs/work/<slug>.md docs/work/done/<slug>.md`** is the last mechanical step on the doc, and it is a rename rather than a content change. A worktree removal, where one applies, runs after that move and not before it.
 
 Because the closing edit comes before the move, the doc never exists under `done/` carrying an open row. Under the previous order it always did, for the length of Step F, and check `[98]` reads that state as a sprint that stopped mid-phase.
 
-**This is not a licence to tick ahead of an artifact.** 6c and 6d BOTH tick AFTER BOTH their artifacts exist: the log and the report are written in step 2, and the doc's own final content is written by the tick itself in step 3. What the ledger cannot record is the tail that follows it, the rename and any worktree removal, because a tick is a content change and the move has to be last. A check covers that gap instead of prose: assertion (c) of `[99]` reds on any doc carrying `status: done` outside `docs/work/done/`.
+**This is not a licence to tick ahead of an artifact.** 6c and 6d BOTH tick AFTER BOTH their artifacts exist: the update log is printed in step 2, and the doc's own final content is written by the tick itself in step 3. What the ledger cannot record is the tail that follows it, the rename and any worktree removal, because a tick is a content change and the move has to be last. A check covers that gap instead of prose: assertion (c) of `[99]` reds on any doc carrying `status: done` outside `docs/work/done/`.
 
-**The tradeoff, stated rather than hidden.** The old order put the archive first on purpose, so that the summary was the reward for archiving. Step 2 above gives that up, by the few seconds Step F takes. The new order is still the better one, and the reason is which wreckage each order leaves when a session dies mid-finish. Die between the report and the move, and the doc sits at its live path with `status: done`, which `[99]` assertion (c) reds on at the next validator run. Die between the move and the report under the old order, and you get an archived doc silently claiming a phase that never ran, with nothing to catch it. That is not hypothetical: `docs/work/done/2026-08-23-phase-ledger-substrate.md` is exactly that doc, and this sprint found it by hand. A red you can see beats a false record you cannot.
+**The tradeoff, stated rather than hidden.** The old order put the archive first on purpose, so that the summary was the reward for archiving. Step 2 above gives that up, by the few seconds Step F takes. The new order is still the better one, and the reason is which wreckage each order leaves when a session dies mid-finish. Die between the closing edit and the move, and the doc sits at its live path with `status: done`, which `[99]` assertion (c) reds on at the next validator run. Die between the move and the update log under the old order, and you get an archived doc silently claiming a phase that never ran, with nothing to catch it. That is not hypothetical: `docs/work/done/2026-08-23-phase-ledger-substrate.md` is exactly that doc, and this sprint found it by hand. A red you can see beats a false record you cannot.
 
 ## Reflect after each step
 
@@ -181,5 +183,6 @@ The item marks do not change on an in-phase re-print, because a round is not a p
 - [goal-anchor.md](goal-anchor.md), the Primary Goal & Guardrails locked in Phase 1 (Phase 1's exit artifact).
 - [communication-voice.md](communication-voice.md), the reflect-after-step narration.
 - [finish.md](finish.md), the Phase 6 steps the 6a, 6d ledger items map to (archive is Step D).
+- [work-doc-artifact.md](work-doc-artifact.md), the work-doc as a published page, and the republish that rides every tick above.
 - [runtime-adapters.md](runtime-adapters.md), the `todo tracker` primitive and its per-runtime mapping.
 - [../../groom/SKILL.md](../../groom/SKILL.md), the other skill that writes section 0, because on the groom path it is the one that creates the work-doc.

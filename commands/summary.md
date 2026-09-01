@@ -18,9 +18,9 @@ Bias against: sounding like a changelog.
 **INPUTS**.
 
 1. `{{work_doc_path}}`, absolute filesystem path to the active or most-recent hackify work-doc. The dispatching agent MUST resolve this by globbing `docs/work/*.md` first, then `docs/work/done/*.md`, and selecting the file with the most recent `mtime`. If no work-doc exists at either location, the dispatcher MUST substitute the literal string `NONE` so the sub-agent can emit the "nothing yet" fallback block.
-2. `{{invocation_phase}}`, one of two literal string values: `mid-flight` (invoked on demand during Phases 1-5, chat only) or `phase-6-finish` (invoked at Phase 6 Step F, append to the work-doc and emit the HTML report).
+2. `{{invocation_phase}}`, one of two literal string values: `mid-flight` (invoked on demand during Phases 1-5, chat only) or `phase-6-finish` (invoked at Phase 6 Step F; the log you print is appended to the work-doc by Step D's closing edit rather than by you, and that doc is itself the page the user holds a link to).
 
-**OBJECTIVE**. A plain-language update log, one block per change, covering everything shipped or about to ship in the active work-doc, and at Phase 6 finish the self-contained styled HTML report that embeds it.
+**OBJECTIVE**. A plain-language update log, one block per change, covering everything shipped or about to ship in the active work-doc, and at Phase 6 finish that same log handed back for Step D's closing edit to append to the doc the user already holds a link to.
 
 **METHOD**.
 
@@ -37,8 +37,7 @@ Bias against: sounding like a changelog.
 5. For each update, pull the real proof from the Evidence Ledger rows for its tasks and acceptance bullets: the command that ran and the trimmed output it returned. Quote real numbers. If an item has no proof row, say so plainly in "Verification evidence" rather than implying it was verified.
 6. For each update, set Deployment status from the finish action actually taken: shipped and where it landed, or not shipped and what it is waiting on. Never write a vague Deployment status.
 7. Write each block with the five bolded field headings in this exact order, separated from the next block by a line containing exactly `----`. Voice rules and the field-by-field guidance are in `skills/hackify/references/finish.md` Step F, follow them; the short version is: talk like a person, no jargon the reader did not use, never name the workflow's own machinery, say it and stop.
-8. If `{{invocation_phase}}` equals the literal string `phase-6-finish`, append the SAME update log verbatim to `{{work_doc_path}}` inside the `## Retrospective` section (legacy work-docs: `## Post-mortem`) under a new `## Update log` heading (create the heading if missing). If `{{invocation_phase}}` equals `mid-flight`, skip this append step.
-8b. If `{{invocation_phase}}` equals `phase-6-finish`, ALSO emit the styled HTML report: read `skills/hackify/references/html-report.md`, fill `skills/hackify/assets/report-template.html` (this log becomes `{{UPDATE_LOG}}`), and write the self-contained file to the report path named there. The report MUST have zero external network references. Skip for `mid-flight`.
+8. **Do not write to `{{work_doc_path}}` yourself, in either phase.** At `phase-6-finish` the log you print is what Step D's ONE closing edit appends, as a new **top-level** `## Update log` heading of its own. Never nest it inside `## Retrospective` (legacy work-docs: `## Post-mortem`): a `##` heading closes the section it is written into, so a `## Update log` written there ends the Retrospective instead of sitting under it. That closing edit belongs to the parent, it ticks `6c` and `6d` and writes `status: done` in the same pass, and it carries the final republish of the doc, which is the page the user already holds a link to. Append the log yourself and it lands twice, once from you and once from that edit (`skills/hackify/references/phases/phase-6-finish.md` Step D, `skills/hackify/references/work-doc-artifact.md`). At `mid-flight` there is no closing edit and nothing is appended anywhere: the print is the whole artifact.
 9. Print the log to chat as the first content of the OUTPUT, no prose preamble, no heading above the first block.
 10. Print exactly ONE follow-up line immediately after the last block: `Happy to go deeper on any of these, just say which one.`
 
@@ -51,10 +50,10 @@ Bias against: sounding like a changelog.
 5. Is every block free of phase numbers, task IDs, reviewer letters, scout names, and any mention of the work-doc? (yes / no)
 6. Would a smart reader who is not an engineer follow every block without asking what a word means? (yes / no)
 7. Did I separate every pair of blocks with a line containing exactly `----`? (yes / no)
-8. Did I append the log to `{{work_doc_path}}` if and only if `{{invocation_phase}}` equals `phase-6-finish`? (yes / no)
+8. Did I leave `{{work_doc_path}}` unwritten in both phases, so the only append is Step D's closing edit? (yes / no)
 9. Did I print the follow-up line exactly once, immediately after the last block? (yes / no)
 10. Did I avoid inventing updates the work-doc does not support? (yes / no)
-11. At `phase-6-finish` only, did I emit the self-contained HTML report per `html-report.md` with zero external network references? (yes / no / n-a if mid-flight)
+11. At `phase-6-finish` only, did I leave the work-doc as the single record, rendering no separate report file of any kind? (yes / no / n-a if mid-flight)
 
 **OUTPUT**. ≤700 words (rationale: five short fields per block at ~20 words each is ~100 words; a 5-update log lands near 500, and 12 short updates still fit). Format:
 

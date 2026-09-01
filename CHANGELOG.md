@@ -39,6 +39,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > that died partway through lost the record of everything the finished agents had already done. Each
 > agent's work is folded in as it reports back instead.
 >
+> **The end-of-sprint HTML report is gone, and you get a link instead.** Hackify used to render a
+> styled HTML file at the very end of a run and leave it sitting in `docs/work/done/` for you to
+> open by hand. It was a second copy of the sprint whose only job was to restate what the work-doc
+> already said, and the two drifted apart every time somebody edited one and forgot the other. Now
+> the work-doc itself is published as a page. You get the link as soon as the doc is written, before
+> you sign the plan off, and that same link updates in place at every phase boundary, so what you
+> send someone is current rather than a snapshot taken at the end. Nothing is rendered and nothing
+> extra is written into your tree: the page is the file. Where a runtime has no way to publish a
+> page, the run says so in one line and carries on with the work-doc on disk, because no phase is
+> allowed to need the link.
+>
 > **Phase 5 now sends one reviewer instead of five, and it measured weaker than the five.** Full
 > mode used to dispatch a panel of five reviewer agents, one lens each. It now dispatches a single
 > merged reviewer that carries every lens, and so does quick. We ran both instruments over the same
@@ -159,6 +170,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not, because a miner that quietly examines a handful of entry points and reports clean is the shape
   this release keeps finding elsewhere. The uncovered list is a note and not a red, so the only way to a
   green bar is never a table claiming predicates it does not have.
+- **The work-doc gets published as a page, and the link does not move for the life of the task.** The
+  first publish happens the moment the doc is saved in Phase 2, before the plan goes up for sign-off,
+  so the thing you approve and the thing you keep are one link. Every phase-ledger tick republishes
+  the same file to the same URL, which is the whole point: the page updating in place is the feature,
+  and a link that never changes is the proof it worked. There is no render step and no second copy,
+  so anything worth putting on the page gets written into the work-doc and the page picks it up.
+  Because the doc now travels to whoever you send it to, the file paths inside it are written
+  project-relative from the start rather than scrubbed at the end, and personal handles and tokens
+  stay out of it. Quick mode has no work-doc to publish, so it assembles a scratch markdown file from
+  the blocks it already prints and publishes that, in a fresh private directory per run so a
+  guessable path in a shared temp directory cannot be pre-filled by anyone else. The archived copy
+  under `docs/work/done/` is never published, because a second path mints a second link and makes the
+  one you already have stale. And publishing is never load-bearing: no phase may require it, so a
+  runtime without a publish tool says so in one line, names the file on disk, and finishes the sprint.
 
 ### Changed
 
@@ -312,6 +337,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as three. That became four in 0.16.1 and seven in this release, and nothing goes red over prose,
   which is why it sat wrong for two releases. The comment now points at the one file the number is
   allowed to live in, instead of keeping a copy of its own.
+
+### Removed
+
+- **The rendered HTML sprint report, and every part that built it.** Gone: the renderer script at
+  `skills/hackify/scripts/render-report.py`, its template at `skills/hackify/assets/report-template.html`,
+  its test suite at `scripts/test_render_report.py`, and the reference page at
+  `skills/hackify/references/html-report.md` that specified the whole thing, stat set and output paths
+  included. Gone with them are the twelve rendered reports the feature had already left lying around,
+  ten under `docs/work/done/` from full runs and two under `docs/work/reports/` from quick ones, each
+  a frozen snapshot of a sprint that had long since finished. The published work-doc described above does the job now, and does it
+  from the start of the run rather than the end. Older entries in this file that describe the report
+  as it worked at the time are left exactly as they are: a changelog that edits its own past is worse
+  than one naming a file that has since been deleted.
 
 ## [0.17.2] - 2026-08-28
 

@@ -18,8 +18,10 @@ Phase 3  Implement    code written against {token.ref}s      spec-contract.md
    ↓
 Phase 5  Review       Reviewer E audits diff vs spec         ../parallel-agents/phase-5-multi-review-e-design.md
    ↓
-Phase 6  Finish       preview linked from the HTML report    ../html-report.md
+Phase 6  Finish       spec + preview ship with the change    "Output contract" below
 ```
+
+**Phase 6 writes no link back, and that is the honest row rather than a shortened one.** This line used to promise a preview "linked from the work-doc", and nothing anywhere produced that link: no step of the Phase 6 protocol writes one, and none ever did. The spec and its preview are committed files at a fixed path, `<project>/docs/design/`, which is where a reader already looks for them, so the promise bought nothing and cost a reader the time to go find the step that kept it. What Phase 6 actually does with them is land them with the rest of the change, under whichever finish option the user picks.
 
 Standalone entry point: `/hackify:designify` authors, refreshes, or extracts a spec without running a full task.
 

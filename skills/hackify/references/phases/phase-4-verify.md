@@ -6,7 +6,7 @@ Loaded by `SKILL.md` when this phase opens. The phase's entry conditions, hard g
 
 **Ledger, at phase open.** Set the phase ledger's `Phase 4. Verify (Evidence Ledger + triad green)` to in-progress in the work-doc's `## 0. Phase ledger` block, with frontmatter `status: verifying` in the same edit, and re-print the whole block after that edit is saved. Never open it while `Phase 3. Implement` is still open. That is the **phase** ledger, a different artifact from the Evidence Ledger this phase builds. Contract: [../phase-ledger.md](../phase-ledger.md).
 
-**Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review and rendered again in the Phase 6 HTML report's evidence appendix (cumulative proof in one place).
+**Part 1. Evidence Ledger (per-item proof).** One row per Sprint Backlog task AND per Acceptance-Criteria bullet: `Item | Type | Claim | What I ran | Proof sample | Result`. The proof sample is a REAL, trimmed slice of output, never a summary, never invented. A missing or ❌ row blocks Phase 5. The ledger is saved in the work-doc Sprint Review, and the work-doc is itself the page the user holds ([../work-doc-artifact.md](../work-doc-artifact.md)), so the cumulative proof travels with the doc and there is no second copy to keep in step with it.
 
 **Part 2. Three-layer re-verify (prove it without drifting).** Run in order; re-run any layer on demand when the user says "prove it again".
 

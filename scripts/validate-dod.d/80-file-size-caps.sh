@@ -5,9 +5,22 @@
 # across the primitive directories. Closes the gap where rules said one
 # thing and the validator enforced another (v0.2.7 retrospective).
 #
-# Python joined the scanned extensions in v0.11.0, when render-report.py became
-# the first plugin file carrying real logic that the cap could not see.
-# Portable across bash 3.2 (macOS default), uses a while-read loop, not mapfile.
+# PYTHON IS SCANNED BECAUSE THE PLUGIN SHIPS EXECUTABLE PYTHON. The extension
+# joined this list in v0.11.0 for the Phase 6 report renderer, the first plugin
+# file carrying real logic the cap could not see. That renderer was deleted when
+# the rendered report was retired, and the reason for the extension outlived it:
+# lawkeeper still ships its scanner and its own suites as Python under skills/,
+# and scripts/ holds this validator's whole test battery. So the premise did not
+# change with the file that first made the case for it, and removing Python here
+# would take the cap off every one of those.
+#
+# NO COUNT IS WRITTEN HERE, deliberately, on the argument 96-review-scope-sites
+# .sh makes about a number copied into prose. The ADDRESS instead, and it is BOTH
+# of the finds cap_file_list runs, CAP_SEARCH_PATHS spelled out and the root pass:
+#   find skills agents rules scripts hooks commands -name '*.py' -type f
+#   find . -maxdepth 1 -name '*.py' -type f
+# The `find skills scripts` this replaces missed every hooks/*.py, three files, so
+# it under-measured. Portable on bash 3.2 (macOS), a while-read loop not mapfile.
 
 CAP_MAX_LOC=500
 CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"

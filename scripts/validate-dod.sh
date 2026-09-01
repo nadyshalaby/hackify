@@ -24,7 +24,7 @@
 #   00-helpers.sh, color printers, the ok counter, the line-oriented absence family, and the loop that sources every other helper fragment beside it
 #   01-presence-matchers.sh, the presence matchers, both flattened matchers and the shared membership count
 #   02-file-shape-checks.sh, the whole-file shape assertions
-#   10-required-files.sh, checks [1]-[6]
+#   10-required-files.sh, checks [1]-[6b], required files, JSON shape, and the leak screens over shipped content and over the live work-doc that Phase 6 publishes
 #   20-templates.sh, checks [7]-[15], [36] (template contracts incl. agents/)
 #   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match plugin.json
 #   30-version-and-summary.sh, checks [16]-[20]
@@ -37,7 +37,7 @@
 #   60-primitives.sh, checks [29]-[32]
 #   70-invariants-and-new.sh, checks [33]-[34], [37], [38], [38b], [39], the structural invariants
 #   71-release-mechanism-pins.sh, checks [38c]-[38d] and [38f]-[38g], one block per shipped saving
-#   72-diff-slicing-pins.sh, checks [38e] and [38h], the diff-slicing and carry-over mechanism plus the settle-echo file set
+#   72-diff-slicing-pins.sh, checks [38e], [38h] and [38j], the diff-slicing and carry-over mechanism, the settle-echo file set, and the Phase 6 publish contract with its temp-directory rule
 #   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned from both ends
 #   74-agent-shell-blocks.sh, check [74], every fenced shell block in a dispatchable agent template parses under /bin/bash
 #   75-ship-bar.sh, check [75], the always-on ship bar wired in every mode

@@ -62,7 +62,15 @@ Verbatim from the orchestrator header, indentation and all.
                   00-helpers.sh came back to exactly 500 of the cap and a wave
                   needed to add a helper to it. section_body left in the same
                   change and went nowhere, having one definition and zero callers
-  10-required-files.sh, checks [1]-[6]
+  10-required-files.sh, checks [1]-[6b], required files, JSON shape, and the
+                  two leak screens. [6] bans the author's personal handles and
+                  his one home directory out of SHIPPED content. [6b] joined it
+                  when the work-doc became a publishing surface: Phase 6
+                  publishes the live doc as a page, so a live work-doc is
+                  screened for an absolute home path of ANY user, by shape
+                  rather than by one literal, while docs/work/done/ is carved
+                  out because an archived doc is the frozen record and is never
+                  published again
   20-templates.sh, checks [7]-[15], [36] (template contracts incl. agents/)
   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match
                   plugin.json (stable ref, edge ref, versions)
@@ -130,16 +138,30 @@ Verbatim from the orchestrator header, indentation and all.
                   declare [38e] and never has: 72 does. Written as one run
                   the row read as [38c]-[38g], which sent a reader looking
                   for [38e] here to a fragment that has no such block
-  72-diff-slicing-pins.sh, checks [38e] and [38h], the v0.11.0 diff-slicing
-                  and carry-over mechanism, plus the settle-echo contract's
-                  own FILE SET ([38h]), which sits beside [38e] because [38e]
-                  is the block it guards. Split out of 71 at the same 500-LOC
-                  cap, IDs and all; the cut was taken here rather than at
-                  [38f] so that every line 71 keeps stays at the number a
-                  live citation already names. TWO SINGLE IDS AND NOT A
+  72-diff-slicing-pins.sh, checks [38e], [38h] and [38j], the v0.11.0
+                  diff-slicing and carry-over mechanism, plus the settle-echo
+                  contract's own FILE SET ([38h]), which sits beside [38e]
+                  because [38e] is the block it guards. Split out of 71 at the
+                  same 500-LOC cap, IDs and all; the cut was taken here rather
+                  than at [38f] so that every line 71 keeps stays at the
+                  number a live citation already names. SINGLE IDS AND NOT A
                   RANGE, for the reason the row above gives pointed the other
                   way: [38f] and [38g] sit in 71, so a run of [38e]-[38h]
-                  claimed two blocks this file does not hold
+                  claimed two blocks this file does not hold. [38j] IS THE
+                  THIRD SUBJECT AND WAS ONCE THE FIRST'S BLOCK (7): the Phase
+                  6 publish-contract pins sat inside [38e], so the transcript
+                  line announced diff slicing over four pins about publishing
+                  the work-doc as a page, and this row and the orchestrator's
+                  described the fragment correctly while the check described
+                  itself wrongly. It got its own id rather than its own
+                  fragment because the fragment-total pin in
+                  scripts/test_ban_tokens.d/40-fragment-coverage.sh is a hand
+                  written equality at 47 and not a floor, so a 48th file
+                  reddens the ban-token suite until that number moves in the
+                  same change. [38j] now also holds the temp-directory rule
+                  that lost its enforcement when the renderer was deleted, and
+                  the doctrine half of the project-relative-path rule whose
+                  enforcement half is [6b] in 10-required-files.sh
   73-implementer-rename.sh, check [40], the Phase 3 implementer rename pinned
                   from both ends, the live agent type present at every
                   dispatch site and the dead one absent from the whole
