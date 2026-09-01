@@ -130,6 +130,13 @@ jobs:
       - name: Claim-check replay tests (measured scoring, not authored)
         run: python3 scripts/test_replay_claim_checks.py
 
+      # The perf-scout's shell loop-body helper is doctrine inside a markdown
+      # fence rather than a script, so nothing here ran it until this suite did.
+      # It extracts the helper from perf-scout.md and drives that, which is why
+      # a green is a claim about what ships.
+      - name: Perf-scout awk tests (sh_loop_body heredoc-opener rule)
+        run: python3 scripts/test_perf_scout_awk.py
+
       - name: CI suite-coverage tests (check [97] every suite reachable from CI)
         run: python3 scripts/test_ci_suite_coverage.py
 

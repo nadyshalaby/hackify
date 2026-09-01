@@ -410,13 +410,18 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 #
 # DISJOINTNESS BUYS ATTRIBUTION NOW, not collision safety, and the pin staying put
 # through the change is what makes the two easy to confuse. Collision safety was the
-# original reason and CHANGELOG.md:18 records it dissolving on contact: one writer
-# per wave leaves no second writer to collide with. What survives is that every
-# touched file maps to exactly one task, which is how the parent reads a PARTIAL
-# diff back as a set of task IDs. The `(a) Your DECLARATION, checked against your
-# own allowlist.` block of phase-3-implementation.md leans on that directly, since a
-# wave that stopped early writes a strict subset of the union on purpose, and
-# ticking a task the agent never finished is the one thing a work-doc must never do.
+# original reason, and it dissolved on contact rather than being traded away, as
+# recorded in CHANGELOG.md's "with one agent per wave there is no second writer to collide with".
+# That is quoted rather than numbered because the changelog is appended to at the TOP,
+# so a line into it drifts on every release, and a pin that reds every release is one
+# somebody eventually repoints without reading it. The paragraph below reaches the
+# same place from the opposite failure, a number that goes stale in silence. What
+# survives is that every touched file maps to exactly one task, which is how the
+# parent reads a PARTIAL diff back as a set of task IDs. The `(a) Your DECLARATION,
+# checked against your own allowlist.` block of phase-3-implementation.md leans on
+# that directly, since a wave that stopped early writes a strict subset of the union
+# on purpose, and ticking a task the agent never finished is the one thing a work-doc
+# must never do.
 #
 # CITED BY BLOCK HEAD, NOT BY LINE, and that is the fix rather than the style. This
 # read `phase-3-implementation.md:238` until 0.16.0, and by then the block had moved

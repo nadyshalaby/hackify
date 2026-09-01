@@ -5,6 +5,67 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.1] - 2026-09-01
+
+> **The performance scanner could stop reading a file partway through and still report it clean.**
+> That is fixed. It scans shell files by finding loops, and to do that it has to know when a line
+> opens a heredoc so the text inside one is not mistaken for code. The test it used was too loose:
+> any `<<WORD` on the line counted, including one sitting inside a quoted string. A line that only
+> *talks* about a heredoc was enough to convince it, and from there it skipped everything until it
+> found a line matching that word on its own. In a file that never writes one, that is the rest of
+> the file. Every loop below went unseen and the report came back with nothing to show, which reads
+> exactly like a file with nothing wrong in it.
+>
+> This was live, not hypothetical. One of this repo's own hook test suites carries that shape on
+> line 59 and never writes a closing line, so 239 lines were invisible to the scanner, a loop that
+> spawns a Python process per file among them. The scan now only treats `<<WORD` as a heredoc where
+> a redirect could actually go, at the end of a command or before a pipe or another redirect. Across
+> every shell file in this repo, no genuine heredoc stopped being recognised and one file went from
+> zero findings to five.
+>
+> The scanner's helper is doctrine in a markdown file rather than a script, so it had no tests at
+> all. It has one now, and the suite pulls the helper out of that markdown and runs the real thing,
+> so a green here is a claim about what ships rather than about a copy that can drift.
+
+### Fixed
+
+- **The perf-scout no longer goes blind after a quoted heredoc delimiter.** `sh_loop_body` in
+  `skills/hackify/references/perf-scout.md` treated any `<<WORD` on a line as a heredoc opener, so a
+  quoted mention of one set a delimiter that never closed and every loop below it was skipped in
+  silence. The delimiter now has to sit where a redirect can sit, at end of line or before `<`, `>`,
+  `|`, `&`, `;`, `)` or a comment. Chosen over stripping quoted spans first, because a stripper has
+  to carve out the very quotes it strips, cannot follow a string past the line end, and fails the
+  same silent way when it loses track. Measured over every tracked shell file: no genuine opener
+  lost, and `hooks/test_block_banned_tokens.sh` went from 0 reported loop-body lines to 5.
+- **Three citations in the perf-scout's example findings table pointed at comment prose.** The
+  `wc -l` row cited `80-file-size-caps.sh:128`, a line in the middle of a paragraph about
+  `pipefail`, and now cites 141, where the batched `xargs -0 wc -l` that replaced the per-file fork
+  actually lives. The `$(basename)` row cited `20-templates.sh:149` and `:154`, both comment
+  continuation lines, and now cites the four real call sites at 156, 161, 164 and 194 with their
+  drivers named beside them.
+- **A citation in the release-mechanism checks named a line 1,072 lines away from its subject and
+  passed anyway.** `scripts/validate-dod.d/71-release-mechanism-pins.sh` cited `CHANGELOG.md:18` for
+  the sentence recording why wave disjointness stopped being about collision safety. That sentence
+  sat at line 1090; line 18 held a phrase from the 0.18.0 release blurb. Check `[57]` stayed green
+  because the citation quoted nothing behind a verb, and an unpinned citation is only asked whether
+  the line exists and carries something, which line 18 did. It now quotes the sentence and names no
+  line at all, which is form 5's possessive spelling and is resolved by searching the whole file, so
+  it survives every line shift and reds only on a real rewording. Dropping the number rather than
+  repointing it is the deliberate half: this file is appended to at the top, so any line into it
+  drifts on every release, and a pin that reds every release is one somebody eventually repoints
+  without reading. Proven from both sides, rewording the quote in the comment and rewording the
+  sentence here each turn the check red naming that citation by file and line. The pin moved forms
+  rather than lapsing, and the coverage line says so: 55 line citations with 2 pinned became 54 with
+  1, and 31 resolved prose anchors became 32.
+
+### Added
+
+- **`scripts/test_perf_scout_awk.py`**, 19 rows covering the heredoc-opener rule, wired into CI.
+  Genuine openers in every spelling, delimiters quoted inside strings, here-strings, and the
+  end-to-end blinding case, plus the live-tree file that produced the diagnosis. The helper is
+  extracted from the markdown rather than copied, and the extractor fails loudly instead of handing
+  the rows an empty program to pass against.
+
 ## [0.18.0] - 2026-09-01
 
 > **Your prompts now land in quick mode, and the full workflow is something you ask for by name.**

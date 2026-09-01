@@ -37,13 +37,36 @@ Ground rules for every pattern:
 # grep -E, so every pattern in the tables below stays plain POSIX ERE. `depth`
 # is the nesting level, and it is what makes perf.algorithmic.nested-loop-join
 # mechanical. Heredoc bodies are skipped so a `done` inside one cannot close a
-# loop that is still open.
+# loop that is still open, and a `<<WORD` counts as an opener only where a
+# redirect could sit, never inside a quoted string.
 sh_loop_body() {
   awk '
     hd != "" { if ($0 == hd) hd = ""; next }
     /^[[:space:]]*#/ { next }
-    { if ($0 ~ /<<-?["'"'"']?[A-Za-z_]/ && $0 !~ /<<</) {
-        t = $0; sub(/^.*<<-?["'"'"']?/, "", t); sub(/[^A-Za-z0-9_].*$/, "", t); hd = t }
+    # A `<<WORD` ANYWHERE ON THE LINE USED TO OPEN A HEREDOC, inside a quoted
+    # string included, and one that never closes blinds the scan in silence.
+    # One `echo "cat <<EOF"` set the delimiter, and the rule above then skipped
+    # every line down to a bare `EOF`; in a file that never writes one, that is
+    # the rest of the file, every loop below it invisible and the report a
+    # clean zero. Live in this tree at hooks/test_block_banned_tokens.sh:59,
+    # which hid the 239 lines under it, a python3-per-item loop among them.
+    # So the delimiter now has to sit where a redirect can sit: at end of line,
+    # or before `<`, `>`, `|`, `&`, `;`, `)` or a comment, `2>` counted.
+    # POSITION RATHER THAN STRIPPING THE QUOTED SPANS FIRST. A stripper has to
+    # carve out the very quotes it strips, since a quoted delimiter is written
+    # with them, and reading one line at a time it cannot track a string that
+    # runs past the line end; when it desynchronises it fails this same silent
+    # way. What survives here is a quoted delimiter that happens to be followed
+    # by a pipe or a redirect, `echo "cat <<EOF | wc"`, and that is the residue
+    # this trades for: a genuine opener wrongly rejected only scans a heredoc
+    # body and costs one disposition, a false one accepted costs the rest of
+    # the file.
+    # NO APOSTROPHE BELONGS IN THIS COMMENT. The awk program is a single-quoted
+    # shell word, so a bare apostrophe here ends it and hands the next run of
+    # characters to the shell to split and glob before awk ever sees them. Only
+    # the escape the two lines below use is safe.
+    { if ($0 !~ /<<</ && match($0, /<<-?("[A-Za-z_][A-Za-z0-9_]*"|'"'"'[A-Za-z_][A-Za-z0-9_]*'"'"'|[A-Za-z_][A-Za-z0-9_]*)[[:space:]]*([<>|&;)#]|[0-9]+[<>]|$)/)) {
+        t = substr($0, RSTART, RLENGTH); sub(/^<<-?["'"'"']?/, "", t); sub(/[^A-Za-z0-9_].*$/, "", t); hd = t }
       if ($0 ~ /(^|[^[:alnum:]_])(for|while|until|select)([[:space:]]|$)/) { pend = 1; pl = FNR }
       # `do` must END the line or follow a `;`. Prose saying "do not" opened a
       # phantom loop until this was anchored, and two validator fragments then
@@ -270,10 +293,10 @@ Coverage: scope 9 | covered by a table 7 | no table: docs/api.yaml | unreadable:
 | Finding | Catalog ID | file:line | Evidence | Proposed fix | Status |
 |---|---|---|---|---|---|
 | Query per task in export loop | perf.data.n-plus-one | src/export/service.ts:88 | `await repo.findOne(t.id)` inside `for (const t of tasks)` | one `findMany` with `id IN (...)` before the loop | staged |
-| `wc -l` per tracked file | perf.process.spawn-per-item | scripts/validate-dod.d/80-file-size-caps.sh:128 | retired body was `loc=$(wc -l < "$f" \| tr -d ' ')` in a `while read`, 2 forks per file; 250 files took 0.45s against 0.03s batched | one `xargs -0 wc -l` before the loop | fixed |
+| `wc -l` per tracked file | perf.process.spawn-per-item | scripts/validate-dod.d/80-file-size-caps.sh:141 | retired body was `loc=$(wc -l < "$f" \| tr -d ' ')` in a `while read`, 2 forks per file; 250 files took 0.45s against 0.03s batched. 141 is the batched `xargs -0 wc -l` that replaced it, which is where a `fixed` row has to point once the defect line is gone | one `xargs -0 wc -l` before the loop | fixed |
 | Sync read in request handler | perf.io.sync-fs | src/routes/report.ts:14 | `readFileSync(tplPath)` per request | async read once at startup, reuse | fixed |
 | `.includes` in tag loop | perf.algorithmic.scan-in-loop | src/tags.ts:31 | scanned list is 5 static items | , | false-positive: bounded constant list |
-| `$(basename)` per item, 4 loops | perf.process.fork-for-builtin | scripts/validate-dod.d/20-templates.sh:149, 154, 172, 187 | drivers are `"${PA_BUILD_FILES[@]}"` and `"${PA_REVIEW_SINGLE_FILES[@]}"`, literal arrays pinned at 3 and 9 by `check_list_size` | , | false-positive: bounded driver, 4 candidates |
+| `$(basename)` per item, 4 loops | perf.process.fork-for-builtin | scripts/validate-dod.d/20-templates.sh:156, 161, 164, 194 | drivers at 155, 160, 163 and 193 are `"${PA_BUILD_FILES[@]}"` and `"${PA_REVIEW_SINGLE_FILES[@]}"`, literal arrays pinned at 3 and 9 by `check_list_size` at 146 and 147; each of the four call sites now reads `${f##*/}`, the expansion that replaced the fork | , | false-positive: bounded driver, 4 candidates |
 | yaml has no pattern table | , | docs/api.yaml | in scope, no table for `.yaml`, nothing ran against it | add a table or declare the gap | staged: coverage lost |
 ```
 
