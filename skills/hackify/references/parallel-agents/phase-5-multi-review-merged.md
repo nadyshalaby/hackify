@@ -2,10 +2,11 @@
 
 This file holds the dispatchable sub-agent prompt for the **merged** Phase 5 reviewer: one agent
 that carries all five review lenses over one read of the diff, as five passes that close one at a
-time. It is the DEFAULT Phase 5 reviewer in every mode, full and quick alike, dispatched one per
-review round alongside one refuter. The five-agent panel in
-`references/phases/phase-5-review.md` is not retired: it stays registered, and it is dispatched
-when a user asks for the panel by name and when it is being measured against this shape.
+time. The five-agent panel in `references/phases/phase-5-review.md` is Phase 5's default reviewer
+route in both quick and full mode, and this agent (`hackify:reviewer`) is the explicit, named,
+lower-cost opt-out: dispatched one per review round alongside one refuter whenever a user asks for
+it by name, never as a demotion the parent applies on its own. The panel is not retired: it stays
+registered as the default, and this shape is also what gets measured against it.
 
 **It is a DRIVER, not a copy.** The five canonical lens files run 210 + 379 + 101 + 126 + 234 =
 1050 lines between them, and the plugin caps an in-tree markdown primitive at 500, so this prompt
@@ -42,9 +43,10 @@ diff and never walked out to the unchanged files on the other side of the seam. 
 lenses. It did not do the work. So each pass below is now unable to REPORT until it has produced
 the evidence that pass is supposed to produce, which is a reproduce obligation on A, a walk-out
 obligation on F, and an evidence line every pass owes whatever it found. On that measurement it is
-still second-best to the panel, and it was made the default in both modes with the number in hand
-rather than in spite of it: one report beats five to read, the panel is one request away, and this
-shape now owes the strengthening work that same measurement exists to grade.
+still second-best to the panel, and it is not being actively strengthened against the panel beyond
+that: it remains unchanged as the named, lower-cost opt-out, and the gap stated above is the known,
+accepted cost of choosing it. One report still beats five to read, and the panel stays one request
+away.
 
 **Two costs were weighed and only one was cut.** The work-doc used to be opened by four of the five
 passes, one read each, for the same intent, so step 1 now reads it once and carries it; and pass

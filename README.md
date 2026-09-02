@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.19.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.20.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -27,34 +27,30 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 That is the full ceremony, and you reach it by asking for it. By default the work lands in the sibling skill `/hackify:quick`, which runs a compressed flow, keeps every guarantee, and stays in quick mode until you explicitly promote to full hackify.
 
+### New in 0.20.0
+
+- **Phase 5 dispatches the five-agent review panel by default again, in both quick and full
+  mode.** 0.18.0 shipped a single merged reviewer as the default instead, on a promise to make it
+  as strong as the panel it replaced. That work never landed, and the merged reviewer never beat
+  the panel on the one comparison that ran. The panel is the default route now; ask for the merged
+  reviewer by name and you get it in either mode, same as before.
+- **A new canonical catalog, `rules/security.md`, gives the security lens its own deep reference.**
+  Ten domains, from auth and injection to supply chain, each entry citing OWASP, CWE, NIST or RFC
+  and naming why it hurts, how to catch it, and the fix. Phase 5's security reviewer and lawkeeper
+  cite it instead of judging security findings from first principles.
+
 ### New in 0.17.0
 
-- **The implement stage now runs side by side by default.** The plan review
-  lists everything only one worker can hold at once, a file two jobs both write,
-  a counted sequence, a single shared test database, then re-asks each one
-  whether it is really exclusive or only exclusive out of habit. Most are habit.
-  Whatever survives is settled first, alone, in one pass that writes those
-  shared files and no feature code. The rest runs as tracks side by side, each
-  finishing and testing its own piece, and one last solo pass mounts everything
-  and boots it for real. The shape shrinks to fit: nothing shared means no first
-  pass, one track means nothing to assemble, so a two-file edit runs exactly as
-  it did before. Nothing was dropped from the checking to buy this, only the
-  waiting. Autopilot mode goes in the same release, leaving two ways to run
-  hackify, and every phrase that used to start autopilot now starts the full
-  workflow. Workers also write down what they finish as they finish it, so a
-  session that dies halfway still leaves a record. And the ban on AI sign-off
-  lines in commits is now enforced by a blocker that refuses the command,
-  rather than by a rule the model can be talked out of.
-
-### New in 0.16.0
-
-- **Work that shares nothing now happens at the same time.** Jobs that touch
-  no common file, depend on each other in neither direction, and hold no shared
-  resource go out together instead of queuing. A three-condition test decides
-  it, and anything that fails the test still runs on its own.
+- **The implement stage started running side by side by default**, with a solo pass first for
+  anything genuinely shared, autopilot mode arriving the same release, and the ban on AI sign-off
+  in commits enforced by a blocker instead of a rule.
 
 ### Earlier releases
 
+- 0.16.0. **Work that shares nothing started happening at the same time.** Jobs that touch no
+  common file, depend on each other in neither direction, and hold no shared resource go out
+  together instead of queuing. A three-condition test decides it, and anything that fails the
+  test still runs on its own.
 - 0.15.1. **A standing rule that the code is the only thing worth believing, including when the claim is hackify's own.** Every prompt carries a fourteen-law rule: re-derive facts from the code instead of reading them off a page, prove a claim with fresh output or do not make it, open every citation you write and every one you trust, and treat a number you did not just count as already wrong. Each law comes from a mistake this project actually made. Dispatched helpers are handed the facts they need so they stop rediscovering the same repository one agent at a time, and are told they may contradict any of those facts with the command that disproves it.
 - 0.15.0. **A round of work went to one implementer instead of several, and the cost of that was written down rather than glossed over.** One implementer took the whole round in order, so the background reading happened once instead of once per slice and both halves of a change were decided in one place instead of stitched together from separate accounts. It is slower on the clock, and that was said out loud rather than rounded away. What paid for it is the rule that an implementer stops at the first item it cannot finish, keeps everything it has already done, and says exactly how far it got, so a bad item costs one item and not the round.
 - 0.14.2. **The review stage could never finish, and the rules checker was quietly ignoring files it had been handed.** Review notes were being counted as part of the change under review, so each round altered what the next one measured and the loop could not settle; the notes are now the ruler rather than something measured. The rules checker also discarded files silently, every dotfile among them, and now reports how many it was given against how many it read.

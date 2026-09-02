@@ -146,37 +146,37 @@ MINE_PLANT+=('The full workflow. On request, or when the size test in quick esca
 # rots the moment a route widens and the description it widened past is not
 # reopened.
 MINE_ID+=('P2')
-MINE_CLAIM+=('the all-lens reviewer is the default route in every mode, not in quick alone')
+MINE_CLAIM+=('the five-agent panel is the default reviewer route in both quick and full mode, not quick alone')
 MINE_AUTH_FILE+=('skills/hackify/references/phases/phase-5-review.md')
-MINE_AUTH_TOK+=('That is the route in full mode and in quick mode alike.')
+MINE_AUTH_TOK+=('The five-agent panel is Phase 5'\''s default reviewer route in both quick and full mode')
 MINE_DENY+=('(quick[ -](mode )?(only|alone)|only in quick|quick-only|that round alone)')
 MINE_SITES+=($'agents/reviewer.md\nrules/plugin-map.md\nskills/hackify/references/phases/phase-5-review.md\nskills/hackify/references/parallel-agents/phase-5-multi-review-merged.md\nskills/hackify/references/parallel-agents/README.md')
 MINE_COVERS+=($'agents/reviewer.md')
 MINE_PLANT+=('Phase 5 all-lens reviewer, for quick mode and for that round alone.')
 
-# P3. Default route versus on request, the other half of the same rename. The
-# five panel agents stay registered and are dispatched when a user asks for the
-# panel by name; a file that puts them back on the default route contradicts the
+# P3. Default route versus on request, the other half of the same rename, now
+# reversed: the panel is the default today, and the merged all-lens reviewer
+# stays registered, dispatched only when a user asks for it by name. A file
+# that makes the merged reviewer a silent default again contradicts the
 # authority sentence without renaming anything.
 #
 # THE SITES ARE THE FIVE AGENT FILES, and they were missing; see the run block
 # below, whose second invariant now refuses a row covering what it never scans.
 #
-# A THIRD DENY SHAPE, for the reason P1 carries two: the contradiction that
-# shipped in those five files spelled the default-route claim as an unconditional
-# imperative plus a universal frequency, carrying none of the three keywords
-# above. The anchor is the whole matcher and carries mine_units' own `FNR<TAB>`
-# prefix; unanchored it took six hits over 147 files, all six honest prose and
-# this row's own authority among them, the honest ones being CONDITIONAL where
-# this is an IMPERATIVE.
+# A SECOND DENY SHAPE, for the reason P1 carries two: a bad file could spell the
+# merged-as-default claim as an imperative plus a universal frequency
+# ("dispatch the merged reviewer on every round") rather than the word
+# "default" itself. The anchor carries mine_units' own `FNR<TAB>` prefix so an
+# honest sentence describing what the merged reviewer does once dispatched
+# cannot be misread as that imperative.
 MINE_ID+=('P3')
-MINE_CLAIM+=('the five-agent panel is dispatched on request by name, never as the default route')
+MINE_CLAIM+=('the merged all-lens reviewer is dispatched on request by name, never restored as a silent default')
 MINE_AUTH_FILE+=('skills/hackify/references/phases/phase-5-review.md')
-MINE_AUTH_TOK+=('The panel is what a user can ask for instead')
-MINE_DENY+=('panel[^.]{0,40}(by default|is the default|the default route)|(dispatch|route)[a-z]{0,3} [^.]{0,25}panel by default|^[0-9]+[[:blank:]]+[-*_ >]*(dispatch|run|send)[a-z]* the panel[^.]{0,80}(on|in) (every|each|all)')
+MINE_AUTH_TOK+=('the user reaches it by asking')
+MINE_DENY+=('(merged|all-lens)[^.]{0,40}(by default|is the default|the default route|unconditionally)|^[0-9]+[[:blank:]]+[-*_ >]*(dispatch|run|send)[a-z]* the (merged|all-lens)[^.]{0,80}(on|in) (every|each|all)')
 MINE_SITES+=($'rules/plugin-map.md\nagents/reviewer.md\nskills/hackify/references/phases/phase-5-review.md\nskills/hackify/references/parallel-agents/README.md\nagents/reviewer-security.md\nagents/reviewer-quality-plan.md\nagents/reviewer-performance.md\nagents/reviewer-coherence.md\nagents/reviewer-design.md')
 MINE_COVERS+=($'agents/reviewer-security.md\nagents/reviewer-quality-plan.md\nagents/reviewer-performance.md\nagents/reviewer-coherence.md\nagents/reviewer-design.md')
-MINE_PLANT+=($'Phase 5 dispatches the five-agent panel by default in both modes.\nDispatch the panel in a single parent assistant message: A, B, D and F each run on every non-trivial diff')
+MINE_PLANT+=($'Phase 5 dispatches ONE merged all-lens reviewer by default in every mode.\nDispatch the merged all-lens reviewer on every review round without exception')
 
 # The bound a reviewer actually reads, written beside the table rather than
 # counted off it.

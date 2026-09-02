@@ -165,6 +165,7 @@ MIRROR_SOURCES=(
   "rules/code-quality.md"
   "rules/performance.md"
   "rules/test-scenarios.md"
+  "rules/security.md"
   "rules/four-principles.md"
   "rules/plugin-map.md"
 )

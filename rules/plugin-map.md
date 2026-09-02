@@ -43,8 +43,9 @@ with a one-line reason.
 Phase 3 runs in waves: a solo foundation wave, then concurrent module tracks,
 then a solo assembly wave that boots the system, then a testing wave.
 
-Phase 5 dispatches ONE merged all-lens reviewer by default. Ask for the
-five-agent panel by name and the same lenses come back as one report each.
+Phase 5 dispatches the five-agent panel by default. Ask for the merged
+all-lens reviewer by name and the same lenses come back as one report
+instead.
 
 Full mode keeps its state in one file, `docs/work/<YYYY-MM-DD>-<slug>.md`, which
 moves under `done/` once it ships. That file is the source of truth and the thing

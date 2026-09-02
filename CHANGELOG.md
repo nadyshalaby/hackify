@@ -5,6 +5,60 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-09-03
+
+> **The merged reviewer never cleared the bar 0.18.0 set for it, so the panel is the default
+> again.** 0.18.0 shipped the single merged reviewer as default despite it measuring weaker than
+> the five-agent panel on the diff that decided it, 16 findings and 1 Critical against the panel's
+> 29 and 4, on the promise that strengthening it was the next release's job, against a stated bar:
+> beat the panel per lens on two diffs it had not read before. That work never happened. The two
+> releases since shipped other things, and the one self-test that did run before 0.18.0 closed,
+> handicapped in the merged reviewer's own favor, still did not clear the bar. Phase 5 now
+> dispatches the five-agent panel, A, B, D, F and E-on-UI, by default in both quick and full mode.
+> The merged reviewer stays registered rather than deleted, and the user reaches it by asking for
+> it by name, "use the merged reviewer" or "single reviewer round," symmetric with how the panel
+> itself used to be requested before 0.18.0. No diff size, file count or severity demotes a round
+> off the panel on its own, that would be exactly the auto-demotion this decision rules out.
+>
+> **A new catalog gives the security lens the same shape performance and test coverage already
+> have.** `rules/security.md` joins `rules/performance.md` and `rules/test-scenarios.md` as this
+> repo's third deep, on-demand-only catalog: stable IDs, a severity model, and one table per
+> domain, Authentication, Authorization, Injection, Secrets & PII, Migrations, Concurrency, CORS &
+> SSRF, Cryptography, Supply chain, Error handling, each row naming why it hurts, how to detect it,
+> and the fix direction. Phase 5 Reviewer A and lawkeeper's security category cite a rule sentence
+> from it instead of asserting a judgment call.
+
+### Changed
+
+- **Phase 5's default reviewer route is the five-agent panel again, in both quick and full mode.**
+  `skills/hackify/references/phases/phase-5-review.md` states the route and the opt-out up front;
+  `SKILL.md`'s description, H1, phase-summary table, parallelism paragraph, risk-scoring table and
+  dispatch paragraph, and `rules/plugin-map.md`'s one-line summary, all carry the same polarity.
+  Each panel agent's own description (`agents/reviewer-security.md`, `reviewer-performance.md`,
+  `reviewer-design.md`, `reviewer-coherence.md`, `reviewer-quality-plan.md`) now states it is the
+  default route's own member rather than a name-only alternative to the merged reviewer, and names
+  the merged reviewer, `hackify:reviewer`, as the opt-out reached by asking for it. Quick mode's
+  skill doc is unchanged: it already dispatched whichever reviewer full mode named as default, so
+  the flip applies there without a separate edit.
+- **`scripts/validate-dod.d/58-contradiction-miner.sh`'s P2 and P3 rows encode the new polarity.**
+  P2's claim and authority token now anchor to the panel-by-default sentence in
+  `phase-5-review.md`; P3 fully inverted, from mining for "panel by default" as the contradiction
+  to mining for "the merged reviewer dispatched unconditionally, with no route to ask for the
+  panel by name" as the contradiction, with its planted positive-control sentences rewritten to
+  match.
+
+### Added
+
+- **`rules/security.md`**, the canonical security-violation catalog. Stable `security.<domain>.<slug>`
+  IDs across 10 domains (auth, authz, injection, secrets & PII, migrations, concurrency, CORS &
+  SSRF, cryptography, supply chain, error handling), each citing the OWASP Top 10, CWE, NIST or RFC
+  6749/7519 anchor behind it, why it hurts, how to detect it, and the fix direction. Loaded on
+  demand by Phase 3 implementers (scoped to the domains their task's surface touches), Phase 5
+  Reviewer A (the whole catalog), and lawkeeper's security category (citing IDs, never restating
+  them), mirroring how `rules/performance.md` and `rules/test-scenarios.md` are already loaded.
+  Wired into `skills/lawkeeper/references/rule-catalog.md` and mirrored to all 7 runtimes via
+  `scripts/sync-runtimes.d/00-helpers.sh`.
+
 ## [0.19.0] - 2026-09-02
 
 > **The testing wave could satisfy its own contract with one happy-path test per function.**

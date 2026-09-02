@@ -70,17 +70,26 @@ layout, skip this category and say so in the report, do not invent a structure.
 ## Security
 
 Deep auth/PII/SSRF analysis is delegated to the project's `security-auditor` agent when
-installed; these are the built-in fallback concerns.
+installed; these are the built-in fallback concerns. The CANONICAL security catalog is
+`rules/security.md` (ten domains, stable IDs `sec.<domain>.<slug>`, severity model,
+detection hints, extend never rename). The seven rule ids below are lawkeeper's coarse
+groupings that predate the catalog; the canonical-source column maps each to its catalog
+equivalents. Five of the catalog's ten domains have no coarse predecessor here at all,
+`sec.auth.*` (authentication/session/token lifecycle), `sec.concurrency.*` (races on
+security-relevant state), `sec.crypto.*` (cryptographic failures), `sec.supply-chain.*`
+(dependency/CI/build-pipeline failures), and `sec.error-handling.*` (fail-open/swallowed-
+exception paths): cite those IDs straight from `rules/security.md`, there is no coarse row
+here to extend.
 
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
-| `sec.hardcoded-secret` | credential/secret in source | critical | deterministic | global §2.6 |
-| `sec.injection` | string-concat SQL / shell from input | critical | semantic / `security-auditor` | global §2.6 |
-| `sec.authz` | route/mutation missing permission check | critical | semantic / `security-auditor` | OWASP A01 |
-| `sec.input-validation` | external input unvalidated at boundary | high | semantic / `security-auditor` | global §2.6 |
-| `sec.unsafe-op` | untrusted deserialization / SSRF | high | semantic / `security-auditor` | OWASP A08/A10 |
-| `sec.migration` | migration not idempotent / unguarded | high | semantic / `security-auditor` | global §2.7 |
-| `sec.pii-log` | PII or secret written to logs | medium | semantic / `security-auditor` | global §2.6 |
+| `sec.hardcoded-secret` | credential/secret in source | critical | deterministic | `rules/security.md`: sec.secrets-pii.hardcoded-secret, sec.secrets-pii.client-bundled-key |
+| `sec.injection` | string-concat SQL / shell from input | critical | semantic / `security-auditor` | `rules/security.md`: sec.injection.sql-string-concat, sec.injection.command-injection, sec.injection.path-traversal, sec.injection.unescaped-output-xss, sec.injection.dynamic-code-eval |
+| `sec.authz` | route/mutation missing permission check | critical | semantic / `security-auditor` | `rules/security.md`: sec.authz.idor, sec.authz.missing-route-guard, sec.authz.mass-assignment, sec.authz.wrong-object-scope-nested, sec.authz.improper-scope |
+| `sec.input-validation` | external input unvalidated at boundary | high | semantic / `security-auditor` | `rules/security.md`: sec.injection.* (all rows), sec.cors.ssrf-unvalidated-outbound-url |
+| `sec.unsafe-op` | untrusted deserialization / SSRF | high | semantic / `security-auditor` | `rules/security.md`: sec.cors.ssrf-unvalidated-outbound-url (SSRF half; untrusted deserialization has no dedicated row yet) |
+| `sec.migration` | migration not idempotent / unguarded | high | semantic / `security-auditor` | `rules/security.md`: sec.migrations.unguarded-destructive-change, sec.migrations.non-idempotent, sec.migrations.no-reversible-path |
+| `sec.pii-log` | PII or secret written to logs | medium | semantic / `security-auditor` | `rules/security.md`: sec.secrets-pii.unhashed-pii-in-logs |
 
 ## Performance
 
