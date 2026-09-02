@@ -5,6 +5,60 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-09-02
+
+> **The testing wave could satisfy its own contract with one happy-path test per function.**
+> The watched-RED, named-mutation discipline already proved every test that got WRITTEN was real,
+> not tautological: break the line, watch it fail, restore it, name the mutation. What it never
+> checked was which tests got written at all. An agent could cover a permission-gated action with
+> exactly one test for the allowed path, take one mutation, watch one red, and satisfy the letter
+> of the contract while never testing the denied path, the duplicate request, the empty
+> collection, or the boundary value one step past the limit.
+>
+> The review side carried the same shape. Lawkeeper's own audit prompt for "edge cases missing"
+> checked four generic classes, null/undefined, empty, concurrent, partial failure, and never
+> asked about authorization at all, the one domain a missing test costs the most to miss.
+>
+> Closed with a new canonical catalog, `rules/test-scenarios.md`: 25 scenario IDs across 8
+> domains (boundary values, invalid input, empty/duplicate/oversized collections, concurrency,
+> permission denial, error propagation, lifecycle transitions, external non-determinism), each
+> naming why it matters, how to detect the gap, and what the test must show, mirroring
+> `rules/performance.md`'s own shape: stable IDs, a severity model, one table per domain.
+> Referenced, never restated, from three places: the testing-wave contract now names which
+> domains apply to which code category, hackify's own Phase 5 reviewer judges `test.edge-cases`
+> against it, and lawkeeper's own semantic-tier prompt, the one a review round on this very change
+> almost missed, now cites it too and escalates a missing authorization-denial test to Critical
+> instead of the flat Medium every testing gap used to get.
+
+### Added
+
+- **`rules/test-scenarios.md`**, the canonical test-scenario catalog. 25 `test.<domain>.<slug>`
+  IDs across 8 domains, boundary values, invalid/malformed input, empty/duplicate/oversized
+  collections, concurrency/idempotency, authorization denial, error propagation, lifecycle
+  transitions, external non-determinism, each row naming why the gap matters, how to detect it,
+  and the concrete shape a real test for it takes. Includes a "when NOT to force a scenario"
+  section so the catalog cannot itself become a new source of box-checking: not every domain
+  applies to every unit, and `n/a` with a one-line reason is the correct disposition where one
+  genuinely does not apply.
+- **`implement-and-test.md`'s testing-wave table now names scenario breadth, not just test type.**
+  The per-category table gained a column naming which of the new catalog's domains apply to which
+  code category (auth code owes `authz`, money code owes boundary-precision and duplicate-entry
+  coverage, and so on), plus a paragraph making clear a missing domain is reported `n/a` with a
+  reason, never papered over with a test that has nothing real to assert.
+- **`law-scout.md`'s Test coverage row now judges `test.edge-cases` against the catalog**, scoped
+  to the domains `implement-and-test.md` names for the touched code, instead of a vague
+  "happy-path-only" judgment call.
+- **`rule-catalog.md`'s `test.edge-cases` row repoints its canonical source** from `global §1.7`,
+  a section reference no other file in this repo defines, to `rules/test-scenarios.md`.
+- **`semantic-pass.md`'s `testing` concern block now cites the same catalog.** A Phase 5 review
+  round for this change caught that the first pass wired hackify's own reviewer but missed
+  lawkeeper's independent semantic-tier prompt, the one `/hackify:lawkeeper` always dispatches for
+  this rule_id with no installed-agent substitute, leaving it pointed at a source it never read
+  and still missing `authz` entirely. Fixed in the same round: the block now names all 8 domains
+  and escalates a missing authorization-denial test to Critical.
+- **`scripts/sync-runtimes.d/00-helpers.sh`** gained one `MIRROR_SOURCES` entry for the new
+  catalog file, so it ships to all 7 supported runtimes instead of staying Claude-Code-only.
+
 ## [0.18.1] - 2026-09-01
 
 > **The performance scanner could stop reading a file partway through and still report it clean.**

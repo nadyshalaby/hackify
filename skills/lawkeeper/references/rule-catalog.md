@@ -106,7 +106,7 @@ performance-auditor may seed its pass from them. The mechanical scanner
 | rule_id | what | severity | engine | canonical source |
 |---|---|---|---|---|
 | `test.untested` | service method/guard/logic with no test | medium | semantic | global §1.6 |
-| `test.edge-cases` | happy-path-only; edge cases untested | medium | semantic | global §1.7 |
+| `test.edge-cases` | happy-path-only; edge cases untested | medium | semantic | `rules/test-scenarios.md`: test.boundary.*, test.invalid.*, test.collection.*, test.concurrency.*, test.authz.*, test.error.*, test.lifecycle.*, test.external.* (all domains) |
 
 ## Cleanup
 

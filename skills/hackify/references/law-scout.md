@@ -96,7 +96,7 @@ The scanner deliberately stops where precision needs a parser or real understand
 | Single responsibility | `style.srp`, `style.naming`, `style.ternary` | A unit that needs "and" to describe it; a name that describes what-not-why; a nested or chained ternary |
 | Reuse & generalization | `style.reuse`, `style.magic-literal` | A near-duplicate that should have been generalized into one shared parameterized helper; an un-named literal (honor the project's do-not-extract floors) |
 | SOLID & YAGNI | `solid.ocp`, `solid.lsp`, `solid.isp`, `solid.dip`, `solid.yagni` | Stable code edited instead of extended; a speculative abstraction or an unused knob |
-| Test coverage | `test.untested`, `test.edge-cases` | A service method, guard, or branch shipped by this sprint with no covering test; happy-path-only coverage |
+| Test coverage | `test.untested`, `test.edge-cases` | A service method, guard, or branch shipped by this sprint with no covering test (`test.untested`). `test.edge-cases` is judged against the domain catalog in `rules/test-scenarios.md` — boundary values, invalid/malformed input, empty/duplicate/oversized collections, concurrency/idempotency, authorization denial, error propagation, lifecycle transitions, external non-determinism — never a vague "did you add edge cases" call, and only the domains the per-category table in `implement-and-test.md` names for the touched code, not all eight reflexively |
 
 Carve-outs are honored before anything is reported: test files, generated code, migrations, and the project's own documented exceptions (`skills/lawkeeper/references/carve-outs.md`). Flagging a documented exception teaches the user to ignore the scout.
 

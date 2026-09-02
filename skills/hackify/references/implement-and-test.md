@@ -119,19 +119,21 @@ Canonical spelling of the enum, and the only one any file should use: `test-auth
 
 So the table now reads as the testing wave's brief:
 
-| Code the round landed | What the testing wave owes it | Notes |
-|---|---|---|
-| Pure logic, services, validators, calculators | Unit tests, every red watched via a named mutation | The bulk of the work |
-| Auth / permissions / token validation | The same, and never the row that gets dropped for time | Security regressions are the worst kind |
-| Money maths, ledgers, pricing | Unit tests plus property-based tests | A balancing ledger is a property of the module, provable in isolation |
-| Bug fixes | The reproduction, as a test that fails without the fix | Revert the fix, watch the red, restore the fix |
-| Branching/conditional logic | One test per branch | A fixture that cannot reach both answers proves nothing |
-| HTTP handlers / route wiring | Integration test against a real database | Whether the route is actually MOUNTED is assembly's question, not this wave's |
-| DB migrations | Migration up/down on an ephemeral database | |
-| Form validation, computed UI state | Component / browser-mode test of the behavior | |
-| UI cosmetics / spacing / colors / copy | manual smoke (if user opted in) | Always offer to add an automated test if behavior is testable |
-| Storybook / docs / config-only changes | none | Note rationale in log |
-| Pure scaffolding (empty file creation) | none | Note rationale |
+| Code the round landed | What the testing wave owes it | `rules/test-scenarios.md` domains | Notes |
+|---|---|---|---|
+| Pure logic, services, validators, calculators | Unit tests, every red watched via a named mutation | boundary, invalid, collection | The bulk of the work |
+| Auth / permissions / token validation | The same, and never the row that gets dropped for time | authz (`test.authz.denied-path-untested`, `test.authz.cross-tenant` mandatory) | Security regressions are the worst kind |
+| Money maths, ledgers, pricing | Unit tests plus property-based tests | boundary (`test.boundary.precision`), collection (`test.collection.duplicate-entries`), concurrency | A balancing ledger is a property of the module, provable in isolation |
+| Bug fixes | The reproduction, as a test that fails without the fix | whichever domain the bug itself belongs to | Revert the fix, watch the red, restore the fix |
+| Branching/conditional logic | One test per branch | boundary, invalid | A fixture that cannot reach both answers proves nothing |
+| HTTP handlers / route wiring | Integration test against a real database | invalid, authz | Whether the route is actually MOUNTED is assembly's question, not this wave's |
+| DB migrations | Migration up/down on an ephemeral database | collection | |
+| Form validation, computed UI state | Component / browser-mode test of the behavior | invalid, boundary | |
+| UI cosmetics / spacing / colors / copy | manual smoke (if user opted in) | none | Always offer to add an automated test if behavior is testable |
+| Storybook / docs / config-only changes | none | none | Note rationale in log |
+| Pure scaffolding (empty file creation) | none | none | Note rationale |
+
+A scenario domain the category above does not list does not apply to that code; the testing wave does not go hunting for it. A domain that DOES apply but has nothing real to exercise (`boundary` on a function with no numeric input, say) is reported `n/a` with a one-line reason in the coverage report, never papered over with a fabricated test that has nothing to assert. The severity a missing domain earns is the default in `rules/test-scenarios.md`; Reviewer B moves it in context, exactly like any other finding.
 
 Two kinds of test are NOT this wave's and are listed so nobody writes them twice: cross-module integration and every mounted-surface check (route and spec drift, the permission matrix, the cross-tenant sweep, booting the service and sending it real requests) belong to the assembly wave, because nothing is mounted until then. See [contention-dispatch.md](contention-dispatch.md), "What each track owes".
 

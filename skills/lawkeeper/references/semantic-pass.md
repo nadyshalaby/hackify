@@ -132,10 +132,15 @@ relevant carve-out floors, and the OUTPUT contract.
 
 ### testing (fallback when no test-coverage tooling)
 > Find: public service methods, guards, and significant branching logic with NO co-located or
-> referenced test (`test.untested`); behavior with happy-path-only tests missing the edge cases
-> the principles demand, null/undefined, empty, concurrent, partial failure (`test.edge-cases`).
-> Confirm absence by searching for a test that exercises the symbol before flagging. Medium
-> severity. Do not demand tests for trivial getters or framework glue.
+> referenced test (`test.untested`); behavior with happy-path-only tests missing an edge-case
+> domain catalogued in `rules/test-scenarios.md`: boundary values, invalid/malformed input,
+> empty/duplicate/oversized collections, concurrency/idempotency, authorization denial, error
+> propagation, lifecycle transitions, and external non-determinism (`test.edge-cases`). Judge
+> only the domains that plausibly apply to the code in front of you: a pure formatting helper
+> has no authz domain to test against, a single-caller batch job has no concurrency domain
+> worth inventing. Confirm absence by searching for a test that exercises the symbol before
+> flagging. Medium severity by default; a missing authorization-denial test on a guarded action
+> escalates to Critical. Do not demand tests for trivial getters or framework glue.
 
 ### solid (fallback when no `code-reviewer`)
 > Beyond SRP (covered separately), find: stable code edited with a new conditional where an
