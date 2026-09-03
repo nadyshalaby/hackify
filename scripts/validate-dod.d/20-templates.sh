@@ -69,7 +69,18 @@ output_subsection() {
   echo "$1" | awk '/\*\*OUTPUT\*\*/{flag=1; next} flag && /^\*\*/ {flag=0} flag'
 }
 
-# Verify a template body carries the 6 always-required anchors.
+# Verify a template body carries the 7 always-required anchors.
+#
+# SEVEN SINCE REQUIRED READING LANDED, and the count in this sentence is part of
+# the check rather than decoration: it was 6 for as long as the contract had six
+# mandatory sections, and a reader who trusts a stale number here stops counting
+# the loop below. **REQUIRED READING** sits between INPUTS and OBJECTIVE in the
+# list for the same reason it does in the contract, it consumes an input and
+# binds before any work starts. THE ANCHOR IS TWO WORDS, which is why the loop
+# below is a substring test over the whole body and not a tokenizer: a section
+# name carrying a space breaks anything that splits on one. Whether the section
+# is in the right PLACE, and whether its paths resolve, is check [41] in
+# 41-required-reading.sh; this loop only asserts the anchor is present at all.
 #
 # `[[ == ]]` AND NOT `echo "$body" | grep -qF`, the whole reason this file stopped
 # flaking. See the long note above check_role in 00-helpers.sh for the mechanism;
@@ -82,13 +93,13 @@ check_template_anchors() {
   local body="$1"
   local label="$2"
   local ok=1
-  for req in "**ROLE**" "**INPUTS**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**OUTPUT**"; do
+  for req in "**ROLE**" "**INPUTS**" "**REQUIRED READING**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**OUTPUT**"; do
     if [[ "$body" != *"$req"* ]]; then
       red "  FAIL $label missing $req"
       FAILED=$((FAILED + 1)); ok=0
     fi
   done
-  [ "$ok" = "1" ] && green "  ok   $label conforms (ROLE/INPUTS/OBJECTIVE/METHOD/VERIFICATION/OUTPUT)"
+  [ "$ok" = "1" ] && green "  ok   $label conforms (ROLE/INPUTS/REQUIRED READING/OBJECTIVE/METHOD/VERIFICATION/OUTPUT)"
 }
 
 # Assert SEVERITY presence (review template) or absence (build/research).
@@ -163,8 +174,10 @@ done
 for f in "${PA_BUILD_FILES[@]}"; do
   check_severity_presence "$(<"$f")" "${f##*/}" "build"
 done
-# Also the adjudication reviewer in review-and-verify.md
-for req in "**ROLE**" "**INPUTS**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**SEVERITY**" "**OUTPUT**"; do
+# Also the adjudication reviewer in review-and-verify.md. REQUIRED READING is in
+# this list too, in its contract position: that prompt is dispatched like any
+# other, so a rule file reaches it only if it names one.
+for req in "**ROLE**" "**INPUTS**" "**REQUIRED READING**" "**OBJECTIVE**" "**METHOD**" "**VERIFICATION**" "**SEVERITY**" "**OUTPUT**"; do
   if grep -qF "$req" "$RAV_FILE"; then
     green "  ok   review-and-verify.md has $req"
   else

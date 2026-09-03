@@ -5,6 +5,92 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-09-03
+
+> **A dispatched agent only ever got the rules its own prompt named, and most prompts named
+> almost none of them.** hackify's engineering law reaches the orchestrating parent through a
+> hook, and that hook fires on a user's prompt. A sub-agent dispatch is not a user's prompt, so
+> for the agents that actually write the code the hook never fires at all, and nothing else
+> carried those rules in. Every dispatched agent was left holding whatever its own prompt
+> happened to mention, which for most of them was close to nothing: a security catalog no
+> reviewer was told to open, a test-scenario catalog the wave that authors tests was never
+> pointed at, a four-principles doctrine bound to no one. A user caught an agent ignoring a
+> reference the plugin ships, and that is what opened this round.
+>
+> **Every agent prompt now carries a closed list of the files its agent must open.** Each entry
+> is an absolute path built from a single anchor the parent fills in at dispatch time, and the
+> list is exhaustive: an agent may not decide for itself that some other plugin file applies to
+> it, substitute one it found by searching the tree, or treat a path mentioned elsewhere in its
+> prompt as something it was told to read. Two older, ad-hoc anchors retired into that one. A
+> file the plugin ships that nobody was ever told to read is now a defect, and two checks look
+> for it from opposite directions.
+
+### Added
+
+- **Required reading, as a section every agent prompt carries.** The sub-agent template contract
+  gained a part, taking a prompt from seven sections to eight, and it fixes the wording that
+  section copies: the paragraph making the list exhaustive and closed, and the rule that stops an
+  agent routing around a path that fails to resolve instead of halting on it. The contract later
+  gained a third form of entry, for a file that is canonical on some dispatches of a prompt and
+  dead weight on the rest, so the implementer that authors tests reads the test-scenario catalog
+  and the one writing production code is not made to. A condition has to be settled by a value
+  the dispatcher supplied, never by the agent's own read of its work, which is the guessing this
+  round set out to remove.
+- **Two checks that keep those lists honest, reading from opposite ends.** The first reads each
+  prompt and asks whether its own list is well formed and every path on it resolves. The second
+  reads the rule files and asks the reverse: a file that says some agent loads it must be named
+  by that agent's prompt. A list that was short but perfectly formed passed the first and stayed
+  invisible until the second existed, which is exactly the gap this round was opened on.
+- **Two ways the first of those checks could have passed while reading nothing at all.** It finds
+  each prompt by its fenced block, and the tokenizer it was built on had dropped the flag saying
+  whether that fence ever closed. An unclosed one produced no prompt, and the file was then waved
+  through as having no prompt to check, with a confident note saying so. Measured by breaking a
+  closing fence on purpose: the check went from naming a real unresolved path to a clean line.
+  Separately, a path with enough leading dot-dots climbed out of the plugin root and was still
+  called resolved. Both are closed, and each now has a planted defect proving the check still
+  fails when it should.
+- **A third check, because a prompt can carry a perfect list and still tell its agent the wrong
+  thing to do with it.** The contract grew a third kind of entry, for a file that is canonical on
+  some dispatches of a prompt and dead weight on the rest. Which closing sentence a prompt then
+  owes its agent is not a matter of taste, it is read off the list the prompt actually carries,
+  and nothing checked that. So a prompt asking an agent to confirm it opened every listed path,
+  over a list with an entry it was told to skip, read as fine. An agent that correctly skipped one
+  has to answer no there, and a prompt that loops until the answer is yes gets there only by
+  lying or by opening the file its own list told it to leave alone.
+- **Four files that bound nobody now bind somebody.** The security catalog reaches the security
+  reviewer, the escalation specialist dispatched on a security lens, and the merged all-lens
+  reviewer; the test-scenario catalog reaches the wave that authors tests and the merged
+  reviewer; the four-principles doctrine reaches the implementer; and the fuller expert-mindset
+  doctrine reaches every dispatched agent whose judgment it was written to shape.
+- **Two enforcers police the file-size cap, and nothing had ever compared them.** This repo's own
+  validator and the standalone rules scanner each decide which files are waived from the cap
+  outright and which take the raised bound that agent prompts get. Every file can sit inside its
+  bound while the two disagree about which bound that was, and neither would say so. They are now
+  checked against each other, over the same set the cap loop actually measured rather than a
+  second scan that could differ from it.
+- **A warning before the cap rather than only a failure at it.** A file at or above 95% of
+  whichever bound applies to it is now named in yellow, and fails nothing. The point is to get the
+  split done while the seam is still the reason for it, instead of at the edit that would
+  otherwise have to pay for its next line by deleting something.
+
+### Changed
+
+- **The security reviewer now hunts all ten domains of the catalog it cites.** It carried steps
+  for six of them and then certified, in its own verification checklist, that it had applied "all
+  six lenses", while the catalog it is bound to has ten. CORS and SSRF, cryptography, supply
+  chain and error handling each have a step of their own now, matching the six that were already
+  there in shape and in depth, so fifteen further violation IDs, ten of them Critical by default,
+  get looked for rather than assumed absent. Its standards citation moved to the 2025 edition of
+  OWASP's top ten, which is the edition the catalog itself was written against.
+
+### Removed
+
+- **A forwarding stub that had outlived the redirect it existed for.** `references/code-rules.md`
+  held nothing but a note saying its content had moved to `rules/code-quality.md`, and every link
+  it was kept alive to preserve now points at the real file. It is gone, and so it no longer
+  ships inside the seven runtime packages either. Anything still reaching for the old path should
+  read `rules/code-quality.md` instead.
+
 ## [0.20.0] - 2026-09-03
 
 > **The merged reviewer never cleared the bar 0.18.0 set for it, so the panel is the default

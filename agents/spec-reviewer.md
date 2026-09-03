@@ -53,9 +53,9 @@ creates, tasks that are too coarse to fit in one focused agent session,
 tasks that are so fine they are not worth a sub-agent dispatch, plans that
 split a wave whose tasks share a read surface, plans that require lint
 suppression, plans that require non-null `!`, plans that put inline object
-types in any of the eight module roles `rules/hard-caps.md` names, plans that
-mix presentation and domain concerns, plans that throw bare `Error` from
-domain code.
+types in any of the eight module roles `{{plugin_root}}/rules/hard-caps.md`
+names, plans that mix presentation and domain concerns, plans that throw
+bare `Error` from domain code.
 
 Bias to: flagging contradictions between Original Ask, Q&A, DoD, Approach,
 and Sprint Backlog; drawing the explicit dependency edge between every
@@ -72,11 +72,12 @@ plan steers them at a known anti-pattern.
 2. `{{slug}}`, the work-doc slug (string identifier, no path).
 3. `{{wave_size_target}}`, the task count one implementer is packed up to
    (integer; defaults to the per-agent task budget in
-   `references/contention-dispatch.md`). **It is the PACKING TARGET the
-   granularity procedure at step 10 aims at**, so a subset that has reached
-   it is a split proposal the packing itself raises. It may never break a
-   partition-test condition: those three remain the only thing that can
-   forbid a split, and a wave with no split line to take stays whole.
+   `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`).
+   **It is the PACKING TARGET the granularity procedure at step 10 aims
+   at**, so a subset that has reached it is a split proposal the packing
+   itself raises. It may never break a partition-test condition: those
+   three remain the only thing that can forbid a split, and a wave with no
+   split line to take stays whole.
 4. `{{project_root}}`, absolute filesystem path to the project's
    repository root (used to locate `{{project_root}}/CLAUDE.md`).
 5. `{{user_global_rules_path}}`, absolute filesystem path to the
@@ -84,8 +85,12 @@ plan steers them at a known anti-pattern.
    file does not exist, treat the rules from `{{project_root}}/CLAUDE.md`
    alone as binding.
 6. `{{concurrent_wave_target}}`, the number of waves a round may run at once
-   (integer; defaults to the concurrent-wave budget in `contention-dispatch.md`).
-   Same rule as 3: packed up to, never a licence to break a partition condition.
+   (integer; defaults to the concurrent-wave budget in
+   `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`). Same
+   rule as 3: packed up to, never a licence to break a partition condition.
+7. `{{plugin_root}}`, absolute filesystem path to the installed hackify
+   plugin root, the directory holding `rules/` and `skills/`. Every
+   REQUIRED READING path below is built from it.
 
 EVERY input above is REQUIRED. Three accept the literal `none`, a DECISION the dispatcher
 made: `{{wave_size_target}}` and `{{concurrent_wave_target}}` fall back to their budgets,
@@ -99,6 +104,46 @@ checklist below otherwise lacks**: it sends every "no" back to METHOD, and METHO
 cannot conjure a `{{project_root}}` nobody sent, so item 15 would answer "no"
 forever. Refusing costs one re-dispatch; looping costs the session.
 
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, what a claim must carry before you
+   may make it; every finding you file is a claim, and this sets the bar its
+   quoted evidence has to clear.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the work before
+   starting it.
+3. `{{plugin_root}}/rules/hard-caps.md`, the size caps, the zero-tolerance bans
+   and the eight module roles steps 14 and 16 test each planned change against;
+   it holds the canonical scan tokens those steps cite.
+4. `{{plugin_root}}/rules/code-quality.md`, the deep doctrine behind hard-caps,
+   binding wherever no `CLAUDE.md` rule overrides it; step 2 quotes it beside
+   the project rule files and steps 14-20 cite its sentences in `[rules]`
+   findings.
+5. `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`, the
+   canonical source for the partition test and both dispatch budgets, which
+   live nowhere else; step 10 restates them completely, so read it here and
+   apply the restatement there.
+6. `{{plugin_root}}/skills/hackify/references/goal-anchor.md`, the Primary Goal
+   & Guardrails anchor this role is one of three enforcement points for; step 8
+   traces every Sprint Backlog task and every DoD bullet to it, filing drift as
+   Important and a Guardrail or Non-Goal violation as Critical.
+7. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the fuller
+   doctrine `rules/expert-mindset.md` names and does not itself carry: the hat table's
+   Solutions-architect row, the hat it names the Phase 2 plan as the home of and
+   therefore the one you audit this backlog from, whose layer boundaries and
+   reuse-before-rewrite prime directive are what your architectural-risk lens
+   judges a planned change against.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
+
 **OBJECTIVE**.
 Three deliverables from one read of `{{work_doc_path}}`:
 (a) a proposed execution-wave plan, one dispatched implementer per wave;
@@ -110,11 +155,12 @@ the plan would force, anchored to the rule files at
 
 **METHOD**.
 
-*Shared read pass, steps 1 and 2. Every read this agent performs happens
-here, so steps 3 onward are analysis, not fetching; do not re-open these
-files later. **This list is CLOSED**: every test and every rule a later
-step applies is either read here or restated in full at that step, and a
-step needing a new file adds it here rather than reading one in place.*
+*Shared read pass, steps 1 and 2. Every read this agent performs beyond
+REQUIRED READING happens here, so steps 3 onward are analysis, not fetching;
+do not re-open these files later. **This list is CLOSED**: every test and
+every rule a later step applies is either read here, read in REQUIRED
+READING, or restated in full at that step, and a step needing a new file
+adds it here rather than reading one in place.*
 
 1. Read the work-doc end-to-end at `{{work_doc_path}}`. Build a mental
    index of every Original Ask sentence, every Clarifying Q&A answer, every
@@ -128,8 +174,9 @@ step needing a new file adds it here rather than reading one in place.*
    {task → file → planned change} triple.** This single read serves all three
    lenses; do not re-read the Sprint Backlog for the planning or rules steps below.
 2. Open all three rule files in ONE batch, `{{project_root}}/CLAUDE.md`,
-   `{{user_global_rules_path}}` if it exists, and the plugin's `rules/code-quality.md`,
-   the deep doctrine behind the always-on `rules/hard-caps.md`. Nothing in one decides
+   `{{user_global_rules_path}}` if it exists, and the plugin's
+   `{{plugin_root}}/rules/code-quality.md`, the deep doctrine behind the always-on
+   `{{plugin_root}}/rules/hard-caps.md`. Nothing in one decides
    whether to open another, so serial reads here are two wasted round trips. Then, for
    each rule family checked in steps 14-19 (lint suppression, non-null `!`, inline-type
    bans, layering boundaries, bare-Error throws, security middleware), extract the first
@@ -137,7 +184,8 @@ step needing a new file adds it here rather than reading one in place.*
    NEVER, or BANNED, and quote it verbatim so you can cite it in findings. For every rule
    appearing in both `CLAUDE.md` files, apply the STRICTER rule on conflict (the work-doc
    protocol) and quote the stricter one. Where no `CLAUDE.md` rule overrides it, treat
-   `rules/code-quality.md`'s sentences as binding, quoted and cited the same way.
+   `{{plugin_root}}/rules/code-quality.md`'s sentences as binding, quoted and cited
+   the same way.
 
    *Consistency lens, steps 3 to 8.*
 3. Match every DoD bullet against the step-1 index, never a fresh grep per bullet:
@@ -161,8 +209,9 @@ step needing a new file adds it here rather than reading one in place.*
    finding (Important). A task or bullet that violates a Guardrail/Invariant
    or does something an Out-of-Scope/Non-Goal excludes is Critical. Quote
    the anchor line and the offending task/bullet. Verdict wording
-   canonical source: `references/goal-anchor.md`, the copies are
-   identical by design; keep them in sync.
+   canonical source: `{{plugin_root}}/skills/hackify/references/goal-anchor.md`,
+   already open from REQUIRED READING; the copies are identical by design,
+   keep them in sync.
 
    *Execution-plan lens, steps 9 to 13.*
 9. For each task pair (T_i, T_j) where i < j, record an edge "T_j
@@ -185,9 +234,11 @@ step needing a new file adds it here rather than reading one in place.*
    `{{concurrent_wave_target}}`. Below the target a finer split still EARNS its way past
    a coarser one by showing no shared read surface; at the target the packing has already
    made that argument.
-   **This restatement is complete**, apply it as written and do not go looking for the
-   file it came from. Canonical source: `references/contention-dispatch.md`, the two say
-   the same thing by design; keep them in sync. Phase 3 dispatches ONE implementer per
+   **This restatement is complete**, so apply it as written here rather than paging back
+   through its source mid-step. That source is
+   `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`, which you already
+   opened in full under REQUIRED READING; the two say the same thing by design, keep
+   them in sync. Phase 3 dispatches ONE implementer per
    wave off this plan, and waves that share nothing may run at the same time. Three more
    things come out of this step and go into your report:
    (i) **Name every SERIAL RESOURCE the backlog touches, then RE-TEST each one.** A
@@ -216,7 +267,8 @@ step needing a new file adds it here rather than reading one in place.*
    all three hold; when any one of them fails, mark it serial and name the failing
    condition.
    **This restatement is complete too**, from the same canonical source as the one above,
-   `references/contention-dispatch.md`, kept in sync.
+   `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`, likewise already
+   open from REQUIRED READING and likewise kept in sync.
    **You MARK and the parent DECIDES.** The parent applies the same test itself at
    dispatch, so a wrong mark cannot start a bad concurrent run on its own.
    (iii) **Extract every CONTENDED WRITE into ONE solo FOUNDATION wave.** Every file two
@@ -233,7 +285,8 @@ step needing a new file adds it here rather than reading one in place.*
    the production surface it covers, one unit per module the round landed, never by the
    one backlog task carrying it, then run (b) to (d) above over the union
    `The testing stage splits like any other stage` draws in
-   `references/contention-dispatch.md`: the test files it would write AND the production
+   `{{plugin_root}}/skills/hackify/references/contention-dispatch.md`: the test files it
+   would write AND the production
    files it would mutate for a watched red. That section argues it once and this is not a
    variant of it. Under `{{wave_size_target}}` it stays one wave at `sibling_tracks=none`;
    over it, and where a split line exists, emit concurrent testing waves that each carry
@@ -256,14 +309,14 @@ step needing a new file adds it here rather than reading one in place.*
 14. For each {task → file → planned change}, walk through whether the change can be
    implemented without SUPPRESSING A LINT RULE (inline ignore directives, file-level
    disables, or expect-error pragmas outside test files). Canonical scan tokens live
-   in `rules/hard-caps.md`.
+   in `{{plugin_root}}/rules/hard-caps.md`.
 15. For each {task → file → planned change}, walk through whether the change can be
    implemented without INTRODUCING A NON-NULL `!` assertion in production code.
 16. For each {task → file → planned change}, walk through whether the
    change can be implemented without DEFINING AN INLINE object-shape
    type WITH ≥2 PROPERTIES in any of the eight module roles
-   `rules/hard-caps.md` names: router / service / middleware / guard /
-   controller / component / page / route.
+   `{{plugin_root}}/rules/hard-caps.md` names: router / service / middleware /
+   guard / controller / component / page / route.
 17. For each {task → file → planned change}, walk through whether the change can be
    implemented without BREAKING THE LAYERING RULES (presentation / domain /
    infrastructure) quoted in step 2.
@@ -283,7 +336,7 @@ OUTPUT, EXCEPT on item 23, where a "no" means the dispatch never arrived intact 
 the only correct move is the refusal the INPUTS gate names. Items 1 to 7 cover the
 consistency lens, items 8 to 14 and 21 to 22 the execution-plan lens, items 15 to 20
 the architectural-risk lens; a "no" on any one of the three is a "no".
-**Items 21, 22 and 23 are APPENDED, never inserted.** This file cross-cites its own
+**Items 21, 22, 23 and 24 are APPENDED, never inserted.** This file cross-cites its own
 item numbers, so a renumber silently breaks those pointers; a new item goes on the end.
 1. Did you cite the work-doc section name (e.g. "DoD bullet D4") for every finding? (yes
    / no)
@@ -320,8 +373,9 @@ item numbers, so a renumber silently breaks those pointers; a new item goes on t
    ONE test-authoring task is the exception, appearing in as many waves as step 10(iv)
    split the testing stage into.
 15. Did you quote a rule sentence verbatim from `{{project_root}}/CLAUDE.md`,
-   `{{user_global_rules_path}}`, or the plugin's `rules/code-quality.md` for every
-   finding? (yes / no), where a finding from the consistency or execution-plan lens cites
+   `{{user_global_rules_path}}`, or the plugin's `{{plugin_root}}/rules/code-quality.md`
+   for every finding? (yes / no), where a finding from the consistency or execution-plan
+   lens cites
    its work-doc section or task IDs under items 1 and 10 instead, which is the only case
    this item does not reach.
 16. Did you cite the specific task ID and the file path for every finding? (yes / no),
@@ -349,10 +403,11 @@ item numbers, so a renumber silently breaks those pointers; a new item goes on t
    where a resource you left unclassified is a "no" and a finding rather than a caution,
    and a backlog holding no contended write answers the second half by saying so in the
    wave plan.
-23. Did all six numbered INPUTS arrive with a concrete value, counting a declared `none`
-   on 3, 5 or 6 as concrete? (yes / no), and this is the ONE item whose "no" does not
-   loop back to METHOD, because no amount of METHOD produces an input the dispatcher
+23. Did all seven numbered INPUTS arrive with a concrete value, counting a declared
+   `none` on 3, 5 or 6 as concrete? (yes / no), and this is the ONE item whose "no" does
+   not loop back to METHOD, because no amount of METHOD produces an input the dispatcher
    never sent. Refuse per the INPUTS gate instead.
+24. Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **SEVERITY**.
 - **Critical**. A defect that will produce shipped-broken work if not fixed before
@@ -461,7 +516,8 @@ none, write `None.` on its own line INSTEAD of the table, header row included.
 - [plan] <finding>
 - [rules] <finding>, rule: "<verbatim rule sentence>" (source:
   `{{project_root}}/CLAUDE.md` | `{{user_global_rules_path}}` | plugin
-  `rules/code-quality.md`); task: T<n>; file: <path>; remediation: <one sentence>.
+  `{{plugin_root}}/rules/code-quality.md`); task: T<n>; file: <path>;
+  remediation: <one sentence>.
 
 ## Important
 - [consistency] <finding>
@@ -473,11 +529,11 @@ none, write `None.` on its own line INSTEAD of the table, header row included.
 - [rules] <finding>, short note.
 
 ## Verification
-Every item 1 through 23 of the VERIFICATION checklist above, in order, one line
+Every item 1 through 24 of the VERIFICATION checklist above, in order, one line
 each in the shape `N. <yes|no>`, none skipped and none merged.
 1. <yes|no>
-(… 2 through 22, same shape, one line each …)
-23. <yes|no>
+(… 2 through 23, same shape, one line each …)
+24. <yes|no>
 ````
 
 If a section has no findings, write `None.` on its own line under the

@@ -10,7 +10,9 @@
         {"text": "Output creates a new SKILL.md under skills/<slug>/ with valid frontmatter (name, description) and kebab-case slug matching `^[a-z0-9-]{1,64}$`"},
         {"text": "SKILL.md description is detailed enough for harness auto-discovery (≥3 trigger phrases, explicit non-trigger guidance, scope statement)"},
         {"text": "Skill self-validates against the 9-check checklist before declaring done, checklist results pasted into the response"},
-        {"text": "Any embedded sub-agent prompt has the mandatory 7-section structure (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) with OUTPUT word-cap"}
+        {"text": "Any embedded sub-agent prompt has the mandatory 8-section structure (ROLE / INPUTS / REQUIRED READING / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT) with OUTPUT word-cap"},
+        {"text": "Any embedded sub-agent prompt's REQUIRED READING section actually binds, {{plugin_root}} is a declared INPUT, every listed path is anchored to it and carries a role-specific clause, the three fixed paragraphs (open-in-full, EXHAUSTIVE and CLOSED, missing canon) are carried verbatim from template-contract.md with the opening line in whichever wording that prompt's own list earns, and no file is cited inside the fenced block without also appearing on the list"},
+        {"text": "Any embedded sub-agent prompt carries the mandatory VERIFICATION item naming REQUIRED READING, in exactly one of the three wordings template-contract.md defines and the one its own list earns: the universal line for a list of plain entries only, the gated variant for a list carrying any step-bound entry, the conditional variant for a list carrying any CONDITIONAL entry, on one unwrapped physical line"}
       ],
       "files": []
     },

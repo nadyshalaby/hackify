@@ -1,6 +1,6 @@
 # Phase 4 (Cross-package verification)
 
-This file is the dispatchable sub-agent prompt for one Phase 4 verification agent. Load it whenever the parent needs faithful test + lint + typecheck exit-code reporting across one or more independent project roots; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT`, `SEVERITY` is omitted because this is a verification template, not a review template) lives in `template-contract.md`, do not restate it here.
+This file is the dispatchable sub-agent prompt for one Phase 4 verification agent. Load it whenever the parent needs faithful test + lint + typecheck exit-code reporting across one or more independent project roots; the canonical 8-section sub-agent contract (`ROLE`, `INPUTS`, `REQUIRED READING`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `OUTPUT`, `SEVERITY` is omitted because this is a verification template, not a review template) lives in `template-contract.md`, do not restate it here.
 
 Dispatch ONE agent per project root, all in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
 
@@ -44,6 +44,35 @@ Bias against: paraphrasing what a command "seems to" have said.
 5. `{{project_name}}`, short identifier used in the report header.
 6. `{{word_cap}}`, integer max words for the OUTPUT report
    (recommended 250).
+7. `{{plugin_root}}`, absolute filesystem path to the installed
+   hackify plugin root, the directory holding `rules/` and
+   `skills/`.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, the literal governing law
+   of your output rather than background doctrine: your ENTIRE
+   deliverable here is reported exit codes and pass/fail verdicts, so
+   "prove every claim with fresh output" and "a verification that can
+   fail silently is not a verification" are the two sentences every line
+   of your report is judged against.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach a
+   verification before you run it.
+3. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the
+   fuller doctrine `rules/expert-mindset.md` names and does not itself carry: the hat
+   table's QA / verifier row, the one hat it names Phase 4 as the home
+   of, whose bar is that a success signal with no proof is not done.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
 
 **OBJECTIVE**.
 A PASS or FAIL verdict per command for `{{project_name}}` at
@@ -97,6 +126,9 @@ A non-zero exit from the wrapper means at least one command failed;
 the agent still produces OUTPUT (with FAIL lines), but does NOT
 attempt remediation. Loop back to METHOD only if the wrapper itself
 failed to capture exit codes (e.g. shell error).
+
+Report this line in your OUTPUT beside the wrapper's exit code, answered:
+Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **OUTPUT**.
 ≤`{{word_cap}}` words, verification reports must be skimmable.

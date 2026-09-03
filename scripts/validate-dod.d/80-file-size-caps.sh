@@ -1,9 +1,17 @@
 # shellcheck shell=bash
 
-# [80] File-size cap, every primitive ≤ 500 LOC.
-# Enforces the project-agnostic ≤500 LOC hard cap from rules/hard-caps.md
-# across the primitive directories. Closes the gap where rules said one
-# thing and the validator enforced another (v0.2.7 retrospective).
+# [80] File-size cap, in two tiers.
+# Enforces the project-agnostic hard cap from rules/hard-caps.md across the
+# primitive directories. Closes the gap where rules said one thing and the
+# validator enforced another (v0.2.7 retrospective).
+#
+# THE SECOND TIER IS A RAISED BOUND, NEVER AN EXEMPTION. The default cap is a rule about CODE,
+# where "split it by responsibility" costs the reader nothing because an import follows the
+# split. A DISPATCHED SUB-AGENT HAS NO IMPORT: everything it will ever know arrives in one
+# prompt, so there that remedy is a different and worse design rather than a cheaper one.
+# Prompt templates stay scanned, counted and reported at a bound that fits them, and
+# rules/hard-caps.md carries the same carve-out, so doctrine cannot say 500 while this enforces
+# more, which would be the v0.2.7 gap above reopened in the other direction.
 #
 # PYTHON IS SCANNED BECAUSE THE PLUGIN SHIPS EXECUTABLE PYTHON. The extension
 # joined this list in v0.11.0 for the Phase 6 report renderer, the first plugin
@@ -23,6 +31,23 @@
 # it under-measured. Portable on bash 3.2 (macOS), a while-read loop not mapfile.
 
 CAP_MAX_LOC=500
+
+# THE RAISED BOUND LIVES ON THIS LINE AND NOWHERE ELSE, on the argument 96-review-scope-sites.sh
+# makes twice about TB_EXPECT_CALLS: a number copied into prose rots in silence while the pin
+# cannot. So rules/hard-caps.md and skills/lawkeeper/references/carve-outs.md name this
+# assignment rather than restating it, safe for 96's own reason: `set -u` is in force and the
+# scan loop and the ok line here, and the raised-tier cross-check in 801-cap-enforcer-agreement.sh,
+# all read it, so a rename dies loudly wherever it is made.
+CAP_PROMPT_TEMPLATE_MAX_LOC=560
+
+CAP_PROMPT_TEMPLATE_GLOBS_EXPECTED=2  # pinned as CAP_APPEND_ONLY_EXPECTED is; reason in the FAIL line
+                                      # it feeds, which is in 801-cap-enforcer-agreement.sh
+
+# THE WARNING TIER'S THRESHOLD, one pin read in one place. Not a third cap: it fails nothing and
+# waives nothing, it says only that the NEXT edit to this file is the one forced to choose. A
+# percentage of whichever bound applies, so both tiers get the same margin.
+CAP_WARN_PCT=95
+
 CAP_SEARCH_PATHS="skills agents rules scripts hooks commands"
 
 # THE REPO ROOT WAS NEVER IN THIS SCAN. CAP_SEARCH_PATHS is six DIRECTORIES, and
@@ -78,8 +103,9 @@ CAP_APPEND_ONLY_EXPECTED=1
 # agreement and earns the same treatment, a check instead of prose. python3 is not a new
 # requirement here, [80b] already reddens without it.
 #
-# THE TWO SIDES DO NOT HOLD THE SAME SHAPE, so the SHELL side is the one normalized, and
-# only at the comparison below. CAP_APPEND_ONLY holds REPO-RELATIVE PATHS because its two
+# THE TWO SIDES DO NOT HOLD THE SAME SHAPE, so the SHELL side is the one normalized, and only at
+# the comparison, which since the split lives in 801-cap-enforcer-agreement.sh and not in this
+# file. CAP_APPEND_ONLY holds REPO-RELATIVE PATHS because its two
 # other consumers need one: the membership test in the scan loop compares against what
 # cap_file_list emits, and the staleness loop hands each entry to `[ -f ]`. The scanner
 # keys on BASENAMES because it is pointed at arbitrary roots. Comparing the two raw is
@@ -88,6 +114,12 @@ CAP_APPEND_ONLY_EXPECTED=1
 # a single non-root entry. Reducing the shell copy to basenames at the point of use is
 # what makes the two sides comparable without breaking the two consumers that need paths.
 # Only the CONTENTS are cross-checked.
+#
+# DEFINED HERE AND READ ONLY IN 801-cap-enforcer-agreement.sh, which is the whole point of the
+# seam: this file answers a question about FILES (which bound applies to each, which are over it,
+# which are close), 801 answers one about ENFORCERS (do this file and that scanner select the
+# same waived set and the same raised tier). The pin stays beside the caps it belongs to and the
+# comparison that consumes it lives with the other comparisons, `set -u` making a rename loud.
 CAP_EXEMPTIONS="skills/lawkeeper/scripts/exemptions.py"
 
 # The one root file this check actually ENFORCES, named rather than counted. With
@@ -101,7 +133,7 @@ CAP_ROOT_WITNESS="README.md"
 CAP_NL='
 '
 
-yellow "[80] File-size cap, every tracked primitive file ≤ ${CAP_MAX_LOC} LOC"
+yellow "[80] File-size cap, tracked primitive files ≤ ${CAP_MAX_LOC} LOC and prompt templates ≤ ${CAP_PROMPT_TEMPLATE_MAX_LOC}"
 
 # ONE `wc -l` OVER THE WHOLE SET, NOT TWO FORKS PER FILE. The retired loop body
 # read `loc=$(wc -l < "$f" | tr -d ' ')`, which is a fork for wc plus a fork for
@@ -146,6 +178,13 @@ cap_root=0
 cap_oversize=0
 cap_exempt=0
 cap_witness=0
+cap_prompt_tier=0
+cap_prompt_set=""
+cap_near=0
+cap_near_set=""
+# BUILT ONCE, not per file: the loop consults it for every scanned path now, not only for an
+# oversize one, and rules/perf-guardrails.md bans rebuilding a constant inside such a loop.
+cap_waiver_hay="$CAP_NL$CAP_APPEND_ONLY$CAP_NL"
 # `IFS=' '` RATHER THAN THE DEFAULT, and rather than the `IFS=` every other loop
 # in this fragment uses. This one MUST split, because each row is wc's count and
 # then the path. Space is an IFS whitespace character, so the padding wc puts in
@@ -164,11 +203,37 @@ while IFS=' ' read -r loc f; do
   cap_total=$((cap_total + 1))
   case "$f" in */*) ;; *) cap_root=$((cap_root + 1)) ;; esac
   [ "$f" = "$CAP_ROOT_WITNESS" ] && cap_witness=1
-  [ "$loc" -gt "$CAP_MAX_LOC" ] || continue
-  case "$CAP_NL$CAP_APPEND_ONLY$CAP_NL" in
-    *"${CAP_NL}${f}${CAP_NL}"*) cap_exempt=$((cap_exempt + 1)); continue ;;
+  # THE TIER IS DECIDED HERE AND ONLY HERE. Two globs and nothing wider. THE `*/*` ARMS
+  # COME FIRST AND ARE NOT DECORATION: a shell `*` crosses `/`, so `agents/*.md` alone would
+  # adopt every nested file under it, and a `case` takes its FIRST match, so those arms hold
+  # the tier to one directory segment. Builtins only, no fork, nothing paid per scanned file.
+  cap_limit=$CAP_MAX_LOC
+  case "$f" in
+    skills/hackify/references/parallel-agents/*/* | agents/*/*) ;;
+    skills/hackify/references/parallel-agents/*.md | agents/*.md)
+      cap_limit=$CAP_PROMPT_TEMPLATE_MAX_LOC
+      cap_prompt_tier=$((cap_prompt_tier + 1))
+      cap_prompt_set="${cap_prompt_set}${f}${CAP_NL}" ;;
   esac
-  red "  FAIL ${f} is ${loc} LOC (cap: ${CAP_MAX_LOC})"
+  # THE WAIVER IS READ FIRST NOW: a waived file has no bound to approach, so it must not draw
+  # the warning either. cap_exempt still counts only files actually OVER, as the ok line says.
+  case "$cap_waiver_hay" in
+    *"${CAP_NL}${f}${CAP_NL}"*)
+      [ "$loc" -gt "$cap_limit" ] && cap_exempt=$((cap_exempt + 1))
+      continue ;;
+  esac
+  # THE WARNING TIER, YELLOW AND NEVER FAILING, the `note` shape cap_stale uses below. A bound
+  # that speaks only once it is already broken forces the repair into whatever change happens
+  # to cross it, and this repo has paid that: files land AT the cap and the next needed line is
+  # bought by deleting a comment recording why something exists. Integer arithmetic, POSIX
+  # having no floats, against whichever cap_limit the tier above chose.
+  if [ "$loc" -le "$cap_limit" ]; then
+    [ "$((loc * 100))" -ge "$((cap_limit * CAP_WARN_PCT))" ] || continue
+    cap_near=$((cap_near + 1))
+    cap_near_set="$cap_near_set ${f} (${loc}/${cap_limit})"
+    continue
+  fi
+  red "  FAIL ${f} is ${loc} LOC (cap: ${cap_limit})"
   FAILED=$((FAILED + 1))
   cap_oversize=$((cap_oversize + 1))
 done < <(cap_loc_list)
@@ -200,60 +265,6 @@ $CAP_APPEND_ONLY
 CAP_EXEMPT_EOF
 check_list_size "$cap_known_total" "$CAP_APPEND_ONLY_EXPECTED" "the [80] CAP_APPEND_ONLY exemption list"
 
-# THE MODULE NAME IS DERIVED FROM CAP_EXEMPTIONS, NOT HARDCODED, and that is a fix rather
-# than a tidy-up. The import used to read `from exemptions import ...` while the `[ -f ]`
-# guard below tested CAP_EXEMPTIONS, so the two could disagree about which file this check
-# is even about: point CAP_EXEMPTIONS at any sibling module in that directory and the guard
-# passed, the real exemptions.py was imported regardless, and the ok line named a file it
-# had never opened. Reproduced by pointing it at lexer.py and watching it print green. That
-# is the same shape as every other defect this fragment exists to refuse, a check reporting
-# on one thing while measuring another.
-cap_module="${CAP_EXEMPTIONS##*/}"
-cap_module="${cap_module%.py}"
-
-# A DERIVED NAME THAT IS NOT IMPORTABLE IS A FAILURE, NEVER A SILENT SKIP. A hyphen is legal
-# in a filename and illegal in a module name, so renaming the scanner's set to something like
-# append-only-exemptions.py would leave the file present, the `[ -f ]` guard green, and the
-# import raising. Caught here it names the real problem; left to the import it would arrive as
-# "could not read APPEND_ONLY_BASENAMES", which blames the contents of a file that is fine.
-case "$cap_module" in
-  '' | [0-9]* | *[!A-Za-z0-9_]*) cap_module_ok=0 ;;
-  *) cap_module_ok=1 ;;
-esac
-
-cap_scanner_exempt() {
-  python3 -c '
-import importlib, sys
-sys.path.insert(0, sys.argv[1])
-print("\n".join(sorted(importlib.import_module(sys.argv[2]).APPEND_ONLY_BASENAMES)))
-' "${CAP_EXEMPTIONS%/*}" "$cap_module" 2> /dev/null
-}
-
-cap_one_line() { echo "$1" | tr '\n' ' '; }
-
-# Path list to basename set, the normalization the block comment above argues for.
-# `sort -u` and not `sort`, because two exempt paths sharing a basename are ONE
-# basename to the scanner and the two sides must still be able to agree.
-cap_to_basenames() { sed 's|.*/||' | sort -u; }
-
-cap_scanner_list=$(cap_scanner_exempt)
-cap_shell_list=$(printf '%s\n' "$CAP_APPEND_ONLY" | cap_to_basenames)
-cap_shell_count=$(printf '%s\n' "$cap_shell_list" | wc -l | tr -d ' ')
-if [ ! -f "$CAP_EXEMPTIONS" ]; then
-  red "  FAIL $CAP_EXEMPTIONS is missing, so nothing cross-checks this exemption list against the scanner's and the two can drift unobserved"
-  FAILED=$((FAILED + 1))
-elif [ "$cap_module_ok" -eq 0 ]; then
-  red "  FAIL '$cap_module', derived from $CAP_EXEMPTIONS, is not a plain Python module name, so the set this check compares against can never be imported"
-  FAILED=$((FAILED + 1))
-elif [ -z "$cap_scanner_list" ]; then
-  red "  FAIL could not read APPEND_ONLY_BASENAMES out of $CAP_EXEMPTIONS; a list that cannot be read is not a list that agrees"
-  FAILED=$((FAILED + 1))
-elif [ "$cap_scanner_list" != "$cap_shell_list" ]; then
-  red "  FAIL this check waives basename(s) [$(cap_one_line "$cap_shell_list")] from the ${CAP_MAX_LOC}-LOC cap and $CAP_EXEMPTIONS waives [$(cap_one_line "$cap_scanner_list")]; the two enforcers of one cap would exempt different files"
-  FAILED=$((FAILED + 1))
-else
-  green "  ok   CAP_APPEND_ONLY and $CAP_EXEMPTIONS waive the same ${cap_shell_count} basename(s) from the ${CAP_MAX_LOC}-LOC cap"
-fi
 
 if [ "$cap_total" -eq 0 ]; then
   red "  FAIL no files matched the cap search paths, refusing to declare green"
@@ -262,11 +273,17 @@ elif [ "$cap_witness" -eq 0 ]; then
   red "  FAIL the cap scan never reached $CAP_ROOT_WITNESS, so the repo root went unenforced while $cap_total files were counted; the root half of this scan is measuring nothing"
   FAILED=$((FAILED + 1))
 elif [ "$cap_oversize" -eq 0 ]; then
-  green "  ok   ${cap_total} files scanned (${cap_root} at the repo root, ${CAP_ROOT_WITNESS} among them); all ≤ ${CAP_MAX_LOC} LOC bar ${cap_exempt} append-only exemption(s)"
+  # BOTH TIERS CARRY THEIR OWN COUNT: one total spanning two bounds is a confident number about
+  # a set nobody screened at either. The default is by subtraction, every row being in one tier.
+  green "  ok   ${cap_total} files scanned (${cap_root} at the repo root, ${CAP_ROOT_WITNESS} among them); $((cap_total - cap_prompt_tier)) at ≤ ${CAP_MAX_LOC} LOC and ${cap_prompt_tier} prompt template(s) at ≤ ${CAP_PROMPT_TEMPLATE_MAX_LOC} LOC, each within its own tier bar ${cap_exempt} append-only exemption(s)"
 fi
 
 if [ -n "$cap_stale" ]; then
   yellow "  note CAP_APPEND_ONLY still exempts$cap_stale, prune the entry and drop CAP_APPEND_ONLY_EXPECTED to match so the list keeps shrinking"
+fi
+
+if [ "$cap_near" -gt 0 ]; then
+  yellow "  note ${cap_near} file(s) at or above ${CAP_WARN_PCT}% of the cap that applies to them:$cap_near_set; split one on a real seam now, while the seam is still the reason, rather than at the edit that would otherwise pay for its next line by deleting something"
 fi
 
 # ---------------------------------------------------------------------------

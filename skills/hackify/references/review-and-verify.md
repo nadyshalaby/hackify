@@ -138,7 +138,7 @@ This proves the test is sensitive to the bug it claims to catch.
 
 For any non-trivial diff (anything beyond a one-line typo / config-only change), Phase 5 dispatches the five-agent panel as foreground reviewers in parallel in a single message, roster unchanged. The five-agent panel is Phase 5's default reviewer route in both quick and full mode, and the merged all-lens reviewer (`hackify:reviewer`) is the explicit, named, lower-cost opt-out. A, B, D and F each run on every non-trivial diff, and E joins on a UI-bearing one. B carries quality/layering **and plan consistency** over one read. A is security/correctness, D is performance, F is cross-module coherence. E design-conformance is the one conditional lens, and it is omitted rather than folded when the diff has no UI surface. Cap at 5. **Use the merged reviewer, or ask for a single reviewer round, and Phase 5 dispatches it instead**, carrying every lens as five gated passes over one read of the diff. The panel table and the reason the evidence gate was retired are in [phases/phase-5-review.md](phases/phase-5-review.md). (Reviewer C folded into B in v0.13.0: both ran on every wave, so a permanent merge took a saving nothing else could reach.)
 
-**On a panel round the scout tables split.** Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs. Every panel reviewer except B also takes `{{review_scope}}`, the git pathspec list for its lens, and diffs only that; the merged reviewer takes no scope at all, on the same argument that keeps B unsliced. **B is never sliced**, its semantic tier applies to every touched file and it re-judges every scout row, so no subset of the diff is safe to withhold; B takes `{{metrics_table}}` instead, so it judges precomputed size numbers rather than counting them by reading ([review-scope.md](review-scope.md)).
+**On a panel round the scout tables split.** Two reviewers consume a deterministic scout run immediately beforehand and must re-judge every one of its rows: Reviewer B takes the law-scout table ([law-scout.md](law-scout.md)) as `{{law_scout_report}}` and cites lawkeeper `rule_id`s; Reviewer D takes the perf-scout table ([perf-scout.md](perf-scout.md)) as `{{perf_scout_report}}` and cites `rules/performance.md` catalog IDs. Every panel reviewer except B also takes `{{review_scope}}`, the git pathspec list for its lens, and diffs only that; the merged reviewer takes no scope at all, on the same argument that keeps B unsliced. **Every reviewer this phase dispatches also takes `{{plugin_root}}`**, each panel lens, the refuter behind them and the merged reviewer alike: the absolute filesystem path to the installed hackify plugin root, the directory holding `rules/` and `skills/`, and the anchor every REQUIRED READING path in those templates is built from. It never takes `none` or a blank, and the parent fills it from a path it ALREADY HOLDS, either the absolute path carried in any always-on rule injection it received this session or its own skill's base directory, never by searching the filesystem. **B is never sliced**, its semantic tier applies to every touched file and it re-judges every scout row, so no subset of the diff is safe to withhold; B takes `{{metrics_table}}` instead, so it judges precomputed size numbers rather than counting them by reading ([review-scope.md](review-scope.md)).
 
 Reviewer F is the lens no other reviewer owns: it compares every boundary-crossing symbol's **producer** against every **consumer** for shape, semantic, error-contract, duplicate-concept, and wiring agreement. It exists because a wave's implementer writes against waves it never saw and against pre-existing code it did not write, which is precisely how two independently-correct halves of a feature end up disagreeing.
 
@@ -190,7 +190,7 @@ When you escalate, **also** complete the self-review, escalation is *additive* d
 
 ### Reviewer subagent prompt template (the adjudication reviewer)
 
-This template is the **adjudication reviewer**, the agent that reads the Phase 5 reviewer reports a wave actually produced, one merged report carrying a section per lens or, on a panel round, the reports the panel returned, and returns CONCUR or REBUT on every finding in them. It conforms to the 7-section sub-agent contract in `parallel-agents/template-contract.md` (SEVERITY mandatory because this is a review template).
+This template is the **adjudication reviewer**, the agent that reads the Phase 5 reviewer reports a wave actually produced, one merged report carrying a section per lens or, on a panel round, the reports the panel returned, and returns CONCUR or REBUT on every finding in them. The canonical sub-agent contract in `parallel-agents/template-contract.md` is 8 sections (ROLE / INPUTS / REQUIRED READING / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), SEVERITY mandatory here because this is a review template. It carries all eight, REQUIRED READING included, anchored on `{{plugin_root}}` like every template in `parallel-agents/`; the performance catalog its METHOD rules against is bound on that list rather than merely cited, so the agent is told to open every canonical file it is told to apply.
 
 **Fires when** finished reviewer reports are in hand and findings already filed need a verdict. Reports are its whole review input, so with none in hand it has nothing to rule on. When the diff instead needs findings nobody has filed yet, on a lens the dispatcher pins by name at fire-time, the specialist in `parallel-agents/phase-5-escalation.md` is the prompt that answers, and it takes no reviewer report at all. The triggers listed above decide whether to escalate; they never decide which of the two prompts you dispatch.
 
@@ -248,6 +248,35 @@ Bias against: paraphrasing a prior reviewer's claim without quoting it.
     string `none` if absent.
 11. `{{project_claude_md_path}}`, absolute filesystem path to the
     project CLAUDE.md (typically `<project>/CLAUDE.md`), or `none`.
+12. `{{plugin_root}}`, absolute filesystem path to the installed hackify
+    plugin root, the directory holding `rules/` and `skills/`. Every
+    REQUIRED READING path below is built from it.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, every CONCUR and REBUT you write
+   is a claim about another reviewer's claim, and this governs what one must
+   carry before you may make it.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the reports and the
+   diff behind them before you adjudicate either.
+3. `{{plugin_root}}/rules/performance.md`, the performance catalog METHOD step 6
+   rules against, whose `perf.<domain>.<slug>` IDs every performance verdict you
+   file keys on.
+4. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the fuller
+   doctrine `rules/expert-mindset.md` names and does not itself carry: the hat
+   table's QA / verifier row, whose "prove, do not claim" is the bar every
+   CONCUR and every REBUT is held to, evidence re-derived over wording.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
 
 **OBJECTIVE**
 
@@ -282,7 +311,7 @@ and adds any net-new findings the prior reviewers missed.
    tokens, crypto, or migrations, the relevant categories from the
    prevailing top-ten web application security risk catalogue, and when
    the diff touches data access, loops, hot paths, or caching, the
-   performance catalog (`rules/performance.md`; cite
+   performance catalog (`{{plugin_root}}/rules/performance.md`; cite
    `perf.<domain>.<slug>` IDs). Record any net-new finding with a
    file:line citation.
 7. For every Definition-of-Done bullet in the work-doc, confirm the diff
@@ -309,6 +338,7 @@ before producing OUTPUT.
 6. Are all Critical findings ones whose claim you verified against the
    live diff or live docs, not ones you inferred from prior-reviewer
    wording? (yes / no)
+7. Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **SEVERITY**
 

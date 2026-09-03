@@ -336,7 +336,13 @@ the work-doc before it dispatches, one block per track when a round holds two or
 more, carrying `track_id`, `sibling_tracks`, `owned_elsewhere`,
 `mandatory_reading`, `sharp_invariants`, `database_name`, `exclusive_resources`
 and `handoff_contract`. The skeleton lives in
-[work-doc-template.md](work-doc-template.md). A solo wave fills the same block,
+[work-doc-template.md](work-doc-template.md). **`plugin_root` is NOT one of the
+eight and never goes in the block**, even though the wave plan does not emit it
+either: the parent already holds it, as the absolute path carried in any
+always-on rule injection it received this session or as its own skill's base
+directory, and passes that straight through instead of writing it down per
+track. Copying it into a module brief gives a value that was never per-track a
+place to drift per track. A solo wave fills the same block,
 and four of those are `none` on every solo wave because nothing runs beside it:
 `track_id`, `sibling_tracks`, `owned_elsewhere` and `database_name`. The other
 four are decided per wave and are `none` only when the wave truly has nothing to

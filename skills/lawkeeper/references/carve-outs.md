@@ -16,6 +16,7 @@ them per project via `--extra-generated <glob>` when a project uses a different 
 | Test files (`*.test.*`, `*.spec.*`, `**/tests/**`, `**/__tests__/**`) | suppression, non-null, inline-type, bare-error, `clean.removed-comment`, `clean.debt-marker` | path glob (`TEST_GLOBS` / `_TEST_WAIVED`) |
 | Prose (`*.md`, `*.mdx`) | `clean.removed-comment`, `clean.debt-marker` | path glob (`PROSE_GLOBS` / `_PROSE_WAIVED`) |
 | Append-only records (`CHANGELOG.md`) | `cap.file-lines` ONLY | exact basename (`APPEND_ONLY_BASENAMES`) |
+| Every file in the sub-agent prompt directories (`skills/hackify/references/parallel-agents/*.md`, `agents/*.md`), the three carrying no fenced prompt included | `cap.file-lines` ONLY | repo-relative glob, one segment deep (`PROMPT_TEMPLATE_GLOBS`) |
 | Generated (`*.gen.ts`, `*.d.ts`, `*.generated.*`, `routeTree.gen.ts`) | ALL | path glob + generated-header comment |
 | Migrations (`**/migrations/**`) | ALL (off-limits to refactor) | path glob |
 | `template-reference/` and other frozen demo dirs | ALL | dir name; confirm in `tsconfig`/lint ignore |
@@ -94,6 +95,40 @@ against a repo-relative path, so it waives the ROOT `CHANGELOG.md` alone. The sc
 BASENAMES, because it is pointed at arbitrary roots, so a monorepo's `packages/*/CHANGELOG.md`
 is waived there and would not be here. They coincide at a repo root, which is the only place
 the shell check runs.
+
+### Prompt templates (waived here, because the real rule is a RAISED bound elsewhere)
+
+A sub-agent prompt template carries one agent's entire instruction set in one file, and the
+agent reading it HAS NO IMPORT: everything it will ever know arrives in that single prompt. So
+"split it by responsibility", the remedy the file cap exists to force, is not a cheaper
+alternative here, it is a different and worse design, and it costs the agent a read it cannot
+skip. What the project decided on is therefore a RAISED BOUND rather than an exemption: these
+files stay capped, stay scanned, stay counted and stay reported, at a number that fits what
+they are. That number is written in exactly ONE place, `CAP_PROMPT_TEMPLATE_MAX_LOC` in
+`scripts/validate-dod.d/80-file-size-caps.sh`, and is deliberately not restated here or in
+`rules/hard-caps.md`, on the argument `96-review-scope-sites.sh` makes twice about a number
+copied into prose: the copy rots in silence while the pin cannot.
+
+**The residual, and it is the whole cost of the carve-out.** This scanner takes its cap as ONE
+`max_file_lines` parameter and expresses every carve-out as a rule waiver, so it CANNOT
+represent a second bound. Waiving `cap.file-lines` here therefore means a `/hackify:lawkeeper`
+run stops reporting these files **at all**, not that it reports them at the raised number. The
+two halves are asymmetric, and nothing wider than this is agreed between them:
+
+- **The raised bound has exactly one enforcer**, the shell check `[80]`. It is the only thing
+  in this repo that will ever fail on a prompt template that has grown too long.
+- **This scanner holds only the other half**, the statement that 500 is the wrong number for
+  these paths. It has no way to say what the right one is.
+- **The two are cross-checked on the files each SELECTS, never on their patterns.** `*` crosses
+  `/` in a shell `case` and in `fnmatch` and does not in `find -maxdepth 1`, so equal pattern
+  strings would prove nothing while equal selections over the scanned tree do. `[80]` runs that
+  comparison, refuses to compare two empty sets, and pins the glob count beside it so a glob
+  aimed at a directory the shell never walks cannot widen this waiver unseen.
+- **Repo-relative, not basenames**, the opposite choice from append-only above and for the very
+  reason that one went the other way. A `CHANGELOG.md` is append-only wherever it sits, while
+  here the two DIRECTORIES are the class; a basename rule would waive an `investigation.md` in
+  any project. The cost is that a scan rooted below the repo cannot match these paths, which is
+  the correct answer rather than a gap: below that root they are no longer at these addresses.
 
 Runtime-detect project specifics before scanning:
 - **Generated files**, grep the first lines of candidates for `@generated`, `eslint-disable`,

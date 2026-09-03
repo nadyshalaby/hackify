@@ -76,6 +76,18 @@ Verbatim from the orchestrator header, indentation and all.
                   plugin.json (stable ref, edge ref, versions)
   30-version-and-summary.sh, checks [16]-[20]
   40-quick-skill.sh, checks [21]-[23], [35]
+  41-required-reading.sh, check [41], every sub-agent template carries a
+                  REQUIRED READING list whose every path is plugin_root-anchored
+                  and resolves
+  42-reader-declarations.sh, check [42], every file that declares a hackify
+                  agent loads it is named by that agent's REQUIRED READING list
+  43-verification-grammar.sh, check [43], every template carries exactly one of
+                  the three canonical VERIFICATION sentences and it is the one
+                  its own REQUIRED READING grammar demands. Split from [41] on a
+                  seam rather than at a line count: [41] asks whether the LIST is
+                  well formed, this asks whether a sentence in a DIFFERENT
+                  section agrees with that list's grammar, a question neither
+                  answers alone. Its own header carries the rest
   50-runtimes-and-companions.sh, checks [24]-[26], [28]
   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
   56-dist-integrity.sh, check [56], every file the sync COPIES into
@@ -233,9 +245,16 @@ Verbatim from the orchestrator header, indentation and all.
                   roster guard, every 'standing member' claim must name B,
                   over a file set the check discovers rather than lists.
                   Split out of 77 at the 500-LOC cap
-  80-file-size-caps.sh, checks [80] and [80b], file-size ≤ 500 LOC across
-                  primitives, and the two 500-LOC counters (wc -l and the
-                  lawkeeper scanner) agreeing at the cap boundary ([80b])
+  80-file-size-caps.sh, checks [80] and [80b], file-size across primitives at the
+                  bound that applies to each, with a non-failing note at 95% of
+                  it, and the two 500-LOC counters (wc -l, the lawkeeper scanner)
+                  agreeing at the cap boundary ([80b])
+  801-cap-enforcer-agreement.sh, check [80c], this validator and the lawkeeper
+                  scanner waive and raise the cap over the SAME files. Split from
+                  80 on a seam: 80 asks which files are over their bound, this
+                  asks whether the two enforcers agree which bound applied. Reads
+                  the sets 80 measured, so it compares against the enforcement
+                  that happened, and reds by name if that producer did not run
   81-no-claude-attribution.sh, check [81], no Co-Authored-By trailer,
                   Claude-Session line or generated-with footer in commits or
                   PR bodies
@@ -440,6 +459,31 @@ and a reader looking up [38e] was sent to 71 where it does not exist. Set
 membership in both directions, every id a row names is declared by that
 fragment and every id that fragment declares is named by that row, is the
 rule that reaches them; it is [76i]'s to widen and is not bought here.
+
+## What check [41] deliberately does not enforce
+
+Arguments a maintainer needs once, not rules that fragment re-applies; its header points here.
+
+WHAT A GATED TEMPLATE MAY VARY AND WHAT IT MAY NOT. `phase-5-multi-review-merged.md` runs five
+GATED passes and binds each entry to a named pass rather than to METHOD step 1, because loading
+fifteen lens files up front would destroy the gating and the low-cost premise that is that
+reviewer's reason to exist. Contract-legal, so [41] asserts on neither paragraph 1's WORDING nor
+an entry's clause; it pins the four invariants holding across EVERY template instead, and a
+control plants a pass-bound entry and requires it to PASS, proving the tolerance every run.
+
+TWO RULES [41] DELIBERATELY DOES NOT ENFORCE, both because enforcing them would rebuild the
+author's-vantage blind spot in a new place. A BARE PATH INSIDE THE LIST IS NOT SCREENED AS SUCH:
+assertion (d) is the POSITIVE form, so an entry written `rules/foo.md` fails it for want of an
+anchored path, while the NEGATIVE form, banning unanchored backticked paths from the list body,
+was written and withdrawn. The Phase 2.5 spec reviewer legitimately names the PROJECT's
+`CLAUDE.md` unanchored, which the contract prescribes for files no plugin anchor reaches, and
+screening on "does the name resolve from the repo root" would RED on that entry today, this repo
+having since gained a root `CLAUDE.md` — the author's-vantage error exactly. One live instance. And (h) IS THE ANCHORED HALF OF THE DANGLING RULE AND NOT THE WHOLE
+RULE: the contract bans citing any plugin file absent from the list, so an anchored citation is
+unambiguously such a file and is enforced, while a BARE one is not, telling a plugin file from
+one of the user's needing judgment no matcher has. Measured over the live corpus, the only two
+bare citations resolving from this repo root are both `CHANGELOG.md` in a reviewer prompt,
+correctly meaning the USER's; reddening on those cries wolf on run one, so the honest partial ships.
 
 ## Two checks do not live in a fragment
 

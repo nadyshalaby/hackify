@@ -8,6 +8,7 @@ Injected into every prompt by hackify's `UserPromptSubmit` hook. Zero-tolerance,
 - **≤ 3 parameters**, group into a named interface/DTO if more.
 - **≤ 3 levels of nesting**, guard clauses and early returns over deep nesting.
 - **≤ 500 lines** per file, split by responsibility.
+- **Sub-agent prompt templates carry a raised line cap**, pinned once at `CAP_PROMPT_TEMPLATE_MAX_LOC` in `scripts/validate-dod.d/80-file-size-caps.sh`; a dispatched agent has no import, so splitting one is not a cheaper read. Which files, and why: `skills/lawkeeper/references/carve-outs.md`.
 
 ## Bans (zero tolerance)
 

@@ -112,21 +112,21 @@ CITES = _sibling('check_doc_cites')
 ANCHORS = _sibling('check_doc_anchors')
 
 SCAN_ROOTS = ('skills', 'agents', 'rules', 'commands', 'hooks', 'docs')
-SCAN_FILES = ('README.md',)
+SCAN_FILES = ('README.md', 'CLAUDE.md')
 EXCLUDE_DIRS = ('docs/work', 'dist', 'node_modules', '__pycache__')
 
 # Pointers into the USER's repository, not this one. Prose names them as roles
-# ("your project's CLAUDE.md"), so they can never resolve here and their absence
+# ("your project's AGENTS.md"), so they can never resolve here and their absence
 # is not a defect. Adding a name here is a deliberate call, not a silencer.
 USER_REPO_POINTERS = frozenset({
-    'CLAUDE.md', 'AGENTS.md', 'GEMINI.md', '.github/copilot-instructions.md',
+    'AGENTS.md', 'GEMINI.md', '.github/copilot-instructions.md',
     'DESIGN.md', 'docs/design/DESIGN.md',
     'ARCHITECTURE.md', 'architecture.md', 'CONTRIBUTING.md',
     'docs/work/.groom-scratch.md',
-    # Reviewer B's INPUTS say "the project's CHANGELOG.md", the repo under
-    # review. It resolved against this repo's own by coincidence; the built
-    # runtime, which ships no changelog, is what exposed that.
-    'CHANGELOG.md',
+    # These two DO resolve here, so the sentence above is not why they stay:
+    # neither is in the copy manifest (scripts/sync-runtimes.d/00-helpers.sh),
+    # so dropping either passes on source and reds on dist/claude-code alone.
+    'CHANGELOG.md', 'CLAUDE.md',
 })
 
 # Directories a built runtime tree may legitimately not ship. Both scan-side

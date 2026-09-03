@@ -1,6 +1,6 @@
-# The Four Principles (Always-On)
+# The Four Principles (Canonical)
 
-The doctrinal core of hackify. Four principles that gate every substantive turn, from the first clarifying question to the final commit. Hard caps and code-quality rules operationalize these; phases and sub-agent contracts enforce them. Canonical home, do not restate the principle bodies elsewhere; link here.
+The doctrinal core of hackify. Four principles that gate every substantive turn, from the first clarifying question to the final commit. No hook injects this file. Loaded on demand by: Phase 3 implementers (Surgical Changes bounds the diff to the file allowlist, Goal-Driven Execution puts a verify check on every task) and Phase 5 Reviewer B (Simplicity First is its scope-creep lens, Goal-Driven Execution the bar its drift check judges against); Think Before Coding is enforced earlier, by Phase 1's batched clarify questionnaire, and the hard caps operationalize Simplicity First on every line. Canonical home, do not restate the principle bodies elsewhere; link here.
 
 ## Think Before Coding
 

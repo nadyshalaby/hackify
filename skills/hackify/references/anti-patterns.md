@@ -1,6 +1,6 @@
 # Anti-Patterns (Worked Examples)
 
-This doc collects concrete wrong/right diffs for the four working principles. **Load it in Phase 3** while implementing, when an approach feels grand, search here for the matching anti-pattern before committing the diff. **Phase 5 reviewers cite specific section numbers from this file** when flagging over-abstraction, drive-by edits, hidden assumptions, vague goals, suppression rationalizations, and scope creep.
+This doc collects concrete wrong/right diffs for the four working principles. **Load it in Phase 3** while implementing, when an approach feels grand, search here for the matching anti-pattern before committing the diff. **Phase 5 reviewers cite specific section numbers from this file** when flagging over-abstraction, drive-by edits, hidden assumptions, vague goals, suppression rationalizations, and scope creep, and load nothing from here to do it: they cite these section numbers, they do not read these examples. The Phase 3 implementer is the reader that opens it in full, and its template names it on a REQUIRED READING list.
 
 Principle text lives in [`rules/four-principles.md`](../../../rules/four-principles.md) and is not restated here. The examples below show what the principles look like when they bind, in several languages, so the patterns travel.
 

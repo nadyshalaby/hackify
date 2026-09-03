@@ -1,6 +1,6 @@
 # Security Violation Catalog (Canonical)
 
-The canonical catalog of security violations hackify scans for. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: Phase 3 implementers (before touching auth, permission boundaries, or any external-input boundary), Phase 5 Reviewer A (security), and lawkeeper's security category.
+The canonical catalog of security violations hackify scans for. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: Phase 3 implementers (before touching auth, permission boundaries, or any external-input boundary), Phase 5 Reviewer A (security), the Phase 5 escalation specialist when the lens it is dispatched on is security, the merged all-lens reviewer at its security pass, and lawkeeper's security category.
 
 **Canonical direction.** THIS file is canonical with no always-on distillation counterpart (unlike the `rules/hard-caps.md`/`rules/code-quality.md` or `rules/performance.md`/`rules/perf-guardrails.md` pairs), joining `rules/performance.md` and `rules/test-scenarios.md` as this repo's three deep, on-demand-only catalogs.
 
@@ -19,10 +19,22 @@ Domain sections: Authentication · Authorization · Injection · Secrets & PII �
 
 ## Severity model
 
+<!-- WORDING CONSTRAINT on the Important row below, recorded because nothing else records it.
+
+     Validator check [95] pairs a quoted phrase with a nearby claim word, then asks whether that
+     phrase is present elsewhere in the tree. Its claim vocabulary is NEGATIVE only, so the
+     positive tag wording below forms no pair, while the negated one-word form of it does: run
+     that check's own pairing function over this row worded either way and the negated one
+     returns the second cookie flag name as the subject of a false absence claim, which reds the
+     gate. The window and the measurements defending it live in that check's own header.
+
+     So keep the two cookie flag names and the mutable-tag clause apart, and keep that clause
+     positive. Do not weaken check [95] to buy the wording back. -->
+
 | Severity | Meaning | Classes it covers |
 |---|---|---|
 | **Critical (C)** | Ships exploitable risk, data loss, or silently broken auth/authz. | IDOR reachable by an authenticated user, SQL/command injection, a fail-open error branch on a guarded action, a fail-open authorization check, credential/secret exposure, a destructive migration with no guard. |
-| **Important (I)** | Weakens security posture without itself being exploitable. | Missing rate limit on a sensitive endpoint, missing `SameSite`/`Secure` cookie flags, an unpinned GitHub Action by tag instead of commit SHA, a reflected-origin CORS policy with no allowlist. |
+| **Important (I)** | Weakens security posture without itself being exploitable. | Missing rate limit on a sensitive endpoint, missing `SameSite`/`Secure` cookie flags, a GitHub Action pinned by tag instead of commit SHA, a reflected-origin CORS policy with no allowlist. |
 | **Minor (M)** | Hygiene. | PII in a log line that should be hashed, a `validate` helper that only allowlist-filters, a loose dependency version range with no known exploit. |
 
 Severity in the tables below is the **default**. Context moves it one level: a Minor finding on an internal admin tool may fall further; an Important finding on a path already reachable by an unauthenticated caller rises. Reviewer A sets the final severity.

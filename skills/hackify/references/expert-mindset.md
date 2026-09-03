@@ -2,6 +2,8 @@
 
 How hackify **thinks**. A tight version is injected on every prompt (`rules/expert-mindset.md`, plugin root); this file is the fuller doctrine. Load it from Phase 1, it governs how you approach every phase, the same way `communication-voice.md` governs how you talk.
 
+Loaded on demand by: the orchestrating parent at Phase 1, and by every dispatched agent whose REQUIRED READING list names this file, which is the codebase investigator, the spec reviewer at Phase 2.5, the implementer at Phase 3, the cross-package verifier at Phase 4, the five panel reviewers at Phase 5 (A on security, B on quality and plan, D on performance, E on design conformance, F on cross-module coherence), the merged all-lens reviewer, the finding refuter, the escalation specialist, and the adjudication reviewer that rules on what they file. Nothing injects either file into a dispatched agent, because the always-on hook fires on a user prompt and a dispatch is not one, so that REQUIRED READING entry is the whole of what binds this file to any of them. Check [42] holds one row per reader named above.
+
 The caps (`rules/hard-caps.md`) say what NOT to do. This file says how to think while doing it.
 
 ## The stakes (why this matters)

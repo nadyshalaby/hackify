@@ -424,8 +424,12 @@ DEPS_TPL="skills/hackify/references/parallel-agents/phase-2.5-spec-reviewer.md"
 # must never do.
 #
 # CITED BY BLOCK HEAD, NOT BY LINE, and that is the fix rather than the style. This
-# read `phase-3-implementation.md:238` until 0.16.0, and by then the block had moved
-# to 252 and then to 260 as edits landed above it. Nothing reddened, and the reason
+# read line 238 of `phase-3-implementation.md` until 0.16.0, and by then the block
+# had moved to 252 and then to 260 as edits landed above it. That retired number is
+# spelled as prose rather than as a `file:line` token on purpose: [57] parses the
+# token form wherever it appears, comments included, so writing the history the old
+# way would plant a live pointer that resolves against whatever now sits on that
+# line and reads as verified. Nothing reddened at the time, and the reason
 # has since NARROWED rather than gone away, which is worth writing down because the
 # old wording here read as a permanent gap. [57] opens the cited location now, refuses
 # one that is blank or a bare marker or a shebang, and where the citing sentence quotes

@@ -205,17 +205,48 @@ These eight are a SUBSET of what the agent accepts at `none`, not the whole set.
 It takes nine, and the ninth is `work_doc_path`, which is `none` in quick mode
 alone; quick writes no work-doc for this block to live in.
 
+**`plugin_root` is not one of the eight and does not belong in this block**,
+though the wave plan does not emit it either. The parent already holds it, as
+the absolute path carried in any always-on rule injection it received this
+session or as its own skill's base directory, and passes it straight to every
+dispatch rather than recording it per track. It never takes `none`, because an
+agent handed no anchor can open nothing.
+
 ```
 #### M<n> <module name>  (tasks T<a>, T<b>)
 - track_id:         M<n>, or `none` on a solo wave
 - sibling_tracks:   <the OTHER track IDs building this same tree right now>, or `none` on a solo wave
 - owned_elsewhere:  <shared surface> -> owned by <M<k>|the foundation wave|the assembly wave>, or `none`
-- mandatory_reading: <the architecture-contract sections this dispatch must honour>, or `none` when the dispatch crosses none
+- mandatory_reading: <absolute path> -- <section name>, one line per document, the PROJECT-side documents THIS dispatch crosses, or `none` when it crosses none
 - sharp_invariants: <the 2-3 places THIS dispatch is most likely to get wrong>, or `none`, which it rarely should be
 - database_name:    <the database THIS track creates and owns; never the shared one>, or `none` on a solo wave
 - exclusive_resources: <every resource THIS dispatch holds that two processes cannot hold at once: a shared test database, a shared fixture, a generated sequence>, one per line, or `none`
 - handoff_contract: <what the wave that follows needs back: registrar to mount, exported names>, or `none`
 ```
+
+**`mandatory_reading` takes resolvable paths, never a category.** Every line is
+an absolute path plus the section inside it that binds, `/abs/path/doc.md --
+<section name>`, because that is what the input's own contract asks for and what
+an agent can actually open. A category like "the architecture contract" or "the
+relevant design docs" names no file, and an agent handed one opens nothing; that
+is also how the field ends up passed as the literal `none` by a parent who could
+not resolve its own placeholder, which is a guess dressed as a decision. What
+belongs here is the PROJECT's own documents, the ones THIS dispatch in
+particular crosses: the `CLAUDE.md` section governing the layer being touched,
+an ADR the change has to honour, the API or schema contract sitting on the other
+side of a seam, or the canonical sibling module the new one must mirror.
+
+**Plugin files never go here, and that is the line between this field and
+REQUIRED READING.** Every file a role ALWAYS binds is already on its template's
+own REQUIRED READING list, which is closed, anchored on `plugin_root` and read
+before METHOD step 1 on every dispatch; this field carries the per-dispatch
+extras on top of it. So listing a plugin rule file here buys nothing and
+duplicates a read the agent has already done.
+[sibling-track-rules.md](sibling-track-rules.md) is the standing example of what
+NOT to put here: it is switched on by `sibling_tracks` naming a track, never by
+being listed in this field. Write `none` when the dispatch genuinely crosses no
+project document, and `none` there is a decision like every other one in this
+block rather than a blank.
 
 `sibling_tracks` is the mode switch and the only field that changes what the
 agent does. Naming the other tracks makes it read

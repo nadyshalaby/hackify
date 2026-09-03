@@ -29,6 +29,9 @@
 #   27-marketplace-ref-pin.sh, check [27], marketplace channel pins match plugin.json
 #   30-version-and-summary.sh, checks [16]-[20]
 #   40-quick-skill.sh, checks [21]-[23], [35]
+#   41-required-reading.sh, check [41], every sub-agent template carries a REQUIRED READING list whose every path is plugin_root-anchored and resolves
+#   42-reader-declarations.sh, check [42], every file that declares a hackify agent loads it is named by that agent's REQUIRED READING list
+#   43-verification-grammar.sh, check [43], every template carries exactly one of the three canonical VERIFICATION sentences and it is the one its own REQUIRED READING grammar demands
 #   50-runtimes-and-companions.sh, checks [24]-[26], [28]
 #   55-mirror-completeness.sh, check [55], sync manifest covers every tracked canonical file
 #   56-dist-integrity.sh, check [56], every file the sync COPIES into dist/<runtime>/ is byte-identical to the canonical source
@@ -49,6 +52,7 @@
 #   78-dispatch-mandate.sh, check [78], no parent-authored diffs, and orchestration that is a tool call rather than a description
 #   79-standing-member-invariant.sh, check [79], the ROSTER-CLAIM half of the roster guard
 #   80-file-size-caps.sh, checks [80] and [80b], file-size ≤ 500 LOC across primitives, and the two counters agreeing at the cap boundary
+#   801-cap-enforcer-agreement.sh, check [80c], this validator and the lawkeeper scanner waive and raise that cap over the same files
 #   81-no-claude-attribution.sh, check [81], no Co-Authored-By trailer, Claude-Session line or generated-with footer
 #   82-throughput-and-routing.sh, checks [82]-[82g], the throughput and routing doctrine of the 0.18.x sprint
 #   83-testing-stage-shape.sh, check [83], the testing stage's shape
@@ -174,6 +178,9 @@ source "$DOD_MODULES_DIR/20-templates.sh"
 source "$DOD_MODULES_DIR/27-marketplace-ref-pin.sh"
 source "$DOD_MODULES_DIR/30-version-and-summary.sh"
 source "$DOD_MODULES_DIR/40-quick-skill.sh"
+source "$DOD_MODULES_DIR/41-required-reading.sh"
+source "$DOD_MODULES_DIR/42-reader-declarations.sh"
+source "$DOD_MODULES_DIR/43-verification-grammar.sh"
 source "$DOD_MODULES_DIR/50-runtimes-and-companions.sh"
 source "$DOD_MODULES_DIR/55-mirror-completeness.sh"
 source "$DOD_MODULES_DIR/56-dist-integrity.sh"
@@ -194,6 +201,10 @@ source "$DOD_MODULES_DIR/77-reviewer-roster.sh"
 source "$DOD_MODULES_DIR/78-dispatch-mandate.sh"
 source "$DOD_MODULES_DIR/79-standing-member-invariant.sh"
 source "$DOD_MODULES_DIR/80-file-size-caps.sh"
+# AFTER 80 AND NEVER BEFORE IT: [80c] compares against the sets 80 measured, so it
+# reads what enforcement actually used rather than re-scanning and risking a second,
+# different answer. It reds by name if that producer did not run.
+source "$DOD_MODULES_DIR/801-cap-enforcer-agreement.sh"
 source "$DOD_MODULES_DIR/81-no-claude-attribution.sh"
 source "$DOD_MODULES_DIR/82-throughput-and-routing.sh"
 source "$DOD_MODULES_DIR/83-testing-stage-shape.sh"

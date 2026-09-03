@@ -49,7 +49,6 @@ MIRROR_SOURCES=(
   "skills/hackify/references/clarify-questions/revamp-redesign.md"
   "skills/hackify/references/clarify-questions/universal-preamble.md"
   "skills/hackify/references/clarify-questions/wizard-contract.md"
-  "skills/hackify/references/code-rules.md"
   "skills/hackify/references/communication-voice.md"
   "skills/hackify/references/contention-dispatch.md"
   "skills/hackify/references/debug-when-stuck.md"

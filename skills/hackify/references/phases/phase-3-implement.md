@@ -97,7 +97,7 @@ wall-clock and lands on the safe side.
    waves).
 2. Dispatch ONE subagent per wave, every wave in the round in ONE message. Each prompt is self-contained: work-doc
    path, THAT wave's task IDs in run order, each task's exact files, the wave's union allowlist, test mode, any
-   exclusive resource that wave holds, rules summary, "do NOT touch any other files". Before dispatching, create
+   exclusive resource that wave holds, the plugin root, rules summary, "do NOT touch any other files". Before dispatching, create
    `$RECON` and `touch $RECON/round_start`, the clock step 3's mirror sweep reads. `$RECON` lives until step 7 closes
    the round, since step 6 scopes the scouts from it.
 3. As EACH agent returns, and before waiting on the rest, update the work-doc for that agent alone: tick the task IDs
@@ -130,6 +130,7 @@ wall-clock and lands on the safe side.
 |---|---|
 | File allowlist | "Modify only these files: `<list>`. If another file is needed, STOP and report, do not edit." |
 | Repo brief | The `### Repo Brief` block from the work-doc, verbatim, as `{{repo_brief}}`. "Treat it as given, do NOT re-derive it, spend your reads on the diff instead." Unfilled means the agent refuses. |
+| Plugin root | Passed as `{{plugin_root}}`, the absolute filesystem path to the installed hackify plugin root, the directory holding `rules/` and `skills/`. It is the anchor every REQUIRED READING path in the template is built from, so it never takes `none` and never a blank: an agent handed no anchor can open nothing, and nothing else in the dispatch tells it where the rules live. **Fill it from a path you ALREADY HOLD, never by searching the filesystem**, either the absolute path carried in any always-on rule injection you received this session or your own skill's base directory. It replaced the retired `{{rules_dir_path}}` one-for-one, which is why the input total is still twenty-one. |
 | Command allowlist | "Run only these commands: `<list scoped to your files>`. The parent runs repo-wide checks." |
 | Exclusive resource | Passed as `{{exclusive_resources}}`, one resource per line, or the literal `none`. **Two values, two wordings; the `none` case gets its OWN string and is the majority case.** Wave HOLDS one: "This wave holds `<resource>`. Run scoped unit tests ONLY; do NOT run `<suite>`. The parent runs that suite once, serially, after the round lands." Value is `none`: "This wave holds no exclusive resource. Run the scoped test, lint and typecheck commands for your own files; no suite is being held back for a serial run." Never paste the first string over an empty value, which produces the nonsense "This wave holds none. Run scoped unit tests ONLY; do NOT run ." Never left empty either: an absent value means the dispatcher did not decide, so the agent refuses and says so. Full clause below. |
 | Test mode | Passed as `{{test_mode}}`. Which mode a wave gets, and what each one obliges the agent to do, is stated once in [../implement-and-test.md](../implement-and-test.md) and deliberately not restated here: a second copy is a second thing to keep in step now that test authoring has a wave of its own. |

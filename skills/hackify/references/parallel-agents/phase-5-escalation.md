@@ -1,6 +1,6 @@
 # Phase 5 (Code-review escalation)
 
-This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond whatever reviewer the round already ran, because the diff touches a specialist surface that reviewer's lenses do not own; the canonical 7-section sub-agent contract (`ROLE`, `INPUTS`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
+This file is the dispatchable sub-agent prompt for one Phase 5 specialist escalation reviewer (security, accessibility, infrastructure, data, or any other named lens the dispatcher pins at fire-time). Load it whenever the parent escalates beyond whatever reviewer the round already ran, because the diff touches a specialist surface that reviewer's lenses do not own; the canonical 8-section sub-agent contract (`ROLE`, `INPUTS`, `REQUIRED READING`, `OBJECTIVE`, `METHOD`, `VERIFICATION`, `SEVERITY`, `OUTPUT`) lives in `template-contract.md`, do not restate it here.
 
 Dispatch ONE escalation agent per specialist lens, all in a SINGLE assistant message (multiple `Agent` calls in parallel). Each prompt is fully self-contained.
 
@@ -23,7 +23,7 @@ and component-library front-ends, the standards bodies and CVE
 registries relevant to `{{specialist_lens}}`, and citation-anchored
 review across diff ranges spanning multiple packages.
 
-You apply OWASP Top 10 (2021) when `{{specialist_lens}}` is security-
+You apply OWASP Top 10 (2025) when `{{specialist_lens}}` is security-
 flavored, WCAG 2.2 AA and ARIA 1.2 when `{{specialist_lens}}` is
 accessibility-flavored, plus SOLID and Clean Code (Martin) as baseline
 regardless of lens. Every finding cites a `file:line` from the diff
@@ -59,6 +59,40 @@ Bias against: downgrading a finding to Important because the author
    (e.g. "<runtime> + <web framework> + <ORM/data layer> + <database>").
 9. `{{word_cap}}`, integer max words for the OUTPUT report
    (recommended 400).
+10. `{{plugin_root}}`, absolute filesystem path to the installed
+    hackify plugin root, the directory holding `rules/` and
+    `skills/`.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1, a CONDITIONAL entry only when
+its condition holds. Each path is absolute, built from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, the law your findings are
+   held to: you file on a specialist surface nobody else on this round
+   audited, so your claims carry the most weight and get the least
+   cross-check, and nothing downstream will catch one you did not
+   ground.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the
+   surface before you judge it.
+3. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the
+   fuller doctrine `rules/expert-mindset.md` names and does not itself carry: its hat
+   table gives most surfaces a leading hat, so where `{{specialist_lens}}`
+   matches one you judge from that row rather than from instinct, and
+   where it matches none you say so instead of borrowing a near neighbour.
+4. CONDITIONAL, read WHEN `{{specialist_lens}}` is security:
+   `{{plugin_root}}/rules/security.md`, the canonical security violation
+   catalog, its severity model and its `sec.<domain>.<slug>` ID scheme,
+   which a security-lens finding cites rather than inventing an ID of its
+   own. On every other lens, skip this entry.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
 
 **OBJECTIVE**.
 A severity-tagged list of `{{specialist_lens}}` defects in the diff
@@ -83,7 +117,7 @@ reference.
    line by line and record every defect with its `file:line` from
    the diff post-image and a ≤3-line quoted snippet.
 5. For every Critical and Important finding, name the standard
-   clause (e.g. OWASP A03:2021-Injection, WCAG 2.2 SC 1.4.3,
+   clause (e.g. OWASP A05:2025-Injection, WCAG 2.2 SC 1.4.3,
    RFC 6749 §4.1, NIST SP 800-63B §5.1) OR the live-code reference
    (file:line of the canonical pattern this diff violates).
    Generic "be consistent with existing code" is forbidden.
@@ -108,6 +142,7 @@ METHOD before producing OUTPUT.
    Critical finding? (yes / no)
 6. Did you mark every unverifiable claim Critical rather than
    downgrading it to Important? (yes / no)
+7. Did every REQUIRED READING path resolve before METHOD step 1, and did you open in full, before METHOD step 1, every entry whose condition your dispatch met? (yes / no)
 
 **SEVERITY**.
 - **Critical**. Findings that block release under the
@@ -117,7 +152,7 @@ METHOD before producing OUTPUT.
     The default for unverifiable claims is Critical, not Important.
   - For a security lens: a route reads a query parameter and uses it
     in a SQL string template with no parameterization (OWASP
-    A03:2021-Injection) = Critical.
+    A05:2025-Injection) = Critical.
   - For an accessibility lens: a new interactive element has no
     accessible name and no `aria-label` / `aria-labelledby`
     (WCAG 2.2 SC 4.1.2) = Critical.
@@ -163,6 +198,7 @@ over breadth. Use this exact report skeleton:
 4. <yes|no>
 5. <yes|no>
 6. <yes|no>
+7. <yes|no>
 ````
 
 If a findings section has no entries, write `None.` on its own line

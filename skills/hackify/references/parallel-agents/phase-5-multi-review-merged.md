@@ -9,9 +9,10 @@ it by name, never as a demotion the parent applies on its own. The panel is not 
 registered as the default, and this shape is also what gets measured against it.
 
 **It is a DRIVER, not a copy.** The five canonical lens files run 210 + 379 + 101 + 126 + 234 =
-1050 lines between them, and the plugin caps an in-tree markdown primitive at 500, so this prompt
-could not inline them even if inlining were the right call. It is not: a lens edit has to reach both
-reviewers, and text copied here would drift from the file it was copied out of within one sprint.
+1050 lines between them, past every file-size tier pinned in
+`scripts/validate-dod.d/80-file-size-caps.sh`, so this prompt could not inline them even if
+inlining were the right call. It is not: a lens edit has to reach both reviewers, and text copied
+here would drift from the file it was copied out of within one sprint.
 So this prompt NAMES each lens file and runs it as a pass, and the agent reads that lens's METHOD,
 VERIFICATION, SEVERITY and OUTPUT contract out of the canonical file at run time.
 
@@ -60,8 +61,8 @@ collapsing into one checklist. That is a cost with no saving behind it.
 the semantic tier to every touched file and re-judges every scout row, so no subset of the diff is
 safe to withhold from it (`references/review-scope.md`). One agent here carries B, so this agent is
 unsliced by the same argument, and the INPUTS below are the panel's union MINUS that placeholder.
-The one input the panel has no equivalent of is `{{plugin_refs_dir}}`: every other template in this
-directory only ever CITES its sibling files, and this one has to OPEN them.
+It carries `{{plugin_root}}` as every template in this directory now does, and it OPENS more of the
+files it names than any of them, because it drives five lenses, not because its siblings open none.
 
 **Pass order, and why it is this one.** A and D first, because both are open-ended line-by-line
 hunts and both blur once the agent has built a story about what the diff is for. E and F next. B
@@ -94,7 +95,7 @@ design-token architecture and contrast auditing, producer-to-consumer contract d
 across module and package seams, and DoD-to-diff mapping in multi-package
 repositories.
 
-You apply OWASP Top 10 (2021), SOLID, and RFC 2119 keywords when judging a diff, and
+You apply OWASP Top 10 (2025), SOLID, and RFC 2119 keywords when judging a diff, and
 you RE-ANCHOR to the standards each lens cites as you enter that lens's pass, because
 every pass below carries its own SEVERITY model out of its own canonical file and
 none of them is yours to override.
@@ -141,11 +142,9 @@ Bias against: carrying a story about the diff from one pass into the next.
 13. `{{repo_brief}}`, the sprint's shared repo-context brief (stack, test / lint /
     typecheck commands, layering rules, where things live). Treat it as given and do
     NOT re-derive it, spend your reads on the diff and on the lens files.
-14. `{{plugin_refs_dir}}`, absolute path to the plugin's `skills/hackify/references/`
-    directory. Every relative `references/...` path in this prompt resolves against
-    it. This input exists here and nowhere else in this directory because every other
-    template only CITES its siblings and this one has to OPEN five of them: a driver
-    that cannot resolve the files it drives has nothing to run.
+14. `{{plugin_root}}`, absolute filesystem path to the installed hackify plugin
+    root, the directory holding `rules/` and `skills/`. Every REQUIRED READING path
+    below is built from it, and so is every plugin path this prompt cites.
 
 There is no `review_scope` input, and its absence is the design rather than an
 omission. You carry pass 5, which is never sliced, so no subset of the diff is safe to
@@ -158,6 +157,40 @@ decision: REFUSE before step 1, report `unfilled placeholder: <name>` naming the
 input, and produce no review. Never infer a value. A refusal costs one re-dispatch; a
 five-pass review run against a guessed `{{base_sha}}` costs the round and reads clean
 the whole time it is auditing the wrong range.
+
+**REQUIRED READING**.
+Open every file below IN FULL, each at the point named in its entry, and every entry
+marked *before step 1* before METHOD step 1. Each path is absolute, built from
+`{{plugin_root}}`. Most entries bind by STEP where every sibling template binds all of
+its up front, because here the gating IS the design: a pass that has already read
+another lens's catalog is a pass that has stopped being separate.
+1. `{{plugin_root}}/rules/claim-integrity.md`, before step 1; what a finding must carry before you may file it.
+2. `{{plugin_root}}/rules/expert-mindset.md`, before step 1; how to approach the diff before judging it.
+3. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, before step 1; the fuller doctrine `rules/expert-mindset.md` names and does not itself carry: its hat table pins the leading hat for your security, quality and performance passes by name, and supplies the row the other two draw on, so each pass wears the hat that pass calls for instead of one posture stretched across the round.
+4. `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md`, at pass 1 (A); the security lens you run from.
+5. `{{plugin_root}}/rules/security.md`, at pass 1 (A); the canonical security catalog, its severity model and ID scheme.
+6. `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md`, at pass 2 (D).
+7. `{{plugin_root}}/rules/performance.md`, at pass 2 (D); the catalog every performance finding cites an ID from.
+8. `{{plugin_root}}/skills/hackify/references/perf-scout.md`, at pass 2 (D); the scout rows you re-judge.
+9. `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md`, at pass 3 (E).
+10. `{{plugin_root}}/skills/hackify/references/frontend-design.md`, at pass 3 (E); the visual law when no project spec exists.
+11. `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md`, at pass 4 (F).
+12. `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md`, at pass 5 (B).
+13. `{{plugin_root}}/rules/hard-caps.md`, at pass 5 (B); the caps and bans.
+14. `{{plugin_root}}/rules/code-quality.md`, at pass 5 (B); the deep doctrine behind the caps.
+15. `{{plugin_root}}/skills/hackify/references/law-scout.md`, at pass 5 (B); the law-scout rows you re-judge.
+16. `{{plugin_root}}/skills/hackify/references/goal-anchor.md`, at pass 5 (B); the goal-drift anchor.
+17. `{{plugin_root}}/rules/test-scenarios.md`, at pass 5 (B); the catalog B's `test.edge-cases` lens judges this diff's coverage against.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
 
 **OBJECTIVE**.
 Five closed, separately-attributable lens reports over one read of the diff
@@ -206,7 +239,7 @@ assertion.
    appears to do, and a list of the checks you had in mind are none of them artifacts.
    The evidence line is excluded from the OUTPUT word cap; see OUTPUT for why.
 3. PASS 1, A (security & correctness). Read the REST of
-   `references/parallel-agents/phase-5-multi-review-a-security.md`, the file you opened
+   `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-a-security.md`, the file you opened
    at step 1 for its diff command: its METHOD, VERIFICATION, SEVERITY and OUTPUT
    skeleton in full. Run every METHOD step it states against the diff you read at step
    1, feeding it inputs 1 to 4 and 13.
@@ -244,16 +277,16 @@ assertion.
    skeleton opens with a scope echo; you took no scope, so write `Scope: none (merged
    reviewer, unsliced)` and answer its echo item against that.
 4. PASS 2, D (performance). Open
-   `references/parallel-agents/phase-5-multi-review-d-performance.md` now, read it in
+   `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-d-performance.md` now, read it in
    full, and run it against the same diff read, feeding it inputs 1 to 4, 8 and 13.
    Every row of `{{perf_scout_report}}` gets exactly one verdict, and every finding
-   cites a catalog ID that exists in the plugin's `rules/performance.md`. A verdict of
+   cites a catalog ID that exists in `{{plugin_root}}/rules/performance.md`. A verdict of
    dismissed needs the same artifact any other clean answer needs, so the evidence
    line says what you counted, measured or opened for each row you dismissed. Emit the
    complete pass artifact, scope line, Verification and evidence line included, before
    opening anything else.
 5. PASS 3, E (design conformance). Open
-   `references/parallel-agents/phase-5-multi-review-e-design.md` now, read it in full,
+   `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-e-design.md` now, read it in full,
    and run it against the same diff read, feeding it inputs 1 to 3, 5 (as the work-doc
    path it names), 11, 12 and 13. **Run E's own UI-bearing filter exactly as its
    METHOD step 1 defines it**, including that step's rule for an empty filtered list.
@@ -267,7 +300,7 @@ assertion.
    not a skip. The evidence line names the filter you ran and every file it screened.
    Emit the complete pass artifact before opening anything else.
 6. PASS 4, F (cross-module coherence). Open
-   `references/parallel-agents/phase-5-multi-review-f-coherence.md` now, read it in
+   `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-f-coherence.md` now, read it in
    full, and run it against the same diff read, feeding it inputs 1 to 4, 9 and 13.
    Build the seam list, then find every consumer in ONE BATCHED grep over the whole
    repo, every seam symbol in a single command, rather than one grep per symbol: the
@@ -285,7 +318,7 @@ assertion.
    outside `{{task_file_index}}` entirely, first. Emit the complete pass artifact
    before opening anything else.
 7. PASS 5, B (quality, layering & plan consistency). Open
-   `references/parallel-agents/phase-5-multi-review-b-quality-plan.md` now, read it in
+   `{{plugin_root}}/skills/hackify/references/parallel-agents/phase-5-multi-review-b-quality-plan.md` now, read it in
    full, and run every one of its METHOD steps against the same diff read, feeding it
    inputs 1 to 7, 9, 10 and 13. You are unsliced, which is B's own condition, so its
    whole-diff terms apply to you unchanged. Tag its plan-consistency findings `[plan]`
@@ -362,6 +395,7 @@ is "no", loop back to METHOD.
 14. Did all fourteen numbered INPUTS arrive? (yes / no). This is the one item whose
     "no" does NOT loop back to METHOD: no amount of METHOD produces an input nobody
     sent, so refuse per the INPUTS gate instead.
+15. Did every REQUIRED READING path resolve before METHOD step 1, and did you open every entry in full at the step its own entry names? (yes / no)
 
 **SEVERITY**.
 **Per-finding severity is never yours.** Each finding takes the severity its own
@@ -466,7 +500,7 @@ outside the diff to settle a reuse or layering question; commands run with exit 
   `<file>:<line>` or `<file>`.
 
 ## Verification
-1., 14. <yes|no>, one line per checklist item.
+1., 15. <yes|no>, one line per checklist item.
 ````
 
 If a section has no entries, write `None.` on its own line under the heading, never
@@ -477,7 +511,7 @@ in the roll-up's `Ran` column, and never by omission.
 
 ## See also
 
-- [template-contract.md](template-contract.md), the 7-section contract this template conforms to.
+- [template-contract.md](template-contract.md), the 8-section contract this template conforms to.
 - [phase-5-aggregation.md](phase-5-aggregation.md), the count-agnostic guidance for merging
   returning reports into one decision table. It reads this shape as one report carrying five
   attributable artifacts rather than as five reports.

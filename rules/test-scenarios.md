@@ -1,6 +1,6 @@
 # Test Scenario Catalog (Canonical)
 
-The canonical catalog of test scenarios hackify's testing wave proves breadth against. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: the Phase 3 testing-wave agent under `test-authoring` (before authoring tests for the categories its round touched), Phase 5 Reviewer B (re-judging every `test.edge-cases` finding), law-scout's semantic tier, and lawkeeper's Testing category.
+The canonical catalog of test scenarios hackify's testing wave proves breadth against. Every entry carries a stable ID that every other surface keys on. Loaded on demand by: the Phase 3 testing-wave agent under `test-authoring` (before authoring tests for the categories its round touched), Phase 5 Reviewer B (re-judging every `test.edge-cases` finding), the merged all-lens reviewer at its quality pass, law-scout's semantic tier, and lawkeeper's Testing category.
 
 **Canonical direction.** THIS file is canonical, and nothing restates it elsewhere. The per-category table in `skills/hackify/references/implement-and-test.md` names WHICH domains apply to which code category; it does not restate what a domain checks for, why it matters, or how a test for it must be shaped, those rows live here and only here, the same discipline `rules/performance.md` holds for its own violation rows.
 

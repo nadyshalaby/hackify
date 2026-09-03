@@ -56,20 +56,53 @@ it as given and do NOT re-derive it; spend your reads on the diff
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file
    outside it when a finding needs the contract around it and say why.
-   Grammar and rules: `references/review-scope.md`.
+   Grammar and rules:
+   `{{plugin_root}}/skills/hackify/references/review-scope.md`.
+9. `{{plugin_root}}`, absolute filesystem path to the installed hackify
+   plugin root, the directory holding `rules/` and `skills/`. Every
+   REQUIRED READING path below is built from it.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, every finding you file is a
+   claim, and this governs what a claim must carry before you may make it.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the diff before
+   judging it.
+3. `{{plugin_root}}/skills/hackify/references/frontend-design.md`, the visual
+   law you audit against in `NONE` mode and whose generic-AI bans step 9
+   enforces in both modes.
+4. `{{plugin_root}}/skills/hackify/references/review-scope.md`, the pathspec
+   grammar your `{{review_scope}}` input resolves against.
+5. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the fuller
+   doctrine `rules/expert-mindset.md` names and does not itself carry: the hat table's
+   Tech-advisor row, an opinionated pick with concrete tradeoffs over a
+   fence-sitting survey, which is exactly what naming the one replacement token
+   for each finding asks of you instead of reporting that a literal is off-spec.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
+
 **OBJECTIVE**.
 A severity-tagged list of design-conformance defects in the diff `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, every finding naming the token or spec rule it violates and the concrete replacement.
 
 **METHOD**.
 1. From `{{project_root}}`, run the resolved diff command from the `{{review_scope}}` input, `git diff {{base_sha}}..{{head_sha}} -- <resolved> ':(exclude)docs/work/*'`, and read the full diff. Build a list of {file → hunks touched}, then filter to UI-bearing files: stylesheets and style/theme modules, components, pages, route and screen modules, native view files, utility-framework config, server-rendered and client-side TEMPLATES of any flavour, raw HTML, SVG and other vector assets, and design-token DATA files (JSON, YAML, or a token module). When in doubt a file is UI-bearing, because reading one extra file costs far less than a missed contrast failure. **An empty filtered list is not a clean verdict.** Say which of the two things happened, name every file the diff did touch so the parent can check your call, and report the result as `not UI-bearing` rather than as `no defects found`. That is the same rule the `{{review_scope}}` input above states for a scope resolving to no paths, and the two now say it the same way instead of contradicting each other. **Read the hunks and the context around them, not whole files.** Open a file in full only when a candidate finding needs the contract around it (the function's other branches, the type it returns, the guard above it), and say in the finding why you opened it.
-2. If `{{design_spec_path}}` is `NONE` you have no token index and no project Don'ts, so skip ONLY the four spec-dependent checks, steps 4, 5a, 6 and 8, and run every other step exactly as written. **Do NOT skip ahead to step 9.** Steps 3, 5b and 7 need no local spec, and skipping them was how a diff introducing a 3:1 body-text pair came back clean: WCAG 2.2 AA is an external standard, and `frontend-design.md` asks "Are the contrast ratios computed and passing, not asserted?" of every UI diff, spec or no spec. Otherwise read the spec end to end and build a token index from its frontmatter: every `colors`, `typography`, `spacing`, `rounded`, `elevation`, `motion`, `components` and `platform` value. Record the `direction` and read the `## Do's and Don'ts` section verbatim, those Don'ts are project-specific rules you will enforce literally.
-3. HARDCODED VALUES, **both modes**. Scan every touched hunk's post-image for color literals (`#rgb`, `#rrggbb`, `rgb(`, `rgba(`, `hsl(`), `box-shadow` literals, and raw pixel values on font-size, padding, margin, gap, and border-radius. For each, check the token index: if a token holds that value, or a value within 2px or one scale step of it, the literal is a finding and you name the token that should replace it. A literal with no nearby token is a separate finding: the value is off-scale. In `NONE` mode the DETECTION is unchanged and only the naming is: with no token index, a raw hex, a raw `rgb(`/`hsl(`, a shadow literal or a bare pixel value sitting in a component is a finding on its own authority (`frontend-design.md`, "Is every value a token, with zero raw hex or bare pixels in components?"), and the concrete replacement you name is the token it should be extracted to, named for the role it plays, alongside step 9's `/hackify:designify` recommendation. A missing token index is a reason to name a different fix, never a reason to stop looking.
+2. If `{{design_spec_path}}` is `NONE` you have no token index and no project Don'ts, so skip ONLY the four spec-dependent checks, steps 4, 5a, 6 and 8, and run every other step exactly as written. **Do NOT skip ahead to step 9.** Steps 3, 5b and 7 need no local spec, and skipping them was how a diff introducing a 3:1 body-text pair came back clean: WCAG 2.2 AA is an external standard, and `{{plugin_root}}/skills/hackify/references/frontend-design.md` asks "Are the contrast ratios computed and passing, not asserted?" of every UI diff, spec or no spec. Otherwise read the spec end to end and build a token index from its frontmatter: every `colors`, `typography`, `spacing`, `rounded`, `elevation`, `motion`, `components` and `platform` value. Record the `direction` and read the `## Do's and Don'ts` section verbatim, those Don'ts are project-specific rules you will enforce literally.
+3. HARDCODED VALUES, **both modes**. Scan every touched hunk's post-image for color literals (`#rgb`, `#rrggbb`, `rgb(`, `rgba(`, `hsl(`), `box-shadow` literals, and raw pixel values on font-size, padding, margin, gap, and border-radius. For each, check the token index: if a token holds that value, or a value within 2px or one scale step of it, the literal is a finding and you name the token that should replace it. A literal with no nearby token is a separate finding: the value is off-scale. In `NONE` mode the DETECTION is unchanged and only the naming is: with no token index, a raw hex, a raw `rgb(`/`hsl(`, a shadow literal or a bare pixel value sitting in a component is a finding on its own authority (`{{plugin_root}}/skills/hackify/references/frontend-design.md`, "Is every value a token, with zero raw hex or bare pixels in components?"), and the concrete replacement you name is the token it should be extracted to, named for the role it plays, alongside step 9's `/hackify:designify` recommendation. A missing token index is a reason to name a different fix, never a reason to stop looking.
 4. TYPE RAMP, **spec mode only**, because it measures against the spec's own twelve typography roles and those do not exist without a spec. Every new or changed font-size, font-weight, line-height, and letter-spacing must match one of those roles exactly. A size between two steps is an Important finding. A new font-family not present in the spec's `fonts` block is Critical. `NONE` mode does not lose the display-face half of this, step 9's font ban carries it.
 5. COMPONENT DRIFT AND STATE COVERAGE, in two halves that run in different modes. **(5a) Spec mode only:** for every component in the diff that corresponds to a spec `components` entry, compare its implemented background, text color, radius, padding, border, and elevation against the entry. **(5b) Both modes:** check state coverage, an interactive component missing a `-hover`, `-focus`, `-press`, or `-disabled` variant is a finding, and a focus state that is missing, or removed via `outline: none` with no replacement indicator, is Critical. Half (5b) rests on WCAG 2.2 focus visible 2.4.7 rather than on anything local, so it runs with no spec present.
 6. DIRECTION VIOLATIONS, **spec mode only**, because it walks the spec's own `### Don't` list and nothing stands in for that list when there is no spec. Walk it item by item against the diff. Each Don't is a literal rule; a hunk that violates one is a finding citing the Don't verbatim. Also check the spec's signature moves are not undermined (for example a spec whose depth medium is the hairline should not gain card shadows).
 7. ACCESSIBILITY, **both modes**, and this is the clearest case of the two: WCAG 2.2 AA is an external standard that needs no local spec at all, so a project without a `DESIGN.md` is owed this check exactly as much as one with it. Compute the WCAG contrast ratio for every new foreground/background color pair introduced by the diff. Body text below 4.5:1 and large text or UI borders below 3:1 are Critical. Check that `prefers-reduced-motion` is honored by any new animation, and that new interactive targets meet the touch-target minimum. In `NONE` mode take that minimum from WCAG 2.5.8 itself, 24 by 24 CSS pixels, in place of the spec's `platform` figure.
 8. PLATFORM & DIRECTION-AWARENESS, **spec mode only**. Whether the product is bidirectional is a project fact only the spec records, so with no `logicalProperties: required` to read you cannot tell a deliberate physical property from a defect, and the native safe-area and elevation-model checks are spec-declared for the same reason. When the spec sets `logicalProperties: required`, any new physical `margin-left`, `margin-right`, `padding-left`, `padding-right`, `left`, `right`, `text-align: left/right`, or `border-left/right` is a finding; name the logical replacement. On native diffs, check safe-area handling and the declared elevation model.
-9. VISUAL-LAW FLOOR, regardless of spec presence, flag the generic-AI signals banned by `skills/hackify/references/frontend-design.md`: `Inter`, `Roboto`, `Arial`, `system-ui` or `Space Grotesk` introduced as a display face; purple-to-pink gradients on white; and backdrop blur added where the spec does not call for it. In `NONE` mode, additionally report the absent spec as an Important finding recommending `/hackify:designify`.
+9. VISUAL-LAW FLOOR, regardless of spec presence, flag the generic-AI signals banned by `{{plugin_root}}/skills/hackify/references/frontend-design.md`: `Inter`, `Roboto`, `Arial`, `system-ui` or `Space Grotesk` introduced as a display face; purple-to-pink gradients on white; and backdrop blur added where the spec does not call for it. In `NONE` mode, additionally report the absent spec as an Important finding recommending `/hackify:designify`.
 10. REFERENCE COMPARISON, when `{{reference_images}}` is not `NONE`: render the touched screen (run the project's dev server and capture it, or open the built page) and place your capture beside each reference frame. Compare them on spacing rhythm, type scale and weight, color and contrast, corner radius, elevation, and alignment. Report every visible difference as a finding with the reference file named and the token that would close the gap. Judge the rendered result against the reference, never the source code against the reference, the point of this step is to catch what reading the diff cannot show you. When `{{reference_images}}` is `NONE`, skip this step and record it twice in the conformance summary, on the Reference comparison line and in the skipped-steps list, where Verification 10 reads it as an authorized skip rather than a dropped one.
 11. For every kept finding, cite post-image `file:line`, the violated token or spec rule, and the exact replacement value. A finding without a concrete replacement is not actionable and must be dropped or rewritten.
 
@@ -81,7 +114,7 @@ Paste this checklist under a `## Verification` heading in your report. If ANY an
 4. Did you compute real contrast ratios for every new foreground/background pair, rather than estimating? (yes / no). This item has no `NONE` carve-out and needs none: step 7 runs in both modes, so it is answerable either way.
 5. Did you check interactive state coverage (hover, focus, press, disabled) for every changed interactive component? (yes / no). Step 5b runs in both modes, so this too is answerable either way.
 6. Did you check logical-property compliance when the spec requires it? (yes / no)
-7. Are all findings conformance defects against the committed spec, or in `NONE` mode against WCAG 2.2 AA and the visual law in `frontend-design.md`, with zero findings that are only your own design preference? (yes / no)
+7. Are all findings conformance defects against the committed spec, or in `NONE` mode against WCAG 2.2 AA and the visual law in `{{plugin_root}}/skills/hackify/references/frontend-design.md`, with zero findings that are only your own design preference? (yes / no)
 8. If `{{reference_images}}` was not `NONE`, did you capture the rendered screen and compare it against every reference frame, rather than reading the source? (yes / no)
 
 9. Did you echo the `{{review_scope}}` value you received as the
@@ -90,6 +123,7 @@ Paste this checklist under a `## Verification` heading in your report. If ANY an
    return at least one path? (yes / no), if it returned none, report an
    empty scope, never a clean one.
 10. Did you name the mode you ran in and list every step you skipped, in the conformance summary? (yes / no). Two separate things authorize a skip here and the list is the union of both, which is why the mode alone does not settle it. On the spec side, spec mode skips nothing and `NONE` mode skips exactly steps 4, 5a, 6 and 8. Independently of the mode, step 10 is skipped whenever `{{reference_images}}` is `NONE`. So the list reads `none`, `10`, `4, 5a, 6, 8`, or `4, 5a, 6, 8, 10`, and nothing else: any other entry is a step you dropped without authority, and a step you did skip that is missing from the list is that same failure written backwards.
+11. Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **SEVERITY**.
 - **Critical**. Ships a broken or inaccessible interface, or silently changes the brand direction. Anchored examples: new body text at 3.1:1 against its background = Critical (WCAG 1.4.3); `outline: none` on a focusable control with no replacement indicator = Critical (WCAG 2.4.7); a font-family absent from the spec's `fonts` block introduced as the display face = Critical (direction change without sign-off).
@@ -119,7 +153,7 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 - `<file>:<line>`, <rule or token violated> → `<token/value>`.
 
 ## Verification
-1., 10. <yes|no>, one line per checklist item.
+1., 11. <yes|no>, one line per checklist item.
 ````
 
 If a severity bucket is empty, print the heading followed by `- none`. Never omit a heading.

@@ -87,6 +87,34 @@ investigation after the first supporting citation.
    dispatcher explicitly authorizes executing code to confirm a path.
 9. `{{word_cap}}`, integer max words for the OUTPUT report
    (recommended 300).
+10. `{{plugin_root}}`, absolute filesystem path to the installed
+    hackify plugin root, the directory holding `rules/` and
+    `skills/`. Every REQUIRED READING path below is built from it.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, what a claim must carry before you
+   may make it; your whole output IS cited evidence, so this governs your core
+   deliverable rather than your manners.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the work before
+   starting it.
+3. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the fuller
+   doctrine `rules/expert-mindset.md` names and does not itself carry: the hat table's
+   Problem-solver row, the hat that leads in `debug` mode, whose "trace the bad
+   value to its source" is the standard your causal chain is held to, and the
+   deliberate rule that stopping to ask beats an hour of wrong work when the
+   evidence runs out.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
 
 **OBJECTIVE**.
 In `research` mode, a grounded prose answer to `{{inquiry}}` for
@@ -185,6 +213,7 @@ before producing OUTPUT.
 11. [debug] Did you trace from `{{symptom}}` backwards to the earliest
     causal citation inside `{{search_scope}}` and mark reachability?
     (yes / no)
+12. [both] Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **OUTPUT**.
 ≤`{{word_cap}}` words. Terse investigation beats long investigation,
@@ -224,6 +253,7 @@ content you produced during METHOD.
 9. n/a
 10. n/a
 11. n/a
+12. <yes|no>
 ````
 
 `debug`:
@@ -263,6 +293,7 @@ content you produced during METHOD.
 9. <yes|no>
 10. <yes|no>
 11. <yes|no>
+12. <yes|no>
 ````
 
 If a section has no findings, write `None.` on its own line under the

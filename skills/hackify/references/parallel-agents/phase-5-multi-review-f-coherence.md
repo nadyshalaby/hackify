@@ -4,7 +4,7 @@ The **seam lens**. **The five-agent panel is Phase 5's default reviewer route, i
 
 Nobody else owns this. A checks whether the code is safe, B whether it is well-built and whether it matches the plan, D whether it is fast. None of them asks whether the **producer and the consumer describe the same thing**. F does, and only that.
 
-The canonical 7-section sub-agent contract lives in `template-contract.md`, do not restate it here. Tokens in `{{...}}` are pre-substituted by the dispatching agent; tokens in `<...>` are placeholders the sub-agent fills from its own METHOD work.
+The canonical 8-section sub-agent contract lives in `template-contract.md`, do not restate it here. Tokens in `{{...}}` are pre-substituted by the dispatching agent; tokens in `<...>` are placeholders the sub-agent fills from its own METHOD work.
 
 ```
 Subagent type: general-purpose
@@ -81,7 +81,37 @@ it as given and do NOT re-derive it; spend your reads on the diff
    and say so; zero findings over zero files is not a clean verdict.
    The scope bounds what you DIFF, not what you may READ, open a file
    outside it when a finding needs the contract around it and say why.
-   Grammar and rules: `references/review-scope.md`.
+   Grammar and rules:
+   `{{plugin_root}}/skills/hackify/references/review-scope.md`.
+8. `{{plugin_root}}`, absolute filesystem path to the installed hackify
+   plugin root, the directory holding `rules/` and `skills/`. Every
+   REQUIRED READING path below is built from it.
+
+**REQUIRED READING**.
+Open every file below IN FULL before METHOD step 1. Each path is absolute, built
+from `{{plugin_root}}`.
+1. `{{plugin_root}}/rules/claim-integrity.md`, every finding you file is a
+   claim, and this governs what a claim must carry before you may make it.
+2. `{{plugin_root}}/rules/expert-mindset.md`, how to approach the diff before
+   judging it.
+3. `{{plugin_root}}/skills/hackify/references/review-scope.md`, the pathspec
+   grammar your `{{review_scope}}` input resolves against.
+4. `{{plugin_root}}/skills/hackify/references/expert-mindset.md`, the fuller
+   doctrine `rules/expert-mindset.md` names and does not itself carry: the hat table's
+   Problem-solver row, whose "gather evidence at each boundary" IS this lens's
+   method, because a seam defect is only visible when producer and consumer are
+   read together and never from either side alone.
+
+This list is EXHAUSTIVE and CLOSED. Every plugin file hackify requires of this
+role is on it. Do not infer that another plugin file applies to you, do not
+substitute a file you found by searching the tree, and do not treat a path cited
+elsewhere in this prompt as required reading unless it also appears above: a
+citation gives a finding its wording, this list is what binds you.
+
+A path above that does not resolve is a dispatch bug and never a file to route
+around. STOP before METHOD step 1, report `missing canon: <path>`, and produce no
+other output.
+
 **OBJECTIVE**.
 A severity-tagged list of cross-module coherence defects in the diff
 `{{base_sha}}..{{head_sha}}` of `{{project_root}}`, each naming both
@@ -159,6 +189,7 @@ If ANY answer is "no", loop back to METHOD.
    diff command you actually ran end in `':(exclude)docs/work/*'` and
    return at least one path? (yes / no), if it returned none, report an
    empty scope, never a clean one.
+9. Did you open every REQUIRED READING path in full before METHOD step 1? (yes / no)
 
 **SEVERITY**.
 - **Critical**. A disagreement that ships broken behavior or corrupt
@@ -212,7 +243,7 @@ Scope: <the `{{review_scope}}` value you received, verbatim>
 - <symbol> `<file>:<line>`, zero consumers; work-doc task: <T<n> | none>.
 
 ## Verification
-1., 8. <yes|no>, one line per checklist item.
+1., 9. <yes|no>, one line per checklist item.
 ````
 
 If a section has no entries, write `None.` on its own line under the
@@ -228,7 +259,7 @@ heading, never go silent.
 
 ## See also
 
-- [template-contract.md](template-contract.md), the 7-section contract this template conforms to.
+- [template-contract.md](template-contract.md), the 8-section contract this template conforms to.
 - [phase-5-multi-review-a-security.md](phase-5-multi-review-a-security.md) and [phase-5-multi-review-b-quality-plan.md](phase-5-multi-review-b-quality-plan.md), Reviewers A and B, dispatched in the same message when the panel is the round's reviewer.
 - [phase-5-aggregation.md](phase-5-aggregation.md), the count-agnostic guidance for merging N returning reports into one decision table.
 - [review-and-verify.md](../review-and-verify.md), the address-all loop these findings enter.

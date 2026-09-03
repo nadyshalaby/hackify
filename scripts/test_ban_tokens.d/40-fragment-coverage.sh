@@ -85,13 +85,15 @@ TB_EXPECT_COVERED=4
 
 # ---------------------------------------------------------------------------
 # THE WHOLE DIRECTORY, AND WHY FOUR NAMED ROWS ARE STILL NOT ENOUGH. The live count
-# is the pin below and never this sentence, so no figure here is written twice: 47
-# fragments ship in scripts/validate-dod.d/ today and four are named above, so the
-# same three-line edit against any of the other 43, delete the fragment, its
-# `source` line and its header-manifest row, left [0]'s at-least-15 floor green on
-# both sides of its comparison, gave [76f] nothing to
-# enumerate, and passed this suite in silence. Four hand-written rows is a better
-# number than three and it is not a mechanism.
+# is the pin below and never this sentence, which is why no figure appears in this
+# paragraph at all: the retired wording said "47 fragments ship today" and "the
+# other 43" beside a pin that had already moved to 49, so a comment written to
+# avoid writing a number twice was carrying two stale copies of it. For every
+# fragment this suite does NOT name above, the same three-line edit, delete the
+# fragment, its `source` line and its header-manifest row, left [0]'s at-least-15
+# floor green on both sides of its comparison, gave [76f] nothing to enumerate, and
+# passed this suite in silence. Four hand-written rows is a better number than
+# three and it is not a mechanism.
 #
 # DISCOVERY CANNOT CLOSE IT ALONE, WHICH IS THE DESIGN CONSTRAINT AND NOT A
 # LIMITATION OF THIS ONE. A set read off scripts/validate-dod.d/ goes SHORT at
@@ -116,7 +118,7 @@ TB_EXPECT_COVERED=4
 # without opening the fragment that left, is the edit this check exists to make
 # somebody type out loud.
 TB_FRAGMENT_DIR="scripts/validate-dod.d"
-TB_EXPECT_FRAGMENT_TOTAL=47
+TB_EXPECT_FRAGMENT_TOTAL=51
 
 # ---------------------------------------------------------------------------
 # Writes one pinned token per line to $2 and prints the count to stdout. Exits

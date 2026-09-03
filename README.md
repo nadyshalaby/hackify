@@ -5,7 +5,7 @@
 **One end-to-end dev workflow for every task in Claude Code.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.20.0-7c3aed.svg)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.21.0-7c3aed.svg)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/claude--code-plugin-1f2937.svg)](https://www.anthropic.com/claude-code)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 
@@ -27,33 +27,38 @@ The workflow is opinionated and expert-led: a batched clarifying questionnaire u
 
 That is the full ceremony, and you reach it by asking for it. By default the work lands in the sibling skill `/hackify:quick`, which runs a compressed flow, keeps every guarantee, and stays in quick mode until you explicitly promote to full hackify.
 
+### New in 0.21.0
+
+- **Every agent hackify sends out now carries a written list of the files it must open.** The
+  engineering law reaches your main session through a hook, and that hook fires on your prompt.
+  A dispatched agent is not your prompt, so the helpers that actually write the code were
+  running on whatever their own instructions happened to mention, which for most of them was
+  close to nothing. Each agent prompt now names, in a closed list, every rule and reference file
+  its agent must read, and four files that bound nobody at all, the security catalog among them,
+  now reach the agents they were written for. Two checks read those lists from opposite ends, so
+  a short list and an unread file both go red.
+- **The security reviewer hunts all ten domains of its catalog instead of six.** It carried steps
+  for six and then certified, in its own checklist, that it had covered them all. CORS and SSRF,
+  cryptography, supply chain and error handling each have a step of their own now, so fifteen
+  further violations, ten of them serious by default, get looked for rather than assumed absent.
+
 ### New in 0.20.0
 
-- **Phase 5 dispatches the five-agent review panel by default again, in both quick and full
-  mode.** 0.18.0 shipped a single merged reviewer as the default instead, on a promise to make it
-  as strong as the panel it replaced. That work never landed, and the merged reviewer never beat
-  the panel on the one comparison that ran. The panel is the default route now; ask for the merged
-  reviewer by name and you get it in either mode, same as before.
-- **A new canonical catalog, `rules/security.md`, gives the security lens its own deep reference.**
-  Ten domains, from auth and injection to supply chain, each entry citing OWASP, CWE, NIST or RFC
-  and naming why it hurts, how to catch it, and the fix. Phase 5's security reviewer and lawkeeper
-  cite it instead of judging security findings from first principles.
-
-### New in 0.17.0
-
-- **The implement stage started running side by side by default**, with a solo pass first for
-  anything genuinely shared, autopilot mode arriving the same release, and the ban on AI sign-off
-  in commits enforced by a blocker instead of a rule.
+- **Phase 5 went back to the five-agent review panel by default**, in quick and full mode alike,
+  after the single merged reviewer that replaced it never beat it on the one comparison that ran.
+  Ask for the merged reviewer by name and you still get it. The same release added
+  `rules/security.md`, a ten-domain catalog the security lens cites instead of judging findings
+  from first principles.
 
 ### Earlier releases
 
+- 0.17.0. **The implement stage started running side by side by default**, with a solo pass first
+  for anything genuinely shared, autopilot mode arriving the same release, and the ban on AI
+  sign-off in commits enforced by a blocker instead of a rule.
 - 0.16.0. **Work that shares nothing started happening at the same time.** Jobs that touch no
   common file, depend on each other in neither direction, and hold no shared resource go out
   together instead of queuing. A three-condition test decides it, and anything that fails the
   test still runs on its own.
-- 0.15.1. **A standing rule that the code is the only thing worth believing, including when the claim is hackify's own.** Every prompt carries a fourteen-law rule: re-derive facts from the code instead of reading them off a page, prove a claim with fresh output or do not make it, open every citation you write and every one you trust, and treat a number you did not just count as already wrong. Each law comes from a mistake this project actually made. Dispatched helpers are handed the facts they need so they stop rediscovering the same repository one agent at a time, and are told they may contradict any of those facts with the command that disproves it.
-- 0.15.0. **A round of work went to one implementer instead of several, and the cost of that was written down rather than glossed over.** One implementer took the whole round in order, so the background reading happened once instead of once per slice and both halves of a change were decided in one place instead of stitched together from separate accounts. It is slower on the clock, and that was said out loud rather than rounded away. What paid for it is the rule that an implementer stops at the first item it cannot finish, keeps everything it has already done, and says exactly how far it got, so a bad item costs one item and not the round.
-- 0.14.2. **The review stage could never finish, and the rules checker was quietly ignoring files it had been handed.** Review notes were being counted as part of the change under review, so each round altered what the next one measured and the loop could not settle; the notes are now the ruler rather than something measured. The rules checker also discarded files silently, every dotfile among them, and now reports how many it was given against how many it read.
 
 ## Install
 
@@ -251,7 +256,7 @@ State lives in the file. No companion JSON, no hidden in-conversation memory. Re
 
 Parallelism is the default, not the exception. Whenever two or more pieces of work are independent, code review concerns, cross-package verification, multi-boundary debug evidence, hackify dispatches foreground subagents in a single message and waits for the whole batch. Phase 3 works the same way, with one extra step before the dispatch: a planned wave goes to one foreground subagent whatever its width, packed up to the per-agent task budget, and waves that pass the partition test MAY go out together in one round, one subagent each, up to the concurrent-wave budget. A passing test permits that, it does not order it; the parent still decides. Both budgets are packing targets rather than quotas, so a codebase whose features all touch the same few files comes out one wave wide and the round says so. The test itself is written out in full at [`skills/hackify/references/contention-dispatch.md`](skills/hackify/references/contention-dispatch.md), named here rather than restated.
 
-The safety property that makes this work is a **strict file allowlist** baked into every agent's prompt. The wave planner groups tasks so no two tasks in the same wave touch the same file; each agent is told the exact files it may touch and instructed to stop if it discovers it needs another. Dispatch templates conform to a canonical seven-section contract (ROLE / INPUTS / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), see [`skills/hackify/references/parallel-agents/template-contract.md`](skills/hackify/references/parallel-agents/template-contract.md) and the subdir index at [`skills/hackify/references/parallel-agents/README.md`](skills/hackify/references/parallel-agents/README.md).
+The safety property that makes this work is a **strict file allowlist** baked into every agent's prompt. The wave planner groups tasks so no two tasks in the same wave touch the same file; each agent is told the exact files it may touch and instructed to stop if it discovers it needs another. Dispatch templates conform to a canonical eight-section contract (ROLE / INPUTS / REQUIRED READING / OBJECTIVE / METHOD / VERIFICATION / SEVERITY / OUTPUT), see [`skills/hackify/references/parallel-agents/template-contract.md`](skills/hackify/references/parallel-agents/template-contract.md) and the subdir index at [`skills/hackify/references/parallel-agents/README.md`](skills/hackify/references/parallel-agents/README.md).
 
 ## Repository layout
 

@@ -66,6 +66,40 @@ PROSE_GLOBS = ('*.md', '*.mdx')
 # `packages/*/CHANGELOG.md` is waived here and would not be there.
 APPEND_ONLY_BASENAMES = frozenset({'CHANGELOG.md'})
 
+# Sub-agent prompt templates, waived from `cap.file-lines` and from nothing else. One of
+# these carries a whole agent's instruction set in one file, and it is read by an agent
+# that HAS NO IMPORT: everything it will ever know arrives in that single prompt. So
+# "split it by responsibility", the remedy the file cap exists to force, is not a cheaper
+# alternative here, it is a different and worse design, and what the project decided on is
+# a RAISED BOUND rather than an exemption.
+#
+# THE RESIDUAL, WHICH IS THE WHOLE COST OF THE CARVE-OUT, WRITTEN DOWN RATHER THAN IMPLIED.
+# This scanner takes its cap as ONE `max_file_lines` parameter (`audit_scan.py` parses a
+# single `--max-file-lines` and hands that one int to `run_all` / `run_text_only`) and
+# expresses every carve-out as a RULE WAIVER, so it cannot represent a second bound. The
+# waiver below therefore means a `/hackify:lawkeeper` run stops reporting these files AT
+# ALL, not that it reports them at the raised number. Which half each enforcer holds:
+# `scripts/validate-dod.d/80-file-size-caps.sh` holds the raised bound and is its ONLY
+# enforcer, pinned there at `CAP_PROMPT_TEMPLATE_MAX_LOC`; this file holds only the
+# statement that 500 is the wrong number for these paths. That fragment cross-checks the
+# two on the files each SELECTS, never on their patterns, and no agreement wider than that
+# exists between them.
+#
+# REPO-RELATIVE, NOT BASENAMES, the opposite choice from APPEND_ONLY_BASENAMES above and
+# for exactly the reason that made that one a basename set. A `CHANGELOG.md` is append-only
+# wherever it sits; here the two DIRECTORIES are the class, and a basename rule would waive
+# an `investigation.md` anywhere in any project. The cost is that a scan rooted below the
+# repo cannot match these, which is the correct answer rather than a gap: below that root
+# the files are no longer at these addresses.
+#
+# MATCHED EXACTLY ONE SEGMENT DEEP. `fnmatch` lets `*` cross `/`, so `agents/*.md` on its
+# own would also adopt `agents/any/nested/file.md`. The directory half is compared for
+# equality and only the basename is globbed, which is also the shell tier's semantics.
+PROMPT_TEMPLATE_GLOBS = (
+  'skills/hackify/references/parallel-agents/*.md',
+  'agents/*.md',
+)
+
 # Rules waived inside test files.
 #
 # THE FIRST FOUR ARE DOCTRINE CARVE-OUTS: a test may legitimately do the banned thing, a
@@ -158,6 +192,17 @@ def is_append_only(rel_path):
   return rel_path.rsplit('/', 1)[-1] in APPEND_ONLY_BASENAMES
 
 
+def is_prompt_template(rel_path):
+  head, sep, base = rel_path.rpartition('/')
+  if not sep:
+    return False
+  for pattern in PROMPT_TEMPLATE_GLOBS:
+    pattern_head, _, pattern_base = pattern.rpartition('/')
+    if head == pattern_head and fnmatch(base, pattern_base):
+      return True
+  return False
+
+
 def rule_exempt(rule_id, rel_path):
   """True when `rule_id` does not apply to `rel_path` per the carve-out catalog.
 
@@ -170,7 +215,12 @@ def rule_exempt(rule_id, rel_path):
   """
   if rule_id == 'ban.inline-type' and not applies_inline_type(rel_path):
     return True
-  if rule_id == 'cap.file-lines' and is_append_only(rel_path):
+  # Two carve-outs, one rule, and they do NOT mean the same thing. An append-only record
+  # has no bound at all here; a prompt template has a HIGHER one that only
+  # scripts/validate-dod.d/80-file-size-caps.sh can express, and dropping the finding is
+  # the closest this scanner's single-`max_file_lines` shape can get to it. The block
+  # comment on PROMPT_TEMPLATE_GLOBS states that residual in full.
+  if rule_id == 'cap.file-lines' and (is_append_only(rel_path) or is_prompt_template(rel_path)):
     return True
   if is_test(rel_path) and rule_id in _TEST_WAIVED:
     return True
