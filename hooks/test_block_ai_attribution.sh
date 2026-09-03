@@ -143,17 +143,21 @@ fi
 
 
 # --- the screened text must never transit a file on disk (T44) --------------
-# `/usr/bin/env bash` is bash 3.2 here, and it backs every here-string with a
-# REAL FILE under /var/tmp: mode 1777, shared by every user on the box, kept
-# across reboots. These hooks screen a commit or PR body and a whole Bash
-# command with its heredocs inline, so `grep ... <<<"$body"` writes exactly the
-# content worth protecting onto a shared filesystem, while `< <(printf ...)`
-# writes nothing. No validator check can tell those two spellings apart, and
-# [84] actively prescribes the here-string, so THIS CASE IS THE ONLY THING IN
-# THE TREE that reddens if the hook is "tidied" back.
+# These hooks screen a commit or PR body and a whole Bash command with its
+# heredocs inline. Under a bash that backs a here-string with a REAL FILE, and
+# `/usr/bin/env bash` on macOS is bash 3.2, which backs one under /var/tmp at
+# mode 1777, shared by every user on the box and kept across reboots, a
+# `grep ... <<<"$body"` writes exactly the content worth protecting onto a shared
+# filesystem, while `< <(printf ...)` writes nothing. No validator check can tell
+# those two spellings apart, and [84] actively prescribes the here-string, so
+# THIS CASE IS THE ONLY THING IN THE TREE that reddens if the hook is "tidied"
+# back. A later bash backs a short here-string with a pipe instead, which is why
+# the positive control below redirects from a real file and not from a
+# here-string: the probe's ability to SEE disk must not depend on the platform,
+# or the whole case passes for free wherever it does not.
 #
 # It shadows `grep` on PATH with a stub reporting whether its OWN stdin is a
-# regular file, which a here-string's temp file is and a pipe or /dev/fd is not.
+# regular file, which a real file is and a pipe or /dev/fd is not.
 DISK_LOG="$TMPD/stdin-kind.log"
 STUB="$TMPD/stub"
 export DISK_LOG
@@ -178,11 +182,27 @@ say_eq() {
 
 # THE CONTROLS RUN FIRST, because a probe that cannot report `disk` would pass
 # this case no matter what the hook does, which is the unfalsifiable shape the
-# validator's own [0b] refuses one layer up.
-probe 'grep -q x <<<"probe body"'
-say_eq 'stdin probe control: a here-string IS a file on disk' disk "$(saw_disk)"
+# validator's own [0b] refuses one layer up. The positive control redirects from
+# a REAL FILE, which is a regular file on stdin under every bash. A here-string
+# is NOT that control: asserting one outcome for it asserts the platform rather
+# than the probe, and every Linux run then loses the control it depends on.
+PROBE_FILE="$TMPD/probe-on-disk"
+export PROBE_FILE
+printf 'probe body\n' >"$PROBE_FILE"
+probe 'grep -q x < "$PROBE_FILE"'
+say_eq 'stdin probe control: a redirect from a real file IS on disk' disk "$(saw_disk)"
 probe 'grep -q x < <(printf "probe body\n")'
 say_eq 'stdin probe control: a redirected process substitution is NOT' clean "$(saw_disk)"
+
+# Which spelling leaks is a property of the bash running the hook, so this one is
+# CLASSIFIED and never asserted. Where a here-string is file-backed the hook's
+# `< <(printf ...)` is load-bearing; where it is pipe-backed that hazard is
+# dormant on this platform. The assertion further down holds either way.
+probe 'grep -q x <<<"probe body"'
+case "$(saw_disk)" in
+  disk) printf 'note here-strings are FILE-backed under this bash, the <<< hazard is live\n' ;;
+  *)    printf 'note here-strings are PIPE-backed under this bash, the <<< hazard is dormant\n' ;;
+esac
 
 # The hook on a payload it MUST refuse, so one run asserts both halves: the ban
 # still fires, and nothing it read to decide that reached a file.

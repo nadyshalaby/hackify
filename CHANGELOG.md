@@ -5,6 +5,42 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.1] - 2026-09-03
+
+> **A control that existed to keep a security test honest only worked on one operating system, and
+> on the other the test it guarded had been passing for free.** Two hook suites assert that the
+> screened text, a commit body or a whole Bash command, never reaches a file on disk while the hook
+> decides whether to block it. That assertion is worth something only if the probe behind it could
+> report a leak when one happens, so a control ran first to prove it could. The control used a
+> here-string, on the reasoning that bash backs one with a real temp file under `/var/tmp`. That is
+> true of the bash 3.2 macOS ships and not of the bash on the Linux runner CI uses, which backs a
+> short here-string with a pipe.
+>
+> So on every CI run the control reported no disk access, failed, and the assertion after it passed
+> without the probe ever having been able to say otherwise. That is exactly the unfalsifiable shape
+> the control was written to prevent, and it had been that way on Linux for at least three releases
+> while every local run on macOS stayed green. The positive control now redirects from a real file,
+> which is a regular file on stdin under every bash, so it holds on both. Which spelling a
+> here-string gets is a property of the running bash and not of the hook, so the suite classifies
+> and prints that instead of asserting it.
+
+### Fixed
+
+- **The stdin probe's positive control no longer asserts a platform.** In
+  `hooks/test_block_banned_tokens.sh` and `hooks/test_block_ai_attribution.sh` the control
+  `a here-string IS a file on disk` was the only thing establishing that the probe could see disk
+  at all, and it reported `clean` under Linux bash, so the case it protected,
+  `no screened Bash command reached a file on disk`, could not have failed there. It is replaced by
+  a redirect from a real file, verified to report `disk` on bash 3.2 and independent of how any
+  bash backs a here-string. Proved three ways: blinding the probe stub reds the new control;
+  forcing the here-string case to a pipe, which is the Linux condition, keeps the suite at 62/62
+  with the control still reading `disk`; and tidying the hook back to `<<<` still reds
+  `no screened Bash command reached a file on disk` with `want clean got disk`.
+- **The here-string case is classified rather than asserted.** It prints whether this bash backs
+  one with a file or a pipe, so the record still says which spelling is dangerous on the platform
+  in hand, and neither answer can fail a run. The block comment no longer states the macOS backing
+  as a universal.
+
 ## [0.21.0] - 2026-09-03
 
 > **A dispatched agent only ever got the rules its own prompt named, and most prompts named
